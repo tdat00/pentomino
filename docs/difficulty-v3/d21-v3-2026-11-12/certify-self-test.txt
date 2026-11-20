@@ -1,0 +1,11 @@
+ok - a different central puzzle at 21: changed
+ok - a different central puzzle at 20: changed
+ok - a loss to 18: lost
+ok - no result: lost
+ok - the same result: same
+ok - a rerun that differs before the firing rating: irreproducible
+ok - a change of a result that was not central: changed
+ok - never fires (N = 16), identical rerun: none
+ok - never fires (N = 16), another result: irreproducible
+ok - never fires (a central rating), identical rerun: none
+10 of 10 synthetic cases classified as expected

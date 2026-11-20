@@ -7,18 +7,21 @@ import { createPuzzleNav } from '../../core/browser/puzzle-nav.js';
 import { puzzleSnapshot } from '../../core/browser/puzzle-snapshot.js';
 import { mountBoard, mountPiecePreview, svgEl } from '../../core/browser/svg-board.js';
 import { activeCount, boardToRows } from '../../core/engine/board.js';
+import { ratingDisplay } from '../../core/browser/display-rating.js';
 import { normalizeAngle } from '../../core/engine/view.js';
 import { has, t } from '../i18n.js';
 import {
-  MAX_SETS, batchLevelOf, describeLevels, generationBlock, isBusy, readyLevelId, setsFull,
+  MAX_SETS, batchLevelOf, describeLevels, displayEntryOf, generationBlock, isBusy, readyLevelId, replaySourceOf, setsFull,
 } from '../state.js';
 import { levelLabel } from '../strings.js';
+import { mountGenerationSteps } from './generation-steps.js';
 import { loc, locAttrs } from './i18n-dom.js';
 import { mountElapsed } from './elapsed.js';
 
 const CARD_PREVIEW_PX = 116;
 const DETAIL_BOARD_PX = 560;
 const DETAIL_PIECE_SCALE = 0.6;
+const STEPS_BOARD_PX = 240;
 const ZOOM_STEP = 1.25;
 
 /** @typedef {import('../state.js').GeneratorStore} GeneratorStore */
@@ -39,6 +42,12 @@ const ZOOM_STEP = 1.25;
  * @property {HTMLElement | null} [cardsActionsHost] Remove all button; defaults to above the cards.
  * @property {() => import('../../core/browser/puzzle-code-client.js').PuzzleCodeClient} [createPuzzleCodeClient] Makes
  *   the puzzle-code client of the Print dialog on first use (default: one module worker).
+ * @property {(source: import('./replay-model.js').ReplaySource, signal: AbortSignal) =>
+ *   Promise<import('../../core/engine/replay.js').ReplayResult>} [replay] Runs the replay of a puzzle for Generation
+ *   steps, the section under "Pieces to place". Without it step 3 has no such section.
+ * @property {Pick<import('./replay-cache.js').ReplayCache, 'load' | 'save'>} [replayCache] Keeps the replayed steps
+ *   between visits, so that showing the steps of a puzzle made before is instant; without it a puzzle is replayed again
+ *   after a reload.
  */
 
 let panelCounter = 0;
@@ -67,16 +76,39 @@ function actionButton(icon, key, action, className = '') {
 }
 
 /**
- * @param {Puzzle} puzzle
- * @returns {string}
+ * @param {{ level: string, score: number, saturated?: boolean }} rating
+ * @returns {string} The rating line: "Normal: score 14" (with "+" when the rating is capped).
  */
-export function describeRating(puzzle) {
-  const rating = puzzle.rating;
-  if (rating === null || rating === undefined) {
-    return t('card.noRating');
-  }
+function ratingLine(rating) {
   const score = Number.isFinite(rating.score) ? Math.round(rating.score) : 0;
   return t('card.rating', { level: levelLabel(rating.level), score: `${score}${rating.saturated === true ? '+' : ''}` });
+}
+
+/**
+ * @param {Puzzle} puzzle
+ * @param {import('../../core/browser/display-rating.js').DisplayEntry} [entry] The derived rating of the puzzle, when it has one.
+ * @returns {string} What the card shows: the rating line (the derived one once it is there), then each note after " · ".
+ */
+export function describeRating(puzzle, entry) {
+  const shown = ratingDisplay(puzzle.rating, entry, { t, levelLabel });
+  return shown === null ? t('card.noRating') : [ratingLine(shown.rating), ...shown.notes].join(' · ');
+}
+
+/**
+ * Draws what `describeRating` says: the level in bold, each note in a `rating-note` span.
+ * @param {HTMLElement} target
+ * @param {ReturnType<typeof ratingDisplay>} shown
+ */
+function drawRating(target, shown) {
+  if (shown === null) {
+    target.textContent = t('card.noRating');
+    return;
+  }
+  const line = ratingLine(shown.rating);
+  const level = levelLabel(shown.rating.level);
+  target.replaceChildren(
+    ...(level !== '' && line.startsWith(level) ? [el('strong', { text: level }), line.slice(level.length)] : [line]),
+    ...shown.notes.flatMap((note) => [' · ', el('span', { className: 'rating-note', text: note })]));
 }
 
 /**
@@ -94,6 +126,19 @@ export function describeCertificate(puzzle, o) {
 
 /**
  * @param {GeneratorState} state
+ * @param {Puzzle} puzzle
+ * @returns {import('../../core/browser/print-sheet.js').PrintLine[]} The lines under the title of the puzzle on paper: its
+ *   rating (the derived one once it is there) and the notes.
+ */
+function detailsOf(state, puzzle) {
+  const shown = ratingDisplay(puzzle.rating, displayEntryOf(state, puzzle), { t, levelLabel });
+  return puzzleDetails(t, shown === null
+    ? null
+    : { level: levelLabel(shown.rating.level), score: shown.rating.score, saturated: shown.rating.saturated, notes: shown.notes });
+}
+
+/**
+ * @param {GeneratorState} state
  * @param {string | null} selectedId Id of the puzzle shown in the main panel.
  * @returns {import('../../core/browser/print-dialog.js').PrintJob | null} What Print makes of that puzzle, with its card
  *   heading ("Puzzle #3") and a snapshot for the code. Null without a set or a selected puzzle.
@@ -105,7 +150,6 @@ export function printJobOf(state, selectedId) {
   }
   const { set } = state;
   const puzzle = state.puzzles[at];
-  const rating = puzzle.rating;
   const snapshot = puzzleSnapshot({
     rows: boardToRows(set.board), pieces: set.pieces, puzzle, index: at, rotation: state.rotation, untitled: (n) => t('card.heading', { n }),
   });
@@ -115,8 +159,7 @@ export function printJobOf(state, selectedId) {
     clues: puzzle.clues,
     rotation: state.rotation,
     title: t('card.heading', { n: at + 1 }),
-    details: puzzleDetails(t,
-      rating === null || rating === undefined ? null : { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated }),
+    details: detailsOf(state, puzzle),
     solution: puzzle.solution ?? null,
     snapshot,
   };
@@ -134,18 +177,13 @@ export function printListOf(state, selectedId) {
   }
   return {
     current: selectedId,
-    items: state.puzzles.map((puzzle, at) => {
-      const rating = puzzle.rating;
-      const lines = puzzleDetails(t,
-        rating === null || rating === undefined ? null : { level: levelLabel(rating.level), score: rating.score, saturated: rating.saturated });
-      return {
-        id: puzzle.id,
-        title: t('card.heading', { n: at + 1 }),
-        detail: lines.map((line) => line.map((part) => part.text).join('')).join(' '),
-        job: () => printJobOf(state, puzzle.id),
-        order: at,
-      };
-    }).reverse(),
+    items: state.puzzles.map((puzzle, at) => ({
+      id: puzzle.id,
+      title: t('card.heading', { n: at + 1 }),
+      detail: detailsOf(state, puzzle).map((line) => line.map((part) => part.text).join('')).join(' · '),
+      job: () => printJobOf(state, puzzle.id),
+      order: at,
+    })).reverse(),
   };
 }
 
@@ -224,6 +262,11 @@ export function mountPuzzlePanel(host, options) {
   });
   const detail = el('section', { className: 'puzzle-detail', attrs: { hidden: '' }, dataset: { role: 'puzzle-detail' } },
     nav.element, detailHead, detailFrame, el('div', { className: 'detail-solution' }, solutionButton), detailTrayTitle, detailPieces);
+  const steps = options.replay === undefined
+    ? null
+    : mountGenerationSteps(detail, {
+      t, run: options.replay, cache: options.replayCache, cellPxOf: (board) => thumbnailCellPx(board, STEPS_BOARD_PX),
+    });
   const noticeBox = options.noticeHost ?? el('div', { className: 'result-notice', attrs: { role: 'status' }, dataset: { role: 'notice' } });
   const cardList = el('ol', { className: 'puzzle-cards', attrs: { ...locAttrs({ 'aria-label': 'puzzles.list' }), id: `${uid}-cards` }, dataset: { role: 'cards' } });
   const emptyText = el('p', { className: 'hint', dataset: { role: 'empty' } });
@@ -352,11 +395,7 @@ export function mountPuzzlePanel(host, options) {
       card.remove.setAttribute('aria-label', removeLabel);
       card.remove.title = removeLabel;
       card.remove.disabled = busy;
-      const ratingText = describeRating(puzzle);
-      const levelText = puzzle.rating === null || puzzle.rating === undefined ? '' : levelLabel(puzzle.rating.level);
-      card.rating.replaceChildren(...(levelText !== '' && ratingText.startsWith(levelText)
-        ? [el('strong', { text: levelText }), ratingText.slice(levelText.length)]
-        : [ratingText]));
+      drawRating(card.rating, ratingDisplay(puzzle.rating, displayEntryOf(state, puzzle), { t, levelLabel }));
       card.toPlace.textContent = t('card.toPlace', { count: Math.max(0, current.pieces.length - puzzle.clues.length) });
       const certificate = describeCertificate(puzzle, { checking: checking.has(puzzle.id) || fresh });
       card.cert.textContent = certificate.text;
@@ -425,6 +464,7 @@ export function mountPuzzlePanel(host, options) {
       detailView = null;
       detailSet = null;
       clearDetailPieces();
+      steps?.show(null, { rotation: state.rotation, busy: isBusy(state) });
       return;
     }
     const puzzle = state.puzzles[at];
@@ -469,6 +509,7 @@ export function mountPuzzlePanel(host, options) {
       placements: solutionShown && solution !== null ? solution.filter((pose) => !clueIds.has(pose.piece)) : [],
       showLabels: true, showPatterns: true,
     });
+    steps?.show(replaySourceOf(state, puzzle.id), { rotation: state.rotation, busy: isBusy(state) });
     const signature = `${puzzle.id}|${state.rotation}`;
     if (signature === detailSignature) {
       return;
@@ -628,6 +669,7 @@ export function mountPuzzlePanel(host, options) {
     refresh: () => {
       elapsed.refresh();
       render(store.getState());
+      steps?.refreshTexts();
       // A language that changes the printed heading starts a new preparation of the open Print dialog.
       printDialog.refresh();
     },
@@ -644,6 +686,7 @@ export function mountPuzzlePanel(host, options) {
       listeners.length = 0;
       elapsed.destroy();
       printDialog.destroy();
+      steps?.dispose();
       for (const card of cards.values()) {
         card.view.destroy();
       }

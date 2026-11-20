@@ -95,7 +95,7 @@ import { createPool as createWorkerPool, isAbortError, PoolAbortError, PoolError
  */
 
 /** Codes a puzzle-code error reply may carry; any other worker error code is a service failure. */
-const CODEC_CODES = new Set(['empty', 'bad-char', 'dots', 'too-long', 'core-check', 'version', 'no-deflate', 'invalid', 'index']);
+const CODEC_CODES = new Set(['empty', 'bad-char', 'dots', 'too-long', 'core-check', 'version', 'no-deflate', 'invalid', 'duplicate-shape', 'index']);
 const TAIL_CODES = new Set(['tail-check', 'tail-tag', 'tail-invalid']);
 
 /** Developer texts; the apps show their own localized texts by `code`. */

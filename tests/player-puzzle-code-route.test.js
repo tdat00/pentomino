@@ -322,6 +322,35 @@ test('a bad link while a game is open changes nothing and is handed to the failu
   assert.equal(h.failures[0].failure.candidate.normalizedCode, change(CODE, 5));
 });
 
+test('a #p= code with two pieces of one shape is refused with the message and opens nothing, even over an open game', async () => {
+  // A 4 x 2 board and the mirror-image pair m1, m2, as the frozen payload writer writes it; only the pack check refuses it.
+  const twinCode = '1G1G84SWH7ADMRMP241063N6TCJB281860GGJ3S';
+  const params = { piece: 'm2', first: 'm1' };
+  const fresh = setup({ hash: `#p=${twinCode}` });
+  await fresh.controller.start();
+  assert.equal(fresh.failures.length, 1);
+  assert.deepEqual(fresh.failures[0].failure.issues.map((/** @type {any} */ i) => [i.code, i.params]), [['duplicate-shape', params]]);
+  assert.equal(fresh.state().pack, null, 'nothing opened');
+  assert.equal(fresh.state().screen, 'start');
+  assert.deepEqual(fresh.urls, []);
+
+  const open = setup();
+  await openSample(open);
+  playOneMove(open);
+  const before = open.state();
+  const result = await open.controller.openHash(`#p=${twinCode}`);
+  assert.equal(result.ok, false);
+  assert.equal(open.state().pack, before.pack, 'the open game stays');
+  assert.equal(open.state().game, before.game);
+  assert.equal(open.failures.at(-1).failure.issues[0].code, 'duplicate-shape');
+
+  const plain = setup({ callback: false });
+  assert.equal((await plain.controller.openHash(`#p=${twinCode}`)).ok, false);
+  assert.equal(plain.state().error?.code, 'duplicate-shape');
+  assert.equal(plain.state().error?.message, 'Pieces m2 and m1 have the same shape (mirror images count as the same shape), so this puzzle cannot be opened.');
+  assert.equal(plain.state().pack, null);
+});
+
 test('without a failure callback a bad #p= link is the store error; #pack= and #lib= are not routes any more', async () => {
   const h = setup({ callback: false });
   const bad = await h.controller.openHash(`#p=${change(CODE, 5)}`);

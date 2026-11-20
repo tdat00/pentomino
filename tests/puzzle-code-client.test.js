@@ -355,6 +355,36 @@ test('a worker error that is a codec error becomes typed issues; its candidate i
   assert.equal(pool.log.run[0].kind, 'decodePuzzleCode');
 });
 
+test('a piece set with two pieces of one shape is refused with its code, message and both ids, through the worker', async () => {
+  const twins = [
+    { id: 'm1', label: 'a', color: '#102030', cells: [[0, 0], [1, 0], [2, 0], [0, 1]] },
+    { id: 'm2', label: 'b', color: '#405060', cells: [[0, 0], [1, 0], [2, 0], [2, 1]] },
+  ];
+  // A 4 x 2 board and the mirror-image pair m1, m2, as the frozen payload writer writes it; only the pack check refuses it.
+  const twinCode = '1G1G84SWH7ADMRMP241063N6TCJB281860GGJ3S';
+  const { client } = nodeClient();
+  try {
+    const decoded = await client.decode(twinCode);
+    assert.ok(!decoded.ok);
+    assert.equal(decoded.issues[0].code, 'duplicate-shape');
+    assert.deepEqual(decoded.issues[0].params, { piece: 'm2', first: 'm1' });
+    assert.match(decoded.issues[0].message, /m2.*m1/);
+    const encoded = await client.encode({ ...sampleSnapshot(), rows: ['####', '####'], clues: [], solution: null, rating: null, certificate: null, pieces: /** @type {any} */ (twins) });
+    assert.ok(!encoded.ok);
+    assert.equal(encoded.issues[0].code, 'duplicate-shape');
+    assert.deepEqual(encoded.issues[0].params, { piece: 'm2', first: 'm1' });
+    assert.ok((await client.decode(CODE)).ok, 'the worker is still usable');
+  } finally {
+    client.dispose();
+  }
+  const pool = fakePool(() => Promise.reject(new WorkerTaskError('duplicate-shape', 'Piece b has the same shape as piece a', [
+    { code: 'duplicate-shape', path: '$', message: 'Piece b has the same shape as piece a', params: { piece: 'b', first: 'a' } },
+  ])));
+  const passed = await createPuzzleCodeClient({ pool: /** @type {any} */ (pool) }).decode(CODE);
+  assert.ok(!passed.ok);
+  assert.deepEqual(passed.issues, [{ code: 'duplicate-shape', path: '$', message: 'Piece b has the same shape as piece a', params: { piece: 'b', first: 'a' } }]);
+});
+
 test('each operation begins one request with an unused ID and revision, sends one task and ends the request', async () => {
   const pool = fakePool(async (task) => (task.kind === 'decodePuzzleCode'
     ? { pack: onePuzzle, hasTail: true, tailError: null }

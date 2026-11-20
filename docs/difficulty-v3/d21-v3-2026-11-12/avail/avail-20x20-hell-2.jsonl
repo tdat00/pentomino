@@ -1,0 +1,11 @@
+{"kind":"event","tag":"untagged","label":"avail-20x20-hell-2","ev":"start","levelId":"hell-2","seedText":"t18-big-a","attempts":3,"cols":20,"rows":20,"blocked":0,"area":400}
+{"kind":"call","tag":"avail-20x20-hell-2/set/0","mode":"any","K":51,"target":{"min":112,"max":162,"share":0.06},"excluded":0,"ms":39202.8,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"avail-20x20-hell-2/set/0","capped":20,"cappedWork":15217048402}
+{"kind":"event","tag":"avail-20x20-hell-2/set/0","label":"avail-20x20-hell-2","ev":"set-attempt","j":0,"ok":false,"reason":"not-in-band","K":null,"calibrationScore":null}
+{"kind":"call","tag":"avail-20x20-hell-2/set/1","mode":"any","K":58,"target":{"min":112,"max":162,"share":0.06},"excluded":0,"ms":40908,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"avail-20x20-hell-2/set/1","capped":20,"cappedWork":15217623115}
+{"kind":"event","tag":"avail-20x20-hell-2/set/1","label":"avail-20x20-hell-2","ev":"set-attempt","j":1,"ok":false,"reason":"not-in-band","K":null,"calibrationScore":null}
+{"kind":"call","tag":"avail-20x20-hell-2/set/2","mode":"any","K":52,"target":{"min":112,"max":162,"share":0.06},"excluded":0,"ms":41568.8,"ratings":[],"repairs":[],"result":{"ok":false,"reason":"not-in-band"}}
+{"kind":"spent","tag":"avail-20x20-hell-2/set/2","capped":20,"cappedWork":15218215682}
+{"kind":"event","tag":"avail-20x20-hell-2/set/2","label":"avail-20x20-hell-2","ev":"set-attempt","j":2,"ok":false,"reason":"not-in-band","K":null,"calibrationScore":null}
+{"kind":"event","tag":"avail-20x20-hell-2/set/2","label":"avail-20x20-hell-2","ev":"end"}

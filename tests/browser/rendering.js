@@ -44,16 +44,21 @@ function listenerCount(target) {
 }
 
 /**
+ * Runs one check between a CHECK-START and a CHECK-END console line, which the runner's watchdog reads (GB-P5).
  * @param {string} name
  * @param {() => void | Promise<void>} fn
  */
 async function check(name, fn) {
+  console.log(`CHECK-START ${name}`);
+  const started = performance.now();
   try {
     await fn();
     results.push({ name, ok: true });
   } catch (error) {
     results.push({ name, ok: false, error: String(/** @type {Error} */ (error)?.stack ?? error) });
   }
+  const seconds = Math.round((performance.now() - started) / 100) / 10;
+  console.log(`CHECK-END ${results[results.length - 1].ok ? 'PASS' : 'FAIL'} ${seconds} s ${name}`);
 }
 
 /**
@@ -643,6 +648,20 @@ await check('Touch targets: common.css enlarges controls to 44 px on coarse poin
     }
   }
   assert(found, 'no coarse-pointer 44px rule');
+});
+
+await check('Generation Steps: highlightedIds outlines the pieces it names, and without it nothing is outlined', () => {
+  for (const mode of /** @type {const} */ (['play', 'thumbnail'])) {
+    const host = makeHost(420, 280);
+    const view = mountBoard(host, { mode, rotation: 0, cellPx: 36 });
+    view.render(packModel({ highlightedIds: ['C'] }));
+    const group = view.svg.querySelector('g.pm-piece[data-piece-id="C"]');
+    assert(group !== null && group.getAttribute('data-highlighted') === 'true' && group.querySelector('path.pm-highlight') !== null, `${mode}: piece C is outlined`);
+    assert(view.svg.querySelectorAll('[data-highlighted="true"]').length === 1 && view.svg.querySelectorAll('.pm-highlight').length === 1, `${mode}: only piece C is outlined`);
+    view.render(packModel());
+    assert(view.svg.querySelector('.pm-highlight') === null && view.svg.querySelector('[data-highlighted]') === null, `${mode}: no outline without highlightedIds`);
+    view.destroy();
+  }
 });
 
 await check('TAC-4: no CSP violations and no inline style attributes', () => {

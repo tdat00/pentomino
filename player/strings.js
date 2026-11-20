@@ -69,6 +69,8 @@ export function messageForIssues(issues) {
       return INDEX_MESSAGE;
     case 'load-failed':
       return String(first.message);
+    case 'duplicate-shape':
+      return t('msg.duplicateShape', first.params ?? { piece: '?', first: '?' });
     default:
       return invalidPackMessage(first ? String(first.message) : t('msg.unreadable'));
   }

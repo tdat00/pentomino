@@ -1,0 +1,4139 @@
+{
+  "format": "pentomino-pack",
+  "version": 1,
+  "kind": "puzzle-pack",
+  "rules": "free-polyomino-v1",
+  "board": {
+    "rows": [
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################",
+      "##################"
+    ]
+  },
+  "presentation": {
+    "rotation": 0
+  },
+  "pieces": [
+    {
+      "id": "A",
+      "label": "A",
+      "color": "#e6194b",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "B",
+      "label": "B",
+      "color": "#3cb44b",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          0,
+          5
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          3,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "C",
+      "label": "C",
+      "color": "#ffe119",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "D",
+      "label": "D",
+      "color": "#4363d8",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          3,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "E",
+      "label": "E",
+      "color": "#f58231",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          6,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "F",
+      "label": "F",
+      "color": "#911eb4",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "G",
+      "label": "G",
+      "color": "#42d4f4",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "H",
+      "label": "H",
+      "color": "#f032e6",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "I",
+      "label": "I",
+      "color": "#bfef45",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          2,
+          6
+        ],
+        [
+          3,
+          6
+        ]
+      ]
+    },
+    {
+      "id": "J",
+      "label": "J",
+      "color": "#fabed4",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          3,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "K",
+      "label": "K",
+      "color": "#469990",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "L",
+      "label": "L",
+      "color": "#dcbeff",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          5,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "M",
+      "label": "M",
+      "color": "#9a6324",
+      "cells": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          1,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "N",
+      "label": "N",
+      "color": "#fffac8",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1
+        ],
+        [
+          8,
+          1
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "O",
+      "label": "O",
+      "color": "#800000",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          4,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "P",
+      "label": "P",
+      "color": "#aaffc3",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          5,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "Q",
+      "label": "Q",
+      "color": "#808000",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "R",
+      "label": "R",
+      "color": "#ffd8b1",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "S",
+      "label": "S",
+      "color": "#000075",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          4,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "T",
+      "label": "T",
+      "color": "#a9a9a9",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "U",
+      "label": "U",
+      "color": "#2841bd",
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    }
+  ],
+  "witness": [
+    {
+      "piece": "A",
+      "x": 0,
+      "y": 14,
+      "turn": 2,
+      "mirrored": false
+    },
+    {
+      "piece": "B",
+      "x": 9,
+      "y": 5,
+      "turn": 2,
+      "mirrored": false
+    },
+    {
+      "piece": "C",
+      "x": 12,
+      "y": 15,
+      "turn": 2,
+      "mirrored": true
+    },
+    {
+      "piece": "D",
+      "x": 6,
+      "y": 11,
+      "turn": 0,
+      "mirrored": false
+    },
+    {
+      "piece": "E",
+      "x": 0,
+      "y": 6,
+      "turn": 3,
+      "mirrored": true
+    },
+    {
+      "piece": "F",
+      "x": 12,
+      "y": 11,
+      "turn": 0,
+      "mirrored": false
+    },
+    {
+      "piece": "G",
+      "x": 10,
+      "y": 1,
+      "turn": 2,
+      "mirrored": false
+    },
+    {
+      "piece": "H",
+      "x": 6,
+      "y": 5,
+      "turn": 0,
+      "mirrored": true
+    },
+    {
+      "piece": "I",
+      "x": 0,
+      "y": 5,
+      "turn": 0,
+      "mirrored": true
+    },
+    {
+      "piece": "J",
+      "x": 11,
+      "y": 5,
+      "turn": 2,
+      "mirrored": false
+    },
+    {
+      "piece": "K",
+      "x": 6,
+      "y": 15,
+      "turn": 2,
+      "mirrored": true
+    },
+    {
+      "piece": "L",
+      "x": 8,
+      "y": 0,
+      "turn": 0,
+      "mirrored": false
+    },
+    {
+      "piece": "M",
+      "x": 7,
+      "y": 12,
+      "turn": 1,
+      "mirrored": true
+    },
+    {
+      "piece": "N",
+      "x": 3,
+      "y": 7,
+      "turn": 1,
+      "mirrored": true
+    },
+    {
+      "piece": "O",
+      "x": 6,
+      "y": 6,
+      "turn": 3,
+      "mirrored": false
+    },
+    {
+      "piece": "P",
+      "x": 4,
+      "y": 0,
+      "turn": 2,
+      "mirrored": false
+    },
+    {
+      "piece": "Q",
+      "x": 13,
+      "y": 11,
+      "turn": 1,
+      "mirrored": true
+    },
+    {
+      "piece": "R",
+      "x": 0,
+      "y": 2,
+      "turn": 2,
+      "mirrored": false
+    },
+    {
+      "piece": "S",
+      "x": 0,
+      "y": 12,
+      "turn": 3,
+      "mirrored": false
+    },
+    {
+      "piece": "T",
+      "x": 0,
+      "y": 0,
+      "turn": 0,
+      "mirrored": false
+    },
+    {
+      "piece": "U",
+      "x": 12,
+      "y": 0,
+      "turn": 0,
+      "mirrored": true
+    }
+  ],
+  "puzzles": [
+    {
+      "id": "p91425b9619a1",
+      "title": "Master #1",
+      "seed": "landscape/18x20-master/2#1",
+      "clues": [
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 10,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "Q",
+          "x": 13,
+          "y": 11,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "U",
+          "x": 12,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 14,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 9,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 10,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 6,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 11,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "L",
+          "x": 8,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "M",
+          "x": 7,
+          "y": 12,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "O",
+          "x": 6,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "P",
+          "x": 4,
+          "y": 0,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "Q",
+          "x": 13,
+          "y": 11,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "S",
+          "x": 0,
+          "y": 12,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "U",
+          "x": 12,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 45,
+        "level": "master",
+        "saturated": false,
+        "censored": true,
+        "metrics": {
+          "U": 16,
+          "R": 278,
+          "H": 9.523579770899703,
+          "B": 94,
+          "branchTrials": 94,
+          "rowTrials": 107,
+          "dlxStop": "solution",
+          "searchStop": "solution-limit",
+          "F": 10,
+          "E": 9,
+          "rules": {
+            "R1": 10,
+            "R2": 0,
+            "R3": 0,
+            "R4": 15,
+            "R5": 0,
+            "R6": 9,
+            "R7": 0,
+            "R8": 563,
+            "R9": 96
+          },
+          "deductionTier": 3,
+          "tier": 4,
+          "G": 5,
+          "info": 14.217048913556336,
+          "Cmax": 23,
+          "Dmax": 9,
+          "Gt": 10,
+          "nodes": 69,
+          "work": 34864943,
+          "S": 8,
+          "solutionLimit": 8,
+          "solutions": "many",
+          "censusComplete": false,
+          "censusUndecided": 26,
+          "censusNodes": 9,
+          "censusWork": 10240126,
+          "Gproved": 5
+        }
+      }
+    },
+    {
+      "id": "pcd7c5121deaf",
+      "title": "Master #2",
+      "seed": "landscape/18x20-master/2#1",
+      "clues": [
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 9,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "O",
+          "x": 14,
+          "y": 5,
+          "turn": 1,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 6,
+          "y": 5,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 11,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 13,
+          "y": 11,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 10,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 11,
+          "y": 6,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 13,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 7,
+          "y": 6,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "L",
+          "x": 8,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "M",
+          "x": 7,
+          "y": 12,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 9,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "O",
+          "x": 14,
+          "y": 5,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "P",
+          "x": 4,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "Q",
+          "x": 12,
+          "y": 11,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "S",
+          "x": 0,
+          "y": 7,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "T",
+          "x": 0,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "U",
+          "x": 12,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 44,
+        "level": "master",
+        "saturated": false,
+        "metrics": {
+          "U": 17,
+          "R": 291,
+          "H": 9.192815918458894,
+          "B": 45,
+          "branchTrials": 45,
+          "rowTrials": 56,
+          "dlxStop": "solution",
+          "searchStop": "solution-limit",
+          "F": 12,
+          "E": 8,
+          "rules": {
+            "R1": 12,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 118,
+            "R6": 8,
+            "R7": 60,
+            "R8": 434,
+            "R9": 0
+          },
+          "deductionTier": 3,
+          "tier": 4,
+          "G": 5,
+          "info": 11.22881869049588,
+          "Cmax": 24,
+          "Dmax": 14,
+          "Gt": 7,
+          "nodes": 87,
+          "work": 18356386,
+          "S": 8,
+          "solutionLimit": 8,
+          "solutions": "many",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 39,
+          "censusWork": 8665504,
+          "Gproved": 5
+        }
+      }
+    },
+    {
+      "id": "p7ffe19919d0d",
+      "title": "Master #3",
+      "seed": "landscape/18x20-master/2#1",
+      "clues": [
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "S",
+          "x": 0,
+          "y": 12,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 13,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 14,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 6,
+          "y": 5,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 11,
+          "y": 5,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 7,
+          "y": 5,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "L",
+          "x": 4,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "M",
+          "x": 7,
+          "y": 13,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "O",
+          "x": 14,
+          "y": 6,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "P",
+          "x": 8,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "Q",
+          "x": 13,
+          "y": 11,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "R",
+          "x": 11,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "S",
+          "x": 0,
+          "y": 12,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 13,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "U",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 48,
+        "level": "master",
+        "saturated": false,
+        "censored": true,
+        "metrics": {
+          "U": 18,
+          "R": 315,
+          "H": 9.612146812422445,
+          "B": 82,
+          "branchTrials": 82,
+          "rowTrials": 103,
+          "dlxStop": "solution",
+          "searchStop": "solution-limit",
+          "F": 13,
+          "E": 4,
+          "rules": {
+            "R1": 13,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 4,
+            "R7": 0,
+            "R8": 235,
+            "R9": 0
+          },
+          "deductionTier": 3,
+          "tier": 4,
+          "G": 5,
+          "info": 19.072300115928336,
+          "Cmax": 29,
+          "Dmax": 15,
+          "Gt": 7,
+          "nodes": 137,
+          "work": 22543592,
+          "S": 8,
+          "solutionLimit": 8,
+          "solutions": "many",
+          "censusComplete": false,
+          "censusUndecided": 9,
+          "censusNodes": 45,
+          "censusWork": 10288809,
+          "Gproved": 5
+        }
+      }
+    },
+    {
+      "id": "p514c51882f6a",
+      "title": "Master #4",
+      "seed": "landscape/18x20-master/2#1",
+      "clues": [
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 9,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "S",
+          "x": 0,
+          "y": 7,
+          "turn": 3,
+          "mirrored": true
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 6,
+          "y": 5,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 11,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 10,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 11,
+          "y": 6,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 13,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 7,
+          "y": 6,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "L",
+          "x": 8,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "M",
+          "x": 6,
+          "y": 12,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 9,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "O",
+          "x": 14,
+          "y": 5,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "P",
+          "x": 4,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "Q",
+          "x": 13,
+          "y": 11,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "S",
+          "x": 0,
+          "y": 7,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "T",
+          "x": 0,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "U",
+          "x": 12,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 46,
+        "level": "master",
+        "saturated": false,
+        "censored": true,
+        "metrics": {
+          "U": 17,
+          "R": 293,
+          "H": 9.780938341033746,
+          "B": 74,
+          "branchTrials": 74,
+          "rowTrials": 86,
+          "dlxStop": "solution",
+          "searchStop": "solution-limit",
+          "F": 12,
+          "E": 8,
+          "rules": {
+            "R1": 12,
+            "R2": 0,
+            "R3": 0,
+            "R4": 11,
+            "R5": 0,
+            "R6": 8,
+            "R7": 0,
+            "R8": 200,
+            "R9": 0
+          },
+          "deductionTier": 3,
+          "tier": 4,
+          "G": 5,
+          "info": 17.054095520550746,
+          "Cmax": 30,
+          "Dmax": 10,
+          "Gt": 7,
+          "nodes": 117,
+          "work": 35362913,
+          "S": 8,
+          "solutionLimit": 8,
+          "solutions": "many",
+          "censusComplete": false,
+          "censusUndecided": 27,
+          "censusNodes": 17,
+          "censusWork": 10291434,
+          "Gproved": 5
+        }
+      }
+    },
+    {
+      "id": "p97b0860f4dec",
+      "title": "Master #5",
+      "seed": "landscape/18x20-master/2#1",
+      "clues": [
+        {
+          "piece": "M",
+          "x": 6,
+          "y": 12,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "O",
+          "x": 6,
+          "y": 5,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "P",
+          "x": 8,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 13,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 14,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 9,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 13,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 6,
+          "y": 6,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 11,
+          "y": 6,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "L",
+          "x": 4,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "M",
+          "x": 6,
+          "y": 12,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "O",
+          "x": 6,
+          "y": 5,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "P",
+          "x": 8,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "Q",
+          "x": 12,
+          "y": 14,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "R",
+          "x": 11,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "S",
+          "x": 0,
+          "y": 12,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 13,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "U",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 45,
+        "level": "master",
+        "saturated": false,
+        "metrics": {
+          "U": 17,
+          "R": 297,
+          "H": 8.972383176027103,
+          "B": 184,
+          "branchTrials": 184,
+          "rowTrials": 209,
+          "dlxStop": "solution",
+          "searchStop": "solution-limit",
+          "F": 12,
+          "E": 3,
+          "rules": {
+            "R1": 12,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 3,
+            "R7": 72,
+            "R8": 173,
+            "R9": 0
+          },
+          "deductionTier": 3,
+          "tier": 4,
+          "G": 5,
+          "info": 14.214319120800766,
+          "Cmax": 24,
+          "Dmax": 12,
+          "Gt": 10,
+          "nodes": 103,
+          "work": 28296754,
+          "S": 8,
+          "solutionLimit": 8,
+          "solutions": "many",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 30,
+          "censusWork": 5267663,
+          "Gproved": 5
+        }
+      }
+    },
+    {
+      "id": "p2abee1997274",
+      "title": "Master #6",
+      "seed": "landscape/18x20-master/2#1",
+      "clues": [
+        {
+          "piece": "F",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 6,
+          "y": 6,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "P",
+          "x": 4,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "T",
+          "x": 0,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 9,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 11,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 10,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 6,
+          "y": 6,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 13,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 11,
+          "y": 6,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "L",
+          "x": 8,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "M",
+          "x": 6,
+          "y": 12,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 9,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "O",
+          "x": 6,
+          "y": 5,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "P",
+          "x": 4,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "Q",
+          "x": 13,
+          "y": 14,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "S",
+          "x": 0,
+          "y": 7,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "T",
+          "x": 0,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "U",
+          "x": 12,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 45,
+        "level": "master",
+        "saturated": false,
+        "censored": true,
+        "metrics": {
+          "U": 16,
+          "R": 279,
+          "H": 9.085948910649948,
+          "B": 127,
+          "branchTrials": 127,
+          "rowTrials": 149,
+          "dlxStop": "solution",
+          "searchStop": "solution-limit",
+          "F": 10,
+          "E": 3,
+          "rules": {
+            "R1": 10,
+            "R2": 0,
+            "R3": 0,
+            "R4": 15,
+            "R5": 0,
+            "R6": 3,
+            "R7": 594,
+            "R8": 325,
+            "R9": 96
+          },
+          "deductionTier": 3,
+          "tier": 4,
+          "G": 5,
+          "info": 13.436711542137212,
+          "Cmax": 22,
+          "Dmax": 11,
+          "Gt": 12,
+          "nodes": 147,
+          "work": 28192680,
+          "S": 8,
+          "solutionLimit": 8,
+          "solutions": "many",
+          "censusComplete": false,
+          "censusUndecided": 4,
+          "censusNodes": 37,
+          "censusWork": 10177867,
+          "Gproved": 5
+        }
+      }
+    },
+    {
+      "id": "pbb5bab7d7695",
+      "title": "Master #7",
+      "seed": "landscape/18x20-master/2#1",
+      "clues": [
+        {
+          "piece": "J",
+          "x": 11,
+          "y": 6,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "L",
+          "x": 8,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "M",
+          "x": 6,
+          "y": 13,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "U",
+          "x": 12,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 5,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 9,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 11,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 13,
+          "y": 11,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 10,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 6,
+          "y": 6,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 13,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 11,
+          "y": 6,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "L",
+          "x": 8,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "M",
+          "x": 6,
+          "y": 13,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "N",
+          "x": 0,
+          "y": 9,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "O",
+          "x": 6,
+          "y": 5,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "P",
+          "x": 4,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "Q",
+          "x": 12,
+          "y": 11,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "S",
+          "x": 2,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 0,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "U",
+          "x": 12,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 45,
+        "level": "master",
+        "saturated": false,
+        "metrics": {
+          "U": 16,
+          "R": 283,
+          "H": 8.941399330179983,
+          "B": 103,
+          "branchTrials": 103,
+          "rowTrials": 125,
+          "dlxStop": "solution",
+          "searchStop": "solution-limit",
+          "F": 11,
+          "E": 1,
+          "rules": {
+            "R1": 11,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 1,
+            "R7": 72,
+            "R8": 188,
+            "R9": 0
+          },
+          "deductionTier": 3,
+          "tier": 4,
+          "G": 5,
+          "info": 13.206098613995797,
+          "Cmax": 24,
+          "Dmax": 11,
+          "Gt": 6,
+          "nodes": 86,
+          "work": 12509076,
+          "S": 8,
+          "solutionLimit": 8,
+          "solutions": "many",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 27,
+          "censusWork": 4426285,
+          "Gproved": 5
+        }
+      }
+    },
+    {
+      "id": "p3edbfa0906da",
+      "title": "Master #8",
+      "seed": "landscape/18x20-master/2#1",
+      "clues": [
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 11,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "R",
+          "x": 11,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 13,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 14,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 9,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 6,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 6,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 11,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "L",
+          "x": 4,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "M",
+          "x": 7,
+          "y": 12,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 7,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "O",
+          "x": 6,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "P",
+          "x": 8,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "Q",
+          "x": 13,
+          "y": 11,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "R",
+          "x": 11,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "S",
+          "x": 0,
+          "y": 12,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 13,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "U",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 44,
+        "level": "master",
+        "saturated": false,
+        "censored": true,
+        "metrics": {
+          "U": 16,
+          "R": 275,
+          "H": 9.783887470685096,
+          "B": 118,
+          "branchTrials": 118,
+          "rowTrials": 135,
+          "dlxStop": "solution",
+          "searchStop": "solution-limit",
+          "F": 10,
+          "E": 4,
+          "rules": {
+            "R1": 10,
+            "R2": 0,
+            "R3": 0,
+            "R4": 15,
+            "R5": 0,
+            "R6": 4,
+            "R7": 0,
+            "R8": 530,
+            "R9": 96
+          },
+          "deductionTier": 3,
+          "tier": 4,
+          "G": 5,
+          "info": 13.048146254219562,
+          "Cmax": 22,
+          "Dmax": 11,
+          "Gt": 12,
+          "nodes": 142,
+          "work": 31846388,
+          "S": 8,
+          "solutionLimit": 8,
+          "solutions": "many",
+          "censusComplete": false,
+          "censusUndecided": 4,
+          "censusNodes": 35,
+          "censusWork": 10293180,
+          "Gproved": 5
+        }
+      }
+    },
+    {
+      "id": "p0965e543ebd4",
+      "title": "Master #9",
+      "seed": "landscape/18x20-master/2#1",
+      "clues": [
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 11,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "P",
+          "x": 4,
+          "y": 0,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 5,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 9,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 3,
+          "y": 11,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "G",
+          "x": 10,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "H",
+          "x": 6,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 13,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 11,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "L",
+          "x": 8,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "M",
+          "x": 6,
+          "y": 13,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "N",
+          "x": 0,
+          "y": 9,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "O",
+          "x": 6,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "P",
+          "x": 4,
+          "y": 0,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "Q",
+          "x": 13,
+          "y": 11,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 2,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "S",
+          "x": 2,
+          "y": 7,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "U",
+          "x": 12,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 44,
+        "level": "master",
+        "saturated": false,
+        "censored": true,
+        "metrics": {
+          "U": 17,
+          "R": 291,
+          "H": 9.48467476070707,
+          "B": 81,
+          "branchTrials": 81,
+          "rowTrials": 98,
+          "dlxStop": "solution",
+          "searchStop": "solution-limit",
+          "F": 12,
+          "E": 9,
+          "rules": {
+            "R1": 12,
+            "R2": 0,
+            "R3": 0,
+            "R4": 184,
+            "R5": 218,
+            "R6": 9,
+            "R7": 0,
+            "R8": 412,
+            "R9": 0
+          },
+          "deductionTier": 3,
+          "tier": 4,
+          "G": 5,
+          "info": 12.487337615207181,
+          "Cmax": 29,
+          "Dmax": 14,
+          "Gt": 7,
+          "nodes": 129,
+          "work": 20332642,
+          "S": 8,
+          "solutionLimit": 8,
+          "solutions": "many",
+          "censusComplete": false,
+          "censusUndecided": 2,
+          "censusNodes": 66,
+          "censusWork": 10232145,
+          "Gproved": 5
+        }
+      }
+    },
+    {
+      "id": "pab16c6e59a69",
+      "title": "Master #10",
+      "seed": "landscape/18x20-master/2#1",
+      "clues": [
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "O",
+          "x": 6,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 13,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        }
+      ],
+      "solution": [
+        {
+          "piece": "A",
+          "x": 0,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "B",
+          "x": 9,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 12,
+          "y": 11,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 15,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 11,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "F",
+          "x": 12,
+          "y": 15,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 0,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 6,
+          "y": 5,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "I",
+          "x": 0,
+          "y": 13,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "J",
+          "x": 11,
+          "y": 5,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "K",
+          "x": 6,
+          "y": 11,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "L",
+          "x": 4,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "M",
+          "x": 6,
+          "y": 13,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 9,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "O",
+          "x": 6,
+          "y": 6,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "P",
+          "x": 8,
+          "y": 0,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "Q",
+          "x": 13,
+          "y": 14,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "R",
+          "x": 11,
+          "y": 2,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "S",
+          "x": 0,
+          "y": 7,
+          "turn": 3,
+          "mirrored": true
+        },
+        {
+          "piece": "T",
+          "x": 13,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "U",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        }
+      ],
+      "rating": {
+        "model": "difficulty-v3",
+        "score": 44,
+        "level": "master",
+        "saturated": false,
+        "metrics": {
+          "U": 17,
+          "R": 290,
+          "H": 8.947829288088666,
+          "B": 62,
+          "branchTrials": 62,
+          "rowTrials": 72,
+          "dlxStop": "solution",
+          "searchStop": "exhausted",
+          "F": 12,
+          "E": 8,
+          "rules": {
+            "R1": 12,
+            "R2": 0,
+            "R3": 0,
+            "R4": 0,
+            "R5": 0,
+            "R6": 8,
+            "R7": 56,
+            "R8": 897,
+            "R9": 0
+          },
+          "deductionTier": 3,
+          "tier": 4,
+          "G": 5,
+          "info": 11.007027266893969,
+          "Cmax": 12,
+          "Dmax": 12,
+          "Gt": 5,
+          "nodes": 36,
+          "work": 16357494,
+          "S": 4,
+          "solutionLimit": 8,
+          "solutions": "few",
+          "censusComplete": true,
+          "censusUndecided": 0,
+          "censusNodes": 0,
+          "censusWork": 0,
+          "Gproved": 5
+        }
+      }
+    }
+  ],
+  "generation": {
+    "app": "pentomino-generator/1.0.0",
+    "algo": "gen-v3",
+    "policy": "mixed-v2",
+    "rng": "xoshiro128ss-v1",
+    "seedScheme": "seed-sha256-v1",
+    "setSeed": "landscape/18x20-master/2",
+    "setLevel": "master",
+    "setAttempt": 0,
+    "carving": "macro",
+    "macroRegion": [
+      1,
+      2,
+      4,
+      3,
+      1,
+      4,
+      0,
+      2,
+      1,
+      2,
+      3,
+      0,
+      3,
+      1,
+      2,
+      0,
+      4,
+      0,
+      1,
+      0,
+      0
+    ],
+    "batchSeed": "landscape/18x20-master/2#1",
+    "batchLevel": "master",
+    "batchIndex": 1,
+    "uniqueness": "any",
+    "createdAt": "2026-11-13T07:07:12.360Z"
+  }
+}

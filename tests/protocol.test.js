@@ -1,5 +1,6 @@
 // @ts-check
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 
 import {
@@ -34,6 +35,42 @@ const snapshot = () => ({
 });
 const CODE = '1D0J492G47DMXNG6YCP10HCY05KZW8S4HCN2QR.18V3WE';
 
+const V3_METRICS = {
+  U: 7, R: 35, H: 3.5, B: 12, branchTrials: 12, rowTrials: 40, dlxStop: 'solution', searchStop: 'exhausted',
+  F: 4, E: 0, rules: { R1: 3, R2: 1, R3: 0, R4: 2, R5: 0, R6: 0, R7: 0, R8: 58, R9: 0 }, deductionTier: 3, tier: 4,
+  G: 2, info: 3.321928094887362, Cmax: 5, Dmax: 2, Gt: 2, nodes: 8, work: 123456, S: 1, solutionLimit: 8,
+  solutions: 'unique', censusComplete: true, censusUndecided: 0, censusNodes: 0, censusWork: 0, Gproved: 2,
+};
+const V3_CLAIM = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, metrics: V3_METRICS };
+// An estimate: the census did not finish.
+const V3_ESTIMATE = {
+  model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, censored: true,
+  metrics: {
+    ...V3_METRICS, S: 8, searchStop: 'solution-limit', solutions: 'many', censusComplete: false,
+    censusUndecided: 3, nodes: 18, censusNodes: 10, censusWork: 5000, Gproved: 1,
+  },
+};
+const V3_SUMMARY = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, censored: true };
+
+const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case.json', import.meta.url), 'utf8'));
+/**
+ * The replay payload of one fixture puzzle, as the Generator's client builds it (design §8.1): the set of its pack in
+ * wire form, the puzzle's id, clues, solution and rating, and the pack's set origin with the puzzle's own `made` record.
+ * @param {number} [puzzleIndex]
+ */
+const replayPayload = (puzzleIndex = 0) => {
+  const pack = structuredClone(REPLAY_FIXTURE.packs[0]);
+  const puzzle = pack.puzzles[puzzleIndex];
+  return {
+    set: {
+      boardRows: pack.board.rows, pieces: pack.pieces, witness: pack.witness, carving: pack.generation.carving,
+      macroRegion: pack.generation.macroRegion,
+    },
+    puzzle: { id: puzzle.id, clues: puzzle.clues, solution: puzzle.solution, rating: puzzle.rating },
+    generation: { setOrigin: pack.generation.setOrigin, made: { [puzzle.id]: pack.generation.made[puzzle.id] } },
+  };
+};
+
 /** @type {Record<string, () => any>} */
 const PAYLOADS = {
   setAttempt: () => ({ boardRows: rows, rotation: 45, levelId: 'hard', seedText: 'demo', uniqueness: 'any', attempt: 3 }),
@@ -65,6 +102,7 @@ const PAYLOADS = {
   }),
   encodePuzzleCode: () => ({ snapshot: snapshot() }),
   decodePuzzleCode: () => ({ text: CODE }),
+  replayPuzzle: () => replayPayload(),
 };
 
 /**
@@ -247,6 +285,21 @@ describe('task messages', () => {
     assert.ok(task('encodePuzzleCode', { snapshot: { ...snapshot(), rating: { model: 'foreign-v9', score: 4.5, level: 'who knows', censored: true } } }).ok);
   });
 
+  test('puzzle-code snapshots keep difficulty-v3 claims and summaries field for field', () => {
+    for (const rating of [V3_ESTIMATE, V3_SUMMARY, V3_CLAIM]) {
+      const parsed = validatePayload('encodePuzzleCode', { snapshot: { ...snapshot(), rating } });
+      const expected = JSON.stringify(rating);
+      assert.ok(parsed.ok, expected);
+      const copy = /** @type {any} */ (parsed.value).snapshot.rating;
+      assert.equal(JSON.stringify(copy), expected, 'no field dropped, added or reordered');
+      assert.notEqual(copy, rating);
+      if ('metrics' in rating) {
+        assert.notEqual(copy.metrics, rating.metrics);
+        assert.notEqual(copy.metrics.rules, rating.metrics.rules);
+      }
+    }
+  });
+
   test('puzzle-code snapshots reject unknown fields, wrong types and unbounded metrics', () => {
     const deep = (/** @type {number} */ n) => (n === 0 ? 1 : { a: deep(n - 1) });
     /** @type {[string, (s: any) => void][]} */
@@ -296,6 +349,130 @@ describe('task messages', () => {
   });
 });
 
+describe('replayPuzzle payloads', () => {
+  const deep = (/** @type {number} */ n) => (n === 0 ? 1 : { a: deep(n - 1) });
+
+  test('the first fixture puzzle validates and comes back as an equal but fresh copy', () => {
+    const payload = replayPayload();
+    const parsed = validatePayload('replayPuzzle', payload);
+    assert.ok(parsed.ok);
+    const copy = parsed.value;
+    assert.deepEqual(copy, payload);
+    assert.deepEqual(Object.keys(copy.generation), ['setOrigin', 'made']);
+    assert.equal(Object.keys(copy.generation.made).length, 1);
+    assert.equal(typeof copy.puzzle.rating.metrics, 'object', 'the claim keeps its metrics');
+    for (const [fresh, given] of [
+      [copy, payload], [copy.set, payload.set], [copy.set.pieces, payload.set.pieces], [copy.set.pieces[0].cells, payload.set.pieces[0].cells],
+      [copy.set.witness, payload.set.witness], [copy.puzzle, payload.puzzle], [copy.puzzle.clues, payload.puzzle.clues],
+      [copy.puzzle.solution, payload.puzzle.solution], [copy.puzzle.rating, payload.puzzle.rating],
+      [copy.puzzle.rating.metrics, payload.puzzle.rating.metrics], [copy.generation, payload.generation],
+      [copy.generation.setOrigin, payload.generation.setOrigin], [copy.generation.setOrigin.versions, payload.generation.setOrigin.versions],
+      [copy.generation.made, payload.generation.made], [Object.values(copy.generation.made)[0], Object.values(payload.generation.made)[0]],
+    ]) {
+      assert.notEqual(fresh, given);
+    }
+    const message = task('replayPuzzle', payload);
+    assert.ok(message.ok);
+    assert.deepEqual(message.value.payload, payload);
+  });
+
+  test('the solution, the rating, the set origin and the record are optional; a missing one is left out or null', () => {
+    const { solution, rating, ...bare } = replayPayload().puzzle;
+    const stored = validatePayload('replayPuzzle', { ...replayPayload(), puzzle: bare });
+    assert.ok(stored.ok);
+    assert.deepEqual(stored.value.puzzle, { ...bare, solution: null, rating: null });
+    const nulls = validatePayload('replayPuzzle', { ...replayPayload(), puzzle: { ...bare, solution: null, rating: null } });
+    assert.ok(nulls.ok);
+    assert.deepEqual(nulls.value.puzzle, stored.value.puzzle);
+    for (const [generation, expected] of /** @type {[object, object][]} */ ([
+      [{}, {}], [{ setOrigin: undefined, made: undefined }, {}], [{ made: {} }, { made: {} }],
+    ])) {
+      const parsed = validatePayload('replayPuzzle', { ...replayPayload(), generation });
+      assert.ok(parsed.ok, JSON.stringify(generation));
+      assert.deepEqual(parsed.value.generation, expected);
+    }
+    const { setOrigin } = replayPayload().generation;
+    const only = validatePayload('replayPuzzle', { ...replayPayload(), generation: { setOrigin } });
+    assert.ok(only.ok);
+    assert.deepEqual(Object.keys(only.value.generation), ['setOrigin']);
+  });
+
+  test('the protocol checks structure and size only: an invalid record is the engine\'s to judge', () => {
+    const id = replayPayload().puzzle.id;
+    for (const made of [{ [id]: { schema: 99 } }, { [id]: {} }, { elsewhere: { kind: 'calibration' } }, { [id]: [1, 2] }]) {
+      assert.ok(validatePayload('replayPuzzle', { ...replayPayload(), generation: { made } }).ok, JSON.stringify(made));
+    }
+    assert.ok(validatePayload('replayPuzzle', { ...replayPayload(), generation: { setOrigin: { schema: 0, seed: 7 } } }).ok);
+  });
+
+  test('a malformed payload is an issue at the right path', () => {
+    const id = replayPayload().puzzle.id;
+    /** @type {[string, (p: any) => void, string, string][]} */
+    const bad = [
+      ['missing generation', (p) => { delete p.generation; }, 'missing-field', 'payload.generation'],
+      ['missing puzzle', (p) => { delete p.puzzle; }, 'missing-field', 'payload.puzzle'],
+      ['unknown payload field', (p) => { p.limits = { maxSteps: 1 }; }, 'unknown-field', 'payload.limits'],
+      ['unknown field in the puzzle', (p) => { p.puzzle.certificate = null; }, 'unknown-field', 'payload.puzzle.certificate'],
+      ['unknown field in the generation', (p) => { p.generation.createdAt = 'now'; }, 'unknown-field', 'payload.generation.createdAt'],
+      ['no pieces', (p) => { p.set.pieces = []; }, 'invalid-value', 'payload.set.pieces'],
+      ['a long puzzle id', (p) => { p.puzzle.id = 'p'.repeat(65); }, 'invalid-value', 'payload.puzzle.id'],
+      ['a solution of a wrong type', (p) => { p.puzzle.solution = 'yes'; }, 'invalid-type', 'payload.puzzle.solution'],
+      ['a clue with an unknown field', (p) => { p.puzzle.clues[0] = { ...p.puzzle.clues[0], extra: 1 }; }, 'unknown-field', 'payload.puzzle.clues[0].extra'],
+      ['a negative score', (p) => { p.puzzle.rating = { ...p.puzzle.rating, score: -1 }; }, 'invalid-value', 'payload.puzzle.rating.score'],
+      ['two keys in made', (p) => { p.generation.made.other = {}; }, 'invalid-value', 'payload.generation.made'],
+      ['a made that is not an object', (p) => { p.generation.made = [1]; }, 'invalid-type', 'payload.generation.made'],
+      ['a null made', (p) => { p.generation.made = null; }, 'invalid-type', 'payload.generation.made'],
+      ['a null setOrigin', (p) => { p.generation.setOrigin = null; }, 'invalid-type', 'payload.generation.setOrigin'],
+      ['an array setOrigin', (p) => { p.generation.setOrigin = []; }, 'invalid-type', 'payload.generation.setOrigin'],
+      ['a string setOrigin', (p) => { p.generation.setOrigin = 'origin'; }, 'invalid-type', 'payload.generation.setOrigin'],
+      ['a class instance as setOrigin', (p) => { p.generation.setOrigin = new Date(0); }, 'invalid-type', 'payload.generation.setOrigin'],
+      ['a function in setOrigin', (p) => { p.generation.setOrigin = { run: () => 1 }; }, 'invalid-type', 'payload.generation.setOrigin.run'],
+      ['a non-finite number in made', (p) => { p.generation.made = { [id]: { n: Infinity } }; }, 'invalid-value', `payload.generation.made.${id}.n`],
+      ['a setOrigin nested 9 levels', (p) => { p.generation.setOrigin = deep(9); }, 'invalid-type', `payload.generation.setOrigin${'.a'.repeat(8)}`],
+      ['a made nested 9 levels', (p) => { p.generation.made = { [id]: deep(8) }; }, 'invalid-type', `payload.generation.made.${id}${'.a'.repeat(7)}`],
+    ];
+    for (const [name, mutate, code, path] of bad) {
+      const payload = replayPayload();
+      mutate(payload);
+      const parsed = validatePayload('replayPuzzle', payload);
+      assert.ok(!parsed.ok, name);
+      assert.deepEqual(parsed.issues.map((i) => [i.code, i.path]), [[code, path]], name);
+    }
+  });
+
+  test('nesting of 8 levels and 4,096 values pass; more are refused', () => {
+    const id = replayPayload().puzzle.id;
+    const origin = { ...replayPayload().generation.setOrigin, deep: deep(7) };
+    const parsed = validatePayload('replayPuzzle', { ...replayPayload(), generation: { setOrigin: origin, made: { [id]: deep(7) } } });
+    assert.ok(parsed.ok, '8 levels: the object itself and 7 more');
+    assert.deepEqual(parsed.value.generation.setOrigin, origin);
+    // The object and its list are 2 values, the items follow.
+    const list = (/** @type {number} */ n) => ({ list: new Array(n).fill(1) });
+    assert.ok(validatePayload('replayPuzzle', { ...replayPayload(), generation: { made: { [id]: list(4093) } } }).ok, 'exactly 4,096 values');
+    const over = validatePayload('replayPuzzle', { ...replayPayload(), generation: { made: { [id]: list(4094) } } });
+    assert.ok(!over.ok);
+    assert.deepEqual([over.issues[0].code, over.issues.length], ['invalid-value', 1]);
+    assert.match(over.issues[0].path, /^payload\.generation\.made\.p[0-9a-f]+\.list\[\d+\]$/);
+  });
+
+  test('parseTaskMessage accepts the kind in the envelope and still rejects unknown kinds', () => {
+    assert.ok(isTaskKind('replayPuzzle'));
+    assert.equal(TASK_KINDS.at(-1), 'replayPuzzle');
+    const parsed = task('replayPuzzle', replayPayload(), 41);
+    assert.ok(parsed.ok);
+    assert.equal(parsed.value.kind, 'replayPuzzle');
+    assert.equal(parsed.value.id, 41);
+    assert.ok(!task('replayPuzzle', { ...replayPayload(), extra: 1 }).ok);
+    assert.ok(!parseTaskMessage({ type: 'task', id: 1, kind: 'replayPuzzle' }).ok, 'a task needs its payload');
+    for (const kind of ['replay', 'replayPuzzles', 'ReplayPuzzle', 'replayPuzzle ']) {
+      const refused = task(/** @type {any} */ (kind), replayPayload());
+      assert.ok(!refused.ok, kind);
+      assert.equal(refused.issues[0].code, 'unknown-kind', kind);
+      assert.ok(!isTaskKind(kind), kind);
+    }
+  });
+});
+
 describe('worker messages', () => {
   test('accepts progress, result and error replies', () => {
     const candidate = { component: 'core', group: 2, position: 2, expected: '9', typed: '0', correctedCode: '1D0J492G47DMXNG6YCP10HCY05KZW8S4HCN2QR.18V3WE' };
@@ -313,6 +490,15 @@ describe('worker messages', () => {
       assert.ok(parsed.ok, JSON.stringify(message));
       assert.deepEqual(parsed.value, message);
     }
+  });
+
+  test('a difficulty-v3 rating claim in a result reply is unchanged', () => {
+    const message = { type: 'result', id: 9, value: V3_ESTIMATE };
+    const parsed = parseWorkerMessage(message);
+    assert.ok(parsed.ok);
+    assert.deepEqual(parsed.value, message);
+    assert.equal(JSON.stringify(/** @type {any} */ (parsed.value).value), JSON.stringify(V3_ESTIMATE));
+    assert.equal(JSON.stringify(parsed.value), JSON.stringify(message));
   });
 
   test('puzzle-code error issues keep valid params and candidates only', () => {

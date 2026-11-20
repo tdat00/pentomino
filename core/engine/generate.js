@@ -6,11 +6,14 @@
 import { activeCount } from './board.js';
 import { certify, countRowLimit, selectClues } from './clues.js';
 import { carveFlatSet, carveMacro, finalizeSet, validateSet } from './carve.js';
+import { MODEL } from './difficulty.js';
 import { clueKey, layoutKey, minLayoutDistance, puzzleId } from './keys.js';
 import { level } from './levels.js';
-import { BUDGETS, pieceCountRange } from './policy.js';
-import { createRng, normalizeSeedText } from './rng.js';
+import { PROVENANCE } from './pack.js';
+import { BUDGETS, pieceCountRange, POLICY_ID } from './policy.js';
+import { createRng, normalizeSeedText, RNG_ID, SEED_SCHEME } from './rng.js';
 import { lnsWalk, randomTiling } from './tiling.js';
+import { ALGO_ID } from './version.js';
 
 /** @typedef {import('./types.js').Pose} Pose */
 /** @typedef {import('./types.js').Puzzle} Puzzle */
@@ -19,6 +22,21 @@ import { lnsWalk, randomTiling } from './tiling.js';
 /** @typedef {import('./types.js').SetAttemptResult} SetAttemptResult */
 /** @typedef {import('./types.js').BatchContext} BatchContext */
 /** @typedef {import('./types.js').PuzzleCandidate} PuzzleCandidate */
+/** @typedef {import('./types.js').RecordEvent} RecordEvent */
+
+/**
+ * Observers of `setAttempt` and `puzzleCandidate`; none of them draws from an rng, touches a workspace or changes
+ * a loop's control flow (RES-28, D32, D35).
+ * @typedef {object} Observe
+ * @property {(event: RecordEvent) => void} [record] Observer of the set, layout and clue events (RES-28). The
+ *   events are plain owned JSON, never mutated after delivery; a throwing `record` propagates.
+ * @property {(units: number) => void} [charge] Work meter (RES-29): passed to every `selectClues` call of the
+ *   attempt, the set calibration's included, with or without `record`; carving and the walk are not charged. A
+ *   throwing `charge` propagates.
+ * @property {{ subsets: number[], repairs: number[] }} [replaySkips] Replay control of the candidate's clue
+ *   selection (RES-27): `puzzleCandidate` only; `excludeClueKeys` is then not consulted (`SkipReplayError` when the
+ *   record does not fit).
+ */
 
 /** @typedef {'layout' | 'not-in-band' | 'uniqueness-not-proved'} FailReason */
 /** @typedef {{ fail: FailReason }} CandidateFailure */
@@ -78,15 +96,20 @@ export class GenerationError extends Error {
  * One piece-set attempt. Streams: root `set/<attempt>` chooses K; macro, flat
  * and calibration search use its derived `macro`, `flat` and `cal` streams.
  * The display rotation never enters a label. Throws RangeError when the level
- * is not offered for the board.
+ * is not offered for the board. With `observe.record` the attempt reports the
+ * `count`, `carve` and `piece` events and then the calibration's clue events
+ * (`source: 'calibration'`); `observe.charge` meters the calibration. Neither
+ * changes the result.
  * @param {SetRequest} req
  * @param {number} attempt
+ * @param {Observe} [observe]
  * @returns {SetAttemptResult}
  */
-export function setAttempt(req, attempt) {
+export function setAttempt(req, attempt, observe = {}) {
   if (!Number.isInteger(attempt) || attempt < 0) {
     throw new RangeError('attempt must be a nonnegative integer');
   }
+  const { record, charge } = observe;
   const { board } = req;
   const area = activeCount(board);
   const rng = createRng(normalizeSeedText(req.seedText), `set/${attempt}`);
@@ -95,13 +118,14 @@ export function setAttempt(req, attempt) {
     throw new RangeError(`level ${req.levelId} is not offered for ${area} cells`);
   }
   const k = ks[rng.int(ks.length)];
+  record?.({ stage: 'set', kind: 'count', range: ks.slice(), k });
   /** @type {{ regions: number[][], regionOf?: number[] } | null} */
   let carved = null;
   if (area / k >= MACRO_MIN_MEAN) {
-    carved = carveMacro(board, k, rng.derive('macro'), BUDGETS);
+    carved = carveMacro(board, k, rng.derive('macro'), BUDGETS, undefined, record);
   }
   if (carved === null) {
-    carved = carveFlatSet(board, k, rng.derive('flat'), BUDGETS);
+    carved = carveFlatSet(board, k, rng.derive('flat'), BUDGETS, record);
   }
   if (carved === null) {
     return { ok: false, reason: 'carve' };
@@ -120,6 +144,9 @@ export function setAttempt(req, attempt) {
     uniqueness: req.uniqueness,
     excludeClueKeys: new Set(),
     ws: req.execution.main,
+    record,
+    recordSource: 'calibration',
+    charge,
   });
   if (!cal.ok) {
     return { ok: false, reason: cal.reason };
@@ -164,28 +191,47 @@ export function firstSetAttempt(req, maxAttempts = 32) {
  * `restart`, `walk` and `clues` children. The walk starts from the set's
  * witness (or a random tiling on attempts 2, 5, 8, ... of boards of at most 150
  * cells); a set without a witness can only start from a random tiling.
+ * With `observe.record` the candidate reports the `start` event, one `retile`
+ * event per walk step and then the clue events (`source: 'candidate'`);
+ * `observe.charge` meters the clue selection. Neither changes the result or a
+ * draw. `observe.replaySkips` replays a recorded history of skips instead of
+ * the exclusion of `ctx.seenClues` (design §6.10).
  * @param {BatchContext} ctx
  * @param {number} slot One-based.
  * @param {number} attempt Zero-based.
+ * @param {Observe} [observe]
  * @returns {PuzzleCandidate | CandidateFailure}
  */
-export function puzzleCandidate(ctx, slot, attempt) {
+export function puzzleCandidate(ctx, slot, attempt, observe = {}) {
+  const { record, charge, replaySkips } = observe;
   const { set } = ctx;
   const { board, pieces } = set;
   const { main, scratch } = ctx.execution;
   const rng = createRng(ctx.batchSeed, `slot/${slot}/${attempt}`);
   const small = activeCount(board) <= RESTART_MAX_AREA;
   let start = set.witness;
+  /** @type {'witness' | 'restart'} */
+  let startKind = 'witness';
   if (small && (attempt % 3 === 2 || start === null)) {
-    start = randomTiling(board, pieces, rng.derive('restart'), scratch, {
+    const restart = randomTiling(board, pieces, rng.derive('restart'), scratch, {
       totalRowTrials: BUDGETS.tilingTotal,
       restartBase: BUDGETS.restartBase,
-    }) ?? start;
+    });
+    if (restart !== null) {
+      start = restart;
+      startKind = 'restart';
+    }
   }
   if (start === null) {
     return { fail: 'layout' };
   }
-  const layout = lnsWalk(set, start, rng.derive('walk'), scratch, BUDGETS.lnsSteps);
+  record?.({
+    stage: 'layout',
+    kind: 'start',
+    start: startKind,
+    layout: start.map((p) => ({ piece: p.piece, x: p.x, y: p.y, turn: p.turn, mirrored: p.mirrored })),
+  });
+  const layout = lnsWalk(set, start, rng.derive('walk'), scratch, BUDGETS.lnsSteps, record);
   const key = layoutKey(board, pieces, layout);
   if (ctx.seenLayouts.has(key)) {
     return { fail: 'layout' };
@@ -199,6 +245,10 @@ export function puzzleCandidate(ctx, slot, attempt) {
     uniqueness: ctx.uniqueness,
     excludeClueKeys: ctx.seenClues,
     ws: main,
+    record,
+    recordSource: 'candidate',
+    replaySkips,
+    charge,
   });
   if (!sel.ok) {
     return { fail: sel.reason };
@@ -210,7 +260,38 @@ export function puzzleCandidate(ctx, slot, attempt) {
     clues: sel.clues,
     rating: sel.rating,
     certificate: sel.certificate,
+    made: {
+      schema: 1,
+      kind: 'candidate',
+      batchSeed: ctx.batchSeed,
+      targetLevel: ctx.targetLevelId,
+      uniqueness: ctx.uniqueness,
+      slot,
+      attempt,
+      start: startKind,
+      skips: capSkips(sel.skips),
+      versions: provenanceVersions(),
+    },
   };
+}
+
+/**
+ * @returns {import('./types.js').ProvenanceVersions} The running code's version ids (RES-27).
+ */
+export function provenanceVersions() {
+  return { algo: ALGO_ID, policy: POLICY_ID, rng: RNG_ID, seedScheme: SEED_SCHEME, ratingModel: MODEL };
+}
+
+/**
+ * The stored form of a call's skips: copies, or 'overflow' above 64 subset or 16 repair ordinals
+ * (AUTH-P1 (a)).
+ * @param {{ subsets: number[], repairs: number[] }} skips
+ * @returns {import('./types.js').Skips}
+ */
+export function capSkips(skips) {
+  return skips.subsets.length > PROVENANCE.subsetSkips || skips.repairs.length > PROVENANCE.repairSkips
+    ? 'overflow'
+    : { subsets: skips.subsets.slice(), repairs: skips.repairs.slice() };
 }
 
 /**
@@ -248,6 +329,7 @@ export function completionCandidate(ctx, layout) {
     clues: sel.clues,
     rating: sel.rating,
     certificate: sel.certificate,
+    made: { schema: 1, kind: 'completion' },
   };
 }
 
@@ -355,6 +437,7 @@ function calibrationCandidate(ctx) {
   if (layout === null) {
     return null;
   }
+  /** @type {PuzzleCandidate} */
   const candidate = {
     layout,
     layoutKey: layoutKey(board, pieces, layout),
@@ -362,6 +445,7 @@ function calibrationCandidate(ctx) {
     clues: cal.clues,
     rating: cal.rating,
     certificate: cal.certificate,
+    made: { schema: 1, kind: 'calibration' },
   };
   return ctx.seenLayouts.has(candidate.layoutKey) || ctx.seenClues.has(candidate.clueKey) ? null : candidate;
 }

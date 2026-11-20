@@ -9,7 +9,7 @@ const EDGES = [0, 8, 12, 17, 25, 37, 53, 77, 112, 162, 235, 341];
 const SHARES = [0.62, 0.54, 0.46, 0.38, 0.3, 0.22, 0.14, 0.1, 0.06, 0.04, 0.04];
 const AREAS = [
   [30, 87], [32, 215], [36, 348], [41, Infinity], [50, Infinity], [59, Infinity],
-  [81, Infinity], [164, Infinity], [266, Infinity], [450, Infinity], [744, Infinity],
+  [81, Infinity], [Infinity, Infinity], [Infinity, Infinity], [Infinity, Infinity], [744, Infinity],
 ];
 
 describe('level table', () => {
@@ -98,9 +98,15 @@ describe('levelForScore', () => {
 });
 
 describe('offeredLevels', () => {
-  test('availability boundaries are exact for every level', () => {
+  test('availability boundaries are exact for every level; a retired level is offered on no area (P-OD9)', () => {
     for (let i = 0; i < AREAS.length; i++) {
       const [from, to] = AREAS[i];
+      if (!Number.isFinite(from)) {
+        for (let area = 30; area <= 676; area++) {
+          assert.ok(!offeredLevels(area).some((l) => l.index === i), `${IDS[i]} retired, offered at ${area}`);
+        }
+        continue;
+      }
       assert.ok(offeredLevels(from).some((l) => l.index === i), `${IDS[i]} at ${from}`);
       assert.ok(!offeredLevels(from - 1).some((l) => l.index === i), `${IDS[i]} below ${from}`);
       if (Number.isFinite(to)) {
@@ -122,10 +128,10 @@ describe('offeredLevels', () => {
   test('business examples: 60, 360 and 484 cells', () => {
     const ids = (/** @type {number} */ area) => offeredLevels(area).map((l) => l.id);
     assert.deepEqual(ids(60), IDS.slice(0, 6));
-    assert.deepEqual(ids(360), IDS.slice(3, 9));
-    assert.deepEqual(ids(484), IDS.slice(3, 10));
+    assert.deepEqual(ids(360), IDS.slice(3, 7));
+    assert.deepEqual(ids(484), IDS.slice(3, 7));
     assert.deepEqual(ids(30), ['very-easy']);
-    assert.deepEqual(ids(676), IDS.slice(3, 10));
+    assert.deepEqual(ids(676), IDS.slice(3, 7));
   });
 
   test('lowest and highest level per area band match the design table', () => {
@@ -134,8 +140,8 @@ describe('offeredLevels', () => {
       [31, 'very-easy', 'very-easy'], [35, 'very-easy', 'easy'], [40, 'very-easy', 'normal'],
       [49, 'very-easy', 'hard'], [58, 'very-easy', 'expert'], [80, 'very-easy', 'master'],
       [87, 'very-easy', 'nightmare'], [88, 'easy', 'nightmare'], [163, 'easy', 'nightmare'],
-      [215, 'easy', 'hell-1'], [216, 'normal', 'hell-1'], [265, 'normal', 'hell-1'],
-      [348, 'normal', 'hell-2'], [349, 'hard', 'hell-2'], [449, 'hard', 'hell-2'], [450, 'hard', 'hell-3'],
+      [215, 'easy', 'nightmare'], [216, 'normal', 'nightmare'], [265, 'normal', 'nightmare'],
+      [348, 'normal', 'nightmare'], [349, 'hard', 'nightmare'], [449, 'hard', 'nightmare'], [450, 'hard', 'nightmare'],
     ];
     for (const [area, lowest, highest] of rows) {
       const offered = offeredLevels(area);

@@ -393,6 +393,25 @@ function errorCode(e) {
 const errorMessage = (e) => (e instanceof Error ? e.message : String(e)).slice(0, 300);
 
 /**
+ * The `difficulty-v3` measures a calibration record keeps (RES-25, design §7.10 order); null for another model.
+ * @param {import('../../core/engine/types.js').Rating | undefined} rating
+ */
+function v3Measures(rating) {
+  if (rating?.model !== 'difficulty-v3') {
+    return null;
+  }
+  const m = rating.metrics;
+  return {
+    deductionTier: m.deductionTier, G: m.G, Gproved: m.Gproved, info: m.info, Cmax: m.Cmax, Dmax: m.Dmax,
+    solutions: m.solutions, censusComplete: m.censusComplete, censusUndecided: m.censusUndecided, F: m.F, E: m.E,
+    nodes: m.nodes, work: m.work,
+  };
+}
+
+/** @param {import('../../core/engine/types.js').Rating | undefined} rating @returns {boolean} An estimate (RES-25). */
+const isCensored = (rating) => rating?.model === 'difficulty-v3' && rating.censored === true;
+
+/**
  * Diagnostic profile samples of a validated witness (landscape): distinct clue
  * counts, two seeded subsets each, canonical rating on a fresh pool. This runs
  * after the timed interval closed. `ratingMs` is the RPC round trip.
@@ -421,6 +440,7 @@ async function sampleProfiles({ host, caseDef, set, seed, rep, record }) {
   /** @type {Record<string, any>[]} */
   const samples = [];
   let failures = 0;
+  let unrateable = 0;
   try {
     pool.beginRequest({ requestId: 1, revision: 'profile-sampling' });
     let next = 0;
@@ -436,13 +456,19 @@ async function sampleProfiles({ host, caseDef, set, seed, rep, record }) {
             kind: 'rate',
             payload: { boardRows: caseDef.boardRows, pieces: set.pieces, clues: job.clues },
           }));
+          const m = /** @type {Record<string, any>} */ (rating.metrics);
           samples.push({
-            A, K, G: job.g, U: K - job.g, score: rating.score, inBand: inBand(rating, lv), saturated: rating.saturated,
-            branchTrials: rating.metrics.branchTrials, rowTrials: rating.metrics.rowTrials,
+            A, K, clues: job.g, U: K - job.g, score: rating.score, inBand: inBand(rating, lv), saturated: rating.saturated,
+            censored: isCensored(rating), deductionTier: m.deductionTier ?? null, G: m.G ?? null,
+            Gproved: m.Gproved ?? null, censusComplete: m.censusComplete ?? null,
+            branchTrials: m.branchTrials, rowTrials: m.rowTrials,
             ratingMs: host.clock.now() - started, certificateStatus: 'not-checked', sample: job.sample,
           });
         } catch (e) {
           failures += 1;
+          if (errorCode(e) === 'rating-incomplete') {
+            unrateable += 1;
+          }
           if (failures <= 3) {
             record.errors.push({ phase: 'sampling', code: errorCode(e), message: errorMessage(e) });
           }
@@ -453,10 +479,11 @@ async function sampleProfiles({ host, caseDef, set, seed, rep, record }) {
   } finally {
     pool.close();
   }
-  samples.sort((a, b) => a.G - b.G || a.sample - b.sample);
+  samples.sort((a, b) => a.clues - b.clues || a.sample - b.sample);
   record.samples = samples;
   if (record.details !== null) {
     record.details.sampleFailures = failures;
+    record.details.sampleUnrateable = unrateable;
   }
 }
 
@@ -601,6 +628,7 @@ function fillRecord(run, s, spec, caseDef, certificatesAwaited) {
   run.responseMs = s.tDone - s.t0;
   run.acceptedCount = kept.length;
   run.ratingSaturatedCount = kept.filter((v) => v.puzzle.rating?.saturated === true).length;
+  run.ratingCensoredCount = kept.filter((v) => isCensored(v.puzzle.rating)).length;
   if (kept.length >= QUANTITY) {
     run.tenthReadyMs = s.acceptedAt[kept[QUANTITY - 1].index] - s.t0;
   }
@@ -687,11 +715,13 @@ function fillRecord(run, s, spec, caseDef, certificatesAwaited) {
       initialG: initialG(caseDef.levelId, sizes.length),
       policy: { violations: checkSetPolicy(caseDef.levelId, area, sizes) },
       puzzles: kept.map((v) => ({
-        G: v.puzzle.clues.length,
+        clues: v.puzzle.clues.length,
         U: sizes.length - v.puzzle.clues.length,
         score: v.puzzle.rating?.score ?? null,
         level: v.puzzle.rating?.level ?? null,
         saturated: v.puzzle.rating?.saturated ?? null,
+        censored: isCensored(v.puzzle.rating),
+        metrics: v3Measures(v.puzzle.rating),
       })),
       resultDigest: sha256Hex(canonicalJson({
         layoutKeys: kept.map((v) => v.layoutKey),

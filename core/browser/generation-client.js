@@ -7,25 +7,31 @@ import { activeCount, boardFromRows, boardToRows, validateForGeneration } from '
 import { countRowLimit } from '../engine/clues.js';
 import {
   candidateContext, completionAccept, dispatchOrder, foldAccept, foldNext, foldStart, GenerationError as HistoryError,
+  provenanceVersions,
 } from '../engine/generate.js';
 import { puzzleId } from '../engine/keys.js';
 import { level } from '../engine/levels.js';
-import { createPack, validatePackSliced } from '../engine/pack.js';
+import { createPack, provenanceProblem, validatePackSliced } from '../engine/pack.js';
 import { BUDGETS, ENUMERATION, pieceCountRange, POLICY_ID } from '../engine/policy.js';
 import { batchSeedFor, normalizeSeedText, RNG_ID, SEED_SCHEME } from '../engine/rng.js';
 import { isValidLayout } from '../engine/tiling.js';
 import { ALGO_ID, APP_VERSION } from '../engine/version.js';
+import { createAuxiliaryQueue } from './auxiliary.js';
 import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-pool.js';
 
+/** @typedef {import('./auxiliary.js').AuxiliaryPool} AuxiliaryPool */
 /** @typedef {import('../engine/types.js').Board} Board */
 /** @typedef {import('../engine/types.js').Certificate} Certificate */
 /** @typedef {import('../engine/types.js').Issue} Issue */
+/** @typedef {import('../engine/types.js').Made} Made */
 /** @typedef {import('../engine/types.js').Pack} Pack */
 /** @typedef {import('../engine/types.js').PieceSet} PieceSet */
 /** @typedef {import('../engine/types.js').Piece} Piece */
 /** @typedef {import('../engine/types.js').Pose} Pose */
 /** @typedef {import('../engine/types.js').Puzzle} Puzzle */
 /** @typedef {import('../engine/types.js').PuzzleCandidate} PuzzleCandidate */
+/** @typedef {import('../engine/replay.js').ReplayResult} ReplayResult */
+/** @typedef {import('../engine/types.js').SetOrigin} SetOrigin */
 /** @typedef {import('./worker-pool.js').Clock} Clock */
 /** @typedef {import('./worker-pool.js').Pool} Pool */
 
@@ -56,6 +62,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {Puzzle} [calibration] Engine-produced puzzle of this set (never a stored claim).
  * @property {string} [setLevel] Provenance only.
  * @property {number} [setAttempt] Provenance only.
+ * @property {SetOrigin} [setOrigin] Origin of the set, as its set result gave it; written into the pack unchanged.
  * @property {string} [revision]
  */
 
@@ -78,6 +85,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {string} revision
  * @property {number} index Zero-based position in this batch.
  * @property {Puzzle} puzzle
+ * @property {Made} made Origin record of the puzzle (RES-27).
  * @property {number} accepted
  * @property {number} quantity
  */
@@ -104,6 +112,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {PieceSet} [set]
  * @property {Puzzle} [calibration] Becomes puzzle #1 only when the matching first batch accepts it.
  * @property {number} [attempt] Lowest successful attempt index.
+ * @property {SetOrigin} [setOrigin] Present with status complete.
  * @property {Pack} [pack] Kind `piece-set`, no puzzles.
  * @property {string} [reason]
  * @property {Record<string, number>} [failures] Failed attempts by engine reason.
@@ -139,6 +148,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {'complete' | 'partial' | 'cancelled'} status
  * @property {Pack} [pack] Present when at least one puzzle was accepted.
  * @property {Puzzle[]} accepted
+ * @property {Record<string, Made>} made Origin record of each accepted puzzle, by puzzle id.
  * @property {string[]} seenLayouts
  * @property {string[]} seenClues
  * @property {'layouts-not-found' | 'difficulty-not-found' | 'uniqueness-not-proved' | 'time-limit'} [reason]
@@ -153,6 +163,17 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {(input: { boardRows: string[], pieces: Piece[], clues: Pose[], revision?: string }) => Promise<Pose[] | null>} solveWitness
  *   One arrangement of a piece set that keeps the given clues (the solver's first solution within its row limit), or
  *   null when none was found, the search was cancelled or it ran out of time.
+ * @property {(kind: string, payload: object, options?: { signal?: AbortSignal }) => Promise<unknown>} submitAuxiliary
+ *   One background task (kind `rate`, payload `{ boardRows, pieces, clues }`, or `replayPuzzle`) that waits while a
+ *   request of this client is active, runs on the pool's idle queue and rejects with `PoolAbortError('cancelled')`
+ *   when a new request begins or its `signal` aborts (design §8.1); it never cancels a request, a hint or a
+ *   certificate.
+ * @property {(input: { set: PieceSet, puzzle: Puzzle, setOrigin: SetOrigin | null, made: Made | null },
+ *   options?: { signal?: AbortSignal }) => Promise<ReplayResult>} replayPuzzle
+ *   Generation Steps (RES-29): replays one puzzle on the auxiliary path, so it waits while a generation is active,
+ *   never cancels one and is cancelled by `signal` or by a new generation. It rejects as `submitAuxiliary` does:
+ *   `PoolAbortError('cancelled' | 'closed')`, `WorkerTaskError` (for example `invalid-request`) or `PoolError`
+ *   (`invalid-task` for a payload the protocol refuses, `worker-unavailable`).
  * @property {() => void} cancel
  * @property {() => void} recycle
  */
@@ -335,6 +356,8 @@ function toFault(error, detail) {
  * @param {'any' | 'require'} p.uniqueness
  * @param {string} p.createdAt
  * @param {{ batchSeed: string, batchLevel: string, batchIndex: number }} [p.batch]
+ * @param {SetOrigin} [p.setOrigin] Written once, when the set is made; never re-stamped (RES-27).
+ * @param {Record<string, Made>} [p.made] Origin record of each puzzle, by puzzle id.
  * @returns {object}
  */
 function generationMeta(p) {
@@ -362,6 +385,12 @@ function generationMeta(p) {
   }
   meta.uniqueness = p.uniqueness;
   meta.createdAt = p.createdAt;
+  if (p.setOrigin !== undefined) {
+    meta.setOrigin = structuredClone(p.setOrigin);
+  }
+  if (p.made !== undefined && Object.keys(p.made).length > 0) {
+    meta.made = structuredClone(p.made);
+  }
   return meta;
 }
 
@@ -428,6 +457,14 @@ export function createGenerationClient(pool, options = {}) {
   let lastRequestId = 0;
   /** @type {Job | null} */
   let latest = null;
+  const aux = createAuxiliaryQueue({
+    getPool: () => /** @type {AuxiliaryPool} */ (/** @type {unknown} */ (pool)),
+    allocate: () => {
+      lastRequestId += 1;
+      return lastRequestId;
+    },
+    kinds: ['rate', 'replayPuzzle'],
+  });
 
   /** @param {string | undefined} revision @returns {Job} */
   function begin(revision) {
@@ -435,14 +472,20 @@ export function createGenerationClient(pool, options = {}) {
     const tag = revisionOf(revision, requestId);
     /** @type {Job} */
     const job = { requestId, revision: tag, startedAt: clock.now(), running: true, cancelled: false, timedOut: false, wake: null };
-    pool.beginRequest({
-      requestId,
-      revision: tag,
-      onTimeout: () => {
-        job.timedOut = true;
-        job.wake?.();
-      },
-    });
+    aux.mainBegin({ requestId, revision: tag });
+    try {
+      pool.beginRequest({
+        requestId,
+        revision: tag,
+        onTimeout: () => {
+          job.timedOut = true;
+          job.wake?.();
+        },
+      });
+    } catch (e) {
+      aux.mainEnd({ requestId, revision: tag }, true);
+      throw e;
+    }
     lastRequestId = requestId;
     latest = job;
     return job;
@@ -455,6 +498,7 @@ export function createGenerationClient(pool, options = {}) {
   function finish(job) {
     job.running = false;
     pool.endRequest(job.requestId);
+    aux.mainEnd({ requestId: job.requestId, revision: job.revision }, job.timedOut);
   }
 
   /** @param {Job} job @returns {Promise<void>} */
@@ -679,6 +723,15 @@ export function createGenerationClient(pool, options = {}) {
     if (set.witness === null || !isValidLayout(board, set.pieces, set.witness)) {
       throw new GenerationError('internal', 'The worker sent a piece set without a valid witness layout');
     }
+    /** @type {SetOrigin} */
+    const setOrigin = {
+      schema: 1,
+      seed: request.seedText,
+      level: request.levelId,
+      attempt: value.attempt,
+      uniqueness: request.uniqueness,
+      versions: provenanceVersions(),
+    };
     const pack = await assemblePack({
       board,
       rotation: request.rotation,
@@ -692,15 +745,17 @@ export function createGenerationClient(pool, options = {}) {
         set,
         uniqueness: request.uniqueness,
         createdAt: createdAt(),
+        setOrigin,
       }),
     }, {});
-    return { status: 'complete', set, calibration: value.calibration, attempt: value.attempt, pack };
+    return { status: 'complete', set, calibration: value.calibration, attempt: value.attempt, setOrigin, pack };
   }
 
   /**
    * @param {BatchInput} input
    * @returns {{ set: PieceSet, rotation: number, level: string, quantity: number, setSeed: string, batchSeed: string,
-   *   uniqueness: 'any' | 'require', offset: number, seenLayouts: string[], seenClues: string[], calibration: Puzzle | undefined }}
+   *   uniqueness: 'any' | 'require', offset: number, seenLayouts: string[], seenClues: string[], calibration: Puzzle | undefined,
+   *   setOrigin: SetOrigin | undefined }}
    */
   function checkBatch(input) {
     if (!isObject(input) || !isObject(input.set) || !Array.isArray(input.set.pieces)) {
@@ -734,6 +789,9 @@ export function createGenerationClient(pool, options = {}) {
         }
         batchSeed = own;
       }
+      if (input.setOrigin !== undefined && provenanceProblem('setOrigin', input.setOrigin) !== null) {
+        throw new GenerationError('invalid-input', 'setOrigin is not a valid set origin');
+      }
       return {
         set,
         rotation: checkedRotation(input.rotation),
@@ -746,6 +804,7 @@ export function createGenerationClient(pool, options = {}) {
         seenLayouts,
         seenClues,
         calibration: usableCalibration(set, input.calibration),
+        setOrigin: input.setOrigin,
       };
     } catch (e) {
       if (e instanceof GenerationError) {
@@ -804,6 +863,8 @@ export function createGenerationClient(pool, options = {}) {
     const controller = new AbortController();
     /** @type {Puzzle[]} */
     const accepted = [];
+    /** @type {Record<string, Made>} */
+    const made = {};
     let inflight = 0;
     /** @type {'complete' | 'partial' | 'cancelled'} */
     let status = 'partial';
@@ -862,7 +923,15 @@ export function createGenerationClient(pool, options = {}) {
         certificate: candidate.certificate ?? null,
       };
       accepted.push(puzzle);
-      emit(hooks.onAccepted, { revision: job.revision, index: accepted.length - 1, puzzle, accepted: accepted.length, quantity });
+      made[puzzle.id] = candidate.made;
+      emit(hooks.onAccepted, {
+        revision: job.revision,
+        index: accepted.length - 1,
+        puzzle,
+        made: candidate.made,
+        accepted: accepted.length,
+        quantity,
+      });
     };
 
     /**
@@ -875,7 +944,8 @@ export function createGenerationClient(pool, options = {}) {
       }
       const ok = isObject(value) && Array.isArray(value.layout) && Array.isArray(value.clues)
         && typeof value.layoutKey === 'string' && typeof value.clueKey === 'string'
-        && isObject(value.rating) && (value.certificate == null || isCertificate(value.certificate));
+        && isObject(value.rating) && (value.certificate == null || isCertificate(value.certificate))
+        && provenanceProblem('made', value.made) === null;
       if (!ok || !isValidLayout(set.board, set.pieces, value.layout)) {
         throw new GenerationError('internal', 'The worker sent an invalid puzzle candidate', detail());
       }
@@ -1105,7 +1175,7 @@ export function createGenerationClient(pool, options = {}) {
     }
 
     /** @type {BatchJobResult} */
-    const result = { status, accepted, seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] };
+    const result = { status, accepted, made: structuredClone(made), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] };
     if (reason !== undefined) {
       result.reason = reason;
     }
@@ -1127,6 +1197,8 @@ export function createGenerationClient(pool, options = {}) {
           uniqueness,
           createdAt: createdAt(),
           batch: { batchSeed, batchLevel: levelId, batchIndex: input.batchIndex },
+          setOrigin: request.setOrigin,
+          made,
         }),
       }, detail());
     }
@@ -1187,6 +1259,26 @@ export function createGenerationClient(pool, options = {}) {
     }
   }
 
+  /**
+   * Generation Steps (RES-29): replays one puzzle on the auxiliary path. It waits while a generation is active, never
+   * cancels one, and is cancelled by `signal` or by a new generation.
+   * @param {{ set: PieceSet, puzzle: Puzzle, setOrigin: SetOrigin | null, made: Made | null }} input
+   * @param {{ signal?: AbortSignal }} [replayOptions]
+   * @returns {Promise<ReplayResult>}
+   */
+  async function replayPuzzle(input, replayOptions = {}) {
+    const { set, puzzle, setOrigin, made } = input;
+    const payload = {
+      set: wireSet(set),
+      puzzle: { id: puzzle.id, clues: puzzle.clues, solution: puzzle.solution ?? null, rating: puzzle.rating ?? null },
+      generation: {
+        ...(setOrigin === null ? {} : { setOrigin }),
+        ...(made === null ? {} : { made: { [puzzle.id]: made } }),
+      },
+    };
+    return /** @type {ReplayResult} */ (await aux.submit('replayPuzzle', payload, { signal: replayOptions.signal }));
+  }
+
   function cancel() {
     const job = latest;
     if (job !== null && job.running) {
@@ -1200,6 +1292,8 @@ export function createGenerationClient(pool, options = {}) {
     generateSet,
     generateBatch,
     solveWitness,
+    submitAuxiliary: (kind, payload, submitOptions) => aux.submit(kind, payload, submitOptions ?? {}),
+    replayPuzzle,
     cancel,
     recycle() {
       cancel();

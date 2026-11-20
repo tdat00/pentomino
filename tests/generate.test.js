@@ -10,6 +10,7 @@ import { carveFlatSet, carveMacro, finalizeSet } from '../core/engine/carve.js';
 import { selectClues } from '../core/engine/clues.js';
 import {
   candidateContext,
+  capSkips,
   certifyTask,
   completionCandidate,
   dispatchOrder,
@@ -18,17 +19,18 @@ import {
   foldNext,
   foldStart,
   GenerationError,
+  provenanceVersions,
   puzzleCandidate,
   runCompletion,
   runFold,
   setAttempt,
 } from '../core/engine/generate.js';
 import { poseCells } from '../core/engine/geometry.js';
-import { clueKey, layoutDistance, layoutKey } from '../core/engine/keys.js';
+import { clueKey, layoutDistance, layoutKey, minLayoutDistance } from '../core/engine/keys.js';
 import { level } from '../core/engine/levels.js';
-import { validatePack } from '../core/engine/pack.js';
+import { provenanceProblem, validatePack } from '../core/engine/pack.js';
 import { BUDGETS, pieceCountRange } from '../core/engine/policy.js';
-import { createRng } from '../core/engine/rng.js';
+import { createRng, SEED_SCHEME } from '../core/engine/rng.js';
 import { isValidLayout, lnsWalk, randomTiling } from '../core/engine/tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 import { currentVersions, expectedOf, replayRecipe, verifySample } from '../tools/record-fixtures.mjs';
@@ -47,11 +49,16 @@ const board = rectangle(10, 6);
 const RECIPE = JSON.parse(readFileSync(new URL('./fixtures/generation-case.json', import.meta.url), 'utf8'));
 const SAMPLE = JSON.parse(readFileSync(new URL('./fixtures/generated-sample-pack.json', import.meta.url), 'utf8'));
 const FAKE_RATING = /** @type {import('../core/engine/types.js').Rating} */ ({
-  model: 'difficulty-v2',
+  model: 'difficulty-v3',
   score: 30,
   level: 'hard',
   saturated: false,
-  metrics: { U: 5, B: 0, branchTrials: 0, rowTrials: 0, stop: 'solution', R: 0, H: 0 },
+  metrics: {
+    U: 5, R: 25, H: 3, B: 0, branchTrials: 0, rowTrials: 0, dlxStop: 'solution', searchStop: 'exhausted', F: 5, E: 0,
+    rules: { R1: 5, R2: 0, R3: 0, R4: 0, R5: 0, R6: 0, R7: 0, R8: 0, R9: 0 }, deductionTier: 1, tier: 1, G: 0, info: 0,
+    Cmax: 0, Dmax: 0, Gt: 0, nodes: 1, work: 0, S: 1, solutionLimit: 8, solutions: 'unique', censusComplete: true,
+    censusUndecided: 0, censusNodes: 0, censusWork: 0, Gproved: 0,
+  },
 });
 
 const base = /** @type {Pose[]} */ (randomTiling(board, pieces, createRng('p0'), execution.scratch, { totalRowTrials: 100000, restartBase: 2000 }));
@@ -342,6 +349,18 @@ describe('calibration reuse and history capacity', () => {
     assert.equal(foldNext(done), null);
   });
 
+  test('a reused calibration puzzle carries the record of a calibration; the others are candidates', () => {
+    const r = setAttempt({ board, rotation: 0, levelId: 'hard', seedText: 'fixture-set-0', uniqueness: 'any', execution }, 0);
+    assert.ok(r.ok);
+    const fold = runFold(ctxFor({
+      set: r.set, quantity: 2, batchSeed: 'fixture-set-0#1', calibration: r.calibration,
+    }));
+    assert.equal(fold.status, 'complete');
+    assert.deepEqual(fold.accepted[0].made, { schema: 1, kind: 'calibration' });
+    assert.equal(fold.accepted[1].made.kind, 'candidate');
+    assert.deepEqual(foldStart(ctxFor({ quantity: 2, calibration: calibration() })).accepted[0].made, { schema: 1, kind: 'calibration' });
+  });
+
   test('a calibration puzzle of another level, a seen key or an unproven require is not reused', () => {
     const mismatched = calibration({ rating: { ...FAKE_RATING, level: 'easy' } });
     assert.equal(foldStart(ctxFor({ calibration: mismatched })).accepted.length, 0);
@@ -477,8 +496,11 @@ describe('set attempts and puzzle candidates', () => {
 
   test('keeps the witness, produces an in-band calibration puzzle and proves it in require mode', () => {
     for (const uniqueness of /** @type {const} */ (['any', 'require'])) {
-      const r = setAttempt(request({ uniqueness }), 0);
-      assert.ok(r.ok, `${uniqueness}: ${r.ok ? '' : r.reason}`);
+      // Under the fitted knobs attempt 0 of `require` is not-in-band; the lowest successful attempt is 1 (any: 0).
+      const found = firstSetAttempt(request({ uniqueness }), 10);
+      const r = found.result;
+      assert.ok(r, `${uniqueness}: no set attempt of the first ten succeeded (${found.failures.join(', ')})`);
+      assert.equal(r.attempt, uniqueness === 'any' ? 0 : 1);
       assert.ok(isValidLayout(board, r.set.pieces, /** @type {Pose[]} */ (r.set.witness)));
       assert.equal(r.calibration.rating?.level, 'hard');
       assert.deepEqual(r.calibration.solution, r.set.witness);
@@ -524,6 +546,103 @@ describe('set attempts and puzzle candidates', () => {
     assert.deepEqual(puzzleCandidate(realCtx({ seenLayouts: new Set([c.layoutKey]) }), 1, 0), { fail: 'layout' });
     const again = puzzleCandidate(realCtx({ seenClues: new Set([c.clueKey]) }), 1, 0);
     assert.ok('fail' in again || again.clueKey !== c.clueKey);
+  });
+
+  test('a candidate carries the record of its origin: fields in the order of RES-27, nothing excluded', () => {
+    const c = /** @type {PuzzleCandidate} */ (puzzleCandidate(realCtx(), 1, 0));
+    assert.ok('made' in c);
+    assert.deepEqual(c.made, {
+      schema: 1,
+      kind: 'candidate',
+      batchSeed: 'fixture-set-0#1',
+      targetLevel: 'hard',
+      uniqueness: 'any',
+      slot: 1,
+      attempt: 0,
+      start: 'witness',
+      skips: { subsets: [], repairs: [] },
+      versions: provenanceVersions(),
+    });
+    assert.deepEqual(Object.keys(c.made), ['schema', 'kind', 'batchSeed', 'targetLevel', 'uniqueness', 'slot', 'attempt',
+      'start', 'skips', 'versions']);
+    const v = currentVersions();
+    assert.deepEqual(provenanceVersions(), { algo: v.algo, policy: v.policy, rng: v.rng, seedScheme: SEED_SCHEME, ratingModel: v.model });
+    assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel']);
+    assert.equal(provenanceProblem('made', c.made), null);
+    const other = /** @type {PuzzleCandidate} */ (puzzleCandidate(realCtx({ uniqueness: 'any', batchSeed: 'x#2' }), 3, 1));
+    assert.deepEqual([other.made.slot, other.made.attempt, other.made.batchSeed], [3, 1, 'x#2']);
+  });
+
+  test('the record of a candidate lists the clue keys the exclusion skipped', () => {
+    const c = /** @type {PuzzleCandidate} */ (puzzleCandidate(realCtx(), 1, 0));
+    const again = /** @type {PuzzleCandidate} */ (puzzleCandidate(realCtx({ seenClues: new Set([c.clueKey]) }), 1, 0));
+    assert.ok('made' in again && again.made.kind === 'candidate');
+    assert.ok(typeof again.made.skips === 'object' && again.made.skips.subsets.length >= 1);
+    assert.deepEqual(again.made.skips.repairs, []);
+  });
+
+  test('start is the observed outcome: a restart that finds a layout, else the witness', () => {
+    const restartOf = (/** @type {PieceSet} */ set, /** @type {number} */ attempt) => randomTiling(
+      board, set.pieces, createRng('fixture-set-0#1', `slot/1/${attempt}`).derive('restart'),
+      createWorkspace(SCRATCH_WORKSPACE_BYTES), { totalRowTrials: BUDGETS.tilingTotal, restartBase: BUDGETS.restartBase },
+    );
+    const startOf = (/** @type {BatchContext} */ ctx, /** @type {number} */ attempt) => {
+      const c = puzzleCandidate(ctx, 1, attempt);
+      assert.ok('made' in c, `attempt ${attempt} makes a candidate`);
+      return /** @type {{ start: string }} */ (c.made).start;
+    };
+    for (const attempt of [0, 1]) {
+      assert.equal(startOf(realCtx(), attempt), 'witness', `attempt ${attempt}`);
+    }
+    for (const attempt of [2, 5]) {
+      assert.equal(startOf(realCtx(), attempt), restartOf(set0, attempt) === null ? 'witness' : 'restart', `attempt ${attempt}`);
+    }
+    const bare = { ...set0, witness: null };
+    assert.notEqual(restartOf(bare, 0), null);
+    assert.equal(startOf(realCtx({ set: bare }), 0), 'restart');
+  });
+
+  test('capSkips stores copies up to 64 subset and 16 repair ordinals and overflow above', () => {
+    const upTo = (/** @type {number} */ n) => Array.from({ length: n }, (_, i) => i);
+    const full = { subsets: upTo(64), repairs: upTo(16) };
+    const kept = capSkips(full);
+    assert.deepEqual(kept, full);
+    assert.ok(typeof kept === 'object' && kept.subsets !== full.subsets && kept.repairs !== full.repairs);
+    assert.equal(capSkips({ subsets: upTo(65), repairs: [] }), 'overflow');
+    assert.equal(capSkips({ subsets: [], repairs: upTo(17) }), 'overflow');
+    assert.deepEqual(capSkips({ subsets: [], repairs: [] }), { subsets: [], repairs: [] });
+  });
+
+  test('the fold keeps each candidate\'s own record, also when it accepts an earlier best', () => {
+    const ctx = realCtx({ quantity: 2 });
+    const start = foldStart(ctx);
+    const frozen = candidateContext(ctx, start);
+    const first = puzzleCandidate(frozen, 1, 0);
+    assert.ok('made' in first);
+    let s = foldAccept(start, first);
+    assert.equal(s.accepted[0], first, 'the fold carries the object the candidate function returned');
+    s = { ...s, distance: 1000 };
+    const list = Array.from({ length: BUDGETS.slotAttempts }, (_, attempt) => puzzleCandidate(frozen, 2, attempt));
+    for (const c of list) {
+      s = foldAccept(s, c);
+    }
+    assert.equal(s.status, 'complete');
+    let best = -1;
+    let bestDistance = -Infinity;
+    list.forEach((c, attempt) => {
+      if ('layout' in c && c.layoutKey !== first.layoutKey && c.clueKey !== first.clueKey) {
+        const dist = minLayoutDistance(board, set0.pieces, c.layout, [first.layout]);
+        if (dist > bestDistance) {
+          best = attempt;
+          bestDistance = dist;
+        }
+      }
+    });
+    assert.ok(best >= 0 && best < BUDGETS.slotAttempts - 1, 'the best candidate is not the last attempt');
+    assert.equal(s.accepted[1], list[best], 'the slot takes its farthest candidate, as the same object');
+    const made = /** @type {{ slot: number, attempt: number }} */ (/** @type {PuzzleCandidate} */ (list[best]).made);
+    assert.deepEqual([made.slot, made.attempt], [2, best]);
+    assert.notEqual(s.attempt, made.attempt, 'the record names the attempt that made it, not the one that accepted it');
   });
 
   test('walks start from the witness, or from the restart stream on attempts 2, 5, 8 of small boards', () => {
@@ -609,6 +728,8 @@ describe('set attempts and puzzle candidates', () => {
       assert.ok(expected.ok);
       assert.deepEqual(c.clues, expected.clues);
       assert.notDeepEqual(completionCandidate(realCtx({ batchSeed: 'fixture-set-0#2' }), others[0]), c, 'another batch seed draws other clues');
+      assert.deepEqual(c.made, { schema: 1, kind: 'completion' });
+      assert.equal(provenanceProblem('made', c.made), null);
     });
 
     test('a seen layout fails, an excluded clue key never repeats, failures keep the pipeline reasons', () => {
@@ -731,6 +852,22 @@ describe('recorded generation fixture', () => {
     }
   });
 
+  test('every accepted puzzle has a valid record of its origin, and a rerun gives the same records (D35)', () => {
+    const rerun = replayRecipe(RECIPE);
+    const kinds = replay.fold.accepted.map((c) => c.made.kind);
+    assert.deepEqual(kinds, ['calibration', ...Array(9).fill('candidate')]);
+    for (const c of replay.fold.accepted) {
+      assert.equal(provenanceProblem('made', c.made), null);
+    }
+    assert.deepEqual(rerun.fold.accepted.map((c) => c.made), replay.fold.accepted.map((c) => c.made));
+    const first = /** @type {PuzzleCandidate} */ (puzzleCandidate(replay.ctx, 1, 0));
+    assert.deepEqual(puzzleCandidate(replay.ctx, 1, 0), first);
+    assert.equal(first.made.kind, 'candidate');
+    assert.deepEqual(first.made.skips, { subsets: [], repairs: [] });
+    assert.equal(first.made.batchSeed, RECIPE.batchSeed);
+    assert.equal(first.made.targetLevel, RECIPE.levelId);
+  });
+
   test('a second batch with carried history adds new layouts on the same board, shapes, ids and colors', () => {
     const { ctx, fold, set } = replay;
     const second = runFold({ ...ctx, batchSeed: `${RECIPE.seedText}#2`, quantity: 5, seenLayouts: fold.seenLayouts, seenClues: fold.seenClues, calibration: undefined });
@@ -771,5 +908,15 @@ describe('recorded generation fixture', () => {
     assert.equal(run('--replace').status, 2);
     assert.equal(run().status, 2);
     assert.equal(run('--check').status, 0, 'refused commands left the fixtures intact');
+    // The replay-case mode: only the first run generates; the others are refused or fail usage before any generation.
+    assert.equal(run('--replay-case', '--check').status, 0, 'the recorded replay case replays identically');
+    const again = run('--replay-case', '--create', '--seed', '0');
+    assert.equal(again.status, 1);
+    assert.match(again.stderr, /already exist/);
+    assert.equal(run('--replay-case', '--replace', '--seed', '0').status, 2, 'a replacement needs a reason');
+    assert.equal(run('--replay-case', '--create').status, 2, 'a recording needs a seed');
+    assert.equal(run('--replay-case', '--search', '--from', '50').status, 2, 'the seeds are 0 to 49');
+    assert.equal(run('--replay-case', '--check', '--seed', '0').status, 2);
+    assert.equal(run('--search').status, 2, 'the search belongs to the replay-case mode');
   });
 });

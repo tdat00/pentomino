@@ -1,0 +1,107 @@
+D36 evidence (SA1, 2026-11-12, HEAD 05fa958): v3 deduction on the sets that the D21 flow builds for Hell cells.
+Command per block: node docs/difficulty-v3/claude-opus-5.5/d36-hell-probe.mjs <cols> <rows> <level> t18-big-a <sizes> <perSize>
+Block 1: the pinned DEDUCE. Block 2: V3_WORK=7600000000 V3_NODES=300000 (ten times the work cap), then V3_LA=0
+(lookaheadWidth 0). Every command ran alone, attached, under 150 s; no lock file was present.
+
+## Block 1: pinned DEDUCE
+
+22x22 hell-3 t18-big-a: set attempt 0 ok in 9240 ms
+K 73; v2 calibration score 172 with 2 clues; band {"id":"hell-3","label":"Hell 3","index":9,"min":162,"max":235,"share":0.04,"areas":[450,null]}
+limits {"lookaheadWidth":4,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 0: capped, 2085 ms, nodes 1837, work 761683507, stop work-cap
+k 0: capped, 2370 ms, nodes 1837, work 761683507, stop work-cap
+k 1: capped, 2179 ms, nodes 1927, work 761580313, stop work-cap
+k 1: capped, 2111 ms, nodes 1313, work 761486845, stop work-cap
+k 2: capped, 2218 ms, nodes 3039, work 761509427, stop work-cap
+k 2: capped, 2173 ms, nodes 1561, work 761427887, stop work-cap
+k 3: capped, 2198 ms, nodes 2168, work 761381289, stop work-cap
+k 3: capped, 2196 ms, nodes 1229, work 761499832, stop work-cap
+k 5: capped, 2201 ms, nodes 2349, work 761267121, stop work-cap
+k 5: capped, 2181 ms, nodes 2012, work 761070859, stop work-cap
+k 8: capped, 1952 ms, nodes 1967, work 761081548, stop work-cap
+k 8: capped, 2321 ms, nodes 3620, work 761012304, stop work-cap
+
+22x22 hell-1 t18-big-a: set attempt 0 ok in 2199 ms
+K 39; v2 calibration score 100 with 4 clues; band {"id":"hell-1","label":"Hell 1","index":7,"min":77,"max":112,"share":0.1,"areas":[164,null]}
+limits {"lookaheadWidth":4,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 4: capped, 2030 ms, nodes 1301, work 760977457, stop work-cap
+k 6: capped, 1602 ms, nodes 289, work 760539474, stop work-cap
+k 10: complete, 239 ms, nodes 291, work 77685588, stop solution-limit, tier 3, G 8, Gproved 5, census false, score 65 (nightmare)
+
+22x22 hell-2 t18-big-a: set attempt 0 ok in 1714 ms
+K 54; v2 calibration score 132 with 3 clues; band {"id":"hell-2","label":"Hell 2","index":8,"min":112,"max":162,"share":0.06,"areas":[266,null]}
+limits {"lookaheadWidth":4,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 3: capped, 1911 ms, nodes 1292, work 761320652, stop work-cap
+k 5: capped, 2275 ms, nodes 1517, work 761039043, stop work-cap
+k 9: capped, 2004 ms, nodes 750, work 760567876, stop work-cap
+
+15x20 hell-2 t18-big-a: set attempt 0 ok in 2367 ms
+K 50; v2 calibration score 126 with 2 clues; band {"id":"hell-2","label":"Hell 2","index":8,"min":112,"max":162,"share":0.06,"areas":[266,null]}
+limits {"lookaheadWidth":4,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 2: capped, 1920 ms, nodes 5415, work 760498227, stop work-cap
+k 4: capped, 2210 ms, nodes 5313, work 760332784, stop work-cap
+k 8: capped, 2449 ms, nodes 6557, work 760266616, stop work-cap
+
+18x18 hell-2 t18-big-a: set attempt 0 ok in 907 ms
+K 51; v2 calibration score 126 with 3 clues; band {"id":"hell-2","label":"Hell 2","index":8,"min":112,"max":162,"share":0.06,"areas":[266,null]}
+limits {"lookaheadWidth":4,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 3: capped, 1899 ms, nodes 4916, work 760583040, stop work-cap
+k 5: capped, 2192 ms, nodes 6707, work 760462277, stop work-cap
+k 9: capped, 1929 ms, nodes 1871, work 760220460, stop work-cap
+
+24x24 hell-3 t18-big-a: set attempt 0 ok in 14389 ms
+K 77; v2 calibration score 180 with 2 clues; band {"id":"hell-3","label":"Hell 3","index":9,"min":162,"max":235,"share":0.04,"areas":[450,null]}
+limits {"lookaheadWidth":4,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 2: capped, 2146 ms, nodes 1177, work 762048342, stop work-cap
+k 4: capped, 2505 ms, nodes 1431, work 761712687, stop work-cap
+k 8: capped, 2251 ms, nodes 1777, work 761463986, stop work-cap
+
+20x18 master t18-big-a: set attempt 0 ok in 61 ms
+K 20; v2 calibration score 44 with 4 clues; band {"id":"master","label":"Master","index":5,"min":37,"max":53,"share":0.22,"areas":[59,null]}
+limits {"lookaheadWidth":4,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 4: complete, 50 ms, nodes 25, work 6094461, stop solution-limit, tier 3, G 1, Gproved 1, census true, score 19 (hard)
+k 6: complete, 32 ms, nodes 39, work 4434940, stop solution-limit, tier 3, G 2, Gproved 2, census true, score 26 (expert)
+k 10: complete, 7 ms, nodes 1, work 219446, stop exhausted, tier 1, G 0, Gproved 0, census true, score 12 (normal)
+
+12x12 master t18-big-a: set attempt 0 ok in 50 ms
+K 16; v2 calibration score 43 with 4 clues; band {"id":"master","label":"Master","index":5,"min":37,"max":53,"share":0.22,"areas":[59,null]}
+limits {"lookaheadWidth":4,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 4: complete, 37 ms, nodes 188, work 5052488, stop solution-limit, tier 3, G 4, Gproved 4, census true, score 39 (master)
+k 6: complete, 9 ms, nodes 17, work 389629, stop exhausted, tier 3, G 1, Gproved 1, census true, score 20 (hard)
+k 10: complete, 2 ms, nodes 1, work 5471, stop exhausted, tier 1, G 0, Gproved 0, census true, score 10 (easy)
+
+total 92 s
+
+## Block 2a: ten times the work cap
+22x22 hell-1 t18-big-a: set attempt 0 ok in 2175 ms
+K 39; v2 calibration score 100 with 4 clues; band {"id":"hell-1","label":"Hell 1","index":7,"min":77,"max":112,"share":0.1,"areas":[164,null]}
+limits {"lookaheadWidth":4,"nodes":300000,"solutions":8,"work":7600000000,"census":10000000,"memoryBytes":33554432}
+k 4: capped, 32239 ms, nodes 12695, work 7600637657, stop work-cap
+
+18x18 hell-2 t18-big-a: set attempt 0 ok in 894 ms
+K 51; v2 calibration score 126 with 3 clues; band {"id":"hell-2","label":"Hell 2","index":8,"min":112,"max":162,"share":0.06,"areas":[266,null]}
+limits {"lookaheadWidth":4,"nodes":300000,"solutions":8,"work":7600000000,"census":10000000,"memoryBytes":33554432}
+k 3: capped, 45828 ms, nodes 52097, work 7600547193, stop work-cap
+
+22x22 hell-3 t18-big-a: set attempt 0 ok in 9456 ms
+K 73; v2 calibration score 172 with 2 clues; band {"id":"hell-3","label":"Hell 3","index":9,"min":162,"max":235,"share":0.04,"areas":[450,null]}
+limits {"lookaheadWidth":4,"nodes":300000,"solutions":8,"work":7600000000,"census":10000000,"memoryBytes":33554432}
+k 2: capped, 38409 ms, nodes 29112, work 7601541194, stop work-cap
+
+## Block 2b: lookaheadWidth 0
+22x22 hell-1 t18-big-a: set attempt 0 ok in 2073 ms
+K 39; v2 calibration score 100 with 4 clues; band {"id":"hell-1","label":"Hell 1","index":7,"min":77,"max":112,"share":0.1,"areas":[164,null]}
+limits {"lookaheadWidth":0,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 4: capped, 2037 ms, nodes 1177, work 760852539, stop work-cap
+
+18x18 hell-2 t18-big-a: set attempt 0 ok in 948 ms
+K 51; v2 calibration score 126 with 3 clues; band {"id":"hell-2","label":"Hell 2","index":8,"min":112,"max":162,"share":0.06,"areas":[266,null]}
+limits {"lookaheadWidth":0,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 3: capped, 2023 ms, nodes 5968, work 760573487, stop work-cap
+
+22x22 hell-3 t18-big-a: set attempt 0 ok in 9286 ms
+K 73; v2 calibration score 172 with 2 clues; band {"id":"hell-3","label":"Hell 3","index":9,"min":162,"max":235,"share":0.04,"areas":[450,null]}
+limits {"lookaheadWidth":0,"nodes":30000,"solutions":8,"work":760000000,"census":10000000,"memoryBytes":33554432}
+k 2: capped, 2065 ms, nodes 2112, work 761527985, stop work-cap
+
+total 151 s

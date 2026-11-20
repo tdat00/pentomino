@@ -9,6 +9,7 @@
 //   packed rows    Int32 rowCols [nonzeros], rowStart [rows + 1]
 //   row metadata   Int16 rowPiece, Uint8 rowT, Int16 rowX, rowY [rows]
 //   maps           Int32 cellColumn [width * height], placementsPerPiece [free pieces]
+//   named slots    module-prefixed scratch buffers of the same workspace: dlx.shuffle; deduce.* (deduction solver)
 // A workspace holds one live model: reserving or building another overwrites the buffers.
 
 import { BUDGETS } from './policy.js';

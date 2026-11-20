@@ -3,13 +3,14 @@
 // the job that asked for it, so a stale reply changes nothing.
 import { boardToRows } from '../core/engine/board.js';
 import { readPuzzleCode } from '../core/browser/handoff.js';
+import { createDisplayRatings, needsDisplayRating } from '../core/browser/display-rating.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
-import { isAbortError } from '../core/browser/worker-pool.js';
+import { PoolError, isAbortError } from '../core/browser/worker-pool.js';
 import { clueKey, layoutKey } from '../core/engine/keys.js';
 import { BUDGETS } from '../core/engine/policy.js';
 import { randomPuzzleSeed } from '../core/engine/rng.js';
 import {
-  MAX_PACK_BYTES, MAX_PACK_PUZZLES, acceptSet, addSeenKeys, applyCertificate, batchLevelOf, capFor, duplicateSetNumber,
+  MAX_PACK_BYTES, MAX_PACK_PUZZLES, acceptSet, addSeenKeys, applyCertificate, batchLevelOf, capFor, displayKeyOf, duplicateSetNumber,
   generationBlock, gotoSet, historyRoom, importPuzzle, mergeSeenKeys, nextBatch, packFits,
   removeAllPuzzles, removeAllSets, removeCurrentSet, removePuzzle, resetHistory, roomForAnotherPuzzle, setTimelineLength,
   setViewPosition, setsFull, validSeed, visiblePack,
@@ -20,6 +21,7 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
 /** @typedef {import('./state.js').GeneratorState} GeneratorState */
 /** @typedef {import('./state.js').GeneratorStore} GeneratorStore */
 /** @typedef {import('./state.js').StatusNotice} StatusNotice */
+/** @typedef {import('../core/engine/types.js').Made} Made */
 /** @typedef {import('../core/engine/types.js').Pack} Pack */
 /** @typedef {import('../core/engine/types.js').Puzzle} Puzzle */
 /** @typedef {import('../core/browser/generation-client.js').GenerationClient} GenerationClient */
@@ -205,6 +207,52 @@ export function createJobController(options) {
   /** @type {import('../core/browser/puzzle-code-client.js').PuzzleCodeClient | null} */
   let codeClient = null;
 
+  // Derived display ratings (design §7.7): the puzzles of the set on show whose rating is on an older scale are rated
+  // again in the background, one request at a time, and the answers go to `state.displayRatings`.
+  const display = createDisplayRatings({
+    submit: (kind, payload, submitOptions) => (options.workersAvailable === false || typeof client?.submitAuxiliary !== 'function'
+      ? Promise.reject(new PoolError('worker-unavailable', 'No auxiliary requests'))
+      : client.submitAuxiliary(kind, payload, submitOptions)),
+    onChange: (key, entry) => store.update((s) => {
+      const next = { ...s.displayRatings };
+      if (entry === undefined) {
+        delete next[key];
+      } else {
+        next[key] = entry;
+      }
+      return { ...s, displayRatings: next };
+    }),
+  });
+
+  /** @param {GeneratorState} state */
+  function wishDisplayRatings(state) {
+    const { set } = state;
+    /** @type {import('../core/browser/display-rating.js').DisplayWish[]} */
+    const wishes = [];
+    if (set !== null) {
+      const boardRows = boardToRows(set.board);
+      for (const puzzle of state.puzzles) {
+        if (needsDisplayRating(puzzle.rating)) {
+          wishes.push({ key: displayKeyOf(set, puzzle), payload: { boardRows, pieces: set.pieces, clues: puzzle.clues } });
+        }
+      }
+    }
+    display.want(wishes);
+  }
+
+  // A restored set that nobody touches is rated too, so the start-up state is wished at once; a later change of the
+  // set or of the puzzles wishes again.
+  let wishedSet = store.getState().set;
+  let wishedPuzzles = store.getState().puzzles;
+  wishDisplayRatings(store.getState());
+  const unsubscribe = store.subscribe((state) => {
+    if (state.set !== wishedSet || state.puzzles !== wishedPuzzles) {
+      wishedSet = state.set;
+      wishedPuzzles = state.puzzles;
+      wishDisplayRatings(state);
+    }
+  });
+
   /** @param {string} revision */
   const isCurrent = (revision) => !destroyed && store.getState().job?.revision === revision;
 
@@ -293,7 +341,9 @@ export function createJobController(options) {
         return;
       }
       finish(revision, (s) => ({
-        ...acceptSet(s, { set, calibration, setSeed: request.seed, calibrationFor: { levelId, uniqueness }, trusted: true }),
+        ...acceptSet(s, {
+          set, calibration, setSeed: request.seed, calibrationFor: { levelId, uniqueness }, trusted: true, setOrigin: result.setOrigin ?? null,
+        }),
         notice: null,
       }));
     } else if (result.status === 'cancelled') {
@@ -345,6 +395,8 @@ export function createJobController(options) {
     certRevision = revision;
     /** @param {Puzzle[]} list @returns {Record<string, string>} */
     const seedsFor = (list) => Object.fromEntries(list.map((p) => [p.id, begun.batchSeed]));
+    /** @type {Record<string, Made>} */
+    const records = {}; // origin records of the admitted puzzles (`made` above is the set's calibration level)
     /** @type {Puzzle[]} */
     const streamed = [];
     // Backstop for the engine's own history: a puzzle equal to one already listed is never added.
@@ -369,6 +421,7 @@ export function createJobController(options) {
         seenClues: [...state.seenClues],
         ...(reusable ? { calibration: /** @type {Puzzle} */ (state.calibration) } : {}),
         ...(made === null ? {} : { setLevel: made.levelId }),
+        ...(state.setOrigin === null ? {} : { setOrigin: state.setOrigin }),
         revision,
       }, {
         onAccepted: (event) => {
@@ -376,12 +429,16 @@ export function createJobController(options) {
             return;
           }
           streamed.push(event.puzzle);
+          if (event.made !== undefined) {
+            records[event.puzzle.id] = event.made;
+          }
           store.update((s) => {
             const seen = addSeenKeys(s, event.puzzle);
             return {
               ...seen,
               puzzles: [...before, ...streamed],
               puzzleSeeds: { ...seen.puzzleSeeds, ...seedsFor(streamed) },
+              puzzleMade: { ...seen.puzzleMade, ...records },
               job: s.job === null ? null : { ...s.job, accepted: streamed.length },
             };
           });
@@ -433,10 +490,20 @@ export function createJobController(options) {
       const pendingIds = result !== null && status !== 'cancelled' && reason !== 'time-limit'
         ? kept.filter((p) => p.certificate === null || p.certificate === undefined).map((p) => p.id)
         : [];
+      // The records of the puzzles kept, on top of those the set had before this request.
+      /** @type {Record<string, Made>} */
+      const keptMade = {};
+      for (const p of kept) {
+        const record = records[p.id] ?? result?.made?.[p.id];
+        if (record !== undefined) {
+          keptMade[p.id] = record;
+        }
+      }
       return {
         ...s,
         puzzles,
         puzzleSeeds: { ...s.puzzleSeeds, ...seedsFor(kept) },
+        puzzleMade: { ...state.puzzleMade, ...keptMade },
         seenLayouts: mergeSeenKeys(s.seenLayouts, seenLayouts),
         seenClues: mergeSeenKeys(s.seenClues, seenClues),
         checking: pendingIds.filter((id) => puzzles.some((p) => p.id === id)),
@@ -641,6 +708,8 @@ export function createJobController(options) {
     destroy() {
       destroyed = true;
       importSeq += 1;
+      unsubscribe();
+      display.dispose();
       codeClient?.dispose();
       codeClient = null;
     },

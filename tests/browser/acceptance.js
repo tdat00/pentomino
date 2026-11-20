@@ -21,17 +21,22 @@ const resources = new Set();
 document.addEventListener('securitypolicyviolation', (e) => problems.push(`csp ${e.violatedDirective} ${e.blockedURI}`));
 
 /**
+ * Runs one check between a CHECK-START and a CHECK-END console line, which the runner's watchdog reads (GB-P5).
  * @param {string} id
  * @param {string} name
  * @param {() => unknown | Promise<unknown>} fn Returns optional evidence; throwing fails the check.
  */
 async function check(id, name, fn) {
+  console.log(`CHECK-START ${id} ${name}`);
+  const started = performance.now();
   try {
     const detail = await fn();
     results.push({ id, name, status: 'pass', detail });
   } catch (error) {
     results.push({ id, name, status: 'fail', detail: String(/** @type {Error} */ (error)?.message ?? error) });
   }
+  const seconds = Math.round((performance.now() - started) / 100) / 10;
+  console.log(`CHECK-END ${results[results.length - 1].status === 'pass' ? 'PASS' : 'FAIL'} ${seconds} s ${id} ${name}`);
 }
 
 /**
@@ -240,11 +245,14 @@ async function runRecipe(recipe) {
   const scores = qa(d, '.card-rating').map((n) => Number(/score (\d+)/.exec(n.textContent ?? '')?.[1] ?? NaN));
   assert(Number.isFinite(scores[0]), `the card shows a score: ${scores}`);
   const cardLines = qa(d, '.puzzle-card .card-body > p').map((n) => n.textContent ?? '');
-  assert(cardLines.length === 4 && cardLines[0] === 'Puzzle #1' && /^\w[\w ]*: score \d+\+?$/.test(cardLines[1])
+  // A generated puzzle has a rating of the current scale: the line, and the estimate note when its census did not finish.
+  const [ratingLine, ...ratingNotes] = (cardLines[1] ?? '').split(' · ');
+  assert(cardLines.length === 4 && cardLines[0] === 'Puzzle #1' && /^\w[\w ]*: score \d+\+?$/.test(ratingLine ?? '')
+    && ratingNotes.every((note) => note.startsWith('Decisive estimate'))
     && /^\d+ pieces? to place$/.test(cardLines[2]) && /^(Unique solution ✓|Multiple solutions|Checking…|Uniqueness not checked|At least 1 solution|No solution exists)$/.test(cardLines[3]),
   `the card shows number, level and score, pieces to place and solutions: ${cardLines}`);
   assert(/^Seed: \d+$/.test(q(d, '.detail-seed').textContent ?? '') && q(d, '.detail-seed').parentElement === q(d, '.detail-title').parentElement, 'the seed is next to the name in the main panel');
-  assert(qa(d, '.puzzle-card a').length === 0 && qa(d, '.puzzle-card button').every((b) => b.dataset.action === 'remove' || b.dataset.action === 'select'), 'the card only has its select and remove buttons');
+  assert(qa(d, '.puzzle-card a').length === 0 && qa(d, '.puzzle-card button').every((b) => ['select', 'remove'].includes(b.dataset.action ?? '')), 'the card only has its select and remove buttons');
   assert(!(/** @type {HTMLButtonElement} */ (q(d, '[data-action="remove-all-puzzles"]'))).disabled && q(d, '[data-action="remove-all-puzzles"]').closest('.app-history') !== null,
     'Remove all sits in the left panel and is enabled once there is a puzzle');
   const toPlace = Number(/^(\d+)/.exec(cardLines[2])?.[1] ?? NaN);

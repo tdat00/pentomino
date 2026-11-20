@@ -4,17 +4,23 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { createGenerationClient } from '../core/browser/generation-client.js';
+import { displayRatingKey } from '../core/browser/display-rating.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
+import { describeProblem } from '../core/browser/puzzle-code-dialog.js';
 import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
-import { createPool } from '../core/browser/worker-pool.js';
+import { PoolAbortError, WorkerTaskError, createPool } from '../core/browser/worker-pool.js';
 import { boardKey, boardToRows } from '../core/engine/board.js';
+import { progressFingerprint } from '../core/engine/keys.js';
+import { offeredLevels } from '../core/engine/levels.js';
 import { packBoard, parsePack } from '../core/engine/pack.js';
 import { decodePuzzleCode, encodePuzzleCode } from '../core/engine/puzzlecode.js';
+import { setLocale, t } from '../generator/i18n.js';
 import { createJobController } from '../generator/jobs.js';
 import {
-  MAX_SETS, createGeneratorStore, defaultGeneratorState, generationBlock, importPuzzle, restoreState, savedSetOf, serializeState,
-  setNumber,
+  MAX_SETS, createGeneratorStore, defaultGeneratorState, displayEntryOf, generationBlock, importPuzzle, restoreState, savedSetOf,
+  serializeState, setNumber,
 } from '../generator/state.js';
+import { describeRating, printJobOf, printListOf } from '../generator/ui/puzzle-panel.js';
 import { nodeWorkerFactory } from '../tools/node-worker.mjs';
 
 const root = new URL('../', import.meta.url);
@@ -152,14 +158,20 @@ test('a code without an answer gets its witness from the solver in a worker, the
 /** A generation client that is never asked for anything. */
 const idleClient = /** @type {any} */ ({ generateSet: async () => ({ status: 'cancelled' }), generateBatch: async () => ({ status: 'cancelled' }), cancel() {} });
 
-/** @returns {ReturnType<typeof createJobController>} */
-function controllerOn(/** @type {ReturnType<typeof createGeneratorStore>} */ store) {
+/**
+ * @param {ReturnType<typeof createGeneratorStore>} store
+ * @param {any} [client]
+ * @param {Partial<import('../generator/jobs.js').JobControllerOptions>} [extra]
+ * @returns {ReturnType<typeof createJobController>}
+ */
+function controllerOn(store, client = idleClient, extra = {}) {
   const factory = nodeWorkerFactory();
   return createJobController({
     store,
     hardware: { phone: false },
-    client: idleClient,
+    client,
     createPuzzleCodeClient: () => createPuzzleCodeClient({ createPool: () => /** @type {any} */ (createPool({ size: 1, workerFactory: factory })) }),
+    ...extra,
   });
 }
 
@@ -217,6 +229,35 @@ test('a Play link with several puzzles brings all of them: the first makes the s
   }
 });
 
+test('a code whose pieces repeat a shape imports nothing and the dialog gets its reason, in both languages', async () => {
+  // A 4 x 2 board and the mirror-image pair m1, m2, as the frozen payload writer writes it; only the pack check refuses it.
+  const twinCode = '1G1G84SWH7ADMRMP241063N6TCJB281860GGJ3S';
+  const store = createGeneratorStore(defaultGeneratorState());
+  const controller = controllerOn(store);
+  try {
+    const before = store.getState();
+    const refused = /** @type {any} */ (await controller.importPuzzleCode(`https://example.org/pentomino/player/#p=${twinCode}`));
+    assert.equal(refused.ok, false);
+    assert.deepEqual([refused.issues[0].code, refused.issues[0].params], ['duplicate-shape', { piece: 'm2', first: 'm1' }]);
+    assert.equal(store.getState(), before, 'nothing was imported');
+    const { key, params } = describeProblem(refused.issues[0]);
+    assert.equal(key, 'code.error.duplicateShape');
+    setLocale('en', null);
+    assert.equal(t(key, params), 'Pieces m2 and m1 have the same shape (mirror images count as the same shape), so this puzzle cannot be opened.');
+    setLocale('vi', null);
+    assert.equal(t(key, params), 'Mảnh m2 và mảnh m1 có cùng hình dạng (hình lật đối xứng cũng tính là cùng hình dạng), nên không thể mở đề này.');
+
+    const list = /** @type {any} */ (await controller.importPuzzleCode(`${await codeOf(sample, 0)};${twinCode}`));
+    assert.equal(list.ok, false, 'one refused code refuses the whole list');
+    assert.deepEqual([list.issues[0].code, list.issues[0].path], ['duplicate-shape', '$.p[1]']);
+    assert.equal(store.getState(), before, 'not even the first puzzle of the list was imported');
+  } finally {
+    setLocale('en', null);
+    controller.destroy();
+    store.destroy();
+  }
+});
+
 test('the controller explains a bad code and changes nothing; a busy job or a newer import wins', async () => {
   const store = createGeneratorStore(defaultGeneratorState());
   const controller = controllerOn(store);
@@ -245,4 +286,304 @@ test('the controller explains a bad code and changes nothing; a busy job or a ne
     controller.destroy();
     store.destroy();
   }
+});
+
+/** A rating on today's scale, as a worker answers a `rate` request. @param {object} [extra] */
+const derived = (extra = {}) => ({
+  model: 'difficulty-v3', score: 14.4, level: 'normal', saturated: false, metrics: { censusComplete: true, censusUndecided: 0 }, ...extra,
+});
+
+/**
+ * A client that answers display requests with `reply` and records them (the first part of each call).
+ * @param {(kind: string, payload: any) => Promise<unknown>} [reply]
+ */
+function ratingClient(reply = async () => derived()) {
+  /** @type {{ kind: string, payload: any }[]} */
+  const calls = [];
+  return /** @type {any} */ ({
+    ...idleClient,
+    calls,
+    submitAuxiliary: async (/** @type {string} */ kind, /** @type {any} */ payload) => {
+      calls.push({ kind, payload });
+      return reply(kind, payload);
+    },
+  });
+}
+
+const tick = () => new Promise((resolve) => setImmediate(resolve));
+
+/** Waits until the store holds at least one derived rating and none is pending. @param {ReturnType<typeof createGeneratorStore>} store */
+async function settled(store) {
+  for (let i = 0; i < 500; i += 1) {
+    const entries = Object.values(store.getState().displayRatings);
+    if (entries.length > 0 && entries.every((entry) => entry.status !== 'pending')) {
+      return;
+    }
+    await tick();
+  }
+  throw new Error('the derived ratings did not settle');
+}
+
+/** @param {ReturnType<typeof printJobOf>} job @returns {string[]} */
+const linesOf = (job) => (job?.details ?? []).map((line) => line.map((part) => part.text).join(''));
+
+/** The pack of the sample with the claim of every puzzle replaced. @param {object | null} rating */
+const withClaim = (rating) => ({ ...sample, puzzles: sample.puzzles.map((p) => ({ ...p, rating })) });
+
+test('an imported puzzle with a v2 claim is rated again: card and sheet show the derived rating, with the original in a note', async () => {
+  const store = createGeneratorStore(defaultGeneratorState());
+  const client = ratingClient();
+  const controller = controllerOn(store, client);
+  try {
+    const done = await controller.importPuzzleCode(await codeOf(sample, 0));
+    assert.equal(/** @type {any} */ (done).value?.status, 'new-set');
+    const claim = structuredClone(store.getState().puzzles[0].rating);
+    assert.equal(claim?.model, 'difficulty-v2');
+    await settled(store);
+    const state = store.getState();
+    const [puzzle] = state.puzzles;
+    const set = /** @type {NonNullable<typeof state.set>} */ (state.set);
+    const key = displayRatingKey(progressFingerprint(set.board, set.pieces, puzzle.clues));
+    assert.deepEqual(state.displayRatings, { [key]: { status: 'rated', rating: derived() } });
+    assert.deepEqual(client.calls, [{ kind: 'rate', payload: { boardRows: boardToRows(set.board), pieces: set.pieces, clues: puzzle.clues } }]);
+    assert.deepEqual(puzzle.rating, claim, 'the stored claim does not change');
+    assert.equal(state.notice, null);
+
+    const entry = displayEntryOf(state, puzzle);
+    assert.equal(entry, state.displayRatings[key]);
+    assert.equal(describeRating(puzzle, entry), 'Normal: score 14 · Re-rated with the current scale (original: Easy 8, difficulty-v2)');
+    assert.equal(describeRating(puzzle), 'Easy: score 8', 'without the entry the card shows the claim alone');
+    assert.deepEqual(linesOf(printJobOf(state, puzzle.id)), ['Normal: score 14', 'Re-rated with the current scale (original: Easy 8, difficulty-v2)']);
+    assert.equal(printListOf(state, puzzle.id)?.items[0].detail, 'Normal: score 14 · Re-rated with the current scale (original: Easy 8, difficulty-v2)');
+    setLocale('vi', null);
+    assert.equal(describeRating(puzzle, entry), 'Trung bình: điểm 14 · Đã chấm lại theo thang điểm hiện tại (gốc: Dễ 8, difficulty-v2)');
+    assert.deepEqual(linesOf(printJobOf(state, puzzle.id)), ['Trung bình: điểm 14', 'Đã chấm lại theo thang điểm hiện tại (gốc: Dễ 8, difficulty-v2)']);
+  } finally {
+    setLocale('en', null);
+    controller.destroy();
+    store.destroy();
+  }
+});
+
+test('a v1 claim is rated again likewise; a derived estimate adds its note; a code without a claim or with a v3 claim asks for nothing', async () => {
+  const store = createGeneratorStore(defaultGeneratorState());
+  const client = ratingClient(async () => derived({ score: 33.2, level: 'expert', censored: true, metrics: { censusComplete: false, censusUndecided: 3 } }));
+  const controller = controllerOn(store, client);
+  try {
+    await controller.importPuzzleCode(await codeOf(withClaim({ model: 'difficulty-v1', score: 30, level: 'hard', saturated: false }), 0));
+    await settled(store);
+    const state = store.getState();
+    const [puzzle] = state.puzzles;
+    assert.equal(client.calls.length, 1);
+    assert.equal(describeRating(puzzle, displayEntryOf(state, puzzle)),
+      'Expert: score 33 · Re-rated with the current scale (original: Hard 30, difficulty-v1) · Decisive estimate: 3 alternatives undecided within the work limit');
+    assert.deepEqual(linesOf(printJobOf(state, puzzle.id)), [
+      'Expert: score 33', 'Re-rated with the current scale (original: Hard 30, difficulty-v1)',
+      'Decisive estimate: 3 alternatives undecided within the work limit',
+    ]);
+  } finally {
+    controller.destroy();
+    store.destroy();
+  }
+
+  const claims = [
+    [{ model: 'difficulty-v3', score: 33, level: 'expert', saturated: false, censored: true }, 'Expert: score 33 · Decisive estimate'],
+    [{ model: 'difficulty-v3', score: 12, level: 'normal', saturated: false }, 'Normal: score 12'],
+    [null, 'No rating'],
+  ];
+  for (const [rating, card] of claims) {
+    const quiet = createGeneratorStore(defaultGeneratorState());
+    const spy = ratingClient();
+    const second = controllerOn(quiet, spy);
+    try {
+      await second.importPuzzleCode(await codeOf(withClaim(/** @type {any} */ (rating)), 1));
+      await tick();
+      const state = quiet.getState();
+      assert.equal(state.puzzles.length, 1);
+      assert.equal(describeRating(state.puzzles[0], displayEntryOf(state, state.puzzles[0])), card);
+      assert.deepEqual([spy.calls.length, state.displayRatings], [0, {}], JSON.stringify(rating));
+    } finally {
+      second.destroy();
+      quiet.destroy();
+    }
+  }
+});
+
+test('a puzzle that claims a Hell level no longer offered on its board still opens: the claim is kept and it is rated again for display (P-OD9)', async () => {
+  const golden = JSON.parse(readFileSync(new URL('tests/fixtures/puzzlecode-v1.json', root), 'utf8')).large;
+  assert.deepEqual([golden.width, golden.height, golden.rating.model, golden.rating.level], [24, 24, 'difficulty-v2', 'hell-1']);
+  assert.ok(!offeredLevels(golden.width * golden.height).some((l) => l.id === golden.rating.level), 'Hell 1 is no longer offered at 576 cells');
+  const decoded = await decodePuzzleCode(golden.code);
+  const read = parsePack(JSON.stringify(decoded.pack));
+  assert.ok(read.ok, 'the pack reads');
+  assert.deepEqual(read.value.puzzles[0].rating, golden.rating, 'with its claim');
+  const store = createGeneratorStore(defaultGeneratorState());
+  const client = ratingClient();
+  const controller = controllerOn(store, client);
+  try {
+    const done = await controller.importPuzzleCode(golden.code);
+    assert.equal(/** @type {any} */ (done).value?.status, 'new-set');
+    await settled(store);
+    const state = store.getState();
+    const [puzzle] = state.puzzles;
+    assert.equal(/** @type {NonNullable<typeof state.set>} */ (state.set).carving, 'imported', 'an Imported set');
+    assert.deepEqual(puzzle.rating, golden.rating, 'the stored claim does not change');
+    assert.equal(client.calls.length, 1, 'one display-rating wish');
+    assert.equal(client.calls[0].kind, 'rate');
+    assert.deepEqual(Object.values(state.displayRatings).map((entry) => entry.status), ['rated']);
+  } finally {
+    controller.destroy();
+    store.destroy();
+  }
+});
+
+test('the wishes: one request per puzzle with a v1 or v2 claim, in list order, keyed by fingerprint and model', async () => {
+  const { state: imported } = importPuzzle(defaultGeneratorState(), await packOf(await codeOf(sample, 0)), () => 'WISHES');
+  const set = /** @type {NonNullable<typeof imported.set>} */ (imported.set);
+  const [first, second, third] = sample.puzzles.map((p) => /** @type {any} */ (p).clues);
+  const rated = [
+    [first, { model: 'difficulty-v3', score: 12, level: 'normal', saturated: false }],
+    [second, { model: 'difficulty-v2', score: 14, level: 'normal', saturated: false }],
+    [third, null],
+    [first.slice(1), { model: 'difficulty-v1', score: 30, level: 'hard', saturated: false }],
+    [second.slice(1), { model: 'future-model', score: 3, level: 'easy' }],
+  ];
+  const puzzles = rated.map(([clues, rating], i) => ({ ...imported.puzzles[0], id: `w${i}`, clues, rating }));
+  const store = createGeneratorStore({ ...imported, puzzles: /** @type {any} */ (puzzles) });
+  const client = ratingClient();
+  const controller = controllerOn(store, client);
+  try {
+    await settled(store);
+    const keys = [puzzles[1], puzzles[3]].map((p) => displayRatingKey(progressFingerprint(set.board, set.pieces, p.clues)));
+    assert.deepEqual(Object.keys(store.getState().displayRatings), keys, 'in list order, nothing for v3, unknown or missing claims');
+    assert.deepEqual(client.calls.map((call) => call.payload.clues), [second, first.slice(1)]);
+    assert.ok(keys.every((key) => key.endsWith('|difficulty-v3')));
+  } finally {
+    controller.destroy();
+    store.destroy();
+  }
+});
+
+test('a reply that is no rating, or an incomplete rating, leaves the claim with "Could not be re-rated" and no notice', async () => {
+  const store = createGeneratorStore(defaultGeneratorState());
+  const client = ratingClient(async () => {
+    throw new WorkerTaskError('rating-incomplete', 'The deduction path was capped');
+  });
+  const controller = controllerOn(store, client);
+  try {
+    await controller.importPuzzleCode(await codeOf(sample, 0));
+    await settled(store);
+    const state = store.getState();
+    assert.deepEqual(Object.values(state.displayRatings), [{ status: 'failed', code: 'rating-incomplete' }]);
+    assert.equal(describeRating(state.puzzles[0], displayEntryOf(state, state.puzzles[0])), 'Easy: score 8 · Could not be re-rated');
+    assert.deepEqual(linesOf(printJobOf(state, state.puzzles[0].id)), ['Easy: score 8', 'Could not be re-rated']);
+    assert.equal(state.notice, null, 'no error notice');
+  } finally {
+    controller.destroy();
+    store.destroy();
+  }
+});
+
+test('without auxiliary requests (no method, or no workers) the entries are unavailable and the claim shows "Could not be re-rated"', async () => {
+  const spy = ratingClient();
+  const cases = [
+    ['a client without submitAuxiliary', idleClient, {}],
+    ['workersAvailable: false with a client that has the method', spy, { workersAvailable: false }],
+  ];
+  for (const [name, client, extra] of cases) {
+    const store = createGeneratorStore(defaultGeneratorState());
+    const controller = controllerOn(store, client, extra);
+    try {
+      await controller.importPuzzleCode(await codeOf(sample, 2));
+      await settled(store);
+      const state = store.getState();
+      assert.deepEqual(Object.values(state.displayRatings), [{ status: 'unavailable' }], name);
+      assert.equal(describeRating(state.puzzles[0], displayEntryOf(state, state.puzzles[0])), 'Hard: score 21 · Could not be re-rated', name);
+      assert.deepEqual(linesOf(printJobOf(state, state.puzzles[0].id)), ['Hard: score 21', 'Could not be re-rated'], name);
+      assert.equal(state.notice, null, `${name}: no error notice`);
+    } finally {
+      controller.destroy();
+      store.destroy();
+    }
+  }
+  assert.equal(spy.calls.length, 0, 'the flag is checked first: the method is never called');
+});
+
+test('a display request gives way to a generation, is asked again, and ends rated after it; the generation is the same without it', async () => {
+  const generated = JSON.parse(readFileSync(new URL('tests/fixtures/generated-sample-pack.json', root), 'utf8')).puzzles[0].rating;
+  const options = { randomNumber: () => '777', duplicateGuard: () => ({ admit: () => true, rejected: new Set() }) };
+
+  /** @param {boolean} rated Whether the client takes display requests. */
+  async function run(rated) {
+    const { state } = importPuzzle(defaultGeneratorState({ quantity: 2 }), await packOf(await codeOf(sample, 0)), () => 'OVERLAP');
+    const store = createGeneratorStore(state);
+    /** @type {{ resolve: (value: unknown) => void, reject: (error: unknown) => void, done: boolean }[]} */
+    const asked = [];
+    /** @type {() => void} */
+    let release = () => {};
+    const open = new Promise((resolve) => {
+      release = () => resolve(undefined);
+    });
+    const client = /** @type {any} */ ({
+      batches: [],
+      cancels: 0,
+      generateSet: async () => ({ status: 'cancelled' }),
+      cancel() {
+        client.cancels += 1;
+      },
+      async generateBatch(/** @type {any} */ input, /** @type {any} */ hooks) {
+        client.batches.push(input);
+        // The client's own rule: a main request rejects the auxiliary requests that wait or run.
+        for (const call of asked.filter((c) => !c.done)) {
+          call.done = true;
+          call.reject(new PoolAbortError('cancelled'));
+        }
+        await open;
+        const accepted = [1, 2].map((i) => ({
+          id: `g${i}`, title: `Normal #${i + 1}`, clues: /** @type {any} */ (sample.puzzles[i]).clues, solution: sample.puzzles[i].solution,
+          rating: generated, certificate: null,
+        }));
+        accepted.forEach((puzzle, index) => hooks.onAccepted?.({ revision: input.revision, index, puzzle, accepted: index + 1, quantity: 2 }));
+        return { status: 'complete', accepted, seenLayouts: [], seenClues: [] };
+      },
+      ...(rated ? {
+        submitAuxiliary: (/** @type {string} */ _kind, /** @type {any} */ _payload) => new Promise((resolve, reject) => {
+          asked.push({ resolve, reject, done: false });
+        }),
+      } : {}),
+    });
+    const controller = controllerOn(store, client, options);
+    try {
+      if (rated) {
+        assert.equal(asked.length, 1, 'the imported puzzle is asked for at start');
+      }
+      const batch = controller.addMore();
+      await tick();
+      assert.equal(client.batches.length, 1);
+      if (rated) {
+        assert.equal(asked.length, 2, 'the cancelled request is asked again');
+        assert.equal(Object.values(store.getState().displayRatings)[0].status, 'pending');
+        assert.ok(store.getState().job !== null, 'the generation runs meanwhile');
+      }
+      release();
+      await batch;
+      assert.equal(store.getState().puzzles.length, 3, 'the generation completes with its usual number of puzzles');
+      assert.equal(client.cancels, 0, 'it was never cancelled');
+      if (rated) {
+        asked[1].resolve(derived());
+        await settled(store);
+        assert.equal(Object.values(store.getState().displayRatings)[0].status, 'rated');
+      }
+      const { displayRatings: _entries, ...rest } = store.getState();
+      return { rest, input: client.batches[0] };
+    } finally {
+      controller.destroy();
+      store.destroy();
+    }
+  }
+
+  const with_ = await run(true);
+  const without = await run(false);
+  assert.deepEqual(with_.input, without.input, 'the request of the generation is the same');
+  assert.deepEqual(with_.rest, without.rest, 'and so is its result');
 });

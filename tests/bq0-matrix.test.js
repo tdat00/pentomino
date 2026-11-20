@@ -74,16 +74,13 @@ describe('BQ-0 matrix', () => {
     }
   });
 
-  test('covers every offered level of the large desktop boards from Hard upward; Heart 432 stops at Hell-2', () => {
+  test('covers every offered level of the large desktop boards, Hard to Nightmare; no Hell level (P-OD9)', () => {
     for (const [prefix, rows] of [['d22x22', rect(22, 22)], ['d32x15', rect(32, 15)], ['dirr466', fixture.rows]]) {
       const expected = offered(rows);
       assert.deepEqual(levelsOf(String(prefix)), expected, String(prefix));
-      assert.equal(expected[0], 'hard');
-      assert.ok(expected.includes('hell-3'));
+      assert.deepEqual(expected, ['hard', 'expert', 'master', 'nightmare'], String(prefix));
     }
-    const heart = levelsOf('dheart432');
-    assert.deepEqual(heart, ['hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2']);
-    assert.ok(!heart.includes('hell-3'));
+    assert.deepEqual(levelsOf('dheart432'), ['hard', 'expert', 'master', 'nightmare']);
   });
 
   test('covers every offered level of the small desktop boards', () => {
@@ -93,12 +90,12 @@ describe('BQ-0 matrix', () => {
     assert.equal(levelsOf('d12x12')[0], 'easy');
   });
 
-  test('phones run 18x20 at Hard, Nightmare, Hell-1 and Hell-2 only and never Hell-3', () => {
-    assert.deepEqual(levelsOf('p18x20'), ['hard', 'nightmare', 'hell-1', 'hell-2']);
+  test('phones run 18x20 at Hard and Nightmare only; no Hell level (P-OD9)', () => {
+    assert.deepEqual(levelsOf('p18x20'), ['hard', 'nightmare']);
     for (const c of casesOf('p18x20')) {
       assert.equal(activeCount(boardFromRows(c.boardRows)), 360);
     }
-    assert.ok(!cases.some((c) => activeCount(boardFromRows(c.boardRows)) <= 360 && c.levelId === 'hell-3'));
+    assert.ok(!cases.some((c) => activeCount(boardFromRows(c.boardRows)) <= 360 && c.levelId.startsWith('hell-')));
   });
 
   test('every level is offered for its board area and no level is requested twice', () => {
@@ -108,14 +105,10 @@ describe('BQ-0 matrix', () => {
     assert.equal(new Set(cases.map((c) => `${c.id}`)).size, cases.length);
   });
 
-  test('has at least 20 seeds per cell and at least 60 for Hell-1 at the largest area of each platform', () => {
+  test('has at least 20 seeds per cell; no Hell level is offered (P-OD9)', () => {
     for (const c of cases) {
       assert.ok(c.repetitions >= 20, c.id);
-    }
-    assert.ok(cases.find((c) => c.id === 'd22x22-hell-1')?.repetitions >= 60);
-    assert.ok(cases.find((c) => c.id === 'p18x20-hell-1')?.repetitions >= 60);
-    for (const c of cases.filter((x) => x.levelId === 'hell-1')) {
-      assert.ok(c.repetitions >= (activeCount(boardFromRows(c.boardRows)) >= 484 ? 60 : 20), c.id);
+      assert.ok(!c.levelId.startsWith('hell-'), c.id);
     }
   });
 
@@ -123,7 +116,9 @@ describe('BQ-0 matrix', () => {
     const specs = planRuns(matrix);
     assert.equal(specs.filter((s) => s.probeKind === 'cancel').length, cases.length);
     assert.equal(specs.filter((s) => s.probeKind === 'generation').length, cases.reduce((sum, c) => sum + c.repetitions, 0));
-    const seeds = new Set(specs.filter((s) => s.probeKind === 'generation' && s.caseId === 'd22x22-hell-1').map((s) => s.seed));
-    assert.equal(seeds.size, 60);
+    const hard = cases.find((c) => c.id === 'd22x22-hard');
+    const seeds = new Set(specs.filter((s) => s.probeKind === 'generation' && s.caseId === 'd22x22-hard').map((s) => s.seed));
+    assert.equal(seeds.size, hard?.repetitions);
+    assert.equal(specs.some((s) => s.caseId === 'd22x22-hell-1'), false);
   });
 });

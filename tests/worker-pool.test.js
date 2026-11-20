@@ -2,13 +2,17 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
+import { boardFromRows } from '../core/engine/board.js';
+import { rate } from '../core/engine/difficulty.js';
 import { parseWorkerMessage } from '../core/engine/protocol.js';
 import { TIME } from '../core/engine/policy.js';
 import { createTaskHandler } from '../core/engine/tasks.js';
+import { createWorkspace, MAIN_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 import {
   createPool,
   defaultPoolSize,
   isAbortError,
+  LOAD_RETRY_DELAY_MS,
   MEMORY_UI_INTERVAL_MS,
   PoolError,
   WORKER_LIMIT_BYTES,
@@ -400,6 +404,132 @@ describe('crashes and unavailable workers', () => {
     await flush();
     assert.equal(t.error.code, 'worker-unavailable');
     pool.close();
+  });
+
+  test('a load failure is retried once on a new worker with the same message after a pause', async () => {
+    const { pool, clock, workers } = setup();
+    pool.beginRequest({ requestId: 1, revision: 'r1' });
+    const t = track(pool.run(task(1)));
+    workers[0].emit('error', new Event('error'));
+    await flush();
+    assert.equal(t.state, 'pending');
+    assert.equal(workers[0].terminated, true);
+    assert.equal(workers.length, 1);
+    clock.advance(LOAD_RETRY_DELAY_MS - 1);
+    assert.equal(workers.length, 1);
+    clock.advance(1);
+    assert.equal(workers.length, 2);
+    assert.equal(workers[0].messages.length, 1);
+    assert.deepEqual(workers[1].messages, workers[0].messages);
+    workers[1].result('ok');
+    await flush();
+    assert.equal(t.state, 'resolved');
+    assert.equal(t.value, 'ok');
+    pool.close();
+  });
+
+  test('a second load failure of the same task rejects it; the next task gets its own retry', async () => {
+    const { pool, clock, workers } = setup();
+    pool.beginRequest({ requestId: 1, revision: 'r1' });
+    const t = track(pool.run(task(1)));
+    workers[0].emit('error', new Event('error'));
+    clock.advance(LOAD_RETRY_DELAY_MS);
+    assert.equal(workers.length, 2);
+    workers[1].emit('error', new Event('error'));
+    await flush();
+    assert.equal(t.state, 'rejected');
+    assert.ok(t.error instanceof PoolError);
+    assert.equal(t.error.code, 'worker-crashed');
+    assert.equal(workers[1].terminated, true);
+    clock.advance(LOAD_RETRY_DELAY_MS);
+    assert.equal(workers.length, 2);
+
+    const next = track(pool.run(task(1)));
+    assert.equal(workers.length, 3);
+    workers[2].emit('error', new Event('error'));
+    clock.advance(LOAD_RETRY_DELAY_MS);
+    assert.equal(workers.length, 4);
+    workers[3].result('again');
+    await flush();
+    assert.equal(next.value, 'again');
+    pool.close();
+  });
+
+  test('only a plain error before any reply is retried: an error with a message, or after a reply, is a crash', async () => {
+    const withMessage = setup();
+    withMessage.pool.beginRequest({ requestId: 1, revision: 'r1' });
+    const a = track(withMessage.pool.run(task(1)));
+    withMessage.workers[0].emit('error', { message: '' });
+    await flush();
+    assert.equal(a.state, 'rejected');
+    assert.equal(a.error.code, 'worker-crashed');
+    withMessage.clock.advance(LOAD_RETRY_DELAY_MS);
+    assert.equal(withMessage.workers.length, 1);
+    withMessage.pool.close();
+
+    const answered = setup();
+    answered.pool.beginRequest({ requestId: 1, revision: 'r1' });
+    const b = track(answered.pool.run(task(1)));
+    const w = answered.workers[0];
+    w.send({ type: 'progress', id: w.taskId(), stage: 's', rowTrials: 0, bytes: 1 });
+    w.emit('error', new Event('error'));
+    await flush();
+    assert.equal(b.state, 'rejected');
+    assert.equal(b.error.code, 'worker-crashed');
+    answered.clock.advance(LOAD_RETRY_DELAY_MS);
+    assert.equal(answered.workers.length, 1);
+    answered.pool.close();
+  });
+
+  test('the slot stays reserved during the pause: the next task waits for the retried one', async () => {
+    const { pool, clock, workers } = setup();
+    pool.beginRequest({ requestId: 1, revision: 'r1' });
+    const a = track(pool.run(task(1)));
+    const b = track(pool.run(task(1)));
+    workers[0].emit('error', new Event('error'));
+    await flush();
+    assert.equal(workers.length, 1);
+    assert.equal(workers[0].messages.length, 1);
+    clock.advance(LOAD_RETRY_DELAY_MS);
+    assert.equal(workers.length, 2);
+    assert.equal(workers[1].messages.length, 1);
+    assert.equal(workers[1].taskId(), workers[0].taskId());
+    workers[1].result('a');
+    await flush();
+    assert.equal(a.value, 'a');
+    assert.equal(workers.length, 2);
+    assert.equal(workers[1].messages.length, 2);
+    workers[1].result('b');
+    await flush();
+    assert.equal(b.value, 'b');
+    pool.close();
+  });
+
+  test('closing the pool or aborting the task cancels a pending retry', async () => {
+    const closing = setup();
+    closing.pool.beginRequest({ requestId: 1, revision: 'r1' });
+    const a = track(closing.pool.run(task(1)));
+    closing.workers[0].emit('error', new Event('error'));
+    closing.pool.close();
+    await flush();
+    assertAborted(a, 'closed');
+    assert.equal(closing.clock.pending(), 0);
+    closing.clock.advance(LOAD_RETRY_DELAY_MS);
+    assert.equal(closing.workers.length, 1);
+
+    const aborting = setup();
+    aborting.pool.beginRequest({ requestId: 1, revision: 'r1' });
+    const controller = new AbortController();
+    const b = track(aborting.pool.run(task(1, 'r1', { signal: controller.signal })));
+    aborting.workers[0].emit('error', new Event('error'));
+    const pending = aborting.clock.pending();
+    controller.abort();
+    await flush();
+    assertAborted(b, 'cancelled');
+    assert.equal(aborting.clock.pending(), pending - 1);
+    aborting.clock.advance(LOAD_RETRY_DELAY_MS);
+    assert.equal(aborting.workers.length, 1);
+    aborting.pool.close();
   });
 });
 
@@ -812,7 +942,9 @@ describe('pool with the real task handler', () => {
     /** @type {any[]} */
     const seen = [];
     const rating = /** @type {any} */ (await pool.run(task(1), (p) => seen.push(p)));
-    assert.equal(rating.model, 'difficulty-v2');
+    assert.equal(rating.model, 'difficulty-v3');
+    assert.equal(JSON.stringify(rating),
+      JSON.stringify(rate(boardFromRows(rows), pieces, master, createWorkspace(MAIN_WORKSPACE_BYTES))));
     assert.ok(replies.every((r) => parseWorkerMessage(r).ok));
     assert.ok(seen.some((p) => p.stage === 'memory' && p.bytes > 0));
     assert.ok(pool.memory().workerBytes > 0);

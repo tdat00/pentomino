@@ -24,8 +24,9 @@ const areaOf = (/** @type {string[]} */ rows) => activeCount(boardFromRows(rows)
 const cellsOf = (/** @type {{ cases: Cell[] }} */ matrix, /** @type {string} */ prefix) => matrix.cases.filter((c) => c.id.startsWith(`${prefix}-`));
 const levelsOf = (/** @type {{ cases: Cell[] }} */ matrix, /** @type {string} */ prefix) => cellsOf(matrix, prefix).map((c) => c.levelId);
 const offered = (/** @type {string[]} */ rows) => offeredLevels(areaOf(rows)).map((l) => l.id);
-const SIX = ['hard', 'master', 'nightmare', 'hell-1', 'hell-2', 'hell-3'];
-const FOUR = ['hard', 'nightmare', 'hell-1', 'hell-2'];
+// The names stay from the matrices that held Hell levels; every Hell level is retired (P-OD9).
+const SIX = ['hard', 'master', 'nightmare'];
+const FOUR = ['hard', 'nightmare'];
 
 /**
  * @param {string[]} rows
@@ -77,9 +78,9 @@ describe('BQ-1/BQ-2/BQ-3 matrices', () => {
     }
   });
 
-  test('BQ-1: 24x24, 32x18 and irregular 558 at Hard, Master, Nightmare, Hell-1, Hell-2 and Hell-3 with cap 576', () => {
+  test('BQ-1: 24x24, 32x18 and irregular 558 at Hard, Master and Nightmare with cap 576', () => {
     const m = matrices.bq1;
-    assert.equal(m.cases.length, 18);
+    assert.equal(m.cases.length, 9);
     assert.deepEqual(levelsOf(m, 'd24x24'), SIX);
     assert.deepEqual(levelsOf(m, 'd32x18'), SIX);
     assert.deepEqual(levelsOf(m, 'dirr558'), SIX);
@@ -90,9 +91,9 @@ describe('BQ-1/BQ-2/BQ-3 matrices', () => {
     assert.deepEqual(SIX, offered(rect(24, 24)).filter((id) => SIX.includes(id)));
   });
 
-  test('BQ-2: 26x26, 32x21 and irregular 658 at the same six levels with cap 676', () => {
+  test('BQ-2: 26x26, 32x21 and irregular 658 at the same three levels with cap 676', () => {
     const m = matrices.bq2;
-    assert.equal(m.cases.length, 18);
+    assert.equal(m.cases.length, 9);
     assert.deepEqual(levelsOf(m, 'd26x26'), SIX);
     assert.deepEqual(levelsOf(m, 'd32x21'), SIX);
     assert.deepEqual(levelsOf(m, 'dirr658'), SIX);
@@ -102,18 +103,17 @@ describe('BQ-1/BQ-2/BQ-3 matrices', () => {
     for (const c of cellsOf(m, 'dirr658')) assert.deepEqual(c.boardRows, irr658.rows);
   });
 
-  test('BQ-3: Heart N22 at 45 degrees never gets Hell-3; 22x22 and irregular 466 do; cap 484, phones only', () => {
+  test('BQ-3: Heart N22 at 45 degrees, 22x22 and irregular 466 at Hard and Nightmare with cap 484, phones only', () => {
     const m = matrices.bq3;
-    assert.equal(m.cases.length, 14);
+    assert.equal(m.cases.length, 6);
     const heart = preset('heart', { n: 22 });
     assert.equal(activeCount(heart.board), 363);
     assert.deepEqual(levelsOf(m, 'pheart363'), FOUR);
-    assert.deepEqual(levelsOf(m, 'p22x22'), [...FOUR, 'hell-3']);
-    assert.deepEqual(levelsOf(m, 'pirr466'), [...FOUR, 'hell-3']);
+    assert.deepEqual(levelsOf(m, 'p22x22'), FOUR);
+    assert.deepEqual(levelsOf(m, 'pirr466'), FOUR);
     for (const c of cellsOf(m, 'pheart363')) {
       assert.equal(c.rotation, 45, c.id);
       assert.deepEqual(boardFromRows(c.boardRows).active, heart.board.active);
-      assert.notEqual(c.levelId, 'hell-3');
     }
     for (const c of cellsOf(m, 'p22x22')) assert.deepEqual(c.boardRows, rect(22, 22));
     for (const c of cellsOf(m, 'pirr466')) assert.deepEqual(c.boardRows, irr466.rows);
@@ -134,15 +134,14 @@ describe('BQ-1/BQ-2/BQ-3 matrices', () => {
     }
   });
 
-  test('every cell has at least 20 seeds and Hell-1 at the largest area has at least 60', () => {
+  test('every cell has at least 20 seeds and no cell is a Hell level (P-OD9); the largest area is still covered', () => {
     for (const [key, largest] of /** @type {[keyof typeof matrices, number][]} */ ([['bq1', 576], ['bq2', 676], ['bq3', 484]])) {
       const cases = /** @type {Cell[]} */ (matrices[key].cases);
       assert.equal(Math.max(...cases.map((c) => areaOf(c.boardRows))), largest);
       for (const c of cases) {
-        const need = c.levelId === 'hell-1' && areaOf(c.boardRows) === largest ? 60 : 20;
-        assert.ok(c.repetitions >= need, c.id);
+        assert.ok(c.repetitions >= 20, c.id);
+        assert.ok(!c.levelId.startsWith('hell-'), c.id);
       }
-      assert.ok(cases.some((c) => c.levelId === 'hell-1' && c.repetitions >= 60), key);
     }
   });
 
