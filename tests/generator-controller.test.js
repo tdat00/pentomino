@@ -7,7 +7,6 @@ import { createGenerationClient, GenerationError } from '../core/browser/generat
 import { HandoffError } from '../core/browser/handoff.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { boardFromRows, boardKey, rectangle } from '../core/engine/board.js';
-import { provenanceVersions } from '../core/engine/generate.js';
 import { layoutKey } from '../core/engine/keys.js';
 import { packBoard, parsePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS } from '../core/engine/policy.js';
@@ -244,48 +243,6 @@ describe('puzzle batches', () => {
     assert.deepEqual(state.puzzles.map((p) => p.id), ['fresh1', 'fresh3'], 'a different puzzle still goes in');
     assert.equal(state.notice, null);
     h.destroy();
-  });
-
-  test('the set origin comes from the client and goes with every request; each kept puzzle keeps its record, a dropped duplicate has none', async () => {
-    const origin = { schema: 1, seed: 'AAAA', level: 'normal', attempt: 3, uniqueness: 'any', versions: provenanceVersions() };
-    const recordOf = (/** @type {number} */ slot) => ({
-      schema: 1, kind: 'candidate', batchSeed: 'AAAA#1', targetLevel: 'normal', uniqueness: 'any', slot, attempt: 0, start: 'witness',
-      skips: { subsets: [], repairs: [] }, versions: provenanceVersions(),
-    });
-    const client = fakeClient({
-      set: () => ({ status: 'complete', set: SET, calibration: makePuzzle(0), attempt: 3, setOrigin: origin }),
-      batch: (input, hooks) => {
-        const puzzles = makePuzzles(3, input.batchIndex * 20);
-        const made = Object.fromEntries(puzzles.map((p, i) => [p.id, recordOf(i + 1)]));
-        if (input.batchIndex === 1) {
-          puzzles.forEach((puzzle, index) => hooks.onAccepted({ revision: input.revision, index, puzzle, made: made[puzzle.id], accepted: index + 1, quantity: 3 }));
-        }
-        return { status: 'complete', accepted: puzzles, made, seenLayouts: [], seenClues: [] };
-      },
-    });
-    const h = harness({ client, state: { quantity: 3 }, options: { duplicateGuard: () => ({ admit: (p) => p.id !== 'q41', rejected: new Set() }) } });
-    await h.controller.generateSet({ seed: 'AAAA' });
-    assert.deepEqual(h.store.getState().setOrigin, origin);
-    assert.deepEqual(h.store.getState().puzzleMade, {});
-    await h.controller.addMore();
-    assert.deepEqual(h.client.batches[0].setOrigin, origin, 'the request carries the origin of the set');
-    let state = h.store.getState();
-    assert.deepEqual(state.puzzleMade, { q20: recordOf(1), q21: recordOf(2), q22: recordOf(3) }, 'records of streamed puzzles');
-    await h.controller.addMore();
-    assert.deepEqual(h.client.batches[1].setOrigin, origin);
-    state = h.store.getState();
-    assert.deepEqual(state.puzzles.map((p) => p.id), ['q20', 'q21', 'q22', 'q40', 'q42']);
-    assert.deepEqual(state.puzzleMade, {
-      q20: recordOf(1), q21: recordOf(2), q22: recordOf(3), q40: recordOf(1), q42: recordOf(3),
-    }, 'records of the result when no puzzle was streamed; none for the duplicate');
-    assert.deepEqual(state.setOrigin, origin);
-    h.destroy();
-
-    const plain = harness({ accepted: true, state: { quantity: 1 } });
-    await plain.controller.addMore();
-    assert.equal('setOrigin' in plain.client.batches[0], false, 'a set without an origin sends none');
-    assert.deepEqual(plain.store.getState().puzzleMade, {}, 'and a client that sends no records leaves none');
-    plain.destroy();
   });
 
   test('every press uses its own fresh random whole-number batch seed', async () => {

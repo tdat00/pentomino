@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { deflateRawSync } from 'node:zlib';
 import { boardFromRows } from '../core/engine/board.js';
-import { scoreV2 as liveScore } from '../core/engine/difficulty.js';
+import { score as liveScore } from '../core/engine/difficulty.js';
 import { canonicalKey, orientedCells } from '../core/engine/geometry.js';
 import { progressFingerprint, puzzleId } from '../core/engine/keys.js';
 import { levelForScore } from '../core/engine/levels.js';
@@ -149,17 +149,13 @@ async function roundTrip(snapshot, options = {}) {
  * @param {Promise<unknown>} promise
  * @param {string} code
  * @param {RegExp} [message]
- * @param {Record<string, string | number>} [params]
  */
-async function rejectsWith(promise, code, message, params) {
+async function rejectsWith(promise, code, message) {
   await assert.rejects(promise, (error) => {
     assert.ok(error instanceof PuzzleCodeError, `expected PuzzleCodeError, got ${String(error)}`);
     assert.equal(error.code, code, error.message);
     if (message !== undefined) {
       assert.match(error.message, message);
-    }
-    if (params !== undefined) {
-      assert.deepEqual(error.params, params);
     }
     return true;
   });
@@ -231,8 +227,8 @@ const base = (over) => ({
 });
 
 const disconnected = base({
-  rows: ['#..', '.##'],
-  pieces: [piece('q1', [[0, 0]], '\u03b1', '#A1B2C3'), piece('z-9', [[0, 0], [1, 0]], '', '#0f0f0f')],
+  rows: ['#.', '.#'],
+  pieces: [piece('q1', [[0, 0]], '\u03b1', '#A1B2C3'), piece('z-9', [[0, 0]], '', '#0f0f0f')],
   clues: [pose('q1', 0, 0)],
   solution: [pose('z-9', 1, 1), pose('q1', 0, 0)],
 });
@@ -245,7 +241,6 @@ const ringPuzzle = base({
   solution: [pose('A', 0, 0), pose('B', 1, 1)],
 });
 
-// Four dominoes: two pieces of one shape, which every reader refuses.
 const repeatedShapes = base({
   rows: ['##', '##', '##', '##'],
   pieces: [
@@ -256,26 +251,6 @@ const repeatedShapes = base({
   solution: [pose('d3', 0, 2), pose('d1', 0, 0), pose('d2', 0, 1), pose('d4', 0, 3)],
   title: 'Pairs',
 });
-
-// Four different shapes with the ids, clue order, labels, colours and title of `repeatedShapes`.
-const fourShapes = base({
-  rows: ['###', '###', '###', '###'],
-  pieces: [
-    piece('d1', [[0, 0], [1, 0], [2, 0]], 'a', '#111111'), piece('d2', [[0, 0], [1, 0], [0, 1]], 'b', '#222222'),
-    piece('d3', [[0, 0], [0, 1]], 'c', '#333333'), piece('d4', [[1, 0], [0, 1], [1, 1], [2, 1]], 'd', '#444444'),
-  ],
-  clues: [pose('d4', 0, 2), pose('d2', 0, 1)],
-  solution: [pose('d3', 2, 1), pose('d1', 0, 0), pose('d2', 0, 1), pose('d4', 0, 2)],
-  title: 'Pairs',
-});
-
-/** 1,024 active cells and 128 connected, pairwise distinct octominoes: a count-only stress puzzle (no solution). */
-function distinctStress() {
-  const rows = Array.from({ length: 16 }, () => '#'.repeat(64));
-  const pieces = v1.catalogueShapes(8).slice(0, 128)
-    .map((cells, i) => piece(v1.labelFor(i), cells, v1.labelFor(i), v1.colorFor(i)));
-  return { rows, pieces };
-}
 
 /**
  * The hand-authored puzzle on a board with two blocked cells of margin on every
@@ -645,7 +620,7 @@ test('raw: the decoded pack is an ordinary one-puzzle pack with a recomputed id'
 
 test('raw: constructed puzzles survive with their identity, order, blocked margins and angle', async () => {
   const packs = {
-    disconnected, ringPuzzle, fourShapes, padded: paddedHand(), lone, foreignRating, maxCertificate,
+    disconnected, ringPuzzle, repeatedShapes, padded: paddedHand(), lone, foreignRating, maxCertificate,
     fractional: snapshotOf(samplePack, 0, { rating: oddV2Claims[0] }),
     inconsistentLevel: snapshotOf(samplePack, 0, { rating: oddV2Claims[1] }),
     saturatedClaim: snapshotOf(samplePack, 0, { rating: oddV2Claims[2] }),
@@ -666,24 +641,8 @@ test('raw: constructed puzzles survive with their identity, order, blocked margi
   assert.equal(progressFingerprint(boardFromRows(padded.rows), padded.pieces, padded.clues) === progressFingerprint(boardFromRows(snapshotOf(handPack, 0).rows), handPack.pieces, handPack.puzzles[0].clues), false);
 });
 
-test('raw: two pieces of one shape are refused by the encoder and the decoder, and the message names both', async () => {
-  const text = /Piece d2 has the same shape as piece d1/;
-  await rejectsWith(encodePuzzleCode(repeatedShapes, { compression: 'raw' }), 'duplicate-shape', text, { piece: 'd2', first: 'd1' });
-  await rejectsWith(encodePuzzleCode(repeatedShapes), 'duplicate-shape', text, { piece: 'd2', first: 'd1' });
-  const mirror = base({ rows: ['####', '####'], pieces: [piece('m1', [[0, 0], [1, 0], [2, 0], [0, 1]]), piece('m2', [[0, 0], [1, 0], [2, 0], [2, 1]])] });
-  await rejectsWith(encodePuzzleCode(mirror), 'duplicate-shape', undefined, { piece: 'm2', first: 'm1' });
-
-  // The frozen writer still writes such a puzzle: the refusal belongs to the pack check after the grammar.
-  const parts = { board: boardFromRows(mirror.rows), rotation: 0, pieces: mirror.pieces, clues: [], solution: null, rating: null, certificate: null, title: null };
-  const payload = new v1.BitWriter();
-  payload.append(v1.encodeCorePayload(parts));
-  const refused = { piece: 'm2', first: 'm1' };
-  await rejectsWith(decodePuzzleCode(rawCode((w) => w.append(v1.encodeCorePayload(parts)))), 'duplicate-shape', /Piece m2 has the same shape as piece m1/, refused);
-  await rejectsWith(decodePuzzleCode(deflatedCode([...payload.toBytes()])), 'duplicate-shape', undefined, refused);
-});
-
 test('raw: the first puzzle clue order, custom colours and labels are kept; colour case is the only respelling', async () => {
-  const { decoded } = await roundTrip(fourShapes, { compression: 'raw' });
+  const { decoded } = await roundTrip(repeatedShapes, { compression: 'raw' });
   const pack = decoded.pack;
   assert.deepEqual(pack.puzzles[0].clues.map((c) => c.piece), ['d4', 'd2'], 'clue records keep their array order');
   assert.deepEqual(pack.puzzles[0].solution?.map((p) => p.piece), ['d1', 'd2', 'd3', 'd4'], 'a stored answer is written in piece order');
@@ -756,28 +715,29 @@ test('raw: a foreign claim keeps censored, nested metrics and its field order', 
   assert.equal(/** @type {any} */ (claim).metrics.nested.text, '\u00e9\u4e2d');
 });
 
-test('raw: the count-only stress pack of 1,024 cells and 128 distinct pieces needs no exact-cover model', async () => {
-  const { rows, pieces } = distinctStress();
-  assert.equal(new Set(pieces.map((p) => canonicalKey(p.cells))).size, 128, 'the pieces are pairwise distinct');
+test('raw: the count-only stress pack of 1,024 cells and 128 pieces needs no exact-cover model', async () => {
+  const cells = [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [0, 2]];
+  const pieces = Array.from({ length: 128 }, (_, i) => piece(v1.labelFor(i), cells, v1.labelFor(i), v1.colorFor(i)));
+  const rows = Array.from({ length: 16 }, () => '#'.repeat(64));
   const board = boardFromRows(rows);
-  const counts = countPlacements(preparePlacements(board, pieces, []));
-  assert.equal(counts.rows, 752378);
+  const plan = preparePlacements(board, pieces, []);
+  assert.equal(countPlacements(plan).rows, 849920);
   const { R, H } = v1.measureFreePlacements(board, pieces, []);
   assert.equal(R, 1024);
-  assert.ok(Math.abs(H - counts.perPiece.reduce((sum, n) => sum + Math.log2(1 + n), 0) / 128) < 1e-12);
+  assert.ok(Math.abs(H - Math.log2(1 + 849920 / 128)) < 1e-12);
   const claim = {
     model: 'difficulty-v2', score: 256, level: 'hell-4', saturated: false,
     metrics: { U: 128, B: 0, branchTrials: 0, rowTrials: 0, stop: 'solution', R, H },
   };
   const snapshot = base({ rows, pieces, rating: claim });
-  const bare = await roundTrip({ ...snapshot, rating: null }, { compression: 'raw' });
   const consistent = (await roundTrip(snapshot, { compression: 'raw' })).encoded;
   assert.deepEqual((await decodePuzzleCode(consistent.F)).pack.puzzles[0].rating, claim);
-  assert.equal(consistent.C.length, bare.encoded.C.length + 3, 'the rebuilt claim costs three symbols, not the escape');
+  assert.ok(consistent.C.length < 80, `compact form, not the escape (${consistent.C.length} symbols)`);
   const edited = { ...claim, metrics: { ...claim.metrics, H: claim.metrics.H + 1 } };
   const escaped = (await roundTrip({ ...snapshot, rating: edited }, { compression: 'raw' })).encoded;
   assert.deepEqual((await decodePuzzleCode(escaped.F)).pack.puzzles[0].rating, edited);
-  assert.equal(escaped.C.length, 398, 'the changed claim is carried whole');
+  assert.ok(escaped.C.length > 250, 'the changed claim is carried whole');
+  const bare = await roundTrip({ ...snapshot, rating: null }, { compression: 'raw' });
   assert.ok(bare.encoded.C.length < consistent.C.length);
   assert.equal(v1.rebuildRatingClaim(board, pieces, [], { stop: 'solution', branchTrials: 0, rowTrials: 0 }, v1.measureFreePlacements).level, 'hell-4');
 });
@@ -834,115 +794,6 @@ test('raw: input and a decoded pack are never mutated and are detached from each
   const before = JSON.stringify(catalogue);
   (await decodePuzzleCode(fixture.large.code)).pack.pieces.forEach((p) => p.cells.pop());
   assert.equal(JSON.stringify(v1.catalogueShapes(5)), before);
-});
-
-// ============================================ difficulty-v3 summary claims
-
-const V3_METRICS = {
-  U: 7, R: 35, H: 3.5, B: 12, branchTrials: 12, rowTrials: 40, dlxStop: 'solution', searchStop: 'exhausted',
-  F: 4, E: 0, rules: { R1: 3, R2: 1, R3: 0, R4: 2, R5: 0, R6: 0, R7: 0, R8: 58, R9: 0 }, deductionTier: 3, tier: 4,
-  G: 2, info: 3.321928094887362, Cmax: 5, Dmax: 2, Gt: 2, nodes: 8, work: 123456, S: 1, solutionLimit: 8,
-  solutions: 'unique', censusComplete: true, censusUndecided: 0, censusNodes: 0, censusWork: 0, Gproved: 2,
-};
-const V3_CLAIM = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, metrics: V3_METRICS };
-// An estimate: the census did not finish.
-const V3_ESTIMATE = {
-  model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, censored: true,
-  metrics: {
-    ...V3_METRICS, S: 8, searchStop: 'solution-limit', solutions: 'many', censusComplete: false,
-    censusUndecided: 3, nodes: 18, censusNodes: 10, censusWork: 5000, Gproved: 1,
-  },
-};
-const V3_SUMMARY = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false };
-const dominoWith = (/** @type {unknown} */ rating) => base({ rows: ['##'], pieces: [piece('A', [[0, 0], [1, 0]], 'A', '#e6194b')], rating });
-
-/** A raw code of the domino puzzle whose rating is the given JSON text. */
-const dominoCode = (/** @type {string} */ json) => rawCode((w) => {
-  head(w, { rating: (r) => { r.write(1, 1); r.write(0, 1); v1.writeText(r, json); } });
-  complete(w);
-});
-
-test('v3: a code carries the summary of a difficulty-v3 claim, with censored only for an estimate', async () => {
-  const cases = /** @type {[any, any][]} */ ([
-    [V3_CLAIM, V3_SUMMARY],
-    [V3_ESTIMATE, { ...V3_SUMMARY, censored: true }],
-    [{ ...V3_CLAIM, censored: false }, V3_SUMMARY],
-    [V3_SUMMARY, V3_SUMMARY],
-    [{ ...V3_SUMMARY, censored: true }, { ...V3_SUMMARY, censored: true }],
-  ]);
-  for (const [claim, summary] of cases) {
-    const snapshot = { ...sample1, rating: claim };
-    for (const compression of /** @type {const} */ (['raw', 'auto'])) {
-      const encoded = await encodePuzzleCode(deepFreeze(clone(snapshot)), { compression });
-      const decoded = await decodePuzzleCode(encoded.F);
-      const rating = decoded.pack.puzzles[0].rating;
-      assert.deepEqual(rating, summary);
-      assert.ok(!('metrics' in /** @type {object} */ (rating)), 'missing metrics are absent evidence, never zeros');
-      assert.deepEqual(Object.keys(/** @type {object} */ (rating)), Object.keys(summary));
-      assert.deepEqual(contentOf(decoded.pack), expectedOf({ ...sample1, rating: summary }));
-    }
-    // The full claim and its summary give one and the same code.
-    const full = await encodePuzzleCode(snapshot, { compression: 'raw' });
-    const short = await encodePuzzleCode({ ...sample1, rating: summary }, { compression: 'raw' });
-    assert.equal(full.F, short.F);
-  }
-  // The input claim is not touched.
-  const input = deepFreeze(clone({ ...sample1, rating: V3_ESTIMATE }));
-  await encodePuzzleCode(input);
-  assert.deepEqual(input.rating, V3_ESTIMATE);
-});
-
-test('v3: the summary is the frozen codec\'s JSON text in the order model, score, level, saturated, censored', async () => {
-  for (const [claim, summary] of /** @type {[any, any][]} */ ([[V3_CLAIM, V3_SUMMARY], [V3_ESTIMATE, { ...V3_SUMMARY, censored: true }]])) {
-    const encoded = await encodePuzzleCode(dominoWith(claim), { compression: 'raw' });
-    assert.equal(encoded.C, dominoCode(JSON.stringify(summary)));
-    assert.equal(JSON.stringify(summary), claim.censored === true
-      ? '{"model":"difficulty-v3","score":30,"level":"expert","saturated":false,"censored":true}'
-      : '{"model":"difficulty-v3","score":30,"level":"expert","saturated":false}');
-  }
-});
-
-test('v3: a v2 snapshot still uses the compact rating form', async () => {
-  const compact = await encodePuzzleCode(sample1, { compression: 'raw' });
-  const text = await createPuzzleCodec({ measure() { throw new RangeError('no model'); } }).encodePuzzleCode(sample1, { compression: 'raw' });
-  assert.ok(compact.C.length + 100 < text.C.length, 'the v2 claim is rebuilt, not carried as text');
-  assert.deepEqual((await decodePuzzleCode(compact.F)).pack.puzzles[0].rating, sample1.rating);
-});
-
-test('v3: an invalid claim is refused by the encoder, with the reader\'s message', async () => {
-  await rejectsWith(encodePuzzleCode({ ...sample1, rating: { ...V3_CLAIM, metrics: { ...V3_METRICS, G: 0 } } }), 'invalid', /G is 0/);
-  await rejectsWith(encodePuzzleCode({ ...sample1, rating: { ...V3_CLAIM, saturated: true } }), 'invalid', /saturated/);
-  await rejectsWith(encodePuzzleCode({ ...sample1, rating: { ...V3_CLAIM, censored: true } }), 'invalid', /censored/);
-  await rejectsWith(encodePuzzleCode({ ...sample1, rating: { ...V3_ESTIMATE, censored: undefined } }), 'invalid');
-});
-
-test('v3: a hand-made code with a full claim is read strictly; an invalid claim is refused', async () => {
-  for (const claim of [V3_CLAIM, V3_ESTIMATE]) {
-    const decoded = await decodePuzzleCode(dominoCode(JSON.stringify(claim)));
-    assert.deepEqual(decoded.pack.puzzles[0].rating, claim);
-    assert.deepEqual(Object.keys(/** @type {object} */ (decoded.pack.puzzles[0].rating)), Object.keys(claim));
-    // Encoding what was read gives the summary again.
-    const again = await decodePuzzleCode((await encodePuzzleCode(snapshotOf(decoded.pack), { compression: 'raw' })).F);
-    assert.deepEqual(again.pack.puzzles[0].rating, claim.censored === true ? { ...V3_SUMMARY, censored: true } : V3_SUMMARY);
-  }
-  for (const summary of [V3_SUMMARY, { ...V3_SUMMARY, censored: true }, { ...V3_SUMMARY, censored: false }]) {
-    assert.deepEqual((await decodePuzzleCode(dominoCode(JSON.stringify(summary)))).pack.puzzles[0].rating, summary);
-  }
-  const refused = /** @type {[string, unknown, RegExp][]} */ ([
-    ['an invalid tuple', { ...V3_CLAIM, metrics: { ...V3_METRICS, G: 0 } }, /G is 0/],
-    ['Gproved above G', { ...V3_CLAIM, metrics: { ...V3_METRICS, Gproved: 3 } }, /Gproved/],
-    ['a missing metrics field', { ...V3_CLAIM, metrics: { ...V3_METRICS, U: undefined } }, /Missing required field "U"/],
-    ['an unfinished census without the mark', { ...V3_ESTIMATE, censored: undefined }, /censored/],
-    ['the mark on a complete census', { ...V3_CLAIM, censored: true }, /censored/],
-    ['a saturated v3 claim', { ...V3_CLAIM, saturated: true }, /saturated/],
-    ['a summary without its saturated flag', { model: 'difficulty-v3', score: 30, level: 'expert' }, /saturated/],
-  ]);
-  for (const [name, claim, message] of refused) {
-    await rejectsWith(decodePuzzleCode(dominoCode(JSON.stringify(claim))), 'invalid', message).catch((error) => {
-      error.message = `${name}: ${error.message}`;
-      throw error;
-    });
-  }
 });
 
 // ================================================ bounded decoder cases
@@ -1029,8 +880,8 @@ test('the construction helpers build a valid minimal puzzle', async () => {
   assert.deepEqual(decoded.pack.pieces, [{ id: 'A', label: 'A', color: '#e6194b', cells: [[0, 0], [1, 0]] }]);
   assert.deepEqual(decoded.pack.puzzles[0].clues, []);
   assert.equal(decoded.pack.puzzles[0].rating, null);
-  const pair = rawCode(pairPayload((w, i) => overrideId(i === 0 ? 'x' : 'y')(w)));
-  await rejectsWith(decodePuzzleCode(pair), 'duplicate-shape', /Piece y has the same shape as piece x/, { piece: 'y', first: 'x' });
+  const pair = await decodePuzzleCode(rawCode(pairPayload((w, i) => overrideId(i === 0 ? 'x' : 'y')(w))));
+  assert.deepEqual(pair.pack.pieces.map((p) => [p.id, p.label, p.color]), [['x', 'B', '#e6194b'], ['y', 'C', '#3cb44b']].map(([id], i) => [id, v1.labelFor(i), v1.colorFor(i)]));
 });
 
 test('bounds: sizes and counts are accepted just inside their limits', async () => {
@@ -1339,7 +1190,7 @@ test('tails: a code with a dot but a bad core is an error, whatever its tail', a
 });
 
 test('tails: a stored answer survives clue order, hole pieces and every piece orientation', async () => {
-  for (const snapshot of [disconnected, ringPuzzle, fourShapes, paddedHand(), goldenSnapshot('hand-authored-1')]) {
+  for (const snapshot of [disconnected, ringPuzzle, repeatedShapes, paddedHand(), goldenSnapshot('hand-authored-1')]) {
     const { decoded } = await roundTrip(snapshot, { compression: 'raw' });
     assert.equal(decoded.hasTail, true);
   }
@@ -1396,7 +1247,7 @@ test('deflate: the decode-only golden gives the sample puzzle and other compress
 
 test('deflate: forced version-2 encoding round trips every kind of puzzle', async () => {
   const sources = [
-    ...fixture.goldens.map((/** @type {any} */ g) => goldenSnapshot(g.name)), disconnected, ringPuzzle, fourShapes, paddedHand(),
+    ...fixture.goldens.map((/** @type {any} */ g) => goldenSnapshot(g.name)), disconnected, ringPuzzle, repeatedShapes, paddedHand(),
     lone, foreignRating, maxCertificate, snapshotOf(samplePack, 0, { rating: oddV2Claims[0] }),
   ];
   for (const snapshot of sources) {
@@ -1418,7 +1269,9 @@ test('deflate: auto mode keeps the shortest core and raw wins every tie', async 
     assert.equal(auto.version, 1);
     assert.equal(auto.F, golden.code);
   }
-  const { rows, pieces } = distinctStress();
+  const cells = [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [0, 2]];
+  const pieces = Array.from({ length: 128 }, (_, i) => piece(v1.labelFor(i), cells, v1.labelFor(i), v1.colorFor(i)));
+  const rows = Array.from({ length: 16 }, () => '#'.repeat(64));
   const { R, H } = v1.measureFreePlacements(boardFromRows(rows), pieces, []);
   const claim = { model: 'difficulty-v2', score: 256, level: 'hell-4', saturated: false, metrics: { U: 128, B: 0, branchTrials: 0, rowTrials: 0, stop: 'solution', R, H } };
   const repetitive = base({ rows, pieces, rating: claim });
@@ -2041,12 +1894,11 @@ const maskCases = (() => {
 test('masks: the encoder writes the shortest board mask, the lowest mode on a tie and the smallest k', async () => {
   const won = new Set();
   for (const [name, rows] of maskCases) {
-    // The strip pieces of equal length repeat shapes, which the pack check refuses: the frozen writer is used below it.
-    const parts = { board: boardFromRows(rows), rotation: 0, pieces: stripPuzzle(rows).pieces, clues: [], solution: null, rating: null, certificate: null, title: null };
-    const core = rawCode((w) => w.append(v1.encodeCorePayload(parts)));
+    const snapshot = stripPuzzle(rows);
+    const { encoded } = await roundTrip(snapshot, { compression: 'raw' });
     const reference = maskReference(rows);
     won.add(reference.mode);
-    const r = readerAtMask(core);
+    const r = readerAtMask(encoded.C);
     const mode = v1.readTB(r, 5);
     assert.equal(mode, reference.mode, `${name}: mode (sizes ${JSON.stringify([...reference.options])})`);
     if (mode === 1) {
@@ -2117,8 +1969,7 @@ test('masks: every mode decodes to the same board when spliced into a real paylo
     },
     4: (w) => [...flat].forEach((c) => w.write(c === '#' ? 1 : 0, 1)),
   };
-  const cells = rows.flatMap((row, y) => [...row].flatMap((c, x) => (c === '#' ? [[x, y]] : [])));
-  const snapshot = base({ rows, pieces: [piece('A', cells, 'A', '#e6194b')], solution: [pose('A', 0, 0)], clues: [] });
+  const snapshot = stripPuzzle(rows);
   const encoded = await encodePuzzleCode(snapshot, { compression: 'raw' });
   const expected = contentOf((await decodePuzzleCode(encoded.C)).pack);
   assert.deepEqual(expected.rows, rows);
@@ -2145,7 +1996,7 @@ test('masks: every mode decodes to the same board when spliced into a real paylo
 
 /**
  * A seeded random puzzle that reaches most of the grammar: holes, margins,
- * rectangles, grown tilings with large pieces of pairwise distinct shapes, every piece order
+ * rectangles, grown tilings with repeated and large pieces, every piece order
  * and orientation, default and custom identity, clue subsets in any order,
  * and every kind of rating, title and certificate.
  * @param {number} seed
@@ -2194,6 +2045,7 @@ function randomPuzzle(seed) {
   if (!grid.some((row) => row.some(Boolean))) {
     grid[next(H)][next(W)] = true;
   }
+  const rows = grid.map((row) => row.map((on) => (on ? '#' : '.')).join(''));
 
   // Grow connected regions that tile the active cells.
   const maxSize = pick([1, 2, 3, 4, 5, 5, 6, 9, 12, 20]);
@@ -2229,41 +2081,6 @@ function randomPuzzle(seed) {
       regions.push(cells);
     }
   }
-
-  // Pieces of one puzzle have pairwise distinct free shapes. A region whose shape repeats an earlier region's
-  // shape is merged into the region of its first neighbouring cell (its cells in order; right, down, left, up), or,
-  // without a neighbouring region, its cells are blocked. Every step removes one region, so the loop ends.
-  for (let changed = true; changed;) {
-    changed = false;
-    const shapes = new Set();
-    for (let r = 0; r < regions.length && !changed; r += 1) {
-      const key = canonicalKey(/** @type {any} */ (regions[r]));
-      if (!shapes.has(key)) {
-        shapes.add(key);
-        continue;
-      }
-      const regionOf = new Map(regions.flatMap((cells, i) => cells.map(([x, y]) => [y * W + x, i])));
-      let target = -1;
-      for (const [cx, cy] of regions[r]) {
-        for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
-          const other = regionOf.get((cy + dy) * W + cx + dx);
-          if (target === -1 && cx + dx >= 0 && cx + dx < W && other !== undefined && other !== r) {
-            target = other;
-          }
-        }
-      }
-      if (target === -1) {
-        for (const [x, y] of regions[r]) {
-          grid[y][x] = false;
-        }
-      } else {
-        regions[target].push(...regions[r]);
-      }
-      regions.splice(r, 1);
-      changed = true;
-    }
-  }
-  const rows = grid.map((row) => row.map((on) => (on ? '#' : '.')).join(''));
 
   const relative = regions.map((cells) => orientedCells(/** @type {any} */ (cells), 0));
   const arrangement = next(3);
@@ -2356,7 +2173,7 @@ function randomPuzzle(seed) {
 
 test('property: seeded random puzzles round-trip in every compression mode and re-encode identically', async () => {
   const seen = {
-    solutions: 0, large: 0, clued: 0, rated: 0, titled: 0, certified: 0, compactRating: 0, escapedRating: 0,
+    solutions: 0, large: 0, repeated: 0, clued: 0, rated: 0, titled: 0, certified: 0, repeatedFlag: 0, compactRating: 0, escapedRating: 0,
   };
   for (let seed = 1; seed <= 150; seed += 1) {
     const snapshot = randomPuzzle(seed);
@@ -2376,9 +2193,11 @@ test('property: seeded random puzzles round-trip in every compression mode and r
     assert.deepEqual(contentOf((await decodePuzzleCode(again.F)).pack), contentOf(decoded.pack), label);
     seen.solutions += snapshot.solution === null ? 0 : 1;
     const flagBits = v1.symbolsToBits(encoded.C.slice(0, -4));
+    seen.repeatedFlag += flagBits[5];
     seen.compactRating += flagBits[6] === 1 && flagBits[7] === 1 ? 1 : 0;
     seen.escapedRating += flagBits[6] === 1 && flagBits[7] === 0 ? 1 : 0;
     seen.large += snapshot.pieces.some((/** @type {any} */ p) => p.cells.length > 10) ? 1 : 0;
+    seen.repeated += new Set(snapshot.pieces.map((/** @type {any} */ p) => canonicalKey(p.cells))).size < snapshot.pieces.length ? 1 : 0;
     seen.clued += snapshot.clues.length > 0 ? 1 : 0;
     seen.rated += snapshot.rating === null ? 0 : 1;
     seen.titled += snapshot.title === null ? 0 : 1;

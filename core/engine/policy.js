@@ -1,8 +1,7 @@
 // @ts-check
-// Final generation policy `mixed-v3` (design §6.2, §6.4, §7.2–§7.5, §8.3): limits, piece counts,
+// Final generation policy `mixed-v2` (design §6.2, §6.4, §7.2–§7.5, §8.3): limits, piece counts,
 // piece-size histograms, score constants and deterministic budgets. Pure; the only randomness
-// is the Rng passed to planSizes. It differs from `mixed-v2` only in availability: the Hell areas of §7.5
-// (no Hell level is offered on any board up to 676 cells).
+// is the Rng passed to planSizes.
 import { level } from './levels.js';
 import { QUALIFICATION } from './qualification.js';
 
@@ -15,7 +14,7 @@ import { QUALIFICATION } from './qualification.js';
  * @property {number} [smallCap] Maximum number of 3–4-cell pieces.
  */
 
-export const POLICY_ID = 'mixed-v3';
+export const POLICY_ID = 'mixed-v2';
 
 /**
  * Shipped limits follow the qualification gates (§8.7): 576 only after BQ-1, phones 484 only after BQ-3.
@@ -50,20 +49,6 @@ export const SCORE = Object.freeze({
   model: 'difficulty-v2',
   weights: Object.freeze({ U: 2, B: 8 }),
   caps: Object.freeze({ branch: 5000, rows: 50000 }),
-});
-
-/**
- * Knobs of the `difficulty-v3` score (design §7.10), fitted in docs/difficulty-v3/fit-2026-11-12.md (section 3) and
- * changed in the P3 slice, round 0 to 1 (rule[3] 2 to 3, penalty (0, 0) to (1, 2), P-OD3):
- * docs/difficulty-v3/calibration-slice-2026-11-13.md. These are the locked v3 knobs (the fit and the calibration
- * slice).
- */
-export const SCORE_V3 = Object.freeze({
-  model: 'difficulty-v3',
-  base: Object.freeze({ max: 12, scale: 3 }),
-  rule: Object.freeze([0, 0, 2, 3]),
-  weights: Object.freeze({ G: 5, info: 0.5 }),
-  penalty: Object.freeze({ few: 1, many: 2 }),
 });
 
 export const TIME = Object.freeze({ targetMs: 60000, dispatchStopMs: 115000, responseMs: 120000 });
@@ -105,34 +90,6 @@ export const ENUMERATION = Object.freeze({
   placements: 250000000,
   nodes: 2500000,
   collect: 32,
-});
-
-/**
- * Limits of the deduction solver (design §7.9). `nodes`, `work` and `census` are measured; `memoryBytes` is still a
- * provisional default. `census` was raised from 10000000 to 80000000 in the P3 slice, round 2 (owner decision P-OD7):
- * docs/difficulty-v3/calibration-slice-2026-11-13.md.
- */
-export const DEDUCE = Object.freeze({
-  lookaheadWidth: 4,
-  // measured: docs/difficulty-v3/probe-2026-11-12.md
-  nodes: 30000,
-  solutions: 8,
-  work: 760000000,
-  census: 80000000,
-  memoryBytes: 32 * 1048576,
-});
-
-/**
- * Bounds of one Generation Steps replay (RES-29, design §6.12): steps, serialized bytes of the steps, total work.
- * Provisional test defaults (RES-01), measured on the replay fixture. They bound the replay only and change no
- * rating or generated puzzle.
- */
-export const REPLAY = Object.freeze({
-  maxSteps: 4096,
-  maxBytes: 4 * 1048576,
-  // At most what generation itself may spend on one puzzle: 64 profile and 64 repair ratings for the set calibration
-  // and as many again for the candidate, each within DEDUCE.work plus its census budget.
-  work: 256 * (DEDUCE.work + DEDUCE.census),
 });
 
 const K60 = [6, 7.5, 8.5, 10, 11.5, 13, 16, 24, 32, 43, 58, 78];

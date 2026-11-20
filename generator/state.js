@@ -7,21 +7,18 @@ import {
 import { initialClueCount, level, offeredLevels } from '../core/engine/levels.js';
 import { canonicalKey } from '../core/engine/geometry.js';
 import { isValidLayout } from '../core/engine/tiling.js';
-import { createPack, packBoard, PackError, readProvenance, serializePack, validatePack } from '../core/engine/pack.js';
+import { createPack, packBoard, PackError, serializePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS, POLICY_ID, enabledMaxActive, pieceCountRange, sizeWindow } from '../core/engine/policy.js';
 import { batchSeedFor, normalizeSeedText, randomSeedText, RNG_ID, SEED_SCHEME } from '../core/engine/rng.js';
-import { clueKey, layoutKey, progressFingerprint } from '../core/engine/keys.js';
+import { clueKey, layoutKey } from '../core/engine/keys.js';
 import { ALGO_ID, APP_VERSION } from '../core/engine/version.js';
-import { displayRatingKey, needsDisplayRating } from '../core/browser/display-rating.js';
 import { t } from './i18n.js';
 import { formatMessage, formatNotice, levelLabel } from './strings.js';
 
 /** @typedef {import('../core/engine/types.js').Board} Board */
-/** @typedef {import('../core/engine/types.js').Made} Made */
 /** @typedef {import('../core/engine/types.js').PieceSet} PieceSet */
 /** @typedef {import('../core/engine/types.js').Puzzle} Puzzle */
 /** @typedef {import('../core/engine/types.js').Pack} Pack */
-/** @typedef {import('../core/engine/types.js').SetOrigin} SetOrigin */
 /** @typedef {import('../core/engine/types.js').XY} XY */
 
 /**
@@ -35,9 +32,6 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {{ levelId: string, uniqueness: 'any' | 'require' } | null} [calibrationFor]
  * @property {Record<string, string>} [puzzleSeeds] Older storage only: batch seed of each puzzle, by puzzle id. Each
  *   puzzle now carries its own `seed`.
- * @property {SetOrigin} [setOrigin] How the set was made (RES-27); absent for an imported set or a set saved by an
- *   older version.
- * @property {Record<string, Made>} [made] Origin records of the stored puzzles, by puzzle id.
  */
 
 /**
@@ -66,14 +60,8 @@ import { formatMessage, formatNotice, levelLabel } from './strings.js';
  * @property {StatusNotice | null} notice Outcome of the last action.
  * @property {readonly string[]} checking Puzzle ids whose lazy certificate is still pending.
  * @property {Readonly<Record<string, string>>} puzzleSeeds Batch seed each puzzle was generated with, by puzzle id.
- * @property {SetOrigin | null} setOrigin How the set on show was made (RES-27); null for an imported set or a set saved
- *   by an older version.
- * @property {Readonly<Record<string, Made>>} puzzleMade Origin record of each puzzle, by puzzle id.
  * @property {boolean} calibrationTrusted The calibration was produced by this session's engine run.
  * @property {number} setPosition Where the set on show sits in the newest-first list of the sets of its own board.
- * @property {Readonly<Record<string, import('../core/browser/display-rating.js').DisplayEntry>>} displayRatings The derived
- *   display ratings (`displayRatingKey` → entry) of the puzzles with a rating on an older scale (design §7.7). Owned by the
- *   job controller's scheduler; never saved, and the stored claims are never changed.
  */
 
 /**
@@ -118,8 +106,8 @@ export const DEFAULT_QUANTITY = 5;
 export const DEFAULT_LEVEL_ID = 'normal';
 /** Board presets of step 1, as the preset menu lists them. */
 export const PRESET_IDS = Object.freeze(['rectangle', 'heart', 'diamond', 'cross', 'ring']);
-/** Levels the generator can ever offer (areas up to 676): Very easy … Nightmare. */
-export const LISTED_LEVEL_IDS = Object.freeze(['very-easy', 'easy', 'normal', 'hard', 'expert', 'master', 'nightmare']);
+/** Levels the generator can ever offer (areas up to 676): Very easy … Hell-3. */
+export const LISTED_LEVEL_IDS = Object.freeze(['very-easy', 'easy', 'normal', 'hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2', 'hell-3']);
 const FIRST_HELL_INDEX = 7;
 const UNIQUE_STANDARD_AREA = 200;
 const MAX_KEY_LENGTH = 8192;
@@ -152,57 +140,10 @@ export function defaultGeneratorState(overrides = {}) {
     notice: null,
     checking: [],
     puzzleSeeds: {},
-    setOrigin: null,
-    puzzleMade: {},
     calibrationTrusted: false,
     setPosition: 0,
-    displayRatings: {},
     ...overrides,
   };
-}
-
-// The key changes with the set or the clues only, so it is made once for the cards and the wishes.
-/** @type {WeakMap<object, { board: Board, pieces: PieceSet['pieces'], key: string }>} */
-const displayKeys = new WeakMap();
-
-/**
- * @param {PieceSet} set The set on show.
- * @param {Puzzle} puzzle One of its puzzles.
- * @returns {string} The key of the puzzle's derived display rating.
- */
-export function displayKeyOf(set, puzzle) {
-  const known = displayKeys.get(puzzle.clues);
-  if (known !== undefined && known.board === set.board && known.pieces === set.pieces) {
-    return known.key;
-  }
-  const key = displayRatingKey(progressFingerprint(set.board, set.pieces, puzzle.clues));
-  displayKeys.set(puzzle.clues, { board: set.board, pieces: set.pieces, key });
-  return key;
-}
-
-/**
- * @param {Pick<GeneratorState, 'set' | 'displayRatings'>} state
- * @param {Puzzle} puzzle
- * @returns {import('../core/browser/display-rating.js').DisplayEntry | undefined} The scheduler's entry for a puzzle of the
- *   set on show with a rating on an older scale; undefined for any other puzzle.
- */
-export function displayEntryOf(state, puzzle) {
-  return state.set === null || !needsDisplayRating(puzzle.rating) ? undefined : state.displayRatings?.[displayKeyOf(state.set, puzzle)];
-}
-
-/**
- * What Generation Steps needs for one listed puzzle (RES-27, RES-29), or null without a set or that puzzle.
- * @param {GeneratorState} state
- * @param {string} puzzleId
- * @returns {{ set: PieceSet, puzzle: Puzzle, setOrigin: SetOrigin | null, made: Made | null } | null}
- */
-export function replaySourceOf(state, puzzleId) {
-  const puzzle = state.puzzles.find((p) => p.id === puzzleId);
-  if (state.set === null || puzzle === undefined) {
-    return null;
-  }
-  const made = Object.hasOwn(state.puzzleMade, puzzleId) ? state.puzzleMade[puzzleId] : null;
-  return { set: state.set, puzzle, setOrigin: state.setOrigin, made: made ?? null };
 }
 
 /**
@@ -534,10 +475,10 @@ export function beginSetRequest(state, random = randomSeedText) {
 
 /**
  * The per-set data a new or restored set starts without.
- * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'puzzleSeeds' | 'puzzleMade' | 'setPosition'>}
+ * @returns {Pick<GeneratorState, 'notice' | 'checking' | 'batchLevelId' | 'puzzleSeeds' | 'setPosition'>}
  */
 function freshSetExtras() {
-  return { notice: null, checking: [], batchLevelId: null, puzzleSeeds: {}, puzzleMade: {}, setPosition: 0 };
+  return { notice: null, checking: [], batchLevelId: null, puzzleSeeds: {}, setPosition: 0 };
 }
 
 /**
@@ -599,8 +540,7 @@ function savedFor(state, key) {
  * A newly accepted set starts at batch 0 with empty history, even when regenerated with the same seed.
  * @param {GeneratorState} state
  * @param {{ set: PieceSet, calibration: Puzzle | null, setSeed: string, calibrationFor?: GeneratorState['calibrationFor'],
- *   trusted?: boolean, setOrigin?: SetOrigin | null }} accepted `trusted` marks a calibration the engine produced in
- *   this session; `setOrigin` is how the set was made (none for a set that did not come from the generation client).
+ *   trusted?: boolean }} accepted `trusted` marks a calibration the engine produced in this session.
  * @returns {GeneratorState}
  */
 export function acceptSet(state, accepted) {
@@ -618,7 +558,6 @@ export function acceptSet(state, accepted) {
     calibrationFor: accepted.calibration === null ? null : accepted.calibrationFor ?? { levelId: state.levelId, uniqueness: state.uniqueness },
     calibrationTrusted: accepted.calibration !== null && accepted.trusted === true,
     setSeed: accepted.setSeed,
-    setOrigin: accepted.setOrigin ?? null,
     batchIndex: 0,
     puzzles: [],
     seenLayouts: [],
@@ -923,7 +862,6 @@ export function savedSetOf(state) {
     // Null claims are left out; the pack reader restores a missing one as null.
     const stored = puzzles.length === 0 ? [] : packOf(state.set, state.rotation, puzzles).puzzles
       .map((p) => /** @type {Pack['puzzles'][number]} */ (Object.fromEntries(Object.entries(p).filter(([, value]) => value !== null))));
-    const made = madeOf(state.puzzleMade, state.puzzles);
     return {
       setPack: packOf(state.set, state.rotation, []),
       puzzles: stored,
@@ -931,8 +869,6 @@ export function savedSetOf(state) {
       batchIndex: state.batchIndex,
       history: { layouts: [...state.seenLayouts], clues: [...state.seenClues] },
       ...(state.calibrationFor === null ? {} : { calibrationFor: state.calibrationFor }),
-      ...(state.setOrigin === null ? {} : { setOrigin: state.setOrigin }),
-      ...(Object.keys(made).length === 0 ? {} : { made }),
     };
   } catch {
     return null;
@@ -943,8 +879,7 @@ export function savedSetOf(state) {
  * Engine objects for a stored set; null when its packs do not validate or do not belong together.
  * @param {unknown} saved
  * @returns {{ set: PieceSet, calibration: Puzzle | null, calibrationFor: GeneratorState['calibrationFor'], calibrationTrusted: boolean,
- *   puzzles: Puzzle[], puzzleSeeds: Record<string, string>, setOrigin: SetOrigin | null, puzzleMade: Record<string, Made>,
- *   setSeed: string, batchIndex: number,
+ *   puzzles: Puzzle[], puzzleSeeds: Record<string, string>, setSeed: string, batchIndex: number,
  *   seenLayouts: string[], seenClues: string[] } | null}
  */
 export function readSavedSet(saved) {
@@ -976,8 +911,6 @@ export function readSavedSet(saved) {
     && LISTED_LEVEL_IDS.includes(made.levelId) && (made.uniqueness === 'any' || made.uniqueness === 'require')
     ? { levelId: /** @type {string} */ (made.levelId), uniqueness: /** @type {'any' | 'require'} */ (made.uniqueness) }
     : null;
-  // Storage is not a pack: a record that is not valid is dropped without a message.
-  const provenance = readProvenance({ setOrigin: dto.setOrigin, made: dto.made }, new Set(puzzles.map((p) => p.id)));
   return {
     set,
     calibration: null,
@@ -989,30 +922,11 @@ export function readSavedSet(saved) {
       ...seedsOfPuzzles(dto.puzzleSeeds, puzzles),
       ...seedsOfPuzzles(Object.fromEntries(puzzles.flatMap((p) => (p.seed === undefined ? [] : [[p.id, p.seed]]))), puzzles),
     },
-    setOrigin: provenance.setOrigin,
-    puzzleMade: provenance.made,
     setSeed,
     batchIndex,
     seenLayouts: readKeys(history.layouts),
     seenClues: readKeys(history.clues),
   };
-}
-
-/**
- * The origin records that belong to these puzzles, in the order of the puzzles.
- * @param {Readonly<Record<string, Made>>} records
- * @param {readonly { id: string }[]} puzzles
- * @returns {Record<string, Made>}
- */
-function madeOf(records, puzzles) {
-  /** @type {Record<string, Made>} */
-  const made = {};
-  for (const puzzle of puzzles) {
-    if (Object.hasOwn(records, puzzle.id)) {
-      made[puzzle.id] = records[puzzle.id];
-    }
-  }
-  return made;
 }
 
 /**
@@ -1104,13 +1018,11 @@ export function restoreState(stored, base = {}) {
   state.uniqueness = dto.uniqueness === 'require' ? 'require' : 'any';
   /** @type {Record<string, SavedSet[]>} */
   const byBoard = {};
-  let refused = 0;
   /** @param {unknown} item */
   const keep = (item) => {
     const saved = upgradeSaved(item);
     const read = readSavedSet(saved);
     if (read === null) {
-      refused += duplicateShapeRefusal(saved) ? 1 : 0;
       return;
     }
     // The board of the stored set decides where it goes; a stored key is never trusted.
@@ -1133,34 +1045,11 @@ export function restoreState(stored, base = {}) {
     dto.setHistory.forEach(keep);
   }
   state.setsByBoard = Object.fromEntries(Object.entries(byBoard).slice(-MAX_SAVED_BOARDS));
-  const currentSaved = upgradeSaved(dto);
-  const current = readSavedSet(currentSaved);
+  const current = readSavedSet(upgradeSaved(dto));
   if (current !== null) {
     Object.assign(state, current);
-  } else {
-    refused += duplicateShapeRefusal(currentSaved) ? 1 : 0;
   }
-  const fitted = fitSet(state);
-  if (refused === 0) {
-    return fitted;
-  }
-  // Set after `fitSet` so that `freshSetExtras` cannot clear it; the notice itself is never stored.
-  const count = refused;
-  const retext = () => t('message.M-DUPLICATE-SETS', { count });
-  return { ...fitted, notice: { code: 'M-DUPLICATE-SETS', text: retext(), kind: 'warning', actions: [], retext } };
-}
-
-/**
- * @param {unknown} saved A stored set.
- * @returns {boolean} Whether its piece set has two pieces of the same shape (`duplicate-shape`), the reason
- *   `readSavedSet` refuses it.
- */
-function duplicateShapeRefusal(saved) {
-  if (typeof saved !== 'object' || saved === null) {
-    return false;
-  }
-  const result = validatePack(/** @type {Record<string, any>} */ (saved).setPack);
-  return !result.ok && result.issues[0]?.code === 'duplicate-shape';
+  return fitSet(state);
 }
 
 /**
@@ -1181,9 +1070,6 @@ function upgradeSaved(item) {
  * @typedef {object} StorageLike
  * @property {() => unknown} getGeneratorState
  * @property {(snapshot: unknown) => { ok: boolean }} setGeneratorState
- * @property {(key: string) => unknown} [loadReplay] Saved replay of Generation steps (a scripted storage has none).
- * @property {(key: string, result: unknown) => unknown} [saveReplay]
- * @property {(key: string) => boolean} [hasReplay]
  */
 
 /**
@@ -1204,7 +1090,7 @@ export function loadGeneratorState(storage) {
 /** @type {ReadonlyArray<keyof GeneratorState>} */
 const PERSISTED_KEYS = Object.freeze([
   'board', 'rotation', 'presetId', 'levelId', 'seedText', 'keepSeed', 'uniqueness', 'setSeed', 'batchIndex',
-  'set', 'calibrationFor', 'puzzles', 'puzzleSeeds', 'seenLayouts', 'seenClues', 'setsByBoard', 'setOrigin', 'puzzleMade',
+  'set', 'calibrationFor', 'puzzles', 'puzzleSeeds', 'seenLayouts', 'seenClues', 'setsByBoard',
 ]);
 
 /**
@@ -1238,8 +1124,7 @@ export function createPersistence(store, storage, o = {}) {
       snapshots.push({ ...full, setsByBoard: Object.fromEntries(Object.entries(lists).map(([key, list]) => [key, list.slice(0, kept)])) });
     }
     const reduced = { ...full, setsByBoard: {} };
-    const { made: _made, ...withoutMade } = reduced;
-    snapshots.push(reduced, { ...withoutMade, puzzles: [] });
+    snapshots.push(reduced, { ...reduced, puzzles: [] });
     for (const snapshot of snapshots) {
       if (attempt(() => storage.setGeneratorState(snapshot))) {
         return;
@@ -1300,22 +1185,6 @@ export function createPersistence(store, storage, o = {}) {
       }
     },
   };
-}
-
-/**
- * Saves the restored state once when restoring removed saved sets with two pieces of the same shape (C4 (b)), so
- * that a reload neither shows the notice again nor finds the removed sets. A failed write is reported through the
- * persistence's `onFailure` and never thrown; the notice stays on screen either way.
- * @param {GeneratorStore} store
- * @param {{ saveNow(): void }} persistence
- * @returns {boolean} Whether a save was requested.
- */
-export function saveRestoreCleanup(store, persistence) {
-  if (store.getState().notice?.code !== 'M-DUPLICATE-SETS') {
-    return false;
-  }
-  persistence.saveNow();
-  return true;
 }
 
 export const MAX_PACK_PUZZLES = 100;
@@ -1456,13 +1325,6 @@ export function generationOf(state, puzzles, createdAt) {
   }
   generation.uniqueness = state.calibrationFor?.uniqueness ?? state.uniqueness;
   generation.createdAt = createdAt;
-  if (state.setOrigin !== null) {
-    generation.setOrigin = structuredClone(state.setOrigin);
-  }
-  const made = madeOf(state.puzzleMade, puzzles);
-  if (Object.keys(made).length > 0) {
-    generation.made = structuredClone(made);
-  }
   return generation;
 }
 
@@ -1623,7 +1485,7 @@ export function removeAllPuzzles(state) {
   if (state.puzzles.length === 0) {
     return state;
   }
-  return { ...state, puzzles: [], checking: [], puzzleSeeds: {}, puzzleMade: {}, notice: null };
+  return { ...state, puzzles: [], checking: [], puzzleSeeds: {}, notice: null };
 }
 
 /**
@@ -1768,7 +1630,6 @@ function withoutSet(state, setsByBoard) {
     calibrationFor: null,
     calibrationTrusted: false,
     setSeed: null,
-    setOrigin: null,
     batchIndex: 0,
     puzzles: [],
     seenLayouts: [],

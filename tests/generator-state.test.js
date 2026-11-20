@@ -3,21 +3,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { activeCount, boardFromRows, boardKey, boardToRows, preset, rectangle } from '../core/engine/board.js';
-import { provenanceVersions } from '../core/engine/generate.js';
-import { offeredLevels } from '../core/engine/levels.js';
-import { packBoard, parsePack, provenanceProblem, validatePack } from '../core/engine/pack.js';
+import { packBoard, parsePack } from '../core/engine/pack.js';
 import { LIMITS } from '../core/engine/policy.js';
-import { setLocale } from '../generator/i18n.js';
-import { createJobController } from '../generator/jobs.js';
 import { formatNotice } from '../generator/strings.js';
 import {
   HISTORY_LIMIT, LISTED_LEVEL_IDS, MAX_SAVED_BOARDS, MAX_SAVED_SETS, MAX_SETS, acceptSet, beginSetRequest,
-  boardsEqual, buildPack, capFor, createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard,
-  describeCount, describeLevels, detectHardware, displayEntryOf, displayKeyOf, generationOf, gotoSet, importPuzzle, isPhone,
-  loadGeneratorState, mergeSeenKeys, nextBatch, nearestOfferedLevel,
-  readSavedSet, readyLevelId, removeAllPuzzles, removeAllSets, removePuzzle, replaySourceOf, resizeBoard, restoreState, rollSeed,
-  saveRestoreCleanup, savedSetOf, serializeState,
-  setCell, setNumber, setTimelineLength, setViewPosition, setsFull, typeSeed, validSeed, withBoard,
+  boardsEqual, capFor, createEditHistory, createGeneratorStore, createPersistence, defaultGeneratorState, describeBoard,
+  describeCount, describeLevels, detectHardware, gotoSet, isPhone, loadGeneratorState, mergeSeenKeys, nextBatch, nearestOfferedLevel,
+  readSavedSet, readyLevelId, removeAllSets, resizeBoard, restoreState, rollSeed, savedSetOf, serializeState, setCell, setNumber,
+  setTimelineLength, setViewPosition, setsFull, typeSeed, validSeed, withBoard,
 } from '../generator/state.js';
 
 const parsed = parsePack(readFileSync(new URL('./fixtures/generated-sample-pack.json', import.meta.url), 'utf8'));
@@ -93,23 +87,16 @@ test('the default board is 10 columns by 6 rows with 60 playable squares', () =>
   assert.equal(description.valid, true);
 });
 
-test('a 60-cell board offers Very easy to Master and 360 offers Hard to Nightmare; a retired Hell level has no row', () => {
+test('a 60-cell board offers Very easy to Master and 360 offers Hard to Hell 2', () => {
   const offered = (/** @type {number} */ area) => describeLevels(area).filter((l) => l.offered).map((l) => l.id);
   assert.deepEqual(offered(60), ['very-easy', 'easy', 'normal', 'hard', 'expert', 'master']);
-  assert.deepEqual(offered(360), ['hard', 'expert', 'master', 'nightmare']);
+  assert.deepEqual(offered(360), ['hard', 'expert', 'master', 'nightmare', 'hell-1', 'hell-2']);
   const at60 = describeLevels(60);
   assert.equal(at60.find((l) => l.id === 'nightmare')?.reason, 'larger');
   const at360 = describeLevels(360);
   assert.equal(at360.find((l) => l.id === 'normal')?.reason, 'smaller');
-  assert.equal(at360.find((l) => l.id === 'hell-3'), undefined);
+  assert.equal(at360.find((l) => l.id === 'hell-3')?.reason, 'larger');
   assert.equal(describeLevels(676).length, LISTED_LEVEL_IDS.length);
-});
-
-test('the listed levels are exactly the levels offered on some board from 30 to 676 cells (P-OD9)', () => {
-  const offeredSomewhere = new Set();
-  for (let area = 30; area <= 676; area++) for (const lv of offeredLevels(area)) offeredSomewhere.add(lv.id);
-  assert.deepEqual([...LISTED_LEVEL_IDS], [...offeredSomewhere]);
-  assert.deepEqual([...LISTED_LEVEL_IDS], ['very-easy', 'easy', 'normal', 'hard', 'expert', 'master', 'nightmare']);
 });
 
 test('the piece-count line comes from the policy: 360 squares at Hard', () => {
@@ -186,13 +173,11 @@ test('device caps: 484 squares on desktop, 360 on phones; above 360 a desktop bo
   assert.equal(onDesktop.notices[0].text, 'Large board: generation can take up to 2 minutes.');
 });
 
-test('Require one solution shows no Hell notice: a retired Hell level moves to Nightmare (P-OD9)', () => {
+test('Require one solution warns only on large Hell boards', () => {
   const big = withBoard(defaultGeneratorState({ uniqueness: 'require', levelId: 'hell-1' }), rectangle(20, 12));
-  assert.equal(big.levelId, 'nightmare');
-  assert.deepEqual(describeBoard(big, DESKTOP).levelNotices, []);
+  assert.deepEqual(describeBoard(big, DESKTOP).levelNotices.map((n) => n.code), ['N-UNIQUE-EXP']);
   assert.deepEqual(describeBoard({ ...big, levelId: 'master' }, DESKTOP).levelNotices, []);
   const small = withBoard(defaultGeneratorState({ uniqueness: 'require', levelId: 'hell-1' }), rectangle(15, 13));
-  assert.equal(small.levelId, 'nightmare');
   assert.deepEqual(describeBoard(small, DESKTOP).levelNotices, []);
 });
 
@@ -443,151 +428,6 @@ test('puzzle seeds are stored in their puzzles, restored from them, and kept wit
   assert.deepEqual(back?.puzzleSeeds, { [first.id]: 'demo#1', [second.id]: 'demo#2' });
 });
 
-const ORIGIN = Object.freeze({ schema: 1, seed: 'demo', level: 'hard', attempt: 2, uniqueness: 'any', versions: provenanceVersions() });
-const CALIBRATION_RECORD = Object.freeze({ schema: 1, kind: 'calibration' });
-const CANDIDATE_RECORD = Object.freeze({
-  schema: 1, kind: 'candidate', batchSeed: 'demo#1', targetLevel: 'hard', uniqueness: 'any', slot: 2, attempt: 0, start: 'witness',
-  skips: { subsets: [3, 9], repairs: [] }, versions: provenanceVersions(),
-});
-assert.equal(provenanceProblem('setOrigin', ORIGIN), null);
-assert.equal(provenanceProblem('made', CANDIDATE_RECORD), null);
-
-/** A set with its origin, three listed puzzles and a record for two of them and for a puzzle that is not listed. */
-function originState() {
-  const [first, second] = samplePuzzles;
-  return {
-    ...acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo', setOrigin: ORIGIN }),
-    batchIndex: 1,
-    puzzles: samplePuzzles,
-    puzzleMade: { [first.id]: CALIBRATION_RECORD, [second.id]: CANDIDATE_RECORD, gone: CANDIDATE_RECORD },
-  };
-}
-
-test('the set origin and the puzzle records are saved with the set, restored, and kept by saved sets', () => {
-  const state = originState();
-  const [first, second] = samplePuzzles;
-  const kept = { [first.id]: CALIBRATION_RECORD, [second.id]: CANDIDATE_RECORD };
-  const saved = /** @type {any} */ (savedSetOf(state));
-  assert.deepEqual([saved.setOrigin, saved.made], [ORIGIN, kept], 'only the records of the stored puzzles');
-  const read = /** @type {any} */ (readSavedSet(JSON.parse(JSON.stringify(saved))));
-  assert.deepEqual([read.setOrigin, read.puzzleMade], [ORIGIN, kept]);
-
-  const restored = restoreState(JSON.parse(JSON.stringify(serializeState(state))));
-  assert.deepEqual([restored.setOrigin, restored.puzzleMade], [ORIGIN, kept], 'the set on show');
-  const next = acceptSet(restored, { set: sampleSet, calibration: null, setSeed: 'other' });
-  assert.deepEqual([next.setOrigin, next.puzzleMade], [null, {}], 'a new set starts without either');
-  const back = /** @type {any} */ (gotoSet(next, 1));
-  assert.deepEqual([back.setOrigin, back.puzzleMade], [ORIGIN, kept], 'a saved set reached again');
-  const stored = restoreState(JSON.parse(JSON.stringify(serializeState(next))));
-  const reloaded = /** @type {any} */ (gotoSet(stored, 1));
-  assert.deepEqual([reloaded.setOrigin, reloaded.puzzleMade], [ORIGIN, kept], 'a saved set after a reload');
-  assert.deepEqual(Object.keys(serializeState(next)).includes('setOrigin'), false, 'a set without an origin stores none');
-});
-
-test('the key of a saved replay is the same after the state was saved and restored', async () => {
-  const { replayKeyOf } = await import('../generator/ui/replay-cache.js');
-  const state = originState();
-  const reloaded = restoreState(JSON.parse(JSON.stringify(serializeState(state))));
-  for (const puzzle of samplePuzzles) {
-    const before = replaySourceOf(state, puzzle.id);
-    const after = replaySourceOf(reloaded, puzzle.id);
-    assert.ok(before !== null && after !== null, 'both states list the puzzle');
-    assert.equal(replayKeyOf(after), replayKeyOf(before), puzzle.id);
-  }
-});
-
-test('storage from an older version has no origin; a damaged stored record is dropped and the puzzles stay', () => {
-  const [first, second] = samplePuzzles;
-  const old = /** @type {any} */ (JSON.parse(JSON.stringify(serializeState({ ...originState(), setOrigin: null, puzzleMade: {} }))));
-  assert.equal('setOrigin' in old || 'made' in old, false);
-  const loaded = restoreState(old);
-  assert.deepEqual([loaded.setOrigin, loaded.puzzleMade, loaded.puzzles.length], [null, {}, 3]);
-
-  const dto = /** @type {any} */ (JSON.parse(JSON.stringify(serializeState(originState()))));
-  const badOrigin = restoreState({ ...dto, setOrigin: { ...ORIGIN, schema: 2 } });
-  assert.deepEqual([badOrigin.setOrigin, Object.keys(badOrigin.puzzleMade).length, badOrigin.puzzles.length], [null, 2, 3]);
-  const badMade = restoreState({
-    ...dto,
-    made: { [first.id]: CANDIDATE_RECORD, [second.id]: { ...CANDIDATE_RECORD, slot: 0 }, [samplePuzzles[2].id]: 'x' },
-  });
-  assert.deepEqual([badMade.puzzleMade, badMade.setOrigin, badMade.puzzles.length], [{ [first.id]: CANDIDATE_RECORD }, ORIGIN, 3]);
-  const stray = restoreState({ ...dto, puzzles: dto.puzzles.slice(0, 2), made: { [first.id]: CANDIDATE_RECORD, gone: CANDIDATE_RECORD } });
-  assert.deepEqual(Object.keys(stray.puzzleMade), [first.id], 'a record of a puzzle that is not stored is dropped');
-  const notObject = restoreState({ ...dto, made: [CANDIDATE_RECORD], setOrigin: 'demo' });
-  assert.deepEqual([notObject.puzzleMade, notObject.setOrigin, notObject.puzzles.length], [{}, null, 3]);
-  const inSaved = restoreState({ ...dto, setsByBoard: { x: [{ ...dto, setOrigin: { ...ORIGIN, attempt: -1 } }] } });
-  assert.equal(/** @type {any} */ (gotoSet(inSaved, 1)).setOrigin, null, 'also in a saved set');
-});
-
-test('an export writes the set origin as stored and the records of exactly the exported puzzles', () => {
-  const [first, second] = samplePuzzles;
-  const older = { ...ORIGIN, versions: { algo: 'gen-v1', policy: 'mixed-v2', rng: 'rng-0', seedScheme: 'seed-0', ratingModel: 'difficulty-v1' } };
-  assert.equal(provenanceProblem('setOrigin', older), null);
-  const state = { ...originState(), setOrigin: older };
-  const generation = generationOf(state, [first], '2026-01-01T00:00:00.000Z');
-  assert.deepEqual(generation.setOrigin, older, 'never stamped with the running versions');
-  assert.notEqual(generation.setOrigin, older);
-  assert.deepEqual(generation.made, { [first.id]: CALIBRATION_RECORD });
-  assert.deepEqual(Object.keys(generationOf(state, [second, first], 'now').made ?? {}), [second.id, first.id]);
-
-  const bare = generationOf({ ...state, setOrigin: null, puzzleMade: {} }, [first], '2026-01-01T00:00:00.000Z');
-  assert.equal('setOrigin' in bare || 'made' in bare, false);
-  const keys = Object.keys(generation);
-  assert.deepEqual(keys.slice(0, keys.indexOf('createdAt') + 1), Object.keys(bare), 'the existing keys keep their order');
-  assert.deepEqual(keys.slice(-2), ['setOrigin', 'made']);
-  const originOnly = generationOf({ ...state, puzzleMade: {} }, [first], 'now');
-  assert.deepEqual([originOnly.setOrigin, 'made' in originOnly], [older, false]);
-});
-
-test('a new set, an imported set and the removal of puzzles or sets clear the origin and the records', () => {
-  const state = originState();
-  assert.deepEqual([acceptSet(state, { set: sampleSet, calibration: null, setSeed: 'again' }).setOrigin], [null]);
-
-  const one = { ...samplePack, puzzles: [samplePack.puzzles[0]] };
-  const onShow = importPuzzle({ ...state, puzzles: [samplePuzzles[1]] }, one);
-  assert.deepEqual([onShow.status, onShow.state.setOrigin], ['added', ORIGIN], 'a puzzle added to the set on show keeps its origin');
-  assert.deepEqual(onShow.state.puzzleMade, state.puzzleMade, 'and gets no record');
-  const other = { ...state, set: { ...sampleSet, pieces: [...sampleSet.pieces].reverse() } };
-  const elsewhere = importPuzzle(other, one);
-  assert.equal(elsewhere.status, 'new-set');
-  assert.deepEqual([elsewhere.state.setOrigin, elsewhere.state.puzzleMade], [null, {}], 'an imported set has no origin');
-  assert.deepEqual(/** @type {any} */ (elsewhere.state.setsByBoard[boardKey(sampleSet.board)][0]).setOrigin, ORIGIN, 'the set it replaced keeps it');
-  assert.equal(importPuzzle(defaultGeneratorState(), one).state.setOrigin, null);
-
-  assert.deepEqual([removeAllPuzzles(state).puzzleMade, removeAllPuzzles(state).setOrigin], [{}, ORIGIN]);
-  const cleared = removeAllSets(state);
-  assert.deepEqual([cleared.setOrigin, cleared.puzzleMade, cleared.set], [null, {}, null]);
-});
-
-test('replaySourceOf gives the set, the puzzle, the origin and the record of a listed puzzle, else null', () => {
-  const state = originState();
-  const [first, second, third] = samplePuzzles;
-  const source = replaySourceOf(state, second.id);
-  assert.deepEqual(source, { set: state.set, puzzle: second, setOrigin: ORIGIN, made: CANDIDATE_RECORD });
-  assert.equal(source?.set, state.set);
-  assert.equal(source?.puzzle, second);
-  assert.equal(replaySourceOf(state, first.id)?.made, CALIBRATION_RECORD);
-  assert.equal(replaySourceOf(state, third.id)?.made, null, 'a puzzle without a record');
-  assert.equal(replaySourceOf({ ...state, setOrigin: null }, second.id)?.setOrigin, null, 'a set without an origin');
-  const inherited = { ...state, puzzles: [{ ...third, id: 'toString' }] };
-  assert.equal(replaySourceOf(inherited, 'toString')?.made, null, 'a name that Object.prototype has is not a record');
-  assert.equal(replaySourceOf(state, 'gone'), null, 'a record of a puzzle that is not listed');
-  assert.equal(replaySourceOf(state, 'nobody'), null);
-  assert.equal(replaySourceOf({ ...state, set: null }, first.id), null, 'no set');
-  assert.equal(replaySourceOf(defaultGeneratorState(), first.id), null);
-});
-
-test('removing a puzzle takes its record out of the export and leaves the others', () => {
-  const state = originState();
-  const [first, second] = samplePuzzles;
-  const removed = removePuzzle(state, first.id);
-  const pack = /** @type {any} */ (buildPack(removed, removed.puzzles, '2026-01-01T00:00:00.000Z'));
-  assert.deepEqual(Object.keys(pack.generation.made), [second.id]);
-  assert.deepEqual(pack.generation.setOrigin, ORIGIN);
-  assert.equal(validatePack(pack).ok, true);
-  assert.deepEqual(Object.keys(/** @type {any} */ (savedSetOf(removed)).made), [second.id]);
-});
-
 test('restoring validates every part and falls back individually', () => {
   const state = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: samplePuzzles[0], setSeed: 'demo' });
   const dto = JSON.parse(JSON.stringify(serializeState({ ...state, puzzles: samplePuzzles })));
@@ -755,215 +595,4 @@ test('storage failures never throw: a full storage retries smaller and reports',
   createPersistence(throwing, failing, t2);
   throwing.update({ levelId: 'easy' });
   assert.doesNotThrow(() => t2.run());
-});
-
-/**
- * Stored sets for the removal of saved sets with two pieces of the same shape (C4 (b)): `dto` is valid, `twinDto` has
- * two pieces of the same shape (the second piece takes the cells of the first).
- */
-function twinFixtures() {
-  const state = acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: samplePuzzles[0], setSeed: 'demo' });
-  const dto = JSON.parse(JSON.stringify(serializeState({ ...state, puzzles: samplePuzzles })));
-  const twinDto = JSON.parse(JSON.stringify(dto));
-  twinDto.setPack.pieces[1].cells = JSON.parse(JSON.stringify(twinDto.setPack.pieces[0].cells));
-  const found = validatePack(twinDto.setPack);
-  assert.ok(!found.ok && found.issues[0].code === 'duplicate-shape', 'the fixture fails the shape rule and no other');
-  return { dto, twinDto, key: boardKey(sampleSet.board) };
-}
-
-const EN_ONE = '1 saved piece set with two pieces of the same shape was removed: such sets can no longer be used.';
-const EN_TWO = '2 saved piece sets with two pieces of the same shape were removed: such sets can no longer be used.';
-
-test('restoring removes saved sets with two pieces of the same shape and says so (C4 (b))', () => {
-  const { dto, twinDto, key } = twinFixtures();
-  const clean = restoreState({ ...dto, setsByBoard: { [key]: [dto, dto] } });
-  assert.equal(clean.notice, null, 'no notice without a removed set');
-
-  const one = restoreState({ ...dto, setsByBoard: { [key]: [dto, twinDto, dto] } });
-  assert.equal(one.setsByBoard[key].length, 2, 'the twin set is dropped');
-  assert.deepEqual({ ...one, notice: null }, clean, 'the other sets and the settings restore as before');
-  assert.deepEqual(
-    [one.notice?.code, one.notice?.kind, one.notice?.actions, one.notice?.text],
-    ['M-DUPLICATE-SETS', 'warning', [], EN_ONE],
-  );
-
-  const two = restoreState({ ...dto, setsByBoard: { [key]: [twinDto, dto, twinDto] } });
-  assert.equal(two.setsByBoard[key].length, 1);
-  assert.equal(two.notice?.text, EN_TWO);
-
-  const current = restoreState({ ...twinDto, setsByBoard: {} });
-  assert.deepEqual([current.set, current.setSeed, current.setsByBoard, current.notice?.text], [null, null, {}, EN_ONE], 'a twin current set counts too');
-
-  const everywhere = restoreState({ ...twinDto, setsByBoard: { [key]: [twinDto, dto] }, setHistory: [twinDto, dto] });
-  assert.equal(everywhere.notice?.text, '3 saved piece sets with two pieces of the same shape were removed: such sets can no longer be used.');
-  assert.equal(Object.values(everywhere.setsByBoard).flat().length, 1, 'the valid sets of both lists stay: one on show, one saved');
-  assert.equal(everywhere.setSeed, 'demo');
-
-  const damaged = restoreState({ ...dto, setsByBoard: { [key]: [dto, { bad: true }, { ...dto, setSeed: '' }] } });
-  assert.equal(damaged.notice, null, 'a set that is damaged in another way leaves no notice');
-});
-
-test('the removal notice follows a language switch and is never stored', () => {
-  const { dto, twinDto, key } = twinFixtures();
-  const restored = restoreState({ ...dto, setsByBoard: { [key]: [twinDto, dto, twinDto] } });
-  assert.equal(restored.notice?.text, EN_TWO);
-  try {
-    setLocale('vi', null);
-    assert.equal(
-      restored.notice?.retext?.(),
-      'Đã xóa 2 bộ mảnh đã lưu có hai mảnh cùng hình dạng: những bộ mảnh như vậy không còn dùng được nữa.',
-    );
-    const one = restoreState({ ...dto, setsByBoard: { [key]: [twinDto] } });
-    assert.equal(one.notice?.text, 'Đã xóa 1 bộ mảnh đã lưu có hai mảnh cùng hình dạng: những bộ mảnh như vậy không còn dùng được nữa.');
-  } finally {
-    setLocale('en', null);
-  }
-  assert.equal(restored.notice?.retext?.(), EN_TWO);
-
-  const snapshot = /** @type {Record<string, any>} */ (JSON.parse(JSON.stringify(serializeState(restored))));
-  assert.equal('notice' in snapshot, false);
-  const sets = [snapshot, ...snapshot.setsByBoard[key]];
-  assert.equal(sets.length, 2, 'the twin sets are not in the snapshot');
-  assert.ok(sets.every((saved) => validatePack(saved.setPack).ok));
-
-  const store = createGeneratorStore(restored);
-  const timers = fakeTimers();
-  createPersistence(store, fakeStorage(), timers);
-  store.update((s) => (s.notice?.retext === undefined ? s : { ...s, notice: { ...s.notice, text: s.notice.retext() } }));
-  assert.equal(timers.pending(), 0, 'changing the notice is not a change of the stored state');
-});
-
-test('the startup save writes the cleaned state once, so the notice appears once', () => {
-  const { dto, twinDto, key } = twinFixtures();
-  const io = fakeStorage({ state: { ...dto, setsByBoard: { [key]: [dto, twinDto, dto] } } });
-  const store = createGeneratorStore(loadGeneratorState(io));
-  const timers = fakeTimers();
-  const persistence = createPersistence(store, io, timers);
-  assert.equal(store.getState().notice?.code, 'M-DUPLICATE-SETS');
-  assert.equal(io.writes.state.length, 0, 'loading writes nothing');
-  assert.equal(saveRestoreCleanup(store, persistence), true);
-  assert.equal(io.writes.state.length, 1);
-  const written = /** @type {Record<string, any>} */ (io.writes.state[0]);
-  assert.deepEqual(written, JSON.parse(JSON.stringify(serializeState(store.getState()))));
-  assert.deepEqual([written.setsByBoard[key].length, 'notice' in written], [2, false], 'the valid sets, not the twin set');
-
-  const reloaded = loadGeneratorState(fakeStorage({ state: written }));
-  assert.deepEqual([reloaded.notice, reloaded.setsByBoard[key].length, reloaded.setSeed], [null, 2, 'demo']);
-  persistence.flush();
-  persistence.destroy();
-  assert.equal(io.writes.state.length, 1, 'flush and destroy add no write');
-  assert.equal(timers.pending(), 0);
-});
-
-test('without a removal notice the startup save does nothing', () => {
-  const { dto, key } = twinFixtures();
-  const io = fakeStorage({ state: { ...dto, setsByBoard: { [key]: [dto, { bad: true }, dto] } } });
-  const store = createGeneratorStore(loadGeneratorState(io));
-  const persistence = createPersistence(store, io, fakeTimers());
-  assert.equal(store.getState().notice, null);
-  assert.equal(saveRestoreCleanup(store, persistence), false);
-  store.update({ notice: { code: 'M-NEEDS-SET', text: 'x', kind: 'info', actions: [] } });
-  assert.equal(saveRestoreCleanup(store, persistence), false, 'only the removal notice asks for it');
-  assert.equal(io.writes.state.length, 0);
-});
-
-test('a failing storage at the startup save is reported, never thrown, and the notice stays', () => {
-  const { dto, twinDto, key } = twinFixtures();
-  const stored = { ...dto, setsByBoard: { [key]: [dto, twinDto] } };
-  for (const mode of ['refused', 'throws']) {
-    const io = fakeStorage({ state: stored });
-    if (mode === 'refused') {
-      io.failState = () => true;
-    } else {
-      io.setGeneratorState = () => {
-        throw new Error('denied');
-      };
-    }
-    const store = createGeneratorStore(loadGeneratorState(io));
-    /** @type {unknown[]} */
-    const failures = [];
-    const persistence = createPersistence(store, io, { ...fakeTimers(), onFailure: (failure) => failures.push(failure) });
-    /** @type {boolean | undefined} */
-    let requested;
-    assert.doesNotThrow(() => {
-      requested = saveRestoreCleanup(store, persistence);
-    }, mode);
-    assert.equal(requested, true, mode);
-    assert.ok(failures.length >= 1, `${mode}: onFailure is called`);
-    assert.equal(io.writes.state.length, 0, mode);
-    assert.equal(store.getState().notice?.code, 'M-DUPLICATE-SETS', `${mode}: the notice is still there`);
-    assert.equal(store.getState().notice?.text, EN_ONE, mode);
-  }
-});
-
-const playerClaims = /** @type {any[]} */ (/** @type {any} */ (parsePack(readFileSync(new URL('../player/samples/sample-pack.json', import.meta.url), 'utf8'))).value.puzzles)
-  .map((p) => p.rating);
-/** The sample's puzzles with the claims of the old scale (`difficulty-v2`) that the Player sample carries. */
-const oldScalePuzzles = samplePuzzles.map((p, i) => ({ ...p, rating: playerClaims[i] }));
-const derivedRating = { model: 'difficulty-v3', score: 14, level: 'normal', saturated: false, metrics: { censusComplete: true, censusUndecided: 0 } };
-
-test('the derived display ratings are in the state and never in the saved text; a restored state starts without them', () => {
-  assert.deepEqual(defaultGeneratorState().displayRatings, {});
-  const state = { ...acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo' }), puzzles: oldScalePuzzles };
-  const plain = JSON.stringify(serializeState(state));
-  const entries = Object.fromEntries(state.puzzles.map((p, i) => [displayKeyOf(sampleSet, p), i === 0 ? { status: 'rated', rating: derivedRating } : { status: 'unavailable' }]));
-  assert.equal(Object.keys(entries).length, 3);
-  const withEntries = { ...state, displayRatings: /** @type {any} */ (entries) };
-  assert.equal(JSON.stringify(serializeState(withEntries)), plain, 'the same saved text with and without entries');
-  assert.equal(plain.includes('displayRatings'), false);
-  assert.equal(plain.includes('difficulty-v3'), false, 'no derived rating reaches the storage');
-  const restored = restoreState(JSON.parse(plain));
-  assert.deepEqual(restored.displayRatings, {});
-  assert.deepEqual(restored.puzzles.map((p) => p.rating), playerClaims, 'the stored claims are those that were saved');
-  assert.equal(JSON.stringify(serializeState(restored)), plain, 'and saving them again changes no byte');
-  assert.equal(displayEntryOf({ ...withEntries, set: sampleSet }, withEntries.puzzles[0])?.status, 'rated');
-  assert.equal(displayEntryOf({ ...withEntries, set: sampleSet }, { ...withEntries.puzzles[0], rating: derivedRating }), undefined, 'a v3 claim has no entry');
-  assert.equal(displayEntryOf({ ...withEntries, set: null }, withEntries.puzzles[0]), undefined, 'without a set there is no key');
-});
-
-test('the controller wishes the derived ratings of the state it starts with, once and with no store update; it wishes again on a change; destroy stops it', async () => {
-  const io = fakeStorage({ state: JSON.parse(JSON.stringify(serializeState({
-    ...acceptSet(defaultGeneratorState(), { set: sampleSet, calibration: null, setSeed: 'demo' }), puzzles: oldScalePuzzles,
-  }))) });
-  const store = createGeneratorStore(loadGeneratorState(io));
-  /** @type {{ kind: string, payload: any }[]} */
-  const calls = [];
-  const client = /** @type {any} */ ({
-    generateSet: async () => ({ status: 'cancelled' }),
-    generateBatch: async () => ({ status: 'cancelled' }),
-    cancel() {},
-    submitAuxiliary: async (/** @type {string} */ kind, /** @type {any} */ payload) => {
-      calls.push({ kind, payload });
-      return derivedRating;
-    },
-  });
-  const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const waitFor = async (/** @type {() => boolean} */ ok) => {
-    for (let i = 0; i < 500 && !ok(); i += 1) {
-      await tick();
-    }
-    assert.ok(ok());
-  };
-  const rated = () => Object.values(store.getState().displayRatings).filter((entry) => entry.status === 'rated').length;
-  const controller = createJobController({ store, hardware: DESKTOP, client });
-  assert.equal(calls.length, 1, 'the first request is sent at once, before any update of the store');
-  await waitFor(() => rated() === 3);
-  assert.deepEqual(calls.map((call) => call.kind), ['rate', 'rate', 'rate']);
-  assert.deepEqual(calls.map((call) => call.payload.clues), store.getState().puzzles.map((p) => p.clues), 'in list order');
-  assert.deepEqual(calls[0].payload.boardRows, boardToRows(sampleSet.board));
-  assert.deepEqual(calls[0].payload.pieces, sampleSet.pieces);
-
-  // A new puzzle in the list is wished; the answers already there are not asked for again.
-  const [first] = store.getState().puzzles;
-  store.update((s) => ({ ...s, puzzles: [...s.puzzles, { ...first, id: 'more-1', clues: first.clues.slice(1) }] }));
-  await waitFor(() => rated() === 4);
-  assert.equal(calls.length, 4);
-
-  controller.destroy();
-  store.update((s) => ({ ...s, puzzles: [...s.puzzles, { ...first, id: 'more-2', clues: first.clues.slice(2) }] }));
-  await tick();
-  await tick();
-  assert.equal(calls.length, 4, 'after destroy nothing is sent');
-  assert.equal(rated(), 4);
-  store.destroy();
 });

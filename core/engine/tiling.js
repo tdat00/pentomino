@@ -17,17 +17,12 @@ import { fillArena } from './workspace.js';
 /** @typedef {import('./types.js').Piece} Piece */
 /** @typedef {import('./types.js').Pose} Pose */
 /** @typedef {import('./types.js').PieceSet} PieceSet */
-/** @typedef {import('./types.js').LayoutEvent} LayoutEvent */
 /** @typedef {import('./rng.js').Rng} Rng */
 /** @typedef {import('./workspace.js').Workspace} Workspace */
 
 /**
- * Packed model. The typed arrays are views into the workspace that built it, valid only while
- * the model is live (`assertLive`): the next `buildModel` or `reserve` on that workspace overwrites
- * them. `pieceSizes` belongs to the placement plan, not to the workspace.
+ * Packed model. The typed arrays are views into the workspace that built it.
  * `rowPiece` indexes `freePieces` (canonical order), not the caller's array.
- * Precondition: every piece is edge-connected (imported sets are checked by `pack.js`, generated
- * sets by `carve.js`); the pocket rules of the deduction solver rely on it.
  * @typedef {object} Model
  * @property {ExactCover} cover
  * @property {Int16Array} rowPiece
@@ -39,16 +34,6 @@ import { fillArena } from './workspace.js';
  * @property {Int32Array} placementsPerPiece Rows per free piece (L_i), canonical order.
  * @property {Pose[]} clues Copies of the clue poses.
  * @property {string[]} pieceOrder Canonical order of every piece ID, clued or free.
- * @property {number} rowCount Placement rows.
- * @property {Int32Array} rowCols Columns of row `r` are `rowCols[rowStart[r] .. rowStart[r + 1] - 1]`:
- *   its cell columns ascending, then its piece column last.
- * @property {Int32Array} rowStart [rowCount + 1] offsets into `rowCols`; `rowStart[rowCount]` is the nonzero count.
- * @property {number} columns `freeCells + freePieceCount`; the piece column of free piece `i` is `freeCells + i`.
- * @property {Int32Array} cellColumn Column of board cell `y * width + x`, or -1 (blocked or clue cell).
- * @property {number} freePieceCount Free pieces (piece columns).
- * @property {number} width Board width.
- * @property {number} height Board height.
- * @property {Int32Array} pieceSizes Cell count of each free piece, canonical order.
  */
 
 export { ModelError } from './placements.js';
@@ -83,26 +68,15 @@ export function buildModel(b, pieces, clues, ws) {
     placementsPerPiece: arena.placementsPerPiece,
     clues: plan.clues,
     pieceOrder: plan.pieceOrder,
-    rowCount: arena.rows,
-    rowCols: arena.rowCols,
-    rowStart: arena.rowStart,
-    columns: arena.columns,
-    cellColumn: arena.cellColumn,
-    freePieceCount: plan.freePieceIds.length,
-    width: plan.width,
-    height: plan.height,
-    pieceSizes: plan.pieceSizes,
   };
   LIVE.set(ws, model);
   return model;
 }
 
 /**
- * Throws when the model's workspace has built another model since; every consumer of a model's
- * arrays calls it first.
  * @param {Model} m
  */
-export function assertLive(m) {
+function assertLive(m) {
   if (LIVE.get(m.cover.ws) !== m) {
     throw new Error('stale model: its workspace has built another model since');
   }
@@ -188,10 +162,10 @@ export function solveFirst(m, o) {
  * found plus `exhausted` proves uniqueness; two found proves multiple; zero
  * found plus `exhausted` proves unsatisfiable; anything else proves nothing.
  * `witnesses` are complete layouts of the first `witnessLimit` (default
- * `cap`) solutions found. `rowTrials` is the row trials the count used (the work meter of a replay reads it).
+ * `cap`) solutions found.
  * @param {Model} m
  * @param {{ cap: number, rowTrialLimit: number, witnessLimit?: number }} o
- * @returns {{ found: number, exhausted: boolean, witnesses: Pose[][], rowTrials: number }}
+ * @returns {{ found: number, exhausted: boolean, witnesses: Pose[][] }}
  */
 export function countSolutions(m, o) {
   assertLive(m);
@@ -203,7 +177,7 @@ export function countSolutions(m, o) {
   for (let i = 0; i < limit; i += 1) {
     witnesses.push(decode(m, r.solutions[i], order));
   }
-  return { found: r.found, exhausted: r.exhausted, witnesses, rowTrials: r.rowTrials };
+  return { found: r.found, exhausted: r.exhausted, witnesses };
 }
 
 /**
@@ -489,17 +463,14 @@ export function clusterFor(set, layout, s, stuck, rng) {
  * Walk of `steps` local re-tilings from `start`, one scratch-workspace search
  * per step. A failed step widens flat clusters; a success resets that count.
  * Every intermediate layout is complete and valid, so the result is too.
- * `record` (RES-28) observes each step with a `retile` event: the lifted piece ids, whether the step changed the
- * layout, and a copy of the layout after it. It draws nothing and changes no step.
  * @param {PieceSet} set
  * @param {Pose[]} start Complete valid layout.
  * @param {Rng} rng
  * @param {Workspace} ws
  * @param {number} [steps]
- * @param {(event: LayoutEvent) => void} [record]
  * @returns {Pose[]}
  */
-export function lnsWalk(set, start, rng, ws, steps = BUDGETS.lnsSteps, record) {
+export function lnsWalk(set, start, rng, ws, steps = BUDGETS.lnsSteps) {
   let current = start;
   let stuck = 0;
   for (let s = 0; s < steps; s += 1) {
@@ -511,14 +482,6 @@ export function lnsWalk(set, start, rng, ws, steps = BUDGETS.lnsSteps, record) {
       current = next;
       stuck = 0;
     }
-    record?.({
-      stage: 'layout',
-      kind: 'retile',
-      step: s,
-      liftedIds: cluster.map((i) => set.pieces[i].id),
-      changed: next !== null,
-      layout: current.map((p) => ({ piece: p.piece, x: p.x, y: p.y, turn: p.turn, mirrored: p.mirrored })),
-    });
   }
   return current;
 }

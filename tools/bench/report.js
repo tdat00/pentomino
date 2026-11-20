@@ -35,15 +35,14 @@ export const CRITERIA = Object.freeze({
 
 /** Files whose content identifies the measured code; the same list is hashed by Node and by the browser page. */
 export const SOURCE_FILES = Object.freeze([
-  'core/engine/board.js', 'core/engine/carve.js', 'core/engine/clues.js', 'core/engine/deduce.js', 'core/engine/difficulty.js',
+  'core/engine/board.js', 'core/engine/carve.js', 'core/engine/clues.js', 'core/engine/difficulty.js',
   'core/engine/dlx.js', 'core/engine/enumerate.js', 'core/engine/game.js', 'core/engine/generate.js', 'core/engine/geometry.js',
   'core/engine/hash.js', 'core/engine/hints.js', 'core/engine/keys.js', 'core/engine/levels.js', 'core/engine/pack.js',
   'core/engine/palette.js', 'core/engine/placements.js', 'core/engine/policy.js', 'core/engine/protocol.js',
   'core/engine/puzzlecode-input.js', 'core/engine/puzzlecode-v1.js', 'core/engine/puzzlecode.js',
-  'core/engine/qualification.js', 'core/engine/replay.js', 'core/engine/rng.js', 'core/engine/sharecode.js',
-  'core/engine/tasks.js', 'core/engine/tiling.js', 'core/engine/types.js', 'core/engine/version.js',
-  'core/engine/view.js', 'core/engine/workspace.js', 'core/browser/worker-pool.js',
-  'core/browser/generation-client.js', 'core/browser/auxiliary.js',
+  'core/engine/qualification.js', 'core/engine/rng.js', 'core/engine/sharecode.js', 'core/engine/tasks.js',
+  'core/engine/tiling.js', 'core/engine/types.js', 'core/engine/version.js', 'core/engine/view.js',
+  'core/engine/workspace.js', 'core/browser/worker-pool.js', 'core/browser/generation-client.js',
   'core/workers/engine.worker.js', 'tools/bench/runner.js', 'tools/bench/report.js',
   'tools/bench/responsiveness.js', 'tools/bench/calibration-reference.js',
 ]);
@@ -78,8 +77,6 @@ export const SOURCE_FILES = Object.freeze([
  * @property {number} peakAccountedBytes
  * @property {number | null} peakProcessBytes
  * @property {number} ratingSaturatedCount
- * @property {number} [ratingCensoredCount] Accepted puzzles whose `difficulty-v3` rating is an estimate (`censored: true`);
- *   records written before difficulty-v3 lack it.
  * @property {{ unique: number, multiple: number, notProved: number, notChecked: number }} certificates
  * @property {number | null} certificatesSettledMs
  * @property {number | null} maxModelRows
@@ -130,7 +127,6 @@ export function newRunRecord(init = {}) {
     peakAccountedBytes: 0,
     peakProcessBytes: null,
     ratingSaturatedCount: 0,
-    ratingCensoredCount: 0,
     certificates: { unique: 0, multiple: 0, notProved: 0, notChecked: 0 },
     certificatesSettledMs: null,
     maxModelRows: null,
@@ -193,8 +189,6 @@ export function validateRunRecord(run) {
     need(name, r[name] === undefined || isNumOrNull(r[name]));
   }
   need('layoutMethod', r.layoutMethod === undefined || r.layoutMethod === null || typeof r.layoutMethod === 'string');
-  // Added with difficulty-v3 (MP11); records written before it lack it.
-  need('ratingCensoredCount', r.ratingCensoredCount === undefined || isNum(r.ratingCensoredCount));
   need('mainTaskMethod', MAIN_TASK_METHODS.includes(r.mainTaskMethod));
   need('probeKind', PROBE_KINDS.includes(r.probeKind));
   need('lifecycle', r.lifecycle === 'cold' || r.lifecycle === 'warm');
@@ -436,7 +430,6 @@ export function evaluateCell(runs, options = {}) {
     response: summarize(responses),
     peak: { accountedMaxBytes: n === 0 ? null : accountedMax, processMaxBytes: processMax },
     saturatedAccepted: ordinary.reduce((s, r) => s + r.ratingSaturatedCount, 0),
-    censoredAccepted: ordinary.reduce((s, r) => s + (r.ratingCensoredCount ?? 0), 0),
     acceptedTotal: ordinary.reduce((s, r) => s + r.acceptedCount, 0),
     certificates,
     sampleSize: { n, minimum: CRITERIA.minRepetitions, sufficient },
@@ -613,11 +606,10 @@ export function renderMarkdown(report, options = {}) {
   }
   if (detail) {
     lines.push('', '## Certificates (accepted puzzles of ordinary runs)', '',
-      '| Case | unique | multiple | not proved | not checked | saturated ratings | census estimates |',
-      '| --- | --- | --- | --- | --- | --- | --- |');
+      '| Case | unique | multiple | not proved | not checked | saturated ratings |', '| --- | --- | --- | --- | --- | --- |');
     for (const c of report.cells) {
       lines.push(`| ${c.caseId} | ${c.certificates.unique} | ${c.certificates.multiple} | ${c.certificates.notProved} | `
-        + `${c.certificates.notChecked} | ${c.saturatedAccepted}/${c.acceptedTotal} | ${c.censoredAccepted}/${c.acceptedTotal} |`);
+        + `${c.certificates.notChecked} | ${c.saturatedAccepted}/${c.acceptedTotal} |`);
     }
   }
   if (report.planning.length > 0) {

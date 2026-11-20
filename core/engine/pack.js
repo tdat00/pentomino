@@ -5,9 +5,6 @@
 
 import { activeCount, boardFromRows, boardToRows, regions } from './board.js';
 import { canonicalKey, canonicalT, hasHole, isConnected, normalizeCells, poseCells } from './geometry.js';
-import { level } from './levels.js';
-import { BUDGETS } from './policy.js';
-import { normalizeSeedText } from './rng.js';
 import { isValidLayout } from './tiling.js';
 
 /** @typedef {import('./types.js').XY} XY */
@@ -20,9 +17,7 @@ import { isValidLayout } from './tiling.js';
 /** @typedef {import('./types.js').Puzzle} Puzzle */
 /** @typedef {import('./types.js').RatingClaim} RatingClaim */
 /** @typedef {import('./types.js').CertificateClaim} CertificateClaim */
-/** @typedef {import('./types.js').MetricsV3} MetricsV3 */
-/** @typedef {import('./types.js').SetOrigin} SetOrigin */
-/** @typedef {import('./types.js').Made} Made */
+/** @typedef {import('./types.js').Metrics} Metrics */
 /**
  * @template T
  * @typedef {import('./types.js').Result<T>} Result
@@ -45,25 +40,6 @@ const MAX_JSON_NODES = 100000;
 const MAX_CLAIM_METRICS_BYTES = 4096;
 const CLAIM_JSON_DEPTH = 8;
 
-/** Record format of `generation.setOrigin` and `generation.made` (RES-27, AUTH-P1 (a)). */
-export const PROVENANCE = Object.freeze({
-  schema: 1,
-  subsetSkips: 64,
-  repairSkips: 16,
-  subsetOrdinals: 2128,
-  repairOrdinals: 64,
-});
-const SET_ORIGIN_KEYS = ['schema', 'seed', 'level', 'attempt', 'uniqueness', 'versions'];
-const MADE_CANDIDATE_KEYS = [
-  'schema', 'kind', 'batchSeed', 'targetLevel', 'uniqueness', 'slot', 'attempt', 'start', 'skips', 'versions',
-];
-const MADE_PLAIN_KEYS = ['schema', 'kind'];
-const SKIPS_KEYS = ['subsets', 'repairs'];
-const VERSION_KEYS = ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel'];
-const MAX_VERSION_UNITS = 64;
-const MAX_BATCH_SEED_UNITS = 256;
-const MAX_SLOT = 10;
-
 const PIECE_ID = /^[A-Za-z0-9_-]{1,8}$/;
 const PUZZLE_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const COLOR = /^#[0-9a-fA-F]{6}$/;
@@ -77,25 +53,9 @@ const PRESENTATION_FIELDS = new Set(['rotation']);
 const PIECE_FIELDS = new Set(['id', 'label', 'color', 'cells']);
 const POSE_FIELDS = new Set(['piece', 'x', 'y', 'turn', 'mirrored']);
 const PUZZLE_FIELDS = new Set(['id', 'title', 'seed', 'clues', 'solution', 'rating', 'certificate']);
-const RATING_V3_FIELDS = new Set(['model', 'score', 'level', 'saturated', 'censored', 'metrics']);
+const RATING_V2_FIELDS = new Set(['model', 'score', 'level', 'saturated', 'metrics']);
 const RATING_CLAIM_FIELDS = new Set(['model', 'score', 'level', 'saturated', 'censored', 'metrics']);
-// The write order of `MetricsV3`.
-const METRICS_V3_KEYS = [
-  'U', 'R', 'H', 'B', 'branchTrials', 'rowTrials', 'dlxStop', 'searchStop', 'F', 'E', 'rules', 'deductionTier', 'tier',
-  'G', 'info', 'Cmax', 'Dmax', 'Gt', 'nodes', 'work', 'S', 'solutionLimit', 'solutions', 'censusComplete',
-  'censusUndecided', 'censusNodes', 'censusWork', 'Gproved',
-];
-const METRICS_V3_FIELDS = new Set(METRICS_V3_KEYS);
-const METRICS_V3_COUNTS = [
-  'U', 'R', 'B', 'branchTrials', 'rowTrials', 'F', 'E', 'G', 'Cmax', 'Dmax', 'Gt', 'nodes', 'work', 'S', 'solutionLimit',
-  'censusUndecided', 'censusNodes', 'censusWork', 'Gproved',
-];
-const SEARCH_STOPS = new Set(['exhausted', 'solution-limit', 'node-cap', 'work-cap']);
-const SOLUTION_STATUSES = new Set(['unique', 'few', 'many', 'unknown']);
-const RULE_KEYS = ['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9'];
-const RULE_FIELDS = new Set(RULE_KEYS);
-// The seven keys of a `difficulty-v2` claim made by this program; only their write order is fixed.
-const LEGACY_V2_METRICS_KEYS = ['U', 'B', 'branchTrials', 'rowTrials', 'stop', 'R', 'H'];
+const METRICS_FIELDS = new Set(['U', 'B', 'branchTrials', 'rowTrials', 'stop', 'R', 'H']);
 const CERTIFICATE_FIELDS = new Set(['status', 'model', 'rowLimit']);
 
 /**
@@ -186,11 +146,10 @@ const newCtx = () => ({ issues: [], warnings: [], truncated: false });
  * @param {string} code
  * @param {string} path
  * @param {string} message
- * @param {Record<string, string | number>} [params]
  */
-function fail(ctx, code, path, message, params) {
+function fail(ctx, code, path, message) {
   if (ctx.issues.length < MAX_ISSUES) {
-    ctx.issues.push(params === undefined ? { code, path, message } : { code, path, message, params });
+    ctx.issues.push({ code, path, message });
   } else {
     ctx.truncated = true;
   }
@@ -592,33 +551,13 @@ function readPieces(ctx, v, area) {
 }
 
 /**
- * No two pieces of one pack have the same free shape (translations, rotations
- * and reflections count as the same): one error per later copy, naming it and
- * the first piece of that shape.
- * @param {Ctx} ctx
- * @param {Piece[]} pieces
- */
-function checkDistinctShapes(ctx, pieces) {
-  /** @type {Map<string, string>} */
-  const shapes = new Map();
-  pieces.forEach((piece, i) => {
-    const key = canonicalKey(piece.cells);
-    const first = shapes.get(key);
-    if (first === undefined) {
-      shapes.set(key, piece.id);
-    } else {
-      fail(ctx, 'duplicate-shape', child('pieces', i), `Piece ${piece.id} has the same shape as piece ${first}`,
-        { piece: piece.id, first });
-    }
-  });
-}
-
-/**
  * Policy warnings only: nothing here makes a rules-valid pack invalid.
  * @param {Ctx} ctx
  * @param {Piece[]} pieces
  */
 function warnAboutPieces(ctx, pieces) {
+  /** @type {Map<string, string>} */
+  const shapes = new Map();
   pieces.forEach((piece, i) => {
     const path = child('pieces', i);
     if (piece.cells.length < 3) {
@@ -626,6 +565,13 @@ function warnAboutPieces(ctx, pieces) {
     }
     if (hasHole(piece.cells)) {
       warn(ctx, 'piece-hole', path, `Piece ${piece.id} has a hole`);
+    }
+    const key = canonicalKey(piece.cells);
+    const first = shapes.get(key);
+    if (first === undefined) {
+      shapes.set(key, piece.id);
+    } else {
+      warn(ctx, 'duplicate-shape', path, `Piece ${piece.id} has the same shape as piece ${first}`);
     }
   });
 }
@@ -780,136 +726,46 @@ function firstClueMismatch(clues, solution, env) {
 }
 
 /**
- * Strict reading of `difficulty-v3` metrics: every field alone first, then the rules that tie the fields together
- * (one issue per failed rule, at the path of its first field). The result is a fresh object in the write order.
  * @param {Ctx} ctx
  * @param {unknown} v
  * @param {string} path
- * @returns {MetricsV3 | null}
+ * @returns {Metrics | null}
  */
-function readMetricsV3(ctx, v, path) {
-  const before = ctx.issues.length;
-  const fields = readFields(ctx, v, path, METRICS_V3_FIELDS, METRICS_V3_KEYS);
+function readMetricsV2(ctx, v, path) {
+  const fields = readFields(ctx, v, path, METRICS_FIELDS, ['U', 'B', 'branchTrials', 'rowTrials', 'stop', 'R', 'H']);
   if (fields === null) {
     return null;
   }
-  /**
-   * @param {string} key
-   * @param {string} message
-   */
-  const bad = (key, message) => fail(ctx, 'rating-invalid', child(path, key), message);
-  /** @param {string} key */
-  const present = (key) => fields.get(key) !== undefined;
-  for (const key of METRICS_V3_COUNTS) {
-    if (present(key) && !isCount(fields.get(key))) {
-      bad(key, `${key} must be a nonnegative integer`);
+  const before = ctx.issues.length;
+  for (const key of ['U', 'B', 'branchTrials', 'rowTrials', 'R']) {
+    if (fields.has(key) && !isCount(fields.get(key))) {
+      fail(ctx, 'rating-invalid', child(path, key), `${key} must be a nonnegative integer`);
     }
   }
-  for (const key of ['H', 'info']) {
-    if (present(key) && !isScore(fields.get(key))) {
-      bad(key, `${key} must be a finite nonnegative number`);
-    }
+  if (fields.has('H') && !isScore(fields.get('H'))) {
+    fail(ctx, 'rating-invalid', child(path, 'H'), 'H must be a finite nonnegative number');
   }
-  if (present('dlxStop') && !STOPS.has(/** @type {string} */ (fields.get('dlxStop')))) {
-    bad('dlxStop', 'dlxStop must be solution, branch-cap or row-cap');
-  }
-  if (present('searchStop') && !SEARCH_STOPS.has(/** @type {string} */ (fields.get('searchStop')))) {
-    bad('searchStop', 'searchStop must be exhausted, solution-limit, node-cap or work-cap');
-  }
-  if (present('solutions') && !SOLUTION_STATUSES.has(/** @type {string} */ (fields.get('solutions')))) {
-    bad('solutions', 'solutions must be unique, few, many or unknown');
-  }
-  for (const [key, max] of /** @type {const} */ ([['deductionTier', 3], ['tier', 4]])) {
-    const value = fields.get(key);
-    if (present(key) && !(Number.isInteger(value) && /** @type {number} */ (value) >= 0 && /** @type {number} */ (value) <= max)) {
-      bad(key, `${key} must be an integer from 0 to ${max}`);
-    }
-  }
-  if (present('censusComplete') && typeof fields.get('censusComplete') !== 'boolean') {
-    bad('censusComplete', 'censusComplete must be a boolean');
-  }
-  const rulesPath = child(path, 'rules');
-  const rules = present('rules') ? readFields(ctx, fields.get('rules'), rulesPath, RULE_FIELDS, RULE_KEYS) : null;
-  for (const key of RULE_KEYS) {
-    if (rules !== null && rules.get(key) !== undefined && !isCount(rules.get(key))) {
-      fail(ctx, 'rating-invalid', child(rulesPath, key), `rules.${key} must be a nonnegative integer`);
-    }
-  }
-  if (ctx.issues.length > before || rules === null) {
-    return null;
-  }
-
-  /** @param {string} key */
-  const num = (key) => /** @type {number} */ (fields.get(key));
-  /** @param {string} key */
-  const rule = (key) => /** @type {number} */ (rules.get(key));
-  const [S, limit, G, undecided] = [num('S'), num('solutionLimit'), num('G'), num('censusUndecided')];
-  const complete = fields.get('censusComplete') === true;
-  const limitOk = limit >= 2;
-  if (!limitOk) {
-    bad('solutionLimit', 'solutionLimit must be at least 2');
-  }
-  const countOk = S >= 1 && S <= limit;
-  if (!countOk) {
-    bad('S', 'S must be at least 1 and at most solutionLimit');
-  }
-  if (limitOk && countOk) {
-    const exhausted = fields.get('searchStop') === 'exhausted';
-    const derived = S >= limit ? 'many' : exhausted ? (S === 1 ? 'unique' : 'few') : (S <= 1 ? 'unknown' : 'few');
-    if (fields.get('solutions') !== derived) {
-      bad('solutions', `solutions must be ${derived} for S ${S}, solutionLimit ${limit} and searchStop ${fields.get('searchStop')}`);
-    }
-  }
-  if (G === 0 && (num('info') !== 0 || num('Cmax') !== 0 || num('Dmax') !== 0)) {
-    bad('G', 'G is 0, so info, Cmax and Dmax must be 0');
-  } else if (G > 0 && !(num('info') > 0 && num('Cmax') >= 2)) {
-    bad('G', 'G is above 0, so info must be above 0 and Cmax at least 2');
-  }
-  const high = rule('R7') + rule('R8') + rule('R9') > 0;
-  const middle = rule('R4') + rule('R5') + rule('R6') > 0;
-  const low = rule('R1') + rule('R2') + rule('R3') > 0;
-  const deductionTier = high ? 3 : middle ? 2 : low ? 1 : 0;
-  if (num('deductionTier') !== deductionTier) {
-    bad('deductionTier', `deductionTier must be ${deductionTier} for these rule counts`);
-  }
-  if (num('tier') !== (G > 0 ? 4 : num('deductionTier'))) {
-    bad('tier', 'tier must be 4 when G is above 0, else deductionTier');
-  }
-  if (num('F') !== rule('R1') + rule('R2') + rule('R3')) {
-    bad('F', 'F must be R1 + R2 + R3');
-  }
-  if (num('E') !== rule('R6')) {
-    bad('E', 'E must be R6');
-  }
-  if (complete !== (undecided === 0)) {
-    bad('censusComplete', 'censusComplete must be true exactly when censusUndecided is 0');
-  }
-  if (num('censusNodes') > num('nodes')) {
-    bad('censusNodes', 'censusNodes must not exceed nodes');
-  }
-  if (num('censusWork') > num('work')) {
-    bad('censusWork', 'censusWork must not exceed work');
-  }
-  if (num('Gproved') > G) {
-    bad('Gproved', 'Gproved must not exceed G');
-  } else if (complete && num('Gproved') !== G) {
-    bad('Gproved', 'Gproved must equal G when the census is complete');
+  if (fields.has('stop') && !STOPS.has(/** @type {string} */ (fields.get('stop')))) {
+    fail(ctx, 'rating-invalid', child(path, 'stop'), 'stop must be solution, branch-cap or row-cap');
   }
   if (ctx.issues.length > before) {
     return null;
   }
-  /** @type {Record<string, unknown>} */
-  const out = {};
-  for (const key of METRICS_V3_KEYS) {
-    out[key] = key === 'rules' ? Object.fromEntries(RULE_KEYS.map((k) => [k, rule(k)])) : fields.get(key);
-  }
-  return /** @type {MetricsV3} */ (out);
+  return /** @type {Metrics} */ ({
+    U: fields.get('U'),
+    B: fields.get('B'),
+    branchTrials: fields.get('branchTrials'),
+    rowTrials: fields.get('rowTrials'),
+    stop: fields.get('stop'),
+    R: fields.get('R'),
+    H: fields.get('H'),
+  });
 }
 
 /**
- * A rating is a claim. `difficulty-v3` is checked strictly (a summary claim from a puzzle code may lack its
- * metrics); `difficulty-v2`, `difficulty-v1` and foreign models are preserved with only their basic fields and
- * opaque bounded metrics, and are never reinterpreted.
+ * A rating is a claim. `difficulty-v2` is checked strictly; `difficulty-v1`
+ * and foreign models are preserved with only their basic fields and opaque
+ * bounded metrics, and are never reinterpreted.
  * @param {Ctx} ctx
  * @param {unknown} v
  * @param {string} path
@@ -920,9 +776,9 @@ function readRating(ctx, v, path) {
     fail(ctx, 'invalid-type', path, 'rating must be an object');
     return null;
   }
-  const strict = ownValue(v, 'model') === 'difficulty-v3';
-  const fields = readFields(ctx, v, path, strict ? RATING_V3_FIELDS : RATING_CLAIM_FIELDS,
-    strict ? ['model', 'score', 'level', 'saturated'] : ['model', 'score', 'level']);
+  const current = ownValue(v, 'model') === 'difficulty-v2';
+  const fields = readFields(ctx, v, path, current ? RATING_V2_FIELDS : RATING_CLAIM_FIELDS,
+    current ? ['model', 'score', 'level', 'saturated', 'metrics'] : ['model', 'score', 'level']);
   if (fields === null) {
     return null;
   }
@@ -939,25 +795,12 @@ function readRating(ctx, v, path) {
       fail(ctx, 'rating-invalid', child(path, key), `Rating ${key} must be a boolean`);
     }
   }
-  if (strict && fields.get('saturated') === true) {
-    fail(ctx, 'rating-invalid', child(path, 'saturated'), 'A difficulty-v3 rating is never saturated');
-  }
   /** @type {unknown} */
   let metrics;
   if (fields.has('metrics')) {
     const mPath = child(path, 'metrics');
-    if (strict) {
-      const read = readMetricsV3(ctx, fields.get('metrics'), mPath);
-      if (read !== null && byteLength(JSON.stringify(read)) > MAX_CLAIM_METRICS_BYTES) {
-        fail(ctx, 'rating-invalid', mPath, `Rating metrics exceed ${MAX_CLAIM_METRICS_BYTES} bytes`);
-      } else if (read !== null) {
-        metrics = read;
-        const censored = fields.get('censored');
-        if ((censored === undefined || typeof censored === 'boolean') && (censored === true) === read.censusComplete) {
-          fail(ctx, 'rating-invalid', child(path, 'censored'),
-            read.censusComplete ? 'censored must not be true when the census is complete' : 'censored must be true when the census is not complete');
-        }
-      }
+    if (current) {
+      metrics = readMetricsV2(ctx, fields.get('metrics'), mPath);
     } else if (!isPlainObject(fields.get('metrics'))) {
       fail(ctx, 'rating-invalid', mPath, 'Rating metrics must be an object');
     } else {
@@ -974,7 +817,7 @@ function readRating(ctx, v, path) {
   if (ctx.issues.length > before || model === null) {
     return null;
   }
-  if (!strict && model !== 'difficulty-v1' && model !== 'difficulty-v2') {
+  if (!current && model !== 'difficulty-v1') {
     warn(ctx, 'unsupported-model', child(path, 'model'), `Rating model "${model}" is not supported; the claim is kept but not used`);
   }
   /** @type {RatingClaim} */
@@ -1081,359 +924,6 @@ function readPuzzle(ctx, v, path, env) {
 }
 
 /**
- * @param {unknown} v
- * @param {string[]} keys
- * @returns {string | null} Why `v` is not a plain object with exactly the own data properties `keys`, or null.
- */
-function exactKeysProblem(v, keys) {
-  if (!isPlainObject(v)) {
-    return 'must be an object';
-  }
-  const own = Object.keys(v);
-  for (const key of own) {
-    if (!keys.includes(key)) {
-      return `unknown field "${key}"`;
-    }
-    const d = /** @type {PropertyDescriptor} */ (Object.getOwnPropertyDescriptor(v, key));
-    if (!('value' in d)) {
-      return `"${key}" must be a data property`;
-    }
-  }
-  for (const key of keys) {
-    if (!own.includes(key)) {
-      return `missing field "${key}"`;
-    }
-  }
-  return null;
-}
-
-/**
- * @param {unknown} v
- * @param {number} low
- * @param {number} high Inclusive.
- * @returns {boolean}
- */
-const isIntIn = (v, low, high) => typeof v === 'number' && Number.isInteger(v) && v >= low && v <= high;
-
-/**
- * @param {unknown} v
- * @returns {boolean}
- */
-function isSeedText(v) {
-  try {
-    return typeof v === 'string' && normalizeSeedText(v) === v;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * @param {unknown} v
- * @returns {boolean}
- */
-function isLevelId(v) {
-  try {
-    level(/** @type {string} */ (v));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * @param {unknown} v
- * @returns {string | null}
- */
-function versionsProblem(v) {
-  const shape = exactKeysProblem(v, VERSION_KEYS);
-  if (shape !== null) {
-    return `versions: ${shape}`;
-  }
-  const o = /** @type {Record<string, unknown>} */ (v);
-  for (const key of VERSION_KEYS) {
-    const id = o[key];
-    if (typeof id !== 'string' || id.length < 1 || id.length > MAX_VERSION_UNITS) {
-      return `versions.${key} must be a string of 1 to ${MAX_VERSION_UNITS} characters`;
-    }
-  }
-  return null;
-}
-
-/**
- * @param {string} name
- * @param {unknown} list
- * @param {number} maxCount
- * @param {number} bound Exclusive upper bound of an ordinal.
- * @returns {string | null}
- */
-function ordinalsProblem(name, list, maxCount, bound) {
-  if (!Array.isArray(list)) {
-    return `skips.${name} must be an array`;
-  }
-  if (list.length > maxCount) {
-    return `skips.${name} has more than ${maxCount} ordinals`;
-  }
-  let previous = -1;
-  for (let i = 0; i < list.length; i += 1) {
-    const n = list[i];
-    if (!isIntIn(n, 0, bound - 1)) {
-      return `skips.${name}[${i}] must be an integer from 0 to ${bound - 1}`;
-    }
-    if (n <= previous) {
-      return `skips.${name} must be strictly increasing`;
-    }
-    previous = n;
-  }
-  return null;
-}
-
-/**
- * @param {unknown} v
- * @returns {string | null}
- */
-function skipsProblem(v) {
-  if (v === 'overflow') {
-    return null;
-  }
-  const shape = exactKeysProblem(v, SKIPS_KEYS);
-  if (shape !== null) {
-    return `skips: ${shape}`;
-  }
-  const o = /** @type {Record<string, unknown>} */ (v);
-  return ordinalsProblem('subsets', o.subsets, PROVENANCE.subsetSkips, PROVENANCE.subsetOrdinals)
-    ?? ordinalsProblem('repairs', o.repairs, PROVENANCE.repairSkips, PROVENANCE.repairOrdinals);
-}
-
-/**
- * @param {unknown} v
- * @returns {string | null}
- */
-function setOriginProblem(v) {
-  const shape = exactKeysProblem(v, SET_ORIGIN_KEYS);
-  if (shape !== null) {
-    return shape;
-  }
-  const o = /** @type {Record<string, unknown>} */ (v);
-  if (o.schema !== PROVENANCE.schema) {
-    return `schema must be ${PROVENANCE.schema}`;
-  }
-  if (!isSeedText(o.seed)) {
-    return 'seed must be normalized seed text of 1 to 64 characters';
-  }
-  if (!isLevelId(o.level)) {
-    return 'level must be a level id';
-  }
-  if (typeof o.attempt !== 'number' || !Number.isSafeInteger(o.attempt) || o.attempt < 0) {
-    return 'attempt must be a nonnegative integer';
-  }
-  if (o.uniqueness !== 'any' && o.uniqueness !== 'require') {
-    return 'uniqueness must be "any" or "require"';
-  }
-  return versionsProblem(o.versions);
-}
-
-/**
- * @param {unknown} v
- * @returns {string | null}
- */
-function madeProblem(v) {
-  if (!isPlainObject(v)) {
-    return 'must be an object';
-  }
-  const kind = ownValue(v, 'kind');
-  if (kind !== 'calibration' && kind !== 'candidate' && kind !== 'completion') {
-    return 'kind must be "calibration", "candidate" or "completion"';
-  }
-  const shape = exactKeysProblem(v, kind === 'candidate' ? MADE_CANDIDATE_KEYS : MADE_PLAIN_KEYS);
-  if (shape !== null) {
-    return shape;
-  }
-  const o = /** @type {Record<string, unknown>} */ (v);
-  if (o.schema !== PROVENANCE.schema) {
-    return `schema must be ${PROVENANCE.schema}`;
-  }
-  if (kind !== 'candidate') {
-    return null;
-  }
-  const seed = o.batchSeed;
-  if (typeof seed !== 'string' || seed.length < 1 || seed.length > MAX_BATCH_SEED_UNITS
-    || seed.trim().normalize('NFC') !== seed) {
-    return `batchSeed must be normalized text of 1 to ${MAX_BATCH_SEED_UNITS} characters`;
-  }
-  if (!isLevelId(o.targetLevel)) {
-    return 'targetLevel must be a level id';
-  }
-  if (o.uniqueness !== 'any' && o.uniqueness !== 'require') {
-    return 'uniqueness must be "any" or "require"';
-  }
-  if (!isIntIn(o.slot, 1, MAX_SLOT)) {
-    return `slot must be an integer from 1 to ${MAX_SLOT}`;
-  }
-  if (!isIntIn(o.attempt, 0, BUDGETS.slotAttempts - 1)) {
-    return `attempt must be an integer from 0 to ${BUDGETS.slotAttempts - 1}`;
-  }
-  if (o.start !== 'witness' && o.start !== 'restart') {
-    return 'start must be "witness" or "restart"';
-  }
-  return skipsProblem(o.skips) ?? versionsProblem(o.versions);
-}
-
-/**
- * Why a provenance record is not valid, or null when it is (RES-27). `made` is one entry of the map.
- * Never throws.
- * @param {'setOrigin' | 'made'} kind
- * @param {unknown} value
- * @returns {string | null}
- */
-export function provenanceProblem(kind, value) {
-  try {
-    if (kind === 'setOrigin') {
-      return setOriginProblem(value);
-    }
-    if (kind === 'made') {
-      return madeProblem(value);
-    }
-    return 'unknown kind of provenance record';
-  } catch {
-    return 'the record could not be read';
-  }
-}
-
-/**
- * @param {Record<string, unknown>} target
- * @param {string} key
- * @param {unknown} value
- */
-function setOwn(target, key, value) {
-  Object.defineProperty(target, key, { value, writable: true, enumerable: true, configurable: true });
-}
-
-/**
- * @param {Record<string, unknown>} v A valid `versions` object.
- * @returns {import('./types.js').ProvenanceVersions}
- */
-function copyVersions(v) {
-  return {
-    algo: /** @type {string} */ (v.algo),
-    policy: /** @type {string} */ (v.policy),
-    rng: /** @type {string} */ (v.rng),
-    seedScheme: /** @type {string} */ (v.seedScheme),
-    ratingModel: /** @type {string} */ (v.ratingModel),
-  };
-}
-
-/**
- * @param {Record<string, unknown>} v A valid `made` entry.
- * @returns {Made}
- */
-function copyMade(v) {
-  if (v.kind !== 'candidate') {
-    return /** @type {Made} */ ({ schema: 1, kind: v.kind });
-  }
-  const skips = /** @type {'overflow' | { subsets: number[], repairs: number[] }} */ (v.skips);
-  return /** @type {Made} */ ({
-    schema: 1,
-    kind: 'candidate',
-    batchSeed: v.batchSeed,
-    targetLevel: v.targetLevel,
-    uniqueness: v.uniqueness,
-    slot: v.slot,
-    attempt: v.attempt,
-    start: v.start,
-    skips: skips === 'overflow' ? skips : { subsets: skips.subsets.slice(), repairs: skips.repairs.slice() },
-    versions: copyVersions(/** @type {Record<string, unknown>} */ (v.versions)),
-  });
-}
-
-/**
- * The valid provenance records of a generation object, as fresh copies in the field order of RES-27; invalid
- * ones are left out and described in `problems` (`path` from the pack root, for example `generation.made.X`).
- * Never throws.
- * @param {unknown} generation
- * @param {ReadonlySet<string>} puzzleIds
- * @returns {{ setOrigin: SetOrigin | null, made: Record<string, Made>,
- *   problems: { path: string, message: string }[] }}
- */
-export function readProvenance(generation, puzzleIds) {
-  /** @type {Record<string, Made>} */
-  const made = {};
-  /** @type {{ path: string, message: string }[]} */
-  const problems = [];
-  /** @type {SetOrigin | null} */
-  let setOrigin = null;
-  try {
-    if (isPlainObject(generation) && Object.hasOwn(generation, 'setOrigin')) {
-      const raw = ownValue(generation, 'setOrigin');
-      const problem = provenanceProblem('setOrigin', raw);
-      if (problem === null) {
-        const o = /** @type {Record<string, unknown>} */ (raw);
-        setOrigin = {
-          schema: 1,
-          seed: /** @type {string} */ (o.seed),
-          level: /** @type {string} */ (o.level),
-          attempt: /** @type {number} */ (o.attempt),
-          uniqueness: /** @type {'any' | 'require'} */ (o.uniqueness),
-          versions: copyVersions(/** @type {Record<string, unknown>} */ (o.versions)),
-        };
-      } else {
-        problems.push({ path: 'generation.setOrigin', message: problem });
-      }
-    }
-    if (isPlainObject(generation) && Object.hasOwn(generation, 'made')) {
-      const raw = ownValue(generation, 'made');
-      if (!isPlainObject(raw)) {
-        problems.push({ path: 'generation.made', message: 'must be an object' });
-      } else if (Object.keys(raw).length > puzzleIds.size) {
-        problems.push({ path: 'generation.made', message: 'has more entries than the pack has puzzles' });
-      } else {
-        for (const id of Object.keys(raw)) {
-          const path = child('generation.made', id);
-          const problem = puzzleIds.has(id)
-            ? provenanceProblem('made', ownValue(raw, id))
-            : 'no puzzle has this id';
-          if (problem === null) {
-            setOwn(made, id, copyMade(/** @type {Record<string, unknown>} */ (ownValue(raw, id))));
-          } else {
-            problems.push({ path, message: problem });
-          }
-        }
-      }
-    }
-  } catch {
-    problems.push({ path: 'generation', message: 'the provenance records could not be read' });
-  }
-  return { setOrigin, made, problems };
-}
-
-/**
- * Keeps the valid provenance records of the reader's own copy of `generation` and drops the others, with a
- * warning each: a damaged or foreign record never refuses a pack (RES-27).
- * @param {Ctx} ctx
- * @param {Record<string, unknown>} generation
- * @param {ReadonlySet<string>} puzzleIds
- */
-function keepValidProvenance(ctx, generation, puzzleIds) {
-  const found = readProvenance(generation, puzzleIds);
-  if (Object.hasOwn(generation, 'setOrigin')) {
-    if (found.setOrigin === null) {
-      delete generation.setOrigin;
-    } else {
-      generation.setOrigin = found.setOrigin;
-    }
-  }
-  if (Object.hasOwn(generation, 'made')) {
-    if (Object.keys(found.made).length === 0) {
-      delete generation.made;
-    } else {
-      generation.made = found.made;
-    }
-  }
-  for (const problem of found.problems) {
-    warn(ctx, 'provenance-ignored', problem.path, problem.message);
-  }
-}
-
-/**
  * Reads a pack in steps: pauses (`yield`) after the board, pieces and witness
  * and after each puzzle, so a host can slice the work; returns the pack, or
  * null when `ctx` collected issues.
@@ -1496,9 +986,6 @@ function* readPackSteps(ctx, input) {
   const boardModel = board === null ? null : boardFromRows(board.rows);
   const area = boardModel === null ? 0 : activeCount(boardModel);
   const pieces = boardModel !== null && fields.has('pieces') ? readPieces(ctx, fields.get('pieces'), area) : null;
-  if (pieces !== null) {
-    checkDistinctShapes(ctx, pieces);
-  }
   if (ctx.issues.length > 0 || board === null || boardModel === null || pieces === null) {
     return null;
   }
@@ -1556,10 +1043,6 @@ function* readPackSteps(ctx, input) {
     puzzles,
   };
   if (generation !== null) {
-    if (Object.hasOwn(generation, 'setOrigin') || Object.hasOwn(generation, 'made')) {
-      const ids = new Set(puzzles.map((p) => p.id));
-      keepValidProvenance(ctx, /** @type {Record<string, unknown>} */ (generation), ids);
-    }
     pack.generation = generation;
   }
   if (meta !== null) {
@@ -1703,65 +1186,7 @@ function copyClaimJson(value) {
 }
 
 /**
- * Detached copy of a plain object whose keys of `order` come first, in that order, then any other key in its
- * stored order, so that no admitted key is ever dropped.
- * @param {Record<string, unknown>} source A copy made by `copyClaimJson`.
- * @param {string[]} order
- * @returns {Record<string, unknown>}
- */
-function orderedCopy(source, order) {
-  /** @type {Record<string, unknown>} */
-  const out = {};
-  /** @param {string} key */
-  const put = (key) => {
-    Object.defineProperty(out, key, { value: source[key], writable: true, enumerable: true, configurable: true });
-  };
-  for (const key of order) {
-    if (Object.hasOwn(source, key)) {
-      put(key);
-    }
-  }
-  for (const key of Object.keys(source)) {
-    if (!order.includes(key)) {
-      put(key);
-    }
-  }
-  return out;
-}
-
-/**
- * The metrics of a claim, detached. `difficulty-v3` metrics are written in the `MetricsV3` order and
- * `difficulty-v2` metrics of exactly the seven keys of this program's ratings in their fixed order; any other
- * metrics are copied as they are (keys in their stored order), so that a legacy claim is written back with
- * every field it was read with. Reading, not writing, decides what is valid.
- * @param {RatingClaim | import('./types.js').Rating} r
- * @param {unknown} metrics
- * @returns {object}
- */
-function claimMetrics(r, metrics) {
-  const copy = copyClaimJson(metrics);
-  if (!isPlainObject(copy)) {
-    return /** @type {object} */ (copy);
-  }
-  if (r.model === 'difficulty-v3') {
-    const rules = copy.rules;
-    const ordered = orderedCopy(copy, METRICS_V3_KEYS);
-    if (isPlainObject(rules)) {
-      ordered.rules = orderedCopy(rules, RULE_KEYS);
-    }
-    return ordered;
-  }
-  if (r.model === 'difficulty-v2') {
-    const keys = Object.keys(copy);
-    if (keys.length === LEGACY_V2_METRICS_KEYS.length && LEGACY_V2_METRICS_KEYS.every((key) => keys.includes(key))) {
-      return orderedCopy(copy, LEGACY_V2_METRICS_KEYS);
-    }
-  }
-  return copy;
-}
-
-/**
- * Whitelisted, ordered copy of a rating claim. A `difficulty-v3` claim carries `censored` only when it is true.
+ * Whitelisted, ordered copy of a rating claim.
  * @param {RatingClaim | import('./types.js').Rating} r
  * @returns {RatingClaim}
  */
@@ -1771,11 +1196,16 @@ function ratingClaim(r) {
   if (r.saturated !== undefined) {
     out.saturated = r.saturated;
   }
-  if ('censored' in r && r.censored !== undefined && (r.model !== 'difficulty-v3' || r.censored === true)) {
+  if ('censored' in r && r.censored !== undefined) {
     out.censored = r.censored;
   }
   if (r.metrics !== undefined && r.metrics !== null) {
-    out.metrics = claimMetrics(r, r.metrics);
+    if (r.model === 'difficulty-v2') {
+      const m = /** @type {Metrics} */ (r.metrics);
+      out.metrics = { U: m.U, B: m.B, branchTrials: m.branchTrials, rowTrials: m.rowTrials, stop: m.stop, R: m.R, H: m.H };
+    } else {
+      out.metrics = /** @type {object} */ (copyClaimJson(r.metrics));
+    }
   }
   return out;
 }
@@ -1792,38 +1222,6 @@ function certificateClaim(c) {
     out.rowLimit = c.rowLimit;
   }
   return out;
-}
-
-/**
- * The generation object of a pack to write: a copy within the reader's JSON limits (100,000 values, depth 32),
- * which every current reader applies to `generation`. When only `generation.made` brings it above them, that
- * map is left out and `setOrigin` and the base keys stay (RES-27, FC03); a base that is too large on its own
- * keeps the existing failure.
- * @param {unknown} g
- * @returns {unknown}
- */
-function writableGeneration(g) {
-  const copy = copyJson(g, MAX_JSON_DEPTH, MAX_JSON_NODES);
-  if (copy.ok) {
-    return copy.value;
-  }
-  if (isPlainObject(g) && Object.hasOwn(g, 'made')) {
-    const again = copyJson(withoutMade(g), MAX_JSON_DEPTH, MAX_JSON_NODES);
-    if (again.ok) {
-      return again.value;
-    }
-  }
-  throw new PackError('invalid-json', copy.message);
-}
-
-/**
- * @param {Record<string, unknown>} generation
- * @returns {Record<string, unknown>} A shallow copy without `made`.
- */
-function withoutMade(generation) {
-  const base = { ...generation };
-  delete base.made;
-  return base;
 }
 
 /**
@@ -1873,7 +1271,7 @@ function toWire(p, omitSolutions) {
     return out;
   });
   if (p.generation !== undefined && p.generation !== null) {
-    wire.generation = writableGeneration(p.generation);
+    wire.generation = p.generation;
   }
   if (p.meta !== undefined && p.meta !== null) {
     wire.meta = p.meta;
@@ -1886,46 +1284,25 @@ function toWire(p, omitSolutions) {
  * written with `canonicalT`, absent proofs omitted, `verified` never written.
  * `omitSolutions` drops the set witness and every puzzle solution; claims are
  * kept as claims. Throws PackError('pack-too-large') when the result would
- * exceed the importable file size; a `generation.made` map that alone would
- * bring the text above it is left out first (see `writableGeneration`).
+ * exceed the importable file size.
  * @param {Pack} p
  * @param {{ omitSolutions?: boolean, pretty?: boolean }} [o]
  * @returns {string}
  */
 export function serializePack(p, o = {}) {
-  const text = canonicalText(p, o);
-  if (!isTooLarge(text)) {
-    return text;
-  }
-  if (isPlainObject(p.generation) && Object.hasOwn(p.generation, 'made')) {
-    const smaller = canonicalText({ ...p, generation: withoutMade(p.generation) }, o);
-    if (!isTooLarge(smaller)) {
-      return smaller;
-    }
-  }
-  throw new PackError('pack-too-large', `The serialized pack exceeds ${MAX_FILE_BYTES} bytes`);
-}
-
-/**
- * @param {string} text
- * @returns {boolean}
- */
-const isTooLarge = (text) => text.length > MAX_FILE_BYTES || byteLength(text) > MAX_FILE_BYTES;
-
-/**
- * @param {Pack} p
- * @param {{ omitSolutions?: boolean, pretty?: boolean }} o
- * @returns {string}
- */
-function canonicalText(p, o) {
+  let text;
   try {
-    return JSON.stringify(toWire(p, o.omitSolutions === true), null, o.pretty === true ? 2 : undefined);
+    text = JSON.stringify(toWire(p, o.omitSolutions === true), null, o.pretty === true ? 2 : undefined);
   } catch (e) {
     if (e instanceof PackError) {
       throw e;
     }
     throw new PackError('invalid-json', 'The pack could not be written as JSON');
   }
+  if (text.length > MAX_FILE_BYTES || byteLength(text) > MAX_FILE_BYTES) {
+    throw new PackError('pack-too-large', `The serialized pack exceeds ${MAX_FILE_BYTES} bytes`);
+  }
+  return text;
 }
 
 /**
@@ -1973,7 +1350,7 @@ export function createPack(a) {
     }),
   };
   if (a.generation !== undefined) {
-    pack.generation = /** @type {object} */ (writableGeneration(a.generation));
+    pack.generation = /** @type {object} */ (copyClaimJson(a.generation));
   }
   if (a.meta !== undefined) {
     const meta = /** @type {object} */ (copyClaimJson(a.meta));

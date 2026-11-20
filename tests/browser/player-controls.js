@@ -120,70 +120,16 @@ async function codeFor(theta) {
 /** @param {number} theta */
 const packFor = (theta) => validated({ ...sample, presentation: { rotation: theta } });
 
-/**
- * The 21 free polyominoes of 1 to 5 cells, one of each (no two pieces of the same shape since MP09a1-B01): the smallest twin-free
- * set with more than 20 pieces, so Patterns exists. The monomino is the fifth piece (P05, label E). They tile a 9x10 board
- * without its top-left square; the tiling was found once with the engine's solver and is written here as data.
- */
-const BIG_SHAPES = [
-  [[0, 0], [1, 0]],
-  [[0, 0], [1, 0], [2, 0]],
-  [[0, 0], [1, 0], [0, 1]],
-  [[0, 0], [1, 0], [2, 0], [3, 0]],
-  [[0, 0]],
-  [[0, 0], [1, 0], [2, 0], [0, 1]],
-  [[0, 0], [1, 0], [2, 0], [1, 1]],
-  [[1, 0], [0, 1], [1, 1], [0, 2]],
-  [[0, 0], [1, 0], [0, 1], [1, 1]],
-  [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]],
-  [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1]],
-  [[0, 0], [1, 0], [2, 0], [3, 0], [1, 1]],
-  [[1, 0], [2, 0], [3, 0], [0, 1], [1, 1]],
-  [[0, 0], [1, 0], [2, 0], [0, 1], [0, 2]],
-  [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1]],
-  [[1, 0], [2, 0], [0, 1], [1, 1], [0, 2]],
-  [[0, 0], [0, 1], [1, 1], [2, 1], [0, 2]],
-  [[1, 0], [0, 1], [1, 1], [2, 1], [0, 2]],
-  [[2, 0], [0, 1], [1, 1], [2, 1], [0, 2]],
-  [[0, 0], [1, 0], [2, 0], [0, 1], [2, 1]],
-  [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]],
-];
-const BIG_ROWS = ['.########', '#########', '#########', '#########', '#########', '#########', '#########', '#########', '#########', '#########'];
-/** The pose of each of the 21 pieces, in order, in the tiling of BIG_ROWS. */
-const BIG_POSES = [
-  { x: 0, y: 2, turn: 1, mirrored: false },
-  { x: 6, y: 0, turn: 0, mirrored: false },
-  { x: 0, y: 8, turn: 0, mirrored: false },
-  { x: 1, y: 9, turn: 0, mirrored: false },
-  { x: 2, y: 0, turn: 0, mirrored: false },
-  { x: 7, y: 7, turn: 1, mirrored: false },
-  { x: 4, y: 7, turn: 1, mirrored: false },
-  { x: 5, y: 5, turn: 0, mirrored: true },
-  { x: 6, y: 8, turn: 0, mirrored: false },
-  { x: 8, y: 2, turn: 1, mirrored: false },
-  { x: 6, y: 3, turn: 1, mirrored: false },
-  { x: 5, y: 1, turn: 0, mirrored: true },
-  { x: 3, y: 5, turn: 1, mirrored: true },
-  { x: 3, y: 0, turn: 0, mirrored: false },
-  { x: 2, y: 3, turn: 1, mirrored: true },
-  { x: 0, y: 2, turn: 2, mirrored: false },
-  { x: 1, y: 6, turn: 1, mirrored: false },
-  { x: 4, y: 1, turn: 2, mirrored: true },
-  { x: 4, y: 3, turn: 0, mirrored: true },
-  { x: 0, y: 5, turn: 3, mirrored: false },
-  { x: 0, y: 0, turn: 0, mirrored: false },
-];
-
-/** The 21 distinct free polyominoes on a 9x10 board with a stored solution: more than 20 pieces, so Patterns exists. */
+/** 21 monominoes on 3x7: more than 20 pieces, so Patterns exists. */
 function bigSet() {
-  const pieces = BIG_SHAPES.map((cells, i) => ({ id: `P${String(i + 1).padStart(2, '0')}`, label: labelFor(i), color: colorFor(i), cells }));
-  const solution = pieces.map((p, i) => ({ piece: p.id, ...BIG_POSES[i] }));
+  const pieces = Array.from({ length: 21 }, (_, i) => ({ id: `P${String(i + 1).padStart(2, '0')}`, label: labelFor(i), color: colorFor(i), cells: [[0, 0]] }));
+  const solution = pieces.map((p, i) => ({ piece: p.id, x: i % 7, y: Math.floor(i / 7), turn: 0, mirrored: false }));
   return {
     format: 'pentomino-pack',
     version: 1,
     kind: 'puzzle-pack',
     rules: 'free-polyomino-v1',
-    board: { rows: BIG_ROWS },
+    board: { rows: ['#######', '#######', '#######'] },
     pieces,
     puzzles: [{ id: 'big1', title: 'Big', clues: [solution[0]], solution }],
   };
@@ -962,13 +908,13 @@ await check('a non-reference tiling wins: a puzzle without a stored answer is so
     rules: 'free-polyomino-v1',
     board: { rows: ['###', '###'] },
     pieces: [
-      { id: 'A', label: 'A', color: '#e6194b', cells: [[0, 0], [1, 0]] },
-      { id: 'B', label: 'B', color: '#3cb44b', cells: [[0, 0], [1, 0], [2, 0], [0, 1]] },
+      { id: 'A', label: 'A', color: '#e6194b', cells: [[0, 0], [1, 0], [1, 1]] },
+      { id: 'B', label: 'B', color: '#3cb44b', cells: [[0, 0], [1, 0], [0, 1]] },
     ],
     puzzles: [{ id: 'free', title: 'Free', clues: [] }],
   };
   const m = await mount({ hash: await packHash(validated(pack)) });
-  // The domino and the L-tetromino tile the 3x2 board in four ways and the puzzle stores no answer: place one complete cover.
+  // The L-trominoes tile the 3x2 board in exactly two ways; place the one the engine never stored.
   const g = m.game();
   const { canPlace, reduce } = await import('../../core/engine/game.js');
   let next = g;

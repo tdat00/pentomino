@@ -4,9 +4,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { packBoard, parsePack } from '../core/engine/pack.js';
 import { progressFingerprint } from '../core/engine/keys.js';
-import {
-  MAX_PROGRESS_ENTRIES, MAX_REPLAY_CHARS, MAX_REPLAY_ENTRIES, NAMESPACE, SAVE_FAILED_MESSAGE, createStorage,
-} from '../core/browser/storage.js';
+import { MAX_PROGRESS_ENTRIES, NAMESPACE, SAVE_FAILED_MESSAGE, createStorage } from '../core/browser/storage.js';
 import defaultStorage, * as storageModule from '../core/browser/storage.js';
 
 const parsed = parsePack(readFileSync(new URL('./fixtures/hand-authored-pack.json', import.meta.url), 'utf8'));
@@ -227,45 +225,6 @@ test('a lost progress index is rebuilt from key names only', () => {
   assert.equal(store.setGeneratorState({ rows: 4 }).ok, false, 'the rewritten index took the freed slot');
   assert.equal(fake.log.remove.filter((k) => k.startsWith(`${NAMESPACE}progress:`)).length, 1, 'rebuilt index let eviction find an LRU entry');
   assert.ok(fake.log.get.every((k) => k.startsWith(NAMESPACE)));
-});
-
-test('cached replays: round trip, newest kept up to the limit, damaged or oversized ones refused, dropped before progress', () => {
-  const fake = fakeStorage(FOREIGN);
-  const store = createStorage(fake, clock());
-  const result = (/** @type {string} */ status) => ({ status, steps: [{ kind: 'final' }] });
-  assert.equal(store.loadReplay('rA'), null);
-  assert.ok(store.saveReplay('rA', result('matched')).ok);
-  assert.deepEqual(store.loadReplay('rA'), result('matched'));
-  assert.deepEqual([store.hasReplay('rA'), store.hasReplay('rZ'), store.hasReplay('../x')], [true, false, false]);
-  assert.equal(store.saveReplay('../x', result('matched')).ok, false, 'not a key');
-  assert.equal(store.saveReplay('big', { status: 'matched', steps: ['x'.repeat(MAX_REPLAY_CHARS)] }).ok, false, 'too large to keep');
-  assert.equal(store.lastStorageIssue(), null, 'a cache raises no issue');
-
-  for (let i = 0; i < MAX_REPLAY_ENTRIES + 3; i += 1) {
-    store.saveReplay(`r${i}`, result('matched'));
-  }
-  assert.equal(store.list(`${NAMESPACE}replay:`).length, MAX_REPLAY_ENTRIES, 'the oldest are dropped');
-  assert.equal(store.loadReplay('rA'), null);
-  assert.ok(store.loadReplay(`r${MAX_REPLAY_ENTRIES + 2}`));
-
-  fake.data.set(`${NAMESPACE}replay:bad1`, '{not json');
-  fake.data.set(`${NAMESPACE}replay:bad2`, JSON.stringify({ v: 1, result: { status: 'matched', steps: [] } }));
-  assert.equal(store.loadReplay('bad1'), null);
-  assert.equal(store.loadReplay('bad2'), null);
-  assert.equal(fake.data.has(`${NAMESPACE}replay:bad1`) || fake.data.has(`${NAMESPACE}replay:bad2`), false, 'damaged entries are removed');
-  assert.equal(store.lastStorageIssue(), null, 'and are not reported');
-
-  store.saveProgress('p1', record());
-  fake.mode.maxKeys = fake.data.size;
-  assert.ok(store.setGeneratorState({ rows: 4 }).ok, 'a full storage gives up the replays for the generator state');
-  assert.equal(store.list(`${NAMESPACE}replay:`).length, 0);
-  assert.ok(store.loadProgress('p1'), 'and keeps the progress');
-  assert.deepEqual(Object.fromEntries([...fake.data].filter(([k]) => !k.startsWith(NAMESPACE))), FOREIGN);
-
-  const refusing = createStorage(fakeStorage({}, { alwaysQuota: true }), clock());
-  assert.equal(refusing.saveReplay('rA', result('matched')).ok, false);
-  assert.equal(refusing.loadReplay('rA'), null, 'a refused replay is not kept in memory');
-  assert.equal(createStorage(null, clock()).saveReplay('rA', result('matched')).ok, false);
 });
 
 test('dropRetired removes the keys that older versions wrote and nothing else', () => {

@@ -24,11 +24,7 @@ export function recipeWitness() {
   }));
 }
 
-/**
- * Per level the clued piece IDs of a puzzle that `selectClues` accepted in `require` mode under `difficulty-v2`;
- * `score` is that v2 score (unique, unsaturated). The `difficulty-v3` values are pinned in
- * `tests/difficulty-v3.test.js`.
- */
+/** Clued piece IDs with the expected score; each puzzle is unique and unsaturated. */
 export const CLUE_RECIPES = Object.freeze({
   'very-easy': { pieces: 'IYPUVNFWZ', score: 6 },
   easy: { pieces: 'IPUVTNFX', score: 8 },

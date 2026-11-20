@@ -35,8 +35,6 @@ import { activeCenter, fitCellSize, normalizeAngle, rotatedExtent } from '../eng
  * @property {Pose[]} placements
  * @property {{ pose: Pose, valid: boolean, reason?: string } | null} [preview]
  * @property {string | null} [selectedId]
- * @property {readonly string[]} [highlightedIds] Pieces drawn with a highlight outline (Generation Steps); clues and
- *   placements alike.
  * @property {XY | null} [cursor]
  * @property {XY[]} [invalidCells]
  * @property {boolean} showLabels
@@ -452,7 +450,6 @@ export function createDefs(id) {
  * @property {boolean} movable Gets focus, a role and per-cell hit areas.
  * @property {boolean} interactive Hit areas for pointer trackers.
  * @property {boolean} selected
- * @property {boolean} [highlighted] Draws the highlight outline (Generation Steps); the default is off.
  * @property {number} index Palette index of the piece.
  * @property {number} count Piece count of the set.
  * @property {boolean} showPatterns
@@ -493,10 +490,6 @@ export function drawPiece(piece, cells, o) {
     group.append(svgEl('path', { class: 'pm-hatch', d, fill: `url(#${o.id}-clue)`, 'fill-rule': 'evenodd', 'pointer-events': 'none' }));
   }
   group.append(svgEl('path', { class: 'pm-outline', d, fill: 'none', stroke: shade(color), 'stroke-width': OUTLINE_WIDTH, 'stroke-linejoin': 'round', 'pointer-events': 'none' }));
-  if (o.highlighted === true) {
-    group.setAttribute('data-highlighted', 'true');
-    group.append(svgEl('path', { class: 'pm-highlight', d, fill: 'none', stroke: FOCUS_COLOR, 'stroke-width': 0.1, 'stroke-dasharray': '0.25 0.15', 'stroke-linejoin': 'round', 'pointer-events': 'none' }));
-  }
   if (o.selected) {
     group.append(svgEl('path', { class: 'pm-selection', d, fill: 'none', stroke: FOCUS_COLOR, 'stroke-width': 0.14, 'stroke-linejoin': 'round', 'pointer-events': 'none' }));
   }
@@ -785,10 +778,9 @@ export function mountBoard(host, opts) {
       const t = poseTransform(pose);
       const cells = alignedOrientedCells(entry.piece.cells, t).map(([x, y]) => /** @type {XY} */ ([x + pose.x, y + pose.y]));
       const selected = !clue && m.selectedId === pose.piece;
-      const highlighted = m.highlightedIds?.includes(pose.piece) === true;
       const { group: node, overlays } = drawPiece(entry.piece, cells, {
         id, defs, theta, clue, movable: !clue && interactive && mode === 'play', interactive: interactive && mode === 'play',
-        selected, highlighted, index: entry.index, count: m.pieces.length, showPatterns: m.showPatterns,
+        selected, index: entry.index, count: m.pieces.length, showPatterns: m.showPatterns,
         name: pieceName(entry.piece, clue ? 'locked clue' : 'on board', cells),
       });
       pieceNodes.push(node);

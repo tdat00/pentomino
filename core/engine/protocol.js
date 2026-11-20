@@ -14,7 +14,7 @@ import { normalizeSeedText } from './rng.js';
 /** @typedef {import('./types.js').Pose} Pose */
 /** @template T @typedef {import('./types.js').Result<T>} Result */
 
-/** @typedef {'setAttempt' | 'puzzleCandidate' | 'completionCandidate' | 'certify' | 'rate' | 'verifyPack' | 'solveFirst' | 'enumerateLayouts' | 'encodePuzzleCode' | 'decodePuzzleCode' | 'replayPuzzle'} TaskKind */
+/** @typedef {'setAttempt' | 'puzzleCandidate' | 'completionCandidate' | 'certify' | 'rate' | 'verifyPack' | 'solveFirst' | 'enumerateLayouts' | 'encodePuzzleCode' | 'decodePuzzleCode'} TaskKind */
 /** @typedef {{ type: 'task', id: number, kind: TaskKind, payload: any }} Request */
 /**
  * A correction a worker proposes for a mistyped code symbol (`CodeCandidate` of the codec); offered, never applied.
@@ -33,7 +33,7 @@ import { normalizeSeedText } from './rng.js';
 
 export const TASK_KINDS = Object.freeze(/** @type {const} */ ([
   'setAttempt', 'puzzleCandidate', 'certify', 'rate', 'verifyPack', 'solveFirst', 'enumerateLayouts', 'completionCandidate',
-  'encodePuzzleCode', 'decodePuzzleCode', 'replayPuzzle',
+  'encodePuzzleCode', 'decodePuzzleCode',
 ]));
 /** Largest row-trial limit a task may request. */
 export const MAX_ROW_LIMIT = 2000000;
@@ -567,67 +567,6 @@ function readSnapshot(ctx, v, path) {
     : { rows, rotation, pieces, title, clues, solution, rating, certificate };
 }
 
-/**
- * A plain object (with at most one own key when `oneKey`), copied as bounded plain JSON (readJson); what it means is
- * the engine's to judge.
- * @param {Ctx} ctx
- * @param {unknown} v
- * @param {string} path
- * @param {boolean} oneKey
- * @returns {Record<string, unknown> | undefined}
- */
-function readRecordObject(ctx, v, path, oneKey) {
-  if (!isPlain(v)) {
-    return fail(ctx, 'invalid-type', path, `${path} must be a plain object`);
-  }
-  if (oneKey && Object.keys(v).length > 1) {
-    return fail(ctx, 'invalid-value', path, `${path} must have at most one key`);
-  }
-  return /** @type {Record<string, unknown> | undefined} */ (readJson(ctx, v, path, MAX_JSON_DEPTH, { nodes: MAX_JSON_NODES }));
-}
-
-/**
- * The stored puzzle of a replay: its id and clues, and the solution and the rating claim it may store (both `null`
- * when absent). Structure and sizes only: the replay compares them with its own result.
- * @param {Ctx} ctx
- * @param {unknown} v
- * @param {string} path
- * @returns {{ id: string, clues: Pose[], solution: Pose[] | null, rating: Record<string, unknown> | null } | undefined}
- */
-function readReplayPuzzle(ctx, v, path) {
-  const o = readObject(ctx, v, path, ['id', 'clues'], ['solution', 'rating']);
-  if (o === undefined) {
-    return undefined;
-  }
-  const id = readString(ctx, o.id, `${path}.id`, MAX_ID_LENGTH);
-  const clues = readPoses(ctx, o.clues, `${path}.clues`, MAX_BOARD_CELLS);
-  const solution = o.solution === undefined || o.solution === null ? null : readPoses(ctx, o.solution, `${path}.solution`, MAX_BOARD_CELLS);
-  const rating = readRatingClaim(ctx, o.rating, `${path}.rating`);
-  return id === undefined || clues === undefined || solution === undefined || rating === undefined
-    ? undefined
-    : { id, clues, solution, rating };
-}
-
-/**
- * The record a replay reads from a pack's `generation`: the set origin and the puzzle's own entry of `made` (at most
- * one key), each present only when given. The replay's reader (`readProvenance`) decides whether they are valid.
- * @param {Ctx} ctx
- * @param {unknown} v
- * @param {string} path
- * @returns {{ setOrigin?: Record<string, unknown>, made?: Record<string, unknown> } | undefined}
- */
-function readReplayGeneration(ctx, v, path) {
-  const o = readObject(ctx, v, path, [], ['setOrigin', 'made']);
-  if (o === undefined) {
-    return undefined;
-  }
-  const setOrigin = o.setOrigin === undefined ? null : readRecordObject(ctx, o.setOrigin, `${path}.setOrigin`, false);
-  const made = o.made === undefined ? null : readRecordObject(ctx, o.made, `${path}.made`, true);
-  return setOrigin === undefined || made === undefined
-    ? undefined
-    : { ...(setOrigin === null ? {} : { setOrigin }), ...(made === null ? {} : { made }) };
-}
-
 /** @type {Record<TaskKind, (ctx: Ctx, o: Record<string, unknown>) => object | undefined>} */
 const PAYLOADS = {
   setAttempt(ctx, o) {
@@ -716,12 +655,6 @@ const PAYLOADS = {
     const text = readString(ctx, o.text, 'payload.text', MAX_INPUT_CHARS, true);
     return text === undefined ? undefined : { text };
   },
-  replayPuzzle(ctx, o) {
-    const set = readSet(ctx, o.set, 'payload.set');
-    const puzzle = readReplayPuzzle(ctx, o.puzzle, 'payload.puzzle');
-    const generation = readReplayGeneration(ctx, o.generation, 'payload.generation');
-    return [set, puzzle, generation].includes(undefined) ? undefined : { set, puzzle, generation };
-  },
 };
 
 const PAYLOAD_FIELDS = /** @type {Record<TaskKind, { required: string[], optional?: string[] }>} */ ({
@@ -739,7 +672,6 @@ const PAYLOAD_FIELDS = /** @type {Record<TaskKind, { required: string[], optiona
   },
   encodePuzzleCode: { required: ['snapshot'] },
   decodePuzzleCode: { required: ['text'] },
-  replayPuzzle: { required: ['set', 'puzzle', 'generation'] },
 });
 
 /**

@@ -40,7 +40,8 @@ test('piece-count help follows the policy plan and ends on the table range', () 
   assert.equal(shown[1][1], '16–18');
   assert.equal(shown[2][0], `This board fits ${plan.low}–${plan.high} pieces`);
   assert.deepEqual(shown.at(-1), ['Result', undefined, '16–18 pieces']);
-  assert.equal(levelHelp('pieces', 'hell-1', 676), null, 'Hell 1 is retired (P-OD9): no plan, so no cap line anywhere');
+  const capped = lines(levelHelp('pieces', 'hell-1', 676));
+  assert.deepEqual(capped.find((line) => line[0] === 'Most for this level'), ['Most for this level', '42', undefined], 'the Hell cap is shown when it applies');
 });
 
 test('help follows the page language and is null for a level the board cannot use', () => {

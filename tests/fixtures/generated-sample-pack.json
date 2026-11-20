@@ -388,7 +388,7 @@
   ],
   "puzzles": [
     {
-      "id": "p3e63987d5ea9",
+      "id": "pb226d7e75842",
       "title": "Easy",
       "clues": [
         {
@@ -413,17 +413,17 @@
           "mirrored": false
         },
         {
-          "piece": "G",
+          "piece": "F",
           "x": 5,
-          "y": 5,
+          "y": 2,
           "turn": 0,
           "mirrored": false
         },
         {
-          "piece": "I",
-          "x": 4,
-          "y": 0,
-          "turn": 3,
+          "piece": "H",
+          "x": 1,
+          "y": 4,
+          "turn": 2,
           "mirrored": false
         }
       ],
@@ -493,54 +493,23 @@
         }
       ],
       "rating": {
-        "model": "difficulty-v3",
-        "score": 10,
+        "model": "difficulty-v2",
+        "score": 8,
         "level": "easy",
         "saturated": false,
         "metrics": {
           "U": 4,
-          "R": 26,
-          "H": 3.237821178741743,
-          "B": 3,
-          "branchTrials": 3,
-          "rowTrials": 5,
-          "dlxStop": "solution",
-          "searchStop": "exhausted",
-          "F": 3,
-          "E": 0,
-          "rules": {
-            "R1": 2,
-            "R2": 1,
-            "R3": 0,
-            "R4": 42,
-            "R5": 0,
-            "R6": 0,
-            "R7": 0,
-            "R8": 0,
-            "R9": 0
-          },
-          "deductionTier": 2,
-          "tier": 2,
-          "G": 0,
-          "info": 0,
-          "Cmax": 0,
-          "Dmax": 0,
-          "Gt": 1,
-          "nodes": 3,
-          "work": 14331,
-          "S": 2,
-          "solutionLimit": 8,
-          "solutions": "few",
-          "censusComplete": true,
-          "censusUndecided": 0,
-          "censusNodes": 0,
-          "censusWork": 0,
-          "Gproved": 0
+          "B": 0,
+          "branchTrials": 0,
+          "rowTrials": 4,
+          "stop": "solution",
+          "R": 25,
+          "H": 3.7635238801376865
         }
       }
     },
     {
-      "id": "p99009a3b9913",
+      "id": "pda86f29ccdca",
       "title": "Normal",
       "clues": [
         {
@@ -551,11 +520,18 @@
           "mirrored": false
         },
         {
-          "piece": "F",
+          "piece": "C",
           "x": 4,
-          "y": 2,
+          "y": 0,
           "turn": 0,
           "mirrored": false
+        },
+        {
+          "piece": "D",
+          "x": 6,
+          "y": 3,
+          "turn": 0,
+          "mirrored": true
         },
         {
           "piece": "H",
@@ -631,62 +607,31 @@
         }
       ],
       "rating": {
-        "model": "difficulty-v3",
-        "score": 12,
+        "model": "difficulty-v2",
+        "score": 14,
         "level": "normal",
         "saturated": false,
         "metrics": {
-          "U": 6,
-          "R": 41,
-          "H": 4.817926839092638,
-          "B": 11,
-          "branchTrials": 11,
-          "rowTrials": 14,
-          "dlxStop": "solution",
-          "searchStop": "exhausted",
-          "F": 4,
-          "E": 8,
-          "rules": {
-            "R1": 3,
-            "R2": 1,
-            "R3": 0,
-            "R4": 55,
-            "R5": 3,
-            "R6": 8,
-            "R7": 0,
-            "R8": 40,
-            "R9": 8
-          },
-          "deductionTier": 3,
-          "tier": 3,
-          "G": 0,
-          "info": 0,
-          "Cmax": 0,
-          "Dmax": 0,
-          "Gt": 3,
-          "nodes": 7,
-          "work": 355489,
-          "S": 4,
-          "solutionLimit": 8,
-          "solutions": "few",
-          "censusComplete": true,
-          "censusUndecided": 0,
-          "censusNodes": 0,
-          "censusWork": 0,
-          "Gproved": 0
+          "U": 5,
+          "B": 2,
+          "branchTrials": 2,
+          "rowTrials": 7,
+          "stop": "solution",
+          "R": 30,
+          "H": 4.3616269256151785
         }
       }
     },
     {
-      "id": "pc83c984651da",
+      "id": "pfa6fa20b63a4",
       "title": "Hard",
       "clues": [
         {
-          "piece": "A",
-          "x": 5,
-          "y": 3,
-          "turn": 2,
-          "mirrored": true
+          "piece": "B",
+          "x": 4,
+          "y": 2,
+          "turn": 0,
+          "mirrored": false
         },
         {
           "piece": "D",
@@ -696,11 +641,11 @@
           "mirrored": false
         },
         {
-          "piece": "G",
-          "x": 2,
-          "y": 0,
-          "turn": 1,
-          "mirrored": false
+          "piece": "H",
+          "x": 0,
+          "y": 4,
+          "turn": 2,
+          "mirrored": true
         }
       ],
       "solution": [
@@ -769,57 +714,26 @@
         }
       ],
       "rating": {
-        "model": "difficulty-v3",
-        "score": 19,
+        "model": "difficulty-v2",
+        "score": 21,
         "level": "hard",
         "saturated": false,
         "metrics": {
           "U": 6,
+          "B": 14,
+          "branchTrials": 14,
+          "rowTrials": 19,
+          "stop": "solution",
           "R": 39,
-          "H": 5.226950188896899,
-          "B": 16,
-          "branchTrials": 16,
-          "rowTrials": 21,
-          "dlxStop": "solution",
-          "searchStop": "exhausted",
-          "F": 5,
-          "E": 0,
-          "rules": {
-            "R1": 5,
-            "R2": 0,
-            "R3": 0,
-            "R4": 37,
-            "R5": 0,
-            "R6": 0,
-            "R7": 0,
-            "R8": 0,
-            "R9": 0
-          },
-          "deductionTier": 2,
-          "tier": 4,
-          "G": 1,
-          "info": 2.807354922057604,
-          "Cmax": 7,
-          "Dmax": 1,
-          "Gt": 1,
-          "nodes": 8,
-          "work": 38412,
-          "S": 1,
-          "solutionLimit": 8,
-          "solutions": "unique",
-          "censusComplete": true,
-          "censusUndecided": 0,
-          "censusNodes": 0,
-          "censusWork": 0,
-          "Gproved": 1
+          "H": 4.643374964083066
         }
       }
     }
   ],
   "generation": {
     "app": "pentomino-generator/1.0.0",
-    "algo": "gen-v3",
-    "policy": "mixed-v3",
+    "algo": "gen-v2",
+    "policy": "mixed-v2",
     "rng": "xoshiro128ss-v1",
     "seedScheme": "seed-sha256-v1",
     "setSeed": "fixture-set-0"

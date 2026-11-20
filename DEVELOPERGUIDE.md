@@ -58,13 +58,11 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 
 - **Browser test pages** (not deployed): run `npm run serve` and open `http://localhost:8080/pentomino/tests/browser/`
   followed by `player-controls.html`, `player-load.html`, `hints.html`, `print.html`, `rendering.html`,
-  `generator-flow.html`, `generator-editor.html`, `replay.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html`,
+  `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html`,
   `puzzle-code-print.html`, `puzzle-code-cli-parity.html`, `puzzle-code-acceptance.html`, `puzzle-qr.html`,
   `watchdog.html` or `acceptance.html`. Each writes a pass/fail list, and `data-summary` and `data-result` (`pass` or
   `fail`) on `<html>`. Use a window narrower than 1360 px:
-  some checks expect the one- or two-column layout. `replay.html?phase=keys` and `puzzle-code-acceptance.html?phase=keys`
-  wait for trusted key presses that only a runner over the DevTools protocol sends. `replay.html?phase=narrow` and
-  `puzzle-code-acceptance.html?phase=narrow` expect the 390 px touch viewport that such a runner sets.
+  some checks expect the one- or two-column layout.
 - **Headless generation**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`. It accepts boards of up to **676** playable squares
   (the apps launch at 484 on desktop and 360 on a phone). The pack goes to stdout (or `--output`), messages to stderr. Exit codes: `0` complete (including a set whose
   arrangements were all found and proven to be all); `2` a valid partial or cancelled pack; `1` no usable result or
@@ -76,20 +74,7 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
 - **Performance and calibration** (screening only; they never change a qualification gate):
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   the score landscape (`--profile landscape`, hours, resumable), and the browser page
-  `http://localhost:8080/pentomino/tools/bench/` (keep the tab in the foreground). The landscape report shows the v3 measures
-  per cell (score, decisive guesses, deduction tier, census estimates).
-- **Rating probe** (diagnostics only; it never changes a rating): `node tools\rate-probe.mjs` rates every puzzle of a
-  pack, of a fresh request or of regenerated landscape requests with the old rating and the deduction solver, and
-  prints one JSON line per puzzle to stdout (or to `--output file`). It is read-only and writes nothing else. Three
-  forms: `--pack file.json`; the generation flags of `tools\generate.mjs`, for example
-  `--board 10x6 --level hard --count 5 --seed demo --workers 2`; and
-  `--landscape 6x10-easy --reps 0-4 --workers 4 --expect report.json` (`--expect` is optional), which regenerates
-  those requests of the score landscape and compares each with the run of a calibration report. Options:
-  `--orders k` (the DLX diagnostic under k seeded orders, default 5, 0 for none), `--tie-orders k` (the deduction
-  under k tie rules, default 1), `--knobs json` (scores for candidate v3 knobs, exploration only) and `--deduce json`
-  (overrides of the deduction limits, for example `{"census":0}`); `json` is JSON text or a file name. Exit codes:
-  `0` every puzzle probed; `2` a generation was partial or an identity check failed (the lines are still written);
-  `1` invalid input or no pack.
+  `http://localhost:8080/pentomino/tools/bench/` (keep the tab in the foreground).
 
 **Code layout.** Native ES modules with JSDoc types and `// @ts-check`, in four layers:
 
@@ -100,28 +85,8 @@ core/workers/   the module worker that runs generation and puzzle codes off the 
 generator/      Pentomino Generator: page, state, jobs and UI
 player/         Pentomino Player: page, state, play, hints and UI
 tests/          Node unit tests (*.test.js) and browser test pages (tests/browser/)
-tools/          Node-only tools (.mjs): server, headless generation, calibration, rating probe, site checks
+tools/          Node-only tools (.mjs): server, headless generation, calibration, site checks
 ```
-
-`core/engine/deduce.js` is the deduction solver of the v3 rating ([docs/design-detail.md](docs/design-detail.md) §7.9);
-`core/engine/difficulty.js` computes the `difficulty-v3` rating from it (`measureV3`, `rate`) and keeps the v2
-functions (`scoreV2`, `measureV2`, `rateV2`) for stored claims, fixtures and the rating probe.
-`tools\rate-probe.mjs` measures it.
-
-`core/engine/replay.js` re-runs the generation of one puzzle from its record and compares the result with the stored
-puzzle (`runReplay`, `replayPuzzle`; [docs/design-detail.md](docs/design-detail.md) §6.12), and the worker runs it as the
-`replayPuzzle` task that the generation client sends on its auxiliary path. The Generator's Generation steps, in step 3
-under **Pieces to place**, are `generator/ui/replay-model.js` (no DOM: the views, the sentences, the pieces, techniques
-and score of each step, the stage groups, the score table and the controller that runs, keeps and resubmits the replay)
-and `generator/ui/generation-steps.js` (the section, its **Show generation steps** button and its table);
-`generator/ui/replay-cache.js` makes the replay of every puzzle a generation adds in the background (`prefetch`, on the
-auxiliary path) and keeps it in the browser's storage (`saveReplay`, `loadReplay` and `hasReplay` of
-`core/browser/storage.js`, 8 entries, dropped before any progress when storage is full, by a content key that a new
-generator version changes); the section stays hidden until its **Show generation steps** / **Hide generation steps** button is pressed, and a kept replay then appears at once; `generator/ui/puzzle-panel.js` mounts the section
-under the pieces to place and gives it `replaySourceOf` of `generator/state.js`, and `generator/app.js` passes it the
-client's `replayPuzzle`. `tests/browser/replay.html` tests all of it in a real browser.
-`node tools\record-fixtures.mjs --replay-case --check` (and `--search`, `--create`, `--replace`) checks the replay
-fixture `tests/fixtures/replay-case.json` the way `--check` checks the generation fixtures.
 
 Every module loaded by a page or worker uses `.js`; `.mjs` is reserved for Node-only tools. The interface text is in the
 flat packs `generator/locale.en.js` / `locale.vi.js` and `player/locale.en.js` / `locale.vi.js` (printing texts in
@@ -135,8 +100,7 @@ has the same keys and `{placeholders}`, which the i18n tests check. A new visibl
 - Nothing is uploaded: a puzzle travels in the `#p=` part of its link (one code per puzzle, separated by `;`), which
   the browser never sends to the server.
 - Both apps use `localStorage` keys under `pentomino:v1:` only, and never touch other keys of the same origin:
-  - Generator: its work (board, settings, piece sets and puzzles) in `gen:state`, and the replays of Generation steps
-    (`replay:<key>`, up to 8, a cache that is dropped first when storage is full);
+  - Generator: its work (board, settings, piece sets and puzzles) in `gen:state`;
   - Player: the progress of each puzzle (`progress:<fingerprint>`, up to 300, save times in `progress-index`); no pack
     is stored, a pack lives in its link;
   - both: the language (`lang`) and the theme (`theme`).

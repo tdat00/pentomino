@@ -76,7 +76,7 @@ function row(levelId, aMin, aMax, k, sizes, g0, boards, nodeS, planS, extra = {}
 const FLAT = 'flat-carved LNS-heavy outlier (dagger in the design table); macro carving replaces this regime';
 const LAZY = { planKind: /** @type {const} */ ('lazy-estimate') };
 
-/** The §7.5 table, row for row, of the offered bands (the retired Hell rows follow). W x H is columns x rows. */
+/** The §7.5 table, row for row. W x H is columns x rows. */
 export const REFERENCE_ROWS = Object.freeze([
   row('very-easy', 30, 80, [5, 7], [3, 18], [3, 4], '6x10', 0.2, 6),
   row('very-easy', 81, 87, [7, 7], [6, 19], [4, 4], null, 0.3, 6),
@@ -123,13 +123,6 @@ export const REFERENCE_ROWS = Object.freeze([
   row('nightmare', 421, 484, [26, 30], [8, 27], [4, 4], null, 10, 45),
   row('nightmare', 485, 576, [27, 32], [9, 31], [4, 4], null, 10, 45),
   row('nightmare', 577, 676, [28, 33], [10, 35], [4, 5], null, 10, 45),
-]);
-
-/**
- * Measured before difficulty-v3, no longer offered: D36 (i), P-OD9 (no Hell level is offered on any board). The
- * evidence as measured; `referenceFor` and the calibration never read it, `landscapeBoards` keeps its boards.
- */
-export const RETIRED_REFERENCE_ROWS = Object.freeze([
   row('hell-1', 164, 200, [30, 36], [3, 10], [3, 4], '14x14', 8.3, 38),
   row('hell-1', 201, 300, [32, 40], [3, 13], [3, 4], '16x16', 17.9, 77),
   row('hell-1', 301, 420, [35, 42], [4, 17], [4, 4], '18x18', 12.0, 53, { note: 'K = 41 replay: 7.6 s' }),
@@ -190,14 +183,14 @@ export const boardId = (b) => `${b.cols}x${b.rows}${b.blocked > 0 ? `b${b.blocke
  */
 
 /**
- * Every board of the reference table and of the retired rows, deduplicated by exact rows: the explicit
+ * Every board of the reference table, deduplicated by exact rows: the explicit
  * measured boards, else the deterministic board at the row's upper area.
  * @returns {LandscapeBoard[]}
  */
 export function landscapeBoards() {
   /** @type {Map<string, LandscapeBoard>} */
   const unique = new Map();
-  for (const r of [...REFERENCE_ROWS, ...RETIRED_REFERENCE_ROWS]) {
+  for (const r of REFERENCE_ROWS) {
     const shapes = r.boards === null ? [deterministicBoard(r.aMax)] : r.boards.map((b) => ({ ...b, blocked: 0 }));
     for (const shape of shapes) {
       const boardRows = rectRows(shape.cols, shape.rows, shape.blocked);
@@ -331,43 +324,14 @@ export function referencePolicyAgreement(r) {
   return { policyK: [lo, hi], agrees: Math.abs(lo - r.k[0]) <= K_TOLERANCE && Math.abs(hi - r.k[1]) <= K_TOLERANCE };
 }
 
-/** @param {readonly (number | string)[]} values @returns {Record<string, number>} */
+/** @param {readonly number[]} values @returns {Record<string, number>} */
 function histogram(values) {
   /** @type {Record<string, number>} */
   const out = {};
-  const order = (/** @type {number | string} */ a, /** @type {number | string} */ b) => (
-    typeof a === 'number' && typeof b === 'number' ? a - b : String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0);
-  for (const v of [...values].sort(order)) {
+  for (const v of [...values].sort((a, b) => a - b)) {
     out[String(v)] = (out[String(v)] ?? 0) + 1;
   }
   return out;
-}
-
-/**
- * The v3 block of one cell (RES-25): the distribution of the v3 measures of its accepted puzzles. `provedZero` counts
- * the accepted puzzles with no proved real choice in a cell of the Hard-or-above levels (always 0 by RES-35).
- * Puzzles without v3 metrics (records written before v3) are not counted.
- * @param {Record<string, any>[]} puzzles
- * @param {string} levelId
- */
-function v3Block(puzzles, levelId) {
-  const rated = puzzles.filter((p) => typeof p.metrics === 'object' && p.metrics !== null);
-  if (rated.length === 0) {
-    return null;
-  }
-  const metric = (/** @type {string} */ name) => rated.map((p) => p.metrics[name]);
-  const censored = rated.filter((p) => p.censored === true).length;
-  return {
-    accepted: rated.length,
-    score: summarize(rated.map((p) => p.score)),
-    G: histogram(metric('G')),
-    info: summarize(metric('info')),
-    Cmax: histogram(metric('Cmax')),
-    tier: histogram(metric('deductionTier')),
-    solutions: histogram(metric('solutions')),
-    censored: { count: censored, share: censored / rated.length },
-    provedZero: level(levelId).index >= 3 ? rated.filter((p) => p.metrics.Gproved === 0).length : 0,
-  };
 }
 
 /**
@@ -414,7 +378,6 @@ export function aggregateLandscape(runs, matrix) {
     const details = rows.map((r) => r.details).filter((d) => d !== null);
     const ks = details.map((d) => d.K).filter((v) => typeof v === 'number');
     const violations = details.flatMap((d) => d.policy?.violations ?? []);
-    const accepted = details.flatMap((d) => d.puzzles ?? []);
     const samples = rows.flatMap((r) => r.samples);
     allSamples.push(...samples.map((s) => ({ ...s, levelId: c.levelId })));
     const t10 = complete.map((r) => r.tenthReadyMs).filter((v) => typeof v === 'number');
@@ -461,17 +424,15 @@ export function aggregateLandscape(runs, matrix) {
         min: details.length === 0 ? null : Math.min(...details.map((d) => d.sizes[0])),
         max: details.length === 0 ? null : Math.max(...details.map((d) => d.sizes[d.sizes.length - 1])),
       },
-      clues: {
+      G: {
         initial: histogram(details.map((d) => d.initialG).filter((v) => typeof v === 'number')),
-        accepted: histogram(accepted.map((p) => p.clues ?? p.G).filter((v) => typeof v === 'number')),
+        accepted: histogram(details.flatMap((d) => (d.puzzles ?? []).map((p) => p.G))),
       },
-      v3: v3Block(accepted, c.levelId),
       saturation: {
         acceptedShare: ratio(rows.reduce((s, r) => s + r.ratingSaturatedCount, 0), rows.reduce((s, r) => s + r.acceptedCount, 0)),
         sampledShare: ratio(goodSamples.filter((s) => s.saturated).length, goodSamples.length),
       },
       sampledInBandRate: ratio(goodSamples.filter((s) => s.inBand).length, goodSamples.length),
-      sampledUnrateable: details.reduce((s, d) => s + (d.sampleUnrateable ?? 0), 0),
       profileLatency: {
         kind: 'RPC round trip of a canonical rating task (includes message transfer), not worker CPU time',
         ...summarize(goodSamples.map((s) => s.ratingMs)),
@@ -642,25 +603,6 @@ export function renderLandscapeMarkdown(agg, meta) {
     L.push(`| ${c.caseId} | ${c.area} | ${c.runs.recorded}/${c.runs.requested} | ${pct(c.requestInBandRate)} | `
       + `${sec(c.t10Conditional.median)} | ${sec(c.t10Conditional.p95)} | ${sec(c.maxT10Ms)} | ${kObs} | ${pol} | `
       + `${pct(c.sampledInBandRate)} | ${pct(c.saturation.sampledShare)} | ${c.criterion1.status} |`);
-  }
-  L.push('', '## v3 measures per cell', '',
-    'Measures of the accepted puzzles of the timed runs. "-" means the cell has no accepted puzzle rated by `difficulty-v3` (for example records written before v3). '
-    + '"Census estimates" counts the ratings whose census did not finish; "Hard+ with Gproved = 0" counts accepted puzzles of the Hard-or-above levels without a proved real choice (always 0, RES-35).', '',
-    '| Cell | Accepted | Score median | Score p95 | G median | info median | Cmax max | Tier 0/1/2/3 | Solutions unique/few/many/unknown | Census estimates | Hard+ with Gproved = 0 |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
-  const fmt = (/** @type {number | null} */ v) => (v === null ? '-' : String(Math.round(v * 100) / 100));
-  const histValues = (/** @type {Record<string, number>} */ h) => Object.entries(h).flatMap(([k, n]) => Array(n).fill(Number(k)));
-  const split = (/** @type {Record<string, number>} */ h, /** @type {string[]} */ keys) => keys.map((k) => h[k] ?? 0).join('/');
-  for (const c of agg.cells) {
-    const v = c.v3;
-    if (v === null) {
-      L.push(`| ${c.caseId} | ${Array(10).fill('-').join(' | ')} |`);
-      continue;
-    }
-    const cmax = histValues(v.Cmax);
-    L.push(`| ${c.caseId} | ${v.accepted} | ${fmt(v.score.median)} | ${fmt(v.score.p95)} | ${fmt(median(histValues(v.G)))} | `
-      + `${fmt(v.info.median)} | ${cmax.length === 0 ? '-' : Math.max(...cmax)} | ${split(v.tier, ['0', '1', '2', '3'])} | `
-      + `${split(v.solutions, ['unique', 'few', 'many', 'unknown'])} | ${v.censored.count}/${v.accepted} | ${v.provedZero} |`);
   }
   L.push('', '## Reference rows (criteria 2 and 3)', '',
     '| Row | Boards | Node ref max | 2x bound | Max T10 now | Status | Policy K vs table | Note |', '| --- | --- | --- | --- | --- | --- | --- | --- |');

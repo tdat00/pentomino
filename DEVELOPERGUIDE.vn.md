@@ -58,14 +58,11 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 
 - **Trang kiểm thử trên trình duyệt** (không được xuất bản): chạy `npm run serve` rồi mở
   `http://localhost:8080/pentomino/tests/browser/` kèm `player-controls.html`, `player-load.html`, `hints.html`,
-  `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `replay.html`, `puzzle-code-worker.html`,
+  `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `puzzle-code-worker.html`,
   `puzzle-code-entry.html`, `puzzle-code-print.html`, `puzzle-code-cli-parity.html`, `puzzle-code-acceptance.html`,
   `puzzle-qr.html`, `watchdog.html` hoặc `acceptance.html`. Mỗi trang ghi danh sách đạt/không đạt, cùng `data-summary`
   và `data-result` (`pass` hoặc `fail`) trên `<html>`. Hãy dùng cửa sổ hẹp hơn
-  1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột. `replay.html?phase=keys` và
-  `puzzle-code-acceptance.html?phase=keys` chờ các lần nhấn phím đáng tin cậy mà chỉ một trình chạy qua giao thức
-  DevTools mới gửi được. `replay.html?phase=narrow` và `puzzle-code-acceptance.html?phase=narrow` cần khung nhìn
-  cảm ứng rộng 390 px do trình chạy đó thiết lập.
+  1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột.
 - **Tạo đề không cần giao diện**: `node tools\generate.mjs --board 10x6 --level hard --count 5 --seed demo --workers 4`.
   Công cụ nhận bàn tới **676** ô chơi được (các ứng dụng dùng tới 484 ô trên máy tính và 360 ô trên điện thoại).
   Gói đề in ra stdout (hoặc `--output`), thông báo ra stderr. Mã thoát: `0` hoàn tất (kể cả khi bộ mảnh đã được tìm đủ và
@@ -77,20 +74,7 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
 - **Hiệu năng và hiệu chỉnh** (chỉ để sàng lọc; không bao giờ thay đổi ngưỡng kiểm định):
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   bản đồ điểm (`--profile landscape`, chạy nhiều giờ, tiếp tục được), và trang trình duyệt
-  `http://localhost:8080/pentomino/tools/bench/` (giữ thẻ ở phía trước). Báo cáo bản đồ điểm cho thấy các số đo v3 của
-  từng ô (điểm, các lần đoán quyết định, bậc suy luận, các điểm chấm ước lượng).
-- **Thăm dò chấm độ khó** (chỉ để chẩn đoán; không bao giờ thay đổi điểm): `node tools\rate-probe.mjs` chấm từng đề của
-  một gói đề, của một yêu cầu tạo đề mới hoặc của các yêu cầu bản đồ điểm được tạo lại, bằng cách chấm cũ và bộ giải suy
-  luận, rồi in mỗi đề một dòng JSON ra stdout (hoặc ra `--output tệp`). Công cụ chỉ đọc và không ghi gì khác. Có ba dạng:
-  `--pack tệp.json`; các cờ tạo đề của `tools\generate.mjs`, ví dụ
-  `--board 10x6 --level hard --count 5 --seed demo --workers 2`; và
-  `--landscape 6x10-easy --reps 0-4 --workers 4 --expect báo-cáo.json` (`--expect` không bắt buộc), tạo lại các yêu cầu
-  đó của bản đồ điểm rồi so từng yêu cầu với lượt chạy trong một báo cáo hiệu chỉnh. Tùy chọn: `--orders k` (chẩn đoán
-  DLX theo k thứ tự có hạt giống, mặc định 5, 0 là bỏ qua), `--tie-orders k` (bộ giải suy luận theo k cách chọn khi hòa,
-  mặc định 1), `--knobs json` (điểm theo các núm v3 thử nghiệm, chỉ để thăm dò) và `--deduce json` (ghi đè các giới hạn
-  của bộ giải suy luận, ví dụ `{"census":0}`); `json` là văn bản JSON hoặc tên tệp. Mã thoát: `0` đã thăm dò mọi đề;
-  `2` việc tạo đề chỉ được một phần hoặc phép kiểm tra đồng nhất bị lệch (các dòng vẫn được ghi); `1` đầu vào sai hoặc
-  không có gói đề.
+  `http://localhost:8080/pentomino/tools/bench/` (giữ thẻ ở phía trước).
 
 **Cấu trúc mã.** ES module gốc với kiểu JSDoc và `// @ts-check`, chia thành các lớp:
 
@@ -101,26 +85,8 @@ core/workers/   module worker chạy việc tạo đề và mã đề ngoài lu�
 generator/      Pentomino Generator: trang, trạng thái, tác vụ và giao diện
 player/         Pentomino Player: trang, trạng thái, ván chơi, gợi ý và giao diện
 tests/          kiểm thử đơn vị Node (*.test.js) và các trang kiểm thử trình duyệt (tests/browser/)
-tools/          công cụ chỉ chạy bằng Node (.mjs): máy chủ, tạo đề không giao diện, hiệu chỉnh, thăm dò chấm độ khó, kiểm tra trang
+tools/          công cụ chỉ chạy bằng Node (.mjs): máy chủ, tạo đề không giao diện, hiệu chỉnh, kiểm tra trang
 ```
-
-`core/engine/deduce.js` là bộ giải suy luận của cách chấm độ khó v3 ([docs/design-detail.md](docs/design-detail.md) §7.9);
-`core/engine/difficulty.js` tính điểm `difficulty-v3` từ nó (`measureV3`, `rate`) và giữ các hàm v2 (`scoreV2`,
-`measureV2`, `rateV2`) cho các điểm đã lưu, dữ liệu mẫu và công cụ thăm dò chấm độ khó.
-`tools\rate-probe.mjs` dùng để đo nó.
-
-`core/engine/replay.js` chạy lại việc tạo một đề từ ghi chép của nó rồi so kết quả với đề đã lưu (`runReplay`,
-`replayPuzzle`; [docs/design-detail.md](docs/design-detail.md) §6.12), và worker chạy nó như tác vụ `replayPuzzle` mà
-client tạo đề gửi qua đường phụ. Phần Các bước tạo đề của trình tạo đề, ở bước 3 dưới **Các mảnh cần đặt**, gồm
-`generator/ui/replay-model.js` (không có DOM: các cách xem, câu mô tả, các mảnh, kỹ thuật và điểm của từng bước, các
-nhóm giai đoạn, bảng điểm và bộ điều khiển chạy, giữ lại và gửi lại việc chạy lại) và `generator/ui/generation-steps.js`
-(phần này, nút **Hiện các bước tạo đề** và bảng của nó); `generator/ui/replay-cache.js` chuẩn bị ngầm các bước của mọi đề mà một lần tạo thêm vào (`prefetch`, trên đường phụ) và giữ
-chúng trong bộ nhớ của trình duyệt (`saveReplay`, `loadReplay` và `hasReplay` của `core/browser/storage.js`, 8 mục, bị bỏ
-trước mọi tiến độ chơi khi bộ nhớ đầy, theo một khóa tính từ nội dung mà phiên bản trình tạo mới sẽ làm đổi); phần này luôn ẩn cho đến khi nhấn nút **Hiện các bước tạo đề** / **Ẩn các bước tạo đề**, rồi các bước đã giữ hiện ngay; `generator/ui/puzzle-panel.js` gắn phần này dưới các mảnh cần đặt và đưa cho nó
-`replaySourceOf` của `generator/state.js`, còn `generator/app.js` đưa cho nó hàm `replayPuzzle` của client.
-`tests/browser/replay.html` kiểm thử toàn bộ trên trình duyệt thật.
-`node tools\record-fixtures.mjs --replay-case --check` (và `--search`, `--create`, `--replace`) kiểm tra dữ liệu mẫu
-chạy lại `tests/fixtures/replay-case.json` giống cách `--check` kiểm tra các dữ liệu mẫu tạo đề.
 
 Mọi module được trang hoặc worker nạp đều dùng đuôi `.js`; `.mjs` dành riêng cho công cụ Node. Chữ trên giao diện nằm
 trong các gói phẳng `generator/locale.en.js` / `locale.vi.js` và `player/locale.en.js` / `locale.vi.js` (chữ khi in nằm
@@ -136,8 +102,7 @@ gói.
   duyệt không bao giờ gửi lên máy chủ.
 - Cả hai ứng dụng chỉ dùng các khóa `localStorage` có tiền tố `pentomino:v1:`, và không bao giờ đụng tới các khóa khác
   của cùng nguồn gốc:
-  - trình tạo đề: công việc của bạn (bàn chơi, thiết lập, bộ mảnh và đề) trong `gen:state`, và các lần chạy lại của Các bước
-    tạo đề (`replay:<key>`, tối đa 8, là bộ nhớ đệm và bị xóa trước tiên khi bộ nhớ đầy);
+  - trình tạo đề: công việc của bạn (bàn chơi, thiết lập, bộ mảnh và đề) trong `gen:state`;
   - trình chơi: tiến độ của từng đề (`progress:<fingerprint>`, tối đa 300, thời điểm lưu trong `progress-index`);
     không lưu gói nào, gói nằm trong liên kết của nó;
   - cả hai: ngôn ngữ (`lang`) và giao diện (`theme`).

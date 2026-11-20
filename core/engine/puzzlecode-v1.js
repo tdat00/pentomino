@@ -1787,11 +1787,7 @@ function checkedSize(count, what) {
 function validatedPack(wire) {
   const checked = validatePack(wire);
   if (!checked.ok) {
-    const [first] = checked.issues;
-    if (first?.code === 'duplicate-shape') {
-      throw new PuzzleCodeError('duplicate-shape', first.message, { params: first.params });
-    }
-    throw invalid(first?.message ?? 'The code does not describe a valid puzzle.');
+    throw invalid(checked.issues[0]?.message ?? 'The code does not describe a valid puzzle.');
   }
   const pack = checked.value;
   try {
