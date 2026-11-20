@@ -536,8 +536,9 @@ async function checkReplayCase(path) {
       problems.push(`replayed pack ${i + 1} differs from the file`);
     }
   });
-  if (problems.length === 0 && toFileText(r.file) !== text) {
-    problems.push(`${REPLAY_FILE} text differs from the replay (formatting or line endings)`);
+  // Git stores the file with LF and a checkout may give LF or CRLF, so the line ends are not compared.
+  if (problems.length === 0 && toFileText(r.file).replace(/\r\n/g, '\n') !== text.replace(/\r\n/g, '\n')) {
+    problems.push(`${REPLAY_FILE} text differs from the replay (formatting)`);
   }
   return problems;
 }
