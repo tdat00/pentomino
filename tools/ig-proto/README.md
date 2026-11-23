@@ -2703,8 +2703,33 @@ and the verdicts, T03c the bindings, the go rule and the commands.
   round (even: reference first), and records `refMs`, `candMs`, `same` and `capped`. A rating that throws `IncompleteRatingError` (a capped deduction
   path, which the generator charges and goes on from) is a timed rating: a capped rating on both trees is a timed pair (`capped: 'both'`, `same`
   true when the errors' `counters` are equal too), on one tree only `same: false`; any other thrown error is an `error` item.
+- **The experiment declaration** (`declareRun`; `experiment.json` under `<raw task>/<step>/`, written before the first dispatch and refused when
+  changed, `checkDeclaration`: `the declaration of <task>/<step> changed (<field>): a ruling is required`): the candidate and reference trees (repository
+  paths only), the tier and rounds, the input constructor (`instr`, the rule `kernel-window-v1`, the tree identity), the corpus version and the index of its
+  inputs by hash (the seven `calls.json` of the PM4 cells, `data/p7-memory-fixtures.json` and the catalogue `data/boards-v1.json` for `equal`; the
+  catalogue alone for `time`), the producer (frozen commit, source digest, harness hash) and the complete ordered item declarations. One conversion
+  (`runtimeItems`) serves run, resume and report. `readRun(task, step)` reads the declaration, the item log, the state and an index of the files it read.
+- **The required corpus** (`P7_COUNTS`: `quick` 30 kernel + 112 PM4 + 7 memory items, `full` 30 + 676 + 7, `time` 90; `corpusCounts`, `corpusInputPaths`):
+  `expectedCorpus(command, candidate, tier)` recomputes the items, the counts, the input hashes and the constructor from their sources at every check, never from
+  the declaration. A unit test may give a small corpus of its own to `runProblems` and the verdicts; the commands always use `expectedCorpus`, so a shortened
+  corpus can never certify `p7-corpus-v1`.
+- **The shared checks** (`runProblems`, in this order): no declaration; the declaration is of the expected task, step, command, candidate and tier; the corpus
+  counts; the declared items and constructor against the required corpus; the corpus version; the corpus input index (empty, missing, changed or unexpected
+  entries); no state; the state's manifest hash, tree id and producer against the declaration; the item log through `resumePlan` (duplicates, an identity
+  that differs, unknown items, a missing or extra start, an interrupted item).
+- **The verdicts** (pure). `equalVerdict` lists, per declared item, `missing`, `censored`, `errors` (an `error` end, or a completed one whose outcome is not
+  `ok`: a construction failure is a probe defect), `notEqual` (with `diagnostics`, the first differing settings), `duplicates` and `unexpected` ends; its
+  `verdict` is `incomplete` with any problem, else `not-equal`, else `incomplete` for any missing, error, censored, duplicate or unexpected end or an
+  incomplete memory coverage, else `equal`. The coverage rule (D-P24-05): every memory fixture, sequence step and capacity step (16 entries) has the
+  representation the manifest expects (`lists`, `reference` or, with a null representation, `model-too-large`), no `lists` step breaks `refBytes + listBytes <=
+  memoryBytes` or `wsBytes + listBytes <= capacityBytes` (`budget`), every memory item ended, and at least one normal (non-memory) step runs the fast path.
+  `timeVerdict` is `measured` only for the complete 90 declared items, each a completed `ok` outcome with `same` true and finite positive `refMs` and
+  `candMs`; a pair that differs or has an invalid time is `failed` (`notSame`, `invalid`), a missing, censored or error item or any problem is `incomplete`;
+  only a `measured` verdict has `refMs`, `candMs`, `ratio` (`refMs / candMs`) and `geoRatio` (the geometric mean of the pairs' ratios), never a ratio of a
+  subset. A pair whose deduction path was capped on both trees (`capped: 'both'`) is timed like any other and listed in `capped`, never a problem.
 - **Runs**: the equality runs are locked verification under the task ids `V4-P7E-<candidate>-<tier>`; the timing run is `V4-P7` (S02).
-- **Self-test**: `--items` (unlocked): `p7: settings, work inputs and limits`, `p7: outcomes, fixtures and declarations`; `--v4` (locked): `p7: equality
+- **Self-test**: `--items` (unlocked): `p7: settings, work inputs and limits`, `p7: outcomes, fixtures and declarations`, `p7: the experiment declaration`,
+  `p7: equality verdict`, `p7: timing verdict`; `--v4` (locked): `p7: equality
   items of base against base`, `p7: timing items of base against base`.
 
 ## Phase-1 bench of P6 (V4-T14)

@@ -1733,6 +1733,123 @@ async function resolveWorld(dir) {
   };
 }
 
+/**
+ * A synthetic P7 run with a valid log (stages 2 to 4 pack, T03b): the declaration as `declareRun` shapes it, a state whose identity
+ * matches, a start and an end line per item and the corpus the verdict functions are given. An equality run (`V4-P7E-p7-x-quick`)
+ * has the kernel item `n0` and the seven memory items; a timing run (`V4-P7`) has the 90 items `t0` to `t89`.
+ * @param {{ time?: boolean, identity?: Record<string, unknown>, omit?: string[] }} [o]
+ *   `identity` overrides the state's identity (every line is hashed from the result); `omit` removes items from the declaration,
+ *   the state and the log, but not from the corpus.
+ * @returns {Promise<{ declaration: any, lines: any[], state: any, expected: any, manifest: any, corpus: any }>}
+ */
+async function p7Run({ time = false, identity = {}, omit = [] } = {}) {
+  const { memoryManifest, runtimeItems } = await import('./p7-probe.mjs');
+  const manifest = memoryManifest();
+  const limit = 33554432;
+  const workspace = 167772160;
+  const representationOf = (/** @type {string} */ expect) => (expect === 'model-too-large' ? null : expect);
+  const listBytesOf = (/** @type {any} */ f, /** @type {string} */ expect) => (expect === 'lists' ? f.listBytes : expect === 'reference' ? 0 : null);
+  const stepOf = (/** @type {string} */ setting, /** @type {any} */ f, /** @type {string} */ expect, /** @type {number} */ memoryBytes, /** @type {number} */ capacityBytes) => ({
+    setting,
+    same: true,
+    representation: representationOf(expect),
+    listBytes: listBytesOf(f, expect),
+    wsBytes: f.arenaBytes + f.refBytes,
+    capacityBytes,
+    memoryBytes,
+    referenceError: null,
+    candidateError: null,
+  });
+  const fixtureOf = (/** @type {string} */ id) => manifest.fixtures.find((f) => f.id === id);
+  const done = { outcome: 'ok', same: true, differing: [] };
+  /** @type {{ id: string, kind: string, variant: string, payload: any, result: any }[]} */
+  const all = [];
+  if (time) {
+    for (let i = 0; i < 90; i += 1) {
+      all.push({ id: `t${i}`, kind: 'p7-time', variant: 'p7-x', payload: { otherTree: 't', inputTree: 'ti' }, result: { outcome: 'ok', refMs: 104, candMs: 100, same: true } });
+    }
+  } else {
+    all.push({
+      id: 'n0',
+      kind: 'p7-equal',
+      variant: 'p7-x',
+      payload: { source: 'kernel', otherTree: 't', inputTree: 'ti' },
+      result: {
+        ...done,
+        refBytes: 1000,
+        steps: [{ setting: 'canonical', same: true, representation: 'lists', listBytes: 10, wsBytes: 5000, capacityBytes: workspace, memoryBytes: limit, referenceError: null, candidateError: null }],
+      },
+    });
+    for (const f of manifest.fixtures) {
+      all.push({
+        id: `m:${f.id}`,
+        kind: 'p7-equal',
+        variant: 'p7-x',
+        payload: { source: 'memory', fixture: f.id, otherTree: 't' },
+        result: { ...done, refBytes: f.refBytes, steps: [stepOf('fixture', f, f.canonical, limit, workspace)] },
+      });
+    }
+    all.push({
+      id: 'm:sequence',
+      kind: 'p7-equal',
+      variant: 'p7-x',
+      payload: { source: 'memory-sequence', otherTree: 't' },
+      result: { ...done, refBytes: null, steps: manifest.sequence.map((s, i) => stepOf(`seq-${i}`, fixtureOf(s.fixture), s.expect, s.memoryBytes, workspace)) },
+    });
+    all.push({
+      id: 'm:capacity',
+      kind: 'p7-equal',
+      variant: 'p7-x',
+      payload: { source: 'memory-capacity', otherTree: 't' },
+      result: { ...done, refBytes: null, steps: manifest.capacity.map((c, i) => stepOf(`cap-${i}`, fixtureOf(c.fixture), c.expect, c.memoryBytes, c.capacityBytes)) },
+    });
+  }
+  const strip = (/** @type {typeof all} */ list) => list.map(({ id, kind, variant, payload }) => ({ id, kind, variant, payload }));
+  const kept = all.filter((i) => !omit.includes(i.id));
+  const items = strip(kept);
+  const input = { path: time ? 'b.json' : 'a.json', sha256: time ? 'B' : 'A' };
+  const constructor = { variant: 'instr', treeId: 'TI', copyDigest: 'CI', root: 'ri', rule: 'kernel-window-v1' };
+  const declaration = {
+    format: 'ig-p7-experiment',
+    version: 1,
+    task: time ? 'V4-P7' : 'V4-P7E-p7-x-quick',
+    step: time ? 'time-p7-x' : 'equal',
+    command: time ? 'time' : 'equal',
+    candidate: { variant: 'p7-x', treeId: 'T1', copyDigest: 'C1', root: 'r' },
+    reference: { variant: 'base', treeId: 'T0', copyDigest: 'C0', root: 'r0' },
+    tier: time ? null : 'quick',
+    rounds: time ? 3 : null,
+    inputConstructor: structuredClone(constructor),
+    corpus: { version: 'p7-corpus-v1', inputs: [{ ...input }] },
+    producer: { frozenCommit: 'f', sourceDigest: 's', harnessHash: 'h' },
+    items,
+  };
+  const stateIdentity = {
+    frozenCommit: 'f', sourceDigest: 's', treeIds: { 'p7-x': 'T1' }, harnessHash: 'h', manifestHash: manifestHash(runtimeItems(structuredClone(items))), ...identity,
+  };
+  const hash = identityHash(/** @type {any} */ (stateIdentity));
+  const at = '2026-01-01T00:00:00.000Z';
+  /** @type {any[]} */
+  const lines = [];
+  for (const item of kept) {
+    lines.push({ type: 'item-start', identityHash: hash, item: item.id, kind: item.kind, variant: item.variant, at });
+    lines.push({ type: 'item-end', identityHash: hash, item: item.id, status: 'completed', result: structuredClone(item.result), ms: 1, at });
+  }
+  return {
+    declaration,
+    lines,
+    state: { identity: stateIdentity },
+    expected: time ? { task: 'V4-P7', candidate: 'p7-x' } : { task: 'V4-P7E-p7-x-quick', candidate: 'p7-x', tier: 'quick' },
+    manifest,
+    corpus: {
+      items: strip(all),
+      counts: time ? { kernel: 0, pm4: 0, memory: 0, time: 90 } : { kernel: 1, pm4: 0, memory: 7, time: 0 },
+      inputs: [{ ...input }],
+      inputConstructor: structuredClone(constructor),
+    },
+  };
+}
+
 /** The `--items` group (V4-T04a onwards): lib/items.mjs on synthetic worker kinds; no rating, generation or replay; no lock. */
 const itemCases = [
   {
@@ -8617,6 +8734,198 @@ const itemCases = [
       same([quick[0].id, quick.at(-1)?.id, time[0].id, time.at(-1)?.id],
         ['equal:base:kernel:10x10-nightmare:0', 'equal:base:memory:capacity', 'time:base:10x10-nightmare:0:0', 'time:base:26x26-hell-1:5:2'], 'the first and last ids');
       assert(full.filter((i) => i.payload.source === 'pm4').flatMap((i) => i.payload.settings).filter((s) => s.startsWith('screen:')).length === 123, 'the screen settings of the first profiles');
+    },
+  },
+  {
+    name: 'p7: the experiment declaration',
+    async run() {
+      const { checkDeclaration, corpusCounts, corpusInputPaths } = await import('./p7-probe.mjs');
+      const { declaration: d, corpus } = await p7Run();
+      same(checkDeclaration(d, structuredClone(d)), { ok: true }, 'an equal declaration');
+      const refuse = (/** @type {(x: any) => void} */ change, /** @type {string} */ key) => {
+        const fresh = structuredClone(d);
+        change(fresh);
+        const got = checkDeclaration(d, fresh);
+        same(got, { refuse: `the declaration of ${d.task}/${d.step} changed (${key}): a ruling is required` }, `${key}: ${JSON.stringify(got)}`);
+      };
+      refuse((x) => { x.tier = 'full'; }, 'tier');
+      refuse((x) => { x.items[0].payload.subsetIndex = 3; }, 'items');
+      refuse((x) => { x.inputConstructor.treeId = 'TJ'; }, 'inputConstructor');
+      refuse((x) => { x.producer.harnessHash = 'h2'; }, 'producer');
+      same(corpusCounts(corpus.items), { kernel: 1, pm4: 0, memory: 7, time: 0 }, 'the corpus counts');
+      const cell = (/** @type {string} */ c) => `tests/artifacts/ig-proto/frozen/IGP-02/main/${c}/calls.json`;
+      same(corpusInputPaths('equal'), [
+        ...['10x10-nightmare', '12x12-nightmare', '14x14-nightmare', '15x15b10-nightmare', '26x26-hell-1', '26x26-master', '26x26-nightmare'].map(cell),
+        'tools/ig-proto/data/p7-memory-fixtures.json',
+        'tools/ig-proto/data/boards-v1.json',
+      ], 'the equality inputs');
+      same(corpusInputPaths('time'), ['tools/ig-proto/data/boards-v1.json'], 'the timing inputs');
+    },
+  },
+  {
+    name: 'p7: equality verdict',
+    async run() {
+      const { equalVerdict } = await import('./p7-probe.mjs');
+      const endOf = (/** @type {any} */ run, /** @type {string} */ id) => run.lines.find((/** @type {any} */ l) => l.type === 'item-end' && l.item === id);
+      /** @param {any} run @param {string} _label @returns {any} */
+      const judge = (run, _label) => equalVerdict(run);
+      /** @param {any} v @param {string} text @param {string} label */
+      const hasProblem = (v, text, label) => assert(v.problems.includes(text), `${label}: ${JSON.stringify(v.problems)}`);
+      const valid = judge(await p7Run(), 'valid');
+      same([valid.verdict, valid.problems, valid.coverage.complete, valid.coverage.memory.length, valid.coverage.memory.every((/** @type {any} */ m) => m.ok), valid.coverage.budget, valid.items, valid.ended, valid.equal],
+        ['equal', [], true, 16, true, [], 8, 8, 8], `the valid run: ${JSON.stringify(valid)}`);
+      same(valid.coverage.memory.slice(0, 5).map((/** @type {any} */ m) => [m.fixture, m.representation, m.expected]), [
+        ['mem-small', 'lists', 'lists'], ['mem-mid', 'lists', 'lists'], ['mem-near-lists', 'lists', 'lists'], ['mem-near-reference', 'reference', 'reference'], ['mem-above', null, 'model-too-large'],
+      ], 'the fixture entries');
+      same([valid.declared.candidate.variant, valid.declared.tier, valid.declared.corpusVersion, valid.declared.producer.harnessHash, valid.declared.inputConstructor.rule],
+        ['p7-x', 'quick', 'p7-corpus-v1', 'h', 'kernel-window-v1'], 'the declared identities');
+
+      const one = await p7Run();
+      one.lines.pop();
+      const v1 = judge(one, '(1) a missing end');
+      same([v1.verdict, v1.missing], ['incomplete', ['m:capacity']], '(1)');
+      hasProblem(v1, 'the item log is invalid: interrupted item m:capacity needs a ruling', '(1)');
+
+      const two = await p7Run();
+      two.lines.push(structuredClone(endOf(two, 'n0')));
+      const v2 = judge(two, '(2) a second end');
+      same([v2.verdict, v2.duplicates], ['incomplete', ['n0']], '(2)');
+      hasProblem(v2, 'the item log is invalid: duplicate log entry for n0', '(2)');
+
+      const v3 = judge(await p7Run({ identity: { manifestHash: 'x' } }), '(3) the manifest');
+      assert(v3.verdict === 'incomplete', '(3) verdict');
+      hasProblem(v3, "the run's manifest differs from its declaration", '(3)');
+
+      const four = await p7Run();
+      four.declaration = null;
+      const v4 = judge(four, '(4) no declaration');
+      same([v4.verdict, v4.problems, v4.items, v4.ended, v4.equal, v4.declared], ['incomplete', ['no declaration'], 0, 0, 0, null], '(4)');
+
+      const five = await p7Run();
+      const differing = [{ setting: 'canonical', reference: { result: 1 }, candidate: { result: 2 } }];
+      Object.assign(endOf(five, 'n0').result, { same: false, differing });
+      const v5 = judge(five, '(5) not equal');
+      same([v5.verdict, v5.notEqual, v5.diagnostics, v5.problems], ['not-equal', ['n0'], [{ id: 'n0', differing }], []], '(5)');
+
+      const six = await p7Run();
+      endOf(six, 'n0').result.steps[0].representation = 'reference';
+      const v6 = judge(six, '(6) no fast path on a normal model');
+      same([v6.verdict, v6.coverage.complete, v6.problems], ['incomplete', false, []], '(6)');
+
+      const seven = await p7Run();
+      endOf(seven, 'm:mem-near-reference').result.steps[0].representation = 'lists';
+      const v7 = judge(seven, '(7) no fallback');
+      same([v7.verdict, v7.coverage.complete], ['incomplete', false], '(7)');
+      assert(v7.coverage.memory.some((/** @type {any} */ m) => m.fixture === 'mem-near-reference' && m.expected === 'reference' && m.ok === false), '(7) the entry');
+
+      const eight = await p7Run();
+      endOf(eight, 'n0').result.steps[0].wsBytes = 167772160;
+      const v8 = judge(eight, '(8) over the capacity');
+      same([v8.verdict, v8.coverage.budget.length, v8.coverage.complete], ['incomplete', 1, false], '(8)');
+
+      const nine = await p7Run();
+      nine.lines = nine.lines.filter((/** @type {any} */ l) => !(l.type === 'item-start' && l.item === 'n0'));
+      const v9 = judge(nine, '(9) a missing start');
+      assert(v9.verdict === 'incomplete', '(9) verdict');
+      hasProblem(v9, 'the item log is invalid: out-of-order log entry for n0', '(9)');
+
+      const v10 = judge(await p7Run({ identity: { harnessHash: 'h2' } }), '(10) another producer');
+      assert(v10.verdict === 'incomplete', '(10) verdict');
+      hasProblem(v10, "the run's producer differs from its declaration (harnessHash)", '(10)');
+
+      const v11 = judge(await p7Run({ omit: ['n0'] }), '(11) no kernel item');
+      assert(v11.verdict === 'incomplete', '(11) verdict');
+      hasProblem(v11, 'the declared items differ from the required corpus', '(11)');
+
+      const twelve = await p7Run();
+      twelve.declaration.corpus.inputs = [];
+      const v12 = judge(twelve, '(12) no input index');
+      assert(v12.verdict === 'incomplete', '(12) verdict');
+      hasProblem(v12, 'the corpus input index is empty', '(12)');
+      hasProblem(v12, 'the corpus input a.json is missing from the declaration', '(12)');
+
+      const thirteen = await p7Run();
+      thirteen.corpus.inputs[0].sha256 = 'B';
+      const v13 = judge(thirteen, '(13) a changed input');
+      assert(v13.verdict === 'incomplete', '(13) verdict');
+      hasProblem(v13, 'the corpus input a.json changed', '(13)');
+
+      const fourteen = await p7Run();
+      fourteen.lines.push({ type: 'item-start', identityHash: fourteen.lines[0].identityHash, item: 'zz', kind: 'p7-equal', variant: 'p7-x', at: '2026-01-01T00:00:00.000Z' });
+      const v14 = judge(fourteen, '(14) an undeclared start');
+      assert(v14.verdict === 'incomplete', '(14) verdict');
+      hasProblem(v14, 'the item log is invalid: unknown item zz', '(14)');
+
+      const fifteen = await p7Run();
+      fifteen.corpus.counts = { kernel: 2, pm4: 0, memory: 7, time: 0 };
+      const v15 = judge(fifteen, '(15) shortened counts');
+      assert(v15.verdict === 'incomplete', '(15) verdict');
+      hasProblem(v15, 'the required corpus counts {"kernel":1,"pm4":0,"memory":7,"time":0} differ from {"kernel":2,"pm4":0,"memory":7,"time":0}', '(15)');
+    },
+  },
+  {
+    name: 'p7: timing verdict',
+    async run() {
+      const { timeVerdict } = await import('./p7-probe.mjs');
+      const endOf = (/** @type {any} */ run, /** @type {string} */ id) => run.lines.find((/** @type {any} */ l) => l.type === 'item-end' && l.item === id);
+      const near = (/** @type {number | null} */ a, /** @type {number} */ b) => a !== null && Math.abs(a - b) < 1e-9;
+      /** @param {any} v @param {string} text @param {string} label */
+      const hasProblem = (v, text, label) => assert(v.problems.includes(text), `${label}: ${JSON.stringify(v.problems)}`);
+      const valid = timeVerdict(await p7Run({ time: true }));
+      assert(valid.verdict === 'measured' && valid.problems.length === 0 && valid.capped.length === 0 && valid.items === 90 && valid.ended === 90, `the valid run: ${JSON.stringify(valid)}`);
+      assert(near(valid.ratio, 1.04) && near(valid.geoRatio, 1.04) && near(valid.refMs, 9360) && near(valid.candMs, 9000), `the ratios: ${valid.ratio} ${valid.geoRatio}`);
+      same([valid.declared.rounds, valid.declared.tier], [3, null], 'the declared rounds');
+
+      const capped = await p7Run({ time: true });
+      endOf(capped, 't2').result.capped = 'both';
+      const c = timeVerdict(capped);
+      assert(c.verdict === 'measured' && isDeepStrictEqual(c.capped, ['t2']) && near(c.ratio, 1.04), `a capped pair: ${JSON.stringify(c)}`);
+
+      const notSame = await p7Run({ time: true });
+      endOf(notSame, 't5').result.same = false;
+      const n = timeVerdict(notSame);
+      same([n.verdict, n.notSame, n.ratio, n.geoRatio, n.refMs, n.candMs], ['failed', ['t5'], null, null, null, null], `a pair that differs: ${JSON.stringify(n)}`);
+
+      const missing = await p7Run({ time: true });
+      missing.lines.pop();
+      const m = timeVerdict(missing);
+      same([m.verdict, m.missing, m.ratio], ['incomplete', ['t89'], null], `a missing end: ${JSON.stringify(m)}`);
+      hasProblem(m, 'the item log is invalid: interrupted item t89 needs a ruling', 'a missing end');
+
+      const censored = await p7Run({ time: true });
+      Object.assign(endOf(censored, 't3'), { status: 'censored', result: { outcome: 'censored' } });
+      const ce = timeVerdict(censored);
+      same([ce.verdict, ce.censored, ce.problems], ['incomplete', ['t3'], []], `a censored item: ${JSON.stringify(ce)}`);
+
+      const error = await p7Run({ time: true });
+      Object.assign(endOf(error, 't4'), { status: 'error', result: { outcome: 'error', reason: 'a rating threw' } });
+      const e = timeVerdict(error);
+      same([e.verdict, e.errors, e.problems], ['incomplete', ['t4'], []], `an item error: ${JSON.stringify(e)}`);
+
+      const zero = await p7Run({ time: true });
+      endOf(zero, 't6').result.candMs = 0;
+      const z = timeVerdict(zero);
+      same([z.verdict, z.invalid, z.ratio], ['failed', ['t6'], null], `a zero time: ${JSON.stringify(z)}`);
+
+      const none = await p7Run({ time: true });
+      endOf(none, 't7').result.refMs = null;
+      const nu = timeVerdict(none);
+      same([nu.verdict, nu.invalid, nu.ratio], ['failed', ['t7'], null], `a null time: ${JSON.stringify(nu)}`);
+
+      const start = await p7Run({ time: true });
+      start.lines = start.lines.filter((/** @type {any} */ l) => !(l.type === 'item-start' && l.item === 't0'));
+      const s = timeVerdict(start);
+      assert(s.verdict === 'incomplete', 'a missing start');
+      hasProblem(s, 'the item log is invalid: out-of-order log entry for t0', 'a missing start');
+
+      const producer = timeVerdict(await p7Run({ time: true, identity: { sourceDigest: 's2' } }));
+      assert(producer.verdict === 'incomplete', 'another producer');
+      hasProblem(producer, "the run's producer differs from its declaration (sourceDigest)", 'another producer');
+
+      const short = timeVerdict(await p7Run({ time: true, omit: ['t1'] }));
+      assert(short.verdict === 'incomplete' && short.ratio === null, 'a shortened declaration');
+      hasProblem(short, 'the declared items differ from the required corpus', 'a shortened declaration');
+      hasProblem(short, 'the declaration does not hold 90 items', 'a shortened declaration');
     },
   },
 ];

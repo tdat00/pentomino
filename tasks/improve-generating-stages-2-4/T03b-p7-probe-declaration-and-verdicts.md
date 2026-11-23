@@ -252,13 +252,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 01:35 +07:00 (dispatch, base `d8feac0`); 2026-11-24 01:46 +07:00 (accepted); 12 min. The developer reported 01:35:37-01:42 |
+| Waiting for rulings | about 6 min (the pack author's review of the open details) |
+| Agent id, model | `309b6a23-5009-4c9e-8f4a-50ff3eded938`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 36 calls; 4,296,740 input, 52,587 output, 4,154,705 cache-read tokens |
+| AI credits | 129.64 (developer only) |
+| Questions and rulings | no QUESTION; the six open details (counts, memory coverage and budget entry shapes, `corpusVersion`, no `duplicates`/`unexpected` in `timeVerdict`, `unreadable <file>`) accepted by SA-Opus as ruling R-P24-07 |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T03b-orch`: 220 passed, 0 failed (35.6 s; cases 218-220 PASS); `check-edits --all` exit 0; `firewall check --task S24-T03b`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the three Scope files |
+| Commit | this task's commit |
+| Issues and named items | `declareRun`, `expectedCorpus` and `readRun` first run on real trees in T03d's quick equality run (R-P24-07) |
