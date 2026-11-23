@@ -1,0 +1,27 @@
+{
+  "id": "p7-c1r5c5",
+  "extends": ["p7-c1r5"],
+  "description": "P7 C1, R5 and C5 (stages 2 to 4 pack T05a; plan v4 P7): select, liveRowOf and listRows on T03d's live-row lists, the same work units and kills. A spike variant: never an arm.",
+  "edits": [
+    {
+      "id": "c5-1",
+      "file": "core/engine/deduce.js",
+      "find": "      const from = colStart[c];\n      const to = colStart[c + 1];\n      for (let j = from; j < to; j += 1) {\n        const r2 = colRows[j];\n        if (live[r2] === 1) {\n          kill(r2);\n        }\n      }\n      work += to - from;\n",
+      "replace": "      const from = colStart[c];\n      const to = colStart[c + 1];\n      if (useLists) {\n        const head = NZ + c;\n        for (let j = lnext[head]; j !== head;) {\n          const next = lnext[j];\n          kill(colRows[j]);\n          j = next;\n        }\n      } else {\n        for (let j = from; j < to; j += 1) {\n          const r2 = colRows[j];\n          if (live[r2] === 1) {\n            kill(r2);\n          }\n        }\n      }\n      work += to - from;\n"
+    },
+    {
+      "id": "c5-2",
+      "file": "core/engine/deduce.js",
+      "find": "  function liveRowOf(c) {\n    const to = colStart[c + 1];\n",
+      "replace": "  function liveRowOf(c) {\n    if (useLists) {\n      const j = lnext[NZ + c];\n      if (j !== NZ + c) {\n        work += j - colStart[c] + 1;\n        return colRows[j];\n      }\n      work += colStart[c + 1] - colStart[c];\n      throw new Error('deduce: column without a live row');\n    }\n    const to = colStart[c + 1];\n"
+    },
+    {
+      "id": "c5-3",
+      "file": "core/engine/deduce.js",
+      "find": "  function listRows(c, base) {\n    let end = base;\n    const to = colStart[c + 1];\n",
+      "replace": "  function listRows(c, base) {\n    let end = base;\n    const to = colStart[c + 1];\n    if (useLists) {\n      work += to - colStart[c];\n      for (let j = lnext[NZ + c]; j !== NZ + c; j = lnext[j]) {\n        alt[end++] = colRows[j];\n      }\n      return end;\n    }\n"
+    }
+  ],
+  "files": [],
+  "params": {}
+}

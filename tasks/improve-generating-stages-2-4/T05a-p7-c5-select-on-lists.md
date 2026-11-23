@@ -188,13 +188,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 02:36 +07:00 (dispatch, base `ade5b93`); 2026-11-24 02:49 +07:00 (accepted); 14 min. The developer reported 02:35:54-02:47:54 |
+| Waiting for rulings | none |
+| Agent id, model | `d6f0ccb5-9803-419d-a828-0c673ca76c94`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 21 calls; 1,197,614 input, 9,084 output, 1,155,824 cache-read tokens |
+| AI credits | 31.09 (developer only) |
+| Questions and rulings | none; outcome: complete equality (no dropped-candidate ruling needed). The developer's notes (c5-1's indentation as in the built tree; the README bullet's added sentence "The third and last composite; a spike variant, never an arm.") change no behaviour |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `check-edits --all`: `ok p7-c1: 9`, `ok p7-c1r5: 10`, `ok p7-c1r5c5: 13 edits match`; `build p7-c1r5c5`: tree `ab52393b...` reused; `V4-P7E-p7-c1r5c5-quick/p7.json`: `equal.verdict` equal, coverage complete, 149 items, 149 ended, 149 equal, 0 problems (the developer's quick equality run: 4 locked invocations, 174.3 + 174.9 + 153.4 + 81.2 s); `check-binding` of P-0: pass; `firewall check --task S24-T05a`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the Scope files |
+| Commit | this task's commit |
+| Issues and named items | none; the three composites are equal on the quick tier, so T05b's full runs and S02's timing cover all three |
