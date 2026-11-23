@@ -2,13 +2,13 @@
 
 | Item | Value |
 |---|---|
-| Status | **Draft (round 1)**, revised after SA-Astra's review (`sa-astra/round-1-draft-review.md`); not a freeze, an allowance or an activation |
+| Status | **Final (2026-11-23, base ff9adcf)**, with the final sub-plan; revised after SA-Astra's reviews (`sa-astra/round-1-draft-review.md`, `round-1-draft-review-2.md`) and updated with the owner's answers of 2026-11-23; the report itself is not a freeze, an allowance or an activation (the owner's approvals are [`plan.md`](plan.md) D-S24-25 to D-S24-29) |
 | Drafter / reviewer | SA-Opus (claude-opus-5.5) / SA-Astra (gpt-6-astra), role sa |
-| Base | `c159ab4` (both analyses and both cross-reviews); V4-S2's evidence `35b401e`; frozen source `3fc65f4` |
+| Base | `c159ab4` (both analyses and both cross-reviews); `8ca5bc2` (SA-Astra's reviews applied, the joint decisions); `ff9adcf` (the owner's answers); V4-S2's evidence `35b401e`; frozen source `3fc65f4` |
 | Request | [`request.md`](request.md): the owner, 2026-11-23 12:54 +07:00, "continue doing all the work until it is finished" |
 | Binding plan | [`../improve-generating/plan.md`](../improve-generating/plan.md) v4 (`c3ef770`, plan author SA-Fable); the v4 pack `tasks/improve-generating-v4/` (`0edc636`) |
 | Authority | For a matter that would previously have required the supervisor, both SAs decide jointly under the owner's delegation (2026-11-23 15:29 +07:00, Discord message 1574341211701907457). Owner approvals remain mandatory, and a joint decision changing one of the owner's recorded decisions still needs his confirmation. |
-| With this report | the sub-plan [`plan.md`](plan.md) and the open questions [`clarifications.md`](clarifications.md) |
+| With this report | the final sub-plan [`plan.md`](plan.md) and [`clarifications.md`](clarifications.md) (no open questions; the owner's answers at `ff9adcf`) |
 
 **Labels.** **[V]** verified: recomputed from the records or read at the cited `path:line` by at least one SA and re-checked by
 the other (both cross-reviews re-derived every number they cite from the raw records, not from the other's prose). **[A]**
@@ -31,17 +31,19 @@ outputs; commands in section 7).
    rescue stays. P5: 10 G per Nightmare call and 40 G per Hell 1 call in `any` mode; four same-side attempts. Deadline: 0.6 of
    it reserved for the batch (a 46-s set stage), one 115-s stop, a hard 120-s response.
 4. **`require` calls get a finite budget** of 32 G (Nightmare) and 40 G (Hell 1) per selection call: technical values agreed,
-   the policy confirmed by the owner (Q-S24-3).
+   the finite policy confirmed by the owner on 2026-11-23 (Q-S24-3 (a), D-S24-25).
 5. **New runs before stage 4, all inside the 749 [A]:** a control pilot on the eight never-piloted controls (about 16-20
    counted minutes), the P7 spike's timing probe (11.4-12.9, a timing-proxy scenario), the four frozen arms' proofs with the
-   20-request uncapped Hell 1 check before the freeze (40-44), and `V4-LIVE` (4-5).
+   20-request uncapped Hell 1 check before the freeze (40-44), and `V4-LIVE` (4-5). The owner approved the control pilot, up
+   to 20 minutes for the timing probe and the 20 Hell 1 rows on 2026-11-23 (D-S24-26 to D-S24-28); the four proofs and
+   `V4-LIVE` are asked at their turn.
 6. **Stage 4 needs larger allowances [A].** `V4-S4` is about 464-510 counted minutes at the timing proxy (formal guard
    1,481.9; a minimum cap of about 1,726 to 1,737 on the account) and `V4-S4C` 170-183 (guard 732.0); the round would end near
    878 to 947 counted minutes.
 7. **P7's spike** runs before the freeze, as the plan orders; the frozen arms keep the reference kernel (D-S24-22).
 8. **Decisions and questions.** Under the owner's delegation (2026-11-23 15:29, Discord) the SAs decided the former supervisor
-   questions and their three disagreements jointly (section 6). Five owner questions remain open
-   ([`clarifications.md`](clarifications.md)); none is for the supervisor.
+   questions and their three disagreements jointly (section 6). The owner answered the five owner questions with (a) on
+   2026-11-23 16:30 (D-S24-25 to D-S24-29, `ff9adcf`): no question is open ([`clarifications.md`](clarifications.md)).
 
 ## 1. The stage-2 report
 
@@ -340,7 +342,8 @@ The per-set prior runs on Hell 1 only; no ranker (C3's data-only test has not ru
   affordability on those traces, not a forecast of the number of stopped successes in validation or a guarantee
   about new priors, interrupted calls or unmeasured controls. The budget buys determinism, not speed (the 2-G arm gained
   nothing).
-- **`require` calls (technical values agreed; owner policy confirmation pending, Q-S24-3):** Nightmare
+- **`require` calls (technical values agreed; the finite policy confirmed by the owner on 2026-11-23, Q-S24-3 (a),
+  D-S24-25):** Nightmare
   32 G and Hell 1 40 G per selection call. These are conservative candidate limits, not measured general
   affordability guarantees. The successful Nightmare selection used 10.274 G; the generated set and candidate
   calls used 5.817 and 6.829 G. The 20.608 G Hell selection failed. The Hell limit is not set below the chosen
@@ -370,7 +373,8 @@ hashes. [`plan.md`](plan.md) §4.2 has the full design.
 ### 2.7 The Hell 1 check before the freeze and its read gate (D-S24-24)
 
 The four final-family P-1 passes, then **20 `fr-frozen-none-uncapped` requests** on 14x14, 20x20, 24x24 and 26x26 Hell 1,
-reps 0-4, before writing `freeze.json` (in `V4-S3P`; the owner approves the scope and its minutes, Q-S24-5). No extra 14x14
+reps 0-4, before writing `freeze.json` (in `V4-S3P`; the owner approved the scope and its minutes on 2026-11-23, Q-S24-5 (a),
+D-S24-27). No extra 14x14
 Nightmare rows and no candidate-arm `V4-S2F`; the control pilot addresses the unmeasured Nightmare cells separately.
 
 > The SAs read all 20 valid published rows and their complete worker/link journals against the proposed bounded
@@ -404,7 +408,8 @@ Nightmare rows and no candidate-arm `V4-S2F`; the control pilot addresses the un
   nodes) on PM4's corpus and T10a's, with tie order, cap boundaries, undo paths and near-32-MiB models; the memory rule as plan
   P7 states it. [A] Go at x1.04 or more on rating time, an SA choice recorded before the measurement (plan P7 projects x1.04 to
   1.15). Developer effort 14 to 22 hours.
-- **Timing probe:** three composites x 90 paired items, one lane: 15.50 projected / 19.37 guard counted minutes (owner, Q-S24-6);
+- **Timing probe:** three composites x 90 paired items, one lane: 15.50 projected / 19.37 guard counted minutes (the owner
+  approved up to 20 minutes on 2026-11-23, Q-S24-6 (a), D-S24-28);
   11.4 to 12.9 in a timing-proxy scenario (T11g's own item schedule at V4-S2K's measured item times instead of 1.25 times them,
   `evidence/sa-opus/j1-numbers.md` §2), not a measured time of the new configuration.
 - **The kernel (D-S24-22).** The P7 spike runs before the freeze, on isolated harness variants. The four frozen arms and their
@@ -415,12 +420,13 @@ Nightmare rows and no candidate-arm `V4-S2F`; the control pilot addresses the un
 
 ## 4. The pack outline (details in [`plan.md`](plan.md) §8)
 
-N-V4-19 and N-V4-20; the control pilot `V4-S2B` (owner); the P7 spike (owner for its probe); the frozen family's parameters
-(Hell 1 table, budget by mode, per-set on Hell 1); the live deadline (N-V4-13); the four frozen variants (a candidate epoch); the
-live receipt and its acceptance by the receipt's own kind; `V4-S3P`, the four frozen arms' P-1 passes and the 20-request
-uncapped Hell 1 check (owner for its scope, Q-S24-5), read through the gate of section 2.7 before `freeze.json`; the SAs'
-reading; `freeze.json` (write once); `V4-LIVE` (owner); the S4-6 decision and `activate` (owner); `V4-S4` (owner, a raise);
-`V4-S4C` (owner); the stage-4 report and phase 0 (N-V4-06) to the owner. Optional: N-V4-18 before the activation (owner, Q-S24-7).
+N-V4-19 and N-V4-20; the control pilot `V4-S2B` (approved by the owner, D-S24-26); the P7 spike (its probe approved up to 20
+minutes, D-S24-28); the frozen family's parameters (Hell 1 table, budget by mode, per-set on Hell 1); the live deadline
+(N-V4-13); the four frozen variants (a candidate epoch); the live receipt and its acceptance by the receipt's own kind;
+`V4-S3P`, the four frozen arms' P-1 passes (owner, at their gate) and the 20-request uncapped Hell 1 check (approved,
+D-S24-27), read through the gate of section 2.7 before `freeze.json`; the SAs' reading; `freeze.json` (write once); `V4-LIVE`
+(owner); the S4-6 decision and `activate` (owner); `V4-S4` (owner, a raise); `V4-S4C` (owner); the stage-4 report and phase 0
+(N-V4-06) to the owner. N-V4-18 is not implemented (the owner's answer, D-S24-29).
 Then phase 2 (N-V4-07, with N-V4-15), phase 3 (N-V4-08, N-V4-09), phase 4 (N-V4-11), N-V4-01, N-V4-04 and N-V4-10, each at its
 gate.
 
@@ -434,15 +440,15 @@ times x 1.25 and a 45-s quiet are priced.
 
 | Plan | Content | Projected | Guard | Timing proxy | When |
 |---|---|---:|---:|---:|---|
-| `V4-S2B` | `fr-none` on the 8 unpiloted controls, reps 0-4 (40 rows) | 22.59 | 28.24 | 16.0-20.0 | now (Q-S24-4) |
-| `V4-P7` | the P7 timing probe: three composites x 90 paired items | 15.50 | 19.37 | 11.4-12.9 | after the spike's code (Q-S24-6) |
+| `V4-S2B` | `fr-none` on the 8 unpiloted controls, reps 0-4 (40 rows) | 22.59 | 28.24 | 16.0-20.0 | now (approved, D-S24-26) |
+| `V4-P7` | the P7 timing probe: three composites x 90 paired items | 15.50 | 19.37 | 11.4-12.9 | after the spike's code (approved up to 20 min, D-S24-28) |
 | `V4-S3P` proofs | the four frozen arms' P-1 passes (48 items) | 71.20 | 89.00 | 20.0-22.0 | before `freeze.json` (owner, at its gate) |
-| `V4-S3P` Hell 1 check | `fr-frozen-none-uncapped` on the four Hell 1 boards, reps 0-4 (20 rows) | 67.69 | 84.61 | 20.0-22.0 | same plan (Q-S24-5) |
+| `V4-S3P` Hell 1 check | `fr-frozen-none-uncapped` on the four Hell 1 boards, reps 0-4 (20 rows) | 67.69 | 84.61 | 20.0-22.0 | same plan (approved, D-S24-27) |
 | `V4-LIVE` | `fr-frozen` on 14x14 Nightmare and 26x26 Hell 1, reps 0-4 | 35.12 | 43.91 | 4-5 | after `freeze.json` |
 | S4-6 (optional) | today's arm on the five failing cells, reps 20-24 | 58.00 | 72.50 | - | at the activation |
 | `V4-S4` | 1,120 rows + 48 P-1 items, both conditional boards | 1,185.49 | 1,481.86 | 464.3-509.8 | after the activation |
 | `V4-S4C` | 380 uncapped comparator rows | 585.62 | 732.02 | 169.8-182.8 | after the final selection |
-| N-V4-18 (optional saving) | 140 duplicate rows of `V4-S4` (not `V4-S4C`) | -240.37 | -300.46 | -90.3 to -94.8 | before the activation (Q-S24-7) |
+| N-V4-18 (saving not taken) | 140 duplicate rows of `V4-S4` (not `V4-S4C`) | -240.37 | -300.46 | -90.3 to -94.8 | not implemented (D-S24-29) |
 
 **The account (now 172.3 of 749) [A]** (`evidence/sa-opus/j1-numbers.md` §3; `evidence/sa-astra/draft-review-check.json`):
 
@@ -462,18 +468,21 @@ be below the S4 grant after S4 underspends. Re-read the account and actual compi
 
 End-of-round proxy: 877.817-946.817 counted minutes; guard-chain account: 2,651.343 minutes; about 1.2 to 1.4 hours of
 machine before stage 4 and 10.6 to 11.6 hours in it. Today's `V4-LIVE` arithmetic remains 217 including off-log time, the
-active grant 749, and the historical 793 was a full-S2-guard scenario.
+active grant 749, and the historical 793 was a full-S2-guard scenario. Approved by the owner on 2026-11-23 inside the 749:
+`V4-S2B`, `V4-P7` (up to 20 minutes) and the 20 Hell 1 rows of `V4-S3P` (D-S24-26 to D-S24-28); asked at their turn: the
+proofs of `V4-S3P`, `V4-LIVE`, `V4-S4` and `V4-S4C`.
 
 ## 6. Agreed positions, the joint decisions and the corrections
 
-**Agreed by both SAs** (the cross-reviews at `c159ab4`, this draft and SA-Astra's review of it,
-`sa-astra/round-1-draft-review.md`): the stage-2 facts of section 1; the five classes and their `W` (2.2); the priors (2.3);
-`any` budgets 10 / 40 G, `require` budgets 32 / 40 G, the four-attempt bound (2.4); the deadline (2.5); no (c4), no bracket
-close, the rescue kept, no ranker, the per-set prior on Hell 1 only; `V4-S2B`; the four frozen arms' P-1 passes before
-`V4-LIVE` and the activation (these do not replace `V4-S4P`'s); the 20-request uncapped Hell 1 check and its read gate (2.7);
-N-V4-18 not implemented by default; the P7 spike before the freeze, its content and the reference kernel in the frozen arms
-(section 3); `V4-LIVE`'s cap 217 today (215 on the logs); the formal prices of section 5; no external ruling for the class
-boundaries, which plan §5.2 leaves to the freeze (`plan.md:630-634`); no production change before phase 0.
+**Agreed by both SAs** (the cross-reviews at `c159ab4`, the round-1 draft and SA-Astra's reviews of it,
+`sa-astra/round-1-draft-review.md` and `round-1-draft-review-2.md`): the stage-2 facts of section 1; the five classes and
+their `W` (2.2); the priors (2.3); `any` budgets 10 / 40 G, `require` budgets 32 / 40 G, the four-attempt bound (2.4); the
+deadline (2.5); no (c4), no bracket close, the rescue kept, no ranker, the per-set prior on Hell 1 only; `V4-S2B`; the four
+frozen arms' P-1 passes before `V4-LIVE` and the activation (these do not replace `V4-S4P`'s); the 20-request uncapped Hell 1
+check and its read gate (2.7); N-V4-18 not implemented (the owner's answer, D-S24-29); the P7 spike before the freeze, its
+content and the reference kernel in the frozen arms (section 3); `V4-LIVE`'s cap 217 today (215 on the logs); the formal
+prices of section 5; no external ruling for the class boundaries, which plan §5.2 leaves to the freeze (`plan.md:630-634`); no
+production change before phase 0.
 
 **Joint decisions under the owner's delegation** (the authority row of the header; recorded in [`plan.md`](plan.md) §5):
 
@@ -482,11 +491,16 @@ boundaries, which plan §5.2 leaves to the freeze (`plan.md:630-634`); no produc
 - **D-S24-22** (the former Q-S24-2 and disagreement D-1): the four frozen arms keep the reference kernel; a passing P7
   composite is recorded for phase 1 (section 3). SA-Astra withdrew its kernel-choice position in its draft review.
 - **D-S24-23** (the former D-3): `require` budgets of 32 G (Nightmare) and 40 G (Hell 1) per selection call, as technical
-  values; the owner confirms the finite policy (Q-S24-3).
+  values; the owner confirmed the finite policy (Q-S24-3 (a), D-S24-25).
 - **D-S24-24** (the former D-2): the 20-request uncapped Hell 1 check with the read gate of 2.7, inside `V4-S3P`; SA-Astra
-  withdrew the unconditional 50-row `V4-S2F`; the owner approves the scope and its minutes only (Q-S24-5).
+  withdrew the unconditional 50-row `V4-S2F`; the owner approved the scope and its minutes only (Q-S24-5 (a), D-S24-27).
 
 These change no decision the owner recorded; no disagreement between the SAs remains open.
+
+**The owner's answers** (2026-11-23 16:30 +07:00, Discord message 1574356572102991934, "I answer all Q-S24 with a"; recorded
+in [`clarifications.md`](clarifications.md) at `ff9adcf`; [`plan.md`](plan.md) D-S24-25 to D-S24-29): a finite `require` limit
+of 32 G / 40 G (Q-S24-3); the control pilot `V4-S2B` (Q-S24-4); the 20-request uncapped Hell 1 check (Q-S24-5); up to 20
+minutes for the P7 timing probe (Q-S24-6); N-V4-18 not implemented (Q-S24-7). No question is open.
 
 **Corrections each SA accepted.** SA-Opus, from SA-Astra's cross-review (E1 to E6): equal puzzles do not mean a mechanism did
 not run; `require` was measured by the P-1 items, though not by a representative pilot; a budget stops a call by its work
@@ -528,6 +542,6 @@ npm run check
 | Priors | `evidence/sa-opus/s2-prior.md`, `j1-numbers.md` §1; `evidence/sa-astra/review-records.json` (`priors`, `pm1`, `revisedPriorCandidate`); `docs/improve-generating/evidence/provisional/IGP-05/` |
 | Kernel, width | `docs/improve-generating/evidence/frozen/V4-S2K/kernel.json`, `kernel.md`; `V4-S2W/width.md`; `evidence/sa-opus/s2-profile.md` |
 | Prices, account | `evidence/sa-opus/x1-prices.md`, `s4-cost.md`, `j1-numbers.md` §3; `evidence/sa-astra/review-records.json` (`prices`, `account`), `draft-review-check.json` (`spike`, `chain`, `end`) |
-| Reviews | `sa-astra/round-1-draft-review.md` (SA-Astra's review of this draft); `sa-opus/round-1-draft-response.md` (the drafter's response) |
+| Reviews | `sa-astra/round-1-draft-review.md` and `round-1-draft-review-2.md` (SA-Astra's reviews of the round-1 draft); `sa-opus/round-1-draft-response.md` (the drafter's response) |
 | Records of V4-S2 | `docs/improve-generating/evidence/frozen/V4-S2/`, `V4-S2P/`, `V4-S2K/`, `V4-S2W/`; `tests/artifacts/ig-proto/frozen/V4-S2*/` |
 | Code | `tools/ig-proto/variants/files/v4/core/engine/ig-select-v4.js:82-129, 199-205, 257-279, 404-426, 1303-1316`; `tools/ig-proto/verdicts.mjs:405-414, 873-931 (work rule), 967-1069 (class verdict), 1332 (deadline projection), 1539-1540`; `tools/ig-proto/manifest.mjs:1680, 2240-2288 (freeze check), 2619`; `tools/ig-proto/v4-check.mjs:117-146, 1571-1601`; `tools/ig-proto/lib/records.mjs:112-125`; `tools/ig-proto/lib/tree.mjs:249`; `tools/ig-proto/lib/proof.mjs:26`; `tools/ig-proto/plans/V4-LIVE.json` |
