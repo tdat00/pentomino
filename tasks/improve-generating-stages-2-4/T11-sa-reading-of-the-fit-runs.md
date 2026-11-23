@@ -4,7 +4,7 @@
 |---|---|
 | Feature, plan | improve-generating-stages-2-4, `docs/improve-generating-stages-2-4/plan.md` §8.2 T11 and "T11's acceptance and read gate" (verbatim below), §4.3 (the candidate epoch), §4.7 (seeds), §9 (T11's gate); D-S24-19, D-S24-24, D-S24-27; the owner's delegation of 2026-11-23 15:29 |
 | Repository, branch, base | `Q:\git\pentomino`, `improve-generating`, the commit of S03 |
-| Depends on | S03 (the 20 published rows, the four bindings), S01 (`s01-reading.md`) |
+| Depends on | S03 (the 20 published rows, the four bindings), S01 (`s01-reading.md`), T02d (the prefixes record indexes the `.runs.md` it reads; R-P24-05) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | SA-Opus drafts, SA-Astra reviews; one joint note (no production code, no test, no harness edit) |
 | Estimate | SAs; machine 0 min (unlocked reads; scratch scripts in the SAs' evidence folders) |

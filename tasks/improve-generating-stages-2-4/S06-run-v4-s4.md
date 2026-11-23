@@ -46,7 +46,10 @@ publication, the selection verdict input, the class selection (`verdicts.mjs`), 
    cap on the account `ceil((roundCountedSBeforeApproval + 87.4 + requestedAdditionalGuardS) / 60)`.
 2. **STOP 2: ask the owner** (Discord), and wait. Text to relay: "Stage 4 is the long validation run: about 8 to 9 hours
    of machine time (about 464 to 510 counted minutes measured the way earlier runs were; up to 1,482 by the formal
-   guard). Your current grant is 749 counted minutes; the run needs the cumulative cap raised to at least `<cap>`. (a)
+   guard). Your current grant is 749 counted minutes; the run needs the cumulative cap raised to at least `<cap>`. Two of
+   the ten Nightmare control boards have small margins in the fitting runs: 32x15 (about the same speed as today's search
+   on five seeds) and 26x26 (about 12 % faster, with one slow seed); if either falls below the required 0.9 no-regression
+   bound at stage 4, phase 2 stops for a decision, while every other verdict of the run stands. (a)
    Raise the cap to `<cap>` and run (recommended: this is the validation the whole round leads to); (b) raise it to a
    value you choose of at least `<cap>`; (c) not now. Sudoku's difficulty-v3 keeps priority; tell us if it has nothing
    scheduled until a time (the waits shorten)." Record the answer, the new grant `G` and the message id. Only (a) or (b)

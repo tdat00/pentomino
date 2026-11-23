@@ -41,8 +41,11 @@ observation among the fitting inputs. T12b writes the record with it.
   `.../sa-opus/fit-input-index.json` (2,403, its field `entries`: SA-Opus's fitting scripts `s2-*.mjs` and
   `j1-numbers.mjs` cited by the joint report, their outputs, and every file of the two V4-S2 record roots they read,
   written by `bt-fit-index.mjs`), T11's `.../sa-opus/t11-transport-inputs.json` and `t11-projection-inputs.json`
-  (arrays), and the three `fit-read` records of S01 and T11 (their field `inputs`). Their entries' paths may use `\`;
-  they are normalized to `/`.
+  (arrays), and the three `fit-read` records of S01 and T11 (their field `inputs`), with SA-Astra's supplement
+  `.../sa-astra/s01-review-checks.json` (its field `publicationInputs`, `sha256`: the eight `.runs.md` files that S01's
+  prefixes record read through `publicationOf` but did not index; ruling R-P24-05; only this field is selected, never the
+  review's broader `inputs`, which also record mutable draft and harness sources at the review epoch). Their entries'
+  paths may use `\`; they are normalized to `/`.
 - **Mutable harness sources** named by the indices: `tools/ig-proto/lib/lane-worker.mjs`, `tools/ig-proto/manifest.mjs`,
   `tools/ig-proto/v4-check.mjs`, `tools/ig-proto/verdicts.mjs`, `tools/ig-proto/linkage.mjs` (and the protected
   `tools/ig-proto/data/`, `plans/` and `variants/` files, which G2 keeps unchanged). This pack edits the first three
@@ -74,6 +77,7 @@ observation among the fitting inputs. T12b writes the record with it.
      { path: 'docs/improve-generating-stages-2-4/evidence/sa-opus/t11-projection-inputs.json', field: null, key: 'sha256Lf' },
      { path: 'docs/improve-generating/evidence/frozen/V4-S2B/fit-read-preview-fr-none.json', field: 'inputs', key: 'sha256' },
      { path: 'docs/improve-generating/evidence/frozen/V4-S2B/fit-read-prefixes-fr-none.json', field: 'inputs', key: 'sha256' },
+     { path: 'docs/improve-generating-stages-2-4/evidence/sa-astra/s01-review-checks.json', field: 'publicationInputs', key: 'sha256' },
      { path: 'docs/improve-generating/evidence/frozen/V4-S3P/fit-read-prefixes-fr-frozen-none-uncapped.json', field: 'inputs', key: 'sha256' },
    ]);
    /** The top-level files and scripts of the fit (hashed as they are today; every index file is one too). */
@@ -96,6 +100,7 @@ observation among the fitting inputs. T12b writes the record with it.
      'docs/improve-generating-stages-2-4/evidence/sa-astra/rows-computed.json',
      'docs/improve-generating-stages-2-4/evidence/sa-astra/calls-computed.json',
      'docs/improve-generating-stages-2-4/evidence/sa-astra/review-records.json',
+     'docs/improve-generating-stages-2-4/evidence/sa-astra/s01-review-checks.mjs',
      'docs/improve-generating-stages-2-4/evidence/sa-opus/bt-fit-index.mjs',
      'docs/improve-generating-stages-2-4/evidence/sa-opus/t11-transport.mjs',
      'docs/improve-generating-stages-2-4/evidence/sa-opus/t11-projection.mjs',
