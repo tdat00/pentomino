@@ -1606,10 +1606,29 @@ then the batch's; with the parameter both share one clock from the request start
   set's and the batch's `assemblePack`, so that scripted cases (T07c) can hold an assembly beyond the bound. A test seam: the bench and the product never
   set it.
 - **`live-test`** (`extends ['live', 'w8']`, test only, never an arm, a plan step or a binding's `current` id): the deadline on the fixture level `hard`
-  (`deadline-test`, `levels ['hard']`) with the eight-worker pool limit, for the scripted cases. The case factory `hostBoundCase(variant)` is run again by
-  T08c on the bounded frozen twins.
-- **Self-test.** Five cases of the `--v4` group: `live: the pool starts a request at its origin`, `live: igLiveOf rule`, `live: inert without its
-  parameter`, `live live-test: the host's hard response bound` and `live: the host bound is inert without its parameter`.
+  (`deadline-test`, `levels ['hard']`) with the eight-worker pool limit, for the scripted cases. The case factories `hostBoundCase(variant)` and
+  `liveCases(variant)` are run again by T08c on the bounded frozen twins.
+- **The scripted cases** (T07c, the factory `liveCases(variant)` of `self-test.mjs`, run on `live-test`; its helper `batchFixture(variant)` chooses, as
+  `fixture()` of `tests/generation-client.test.js` does, ten real candidates of the generation fixture from the tree's own engine, so that attempt 0 of
+  slot `s` gives the `s`-th puzzle of the fold). Six cases on the scripted pool (`lib/fake-pool.mjs`, the fake clock):
+  - *the set stage is cut by the reserve*: with the origin, every attempt held gives `reserve-cut` at 46 s (pending at 45.999 s, every held worker
+    terminated); a higher success while attempt 0 runs does not stop the cut; a success of attempt 0 at 45 s completes; without an origin the stop is the
+    request's own 115 s;
+  - *one clock from the request start and the prefix at the stop*: a batch started 40 s after the origin stops at origin + 115 s with the three answered
+    puzzles (`partial`, `time-limit`), every held task cancelled and late messages changing nothing; without an origin it stops at its own 115 s;
+  - *the same puzzles at widths 1, 2, 4 and 8 without a cut*: the ten fold puzzles in the same order at every pool width;
+  - *a cut leaves a prefix of the same fold at every width*: with every task answered 30 s after it is sent, the stop at 115 s leaves a prefix of the same
+    fold of 3, 6, 10 and 10 puzzles at widths 1, 2, 4 and 8 (`partial`/`time-limit` at widths 1 and 2, `complete` at 4 and 8); a `NOTE` line prints the
+    lengths and the end times;
+  - *the deadline applies to the listed levels only* (`igLiveOf`: the level `hard` yes, `easy` and a request without an origin no);
+  - *the host bound around a held assembly*: with `igBoundStart` of the tree's runner and the assembly gate, (a) a batch whose own pack assembly is held
+    beyond the bound gets its response at origin + 119 s exactly (`partial`, `response-bound`, the three fold puzzles, a valid pack) while its own
+    promise stays pending, and after the release its own result (`partial`, `time-limit`) has the same `made`, seen histories and pack as the response,
+    which does not change; (b) a set whose pack assembly is held after a success at 10 s ends the set phase at 119 s with `response-bound`, and the
+    release changes nothing.
+- **Self-test.** Eleven cases of the `--v4` group: `live: the pool starts a request at its origin`, `live: igLiveOf rule`, `live: inert without its
+  parameter`, `live live-test: the host's hard response bound`, `live: the host bound is inert without its parameter` and the six scripted cases above
+  (`live live-test: ...`).
 
 ## Admission statistics (V4-T09a)
 

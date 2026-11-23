@@ -10075,6 +10075,345 @@ function hostBoundCase(variant) {
 }
 
 /**
+ * Ten real candidates of the generation fixture whose keys differ and whose layouts differ pairwise by at least 3, as
+ * `fixture()` of tests/generation-client.test.js chooses them, from the tree's own engine; built once per tree (T07c).
+ * @param {string} variant
+ * @returns {Promise<{ set: any, chosen: any[] }>}
+ */
+async function batchFixture(variant) {
+  memo.batchFixture ??= {};
+  if (memo.batchFixture[variant] === undefined) {
+    const { e, ws, scratch } = await engine(variant);
+    const { recipe, set } = await setFixture(variant);
+    const ctx = {
+      set, targetLevelId: recipe.levelId, quantity: 10, batchSeed: recipe.batchSeed, uniqueness: recipe.uniqueness,
+      seenLayouts: new Set(), seenClues: new Set(), execution: { main: ws, scratch },
+    };
+    const board = e.board.boardFromRows(recipe.boardRows);
+    /** @type {any[]} */
+    const chosen = [];
+    for (let slot = 1; chosen.length < 10 && slot <= 12; slot += 1) {
+      for (let attempt = 0; attempt < 12 && chosen.length < 10; attempt += 1) {
+        const c = e.generate.puzzleCandidate(ctx, slot, attempt);
+        if (!('fail' in c) && chosen.every((p) => p.clueKey !== c.clueKey && p.layoutKey !== c.layoutKey
+          && e.keys.layoutDistance(board, set.pieces, p.layout, c.layout) >= 3)) {
+          chosen.push(c);
+        }
+      }
+    }
+    assert(chosen.length === 10, `${variant}: ${chosen.length} fixture candidates, expected 10`);
+    memo.batchFixture[variant] = { set, chosen };
+  }
+  return memo.batchFixture[variant];
+}
+
+/**
+ * The scripted cases of the live deadline (T07c) on one tree whose IG.liveDeadline lists the fixture level 'hard' and
+ * whose pool allows eight workers: `live-test` (run by T07c), `fr-frozen-live-test` and `fr-frozen-none-live-test` (run by T08c).
+ * @param {string} variant
+ * @returns {{ name: string, run: () => Promise<void> }[]}
+ */
+function liveCases(variant) {
+  const setInput = (/** @type {Record<string, unknown>} */ over = {}) => ({
+    boardRows: LIVE_RECIPE().boardRows, rotation: 0, levelId: 'hard', seedText: 'fixture-set-0', uniqueness: 'any', maxActive: 676, ...over,
+  });
+  const batchInput = (/** @type {any} */ set, /** @type {Record<string, unknown>} */ over = {}) => ({
+    set, rotation: 0, targetLevelId: 'hard', quantity: 10, setSeed: 'fixture-set-0', batchIndex: 1, uniqueness: 'any',
+    seenLayouts: [], seenClues: [], ...over,
+  });
+  const scripted = async (/** @type {number} */ size, /** @type {((task: any) => any) | undefined} */ handler, /** @type {((phase: string) => Promise<void>) | undefined} */ gate = undefined) => {
+    const tree = await engine(variant);
+    const { createPool } = await browserModule(tree, 'worker-pool');
+    const { createGenerationClient } = await browserModule(tree, 'generation-client');
+    const h = harness(createPool, { size, handler });
+    const client = createGenerationClient(h.pool, {
+      clock: h.clock, createdAt: () => '2026-01-01T00:00:00.000Z', ...(gate === undefined ? {} : { igAssemblyGate: gate }),
+    });
+    return { h, client };
+  };
+  // Attempt 0 of slot s gets the s-th chosen candidate; every other attempt fails with `layout`.
+  const answerOf = (/** @type {any[]} */ chosen, /** @type {any} */ t) => (t.payload.attempt === 0
+    ? { value: chosen[t.payload.slot - 1] } : { value: { fail: 'layout' } });
+  const ids = (/** @type {any} */ value) => value.accepted.map((/** @type {any} */ p) => p.id);
+  const wanted = async () => {
+    const { e } = await engine(variant);
+    const { set, chosen } = await batchFixture(variant);
+    return { set, chosen, want: chosen.map((c) => e.keys.puzzleId(set.board, set.pieces, c.clues)) };
+  };
+  return [
+    {
+      name: `live ${variant}: the set stage is cut by the reserve`,
+      async run() {
+        const { set, calibration } = await setFixture(variant);
+        const success = (/** @type {number} */ attempt) => ({ value: { ok: true, set, calibration, attempt } });
+        {
+          const { h, client } = await scripted(4, undefined);
+          const r = track(client.generateSet(setInput({ igOrigin: h.clock.now() })));
+          await settle();
+          h.clock.advance(45999);
+          await settle();
+          assert(r.state === 'pending', `(a) ended before the cut: ${JSON.stringify(r.value)}`);
+          h.clock.advance(1);
+          await settle();
+          same(r.value, { status: 'failed', reason: 'reserve-cut', failures: {} }, '(a) every attempt held, at the cut');
+          same(h.tasks.map((t) => t.payload.attempt), [0, 1, 2, 3], '(a) the attempts dispatched');
+          assert(h.held.every((t) => t.worker.terminated), '(a) a held attempt was not terminated at the cut');
+          h.pool.close();
+        }
+        {
+          const { h, client } = await scripted(4, undefined);
+          const r = track(client.generateSet(setInput({ igOrigin: h.clock.now() })));
+          await settle();
+          h.clock.advance(10000);
+          h.answer(/** @type {any} */ (h.held.find((t) => t.payload.attempt === 1)), success(1));
+          await settle();
+          h.clock.advance(36000);
+          await settle();
+          same(r.value, { status: 'failed', reason: 'reserve-cut', failures: {} }, '(b) a higher success while attempt 0 runs');
+          h.pool.close();
+        }
+        {
+          const { h, client } = await scripted(4, undefined);
+          const r = track(client.generateSet(setInput({ igOrigin: h.clock.now() })));
+          await settle();
+          h.clock.advance(45000);
+          h.answer(/** @type {any} */ (h.held.find((t) => t.payload.attempt === 0)), success(0));
+          await settle();
+          same([r.value?.status, r.value?.attempt], ['complete', 0], '(c) a success of attempt 0 before the cut');
+          h.pool.close();
+        }
+        {
+          const { h, client } = await scripted(4, undefined);
+          const r = track(client.generateSet(setInput()));
+          await settle();
+          h.clock.advance(46000);
+          await settle();
+          assert(r.state === 'pending', '(d) a request without an origin was cut');
+          h.clock.advance(69000);
+          await settle();
+          same([r.value?.status, r.value?.reason], ['failed', 'time-limit'], '(d) without an origin, the stop at 115 s');
+          h.pool.close();
+        }
+      },
+    },
+    {
+      name: `live ${variant}: one clock from the request start and the prefix at the stop`,
+      async run() {
+        const { set, chosen, want } = await wanted();
+        const start = async (/** @type {boolean} */ withOrigin) => {
+          const { h, client } = await scripted(4, (t) => (t.payload.slot <= 3 ? answerOf(chosen, t) : undefined));
+          const origin = h.clock.now();
+          h.clock.advance(40000);
+          const r = track(client.generateBatch(batchInput(set, withOrigin ? { igOrigin: origin } : {})));
+          await settle();
+          return { h, r };
+        };
+        const live = await start(true);
+        live.h.clock.advance(74999);
+        await settle();
+        assert(live.r.state === 'pending', `ended before origin + 115 s: ${JSON.stringify(live.r.value?.reason)}`);
+        live.h.clock.advance(1);
+        await settle();
+        same([live.r.value?.status, live.r.value?.reason, ids(live.r.value)], ['partial', 'time-limit', want.slice(0, 3)], 'the prefix at origin + 115 s');
+        assert(live.h.held.every((t) => t.worker.terminated), 'a held task was not cancelled at the stop');
+        const before = JSON.stringify(live.r.value.accepted.map((/** @type {any} */ p) => p.id));
+        for (const t of live.h.held) {
+          live.h.answer(t, answerOf(chosen, t));
+        }
+        await settle();
+        same(JSON.stringify(live.r.value.accepted.map((/** @type {any} */ p) => p.id)), before, 'a late message changed the result');
+        live.h.pool.close();
+        const legacy = await start(false);
+        legacy.h.clock.advance(75000);
+        await settle();
+        assert(legacy.r.state === 'pending', 'a batch without an origin stopped at the origin + 115 s');
+        legacy.h.clock.advance(40000);
+        await settle();
+        same([legacy.r.value?.status, legacy.r.value?.reason, ids(legacy.r.value)], ['partial', 'time-limit', want.slice(0, 3)], 'without an origin, the stop at its own 115 s');
+        legacy.h.pool.close();
+      },
+    },
+    {
+      name: `live ${variant}: the same puzzles at widths 1, 2, 4 and 8 without a cut`,
+      async run() {
+        const { set, chosen, want } = await wanted();
+        for (const width of [1, 2, 4, 8]) {
+          const { h, client } = await scripted(width, (t) => answerOf(chosen, t));
+          const r = await client.generateBatch(batchInput(set, { igOrigin: h.clock.now() }));
+          same([r.status, ids(r)], ['complete', want], `width ${width}`);
+          h.pool.close();
+        }
+      },
+    },
+    {
+      name: `live ${variant}: a cut leaves a prefix of the same fold at every width`,
+      async run() {
+        const { set, chosen, want } = await wanted();
+        /** @type {Record<number, number>} */
+        const lengths = {};
+        /** @type {Record<number, string>} */
+        const statuses = {};
+        /** @type {Record<number, number>} */
+        const endedAt = {};
+        for (const width of [1, 2, 4, 8]) {
+          /** @type {Map<any, number>} */
+          const sentAt = new Map();
+          /** @type {any} */
+          let h = null;
+          const made = await scripted(width, (t) => {
+            sentAt.set(t, h === null ? 1000 : h.clock.now());
+            return undefined;
+          });
+          h = made.h;
+          const origin = h.clock.now();
+          const r = track(made.client.generateBatch(batchInput(set, { igOrigin: origin })));
+          await settle();
+          /** @type {Set<any>} */
+          const answered = new Set();
+          for (let step = 0; step < 40 && r.state === 'pending'; step += 1) {
+            h.clock.advance(5000);
+            for (const t of h.held) {
+              if (!answered.has(t) && !t.worker.terminated && /** @type {number} */ (sentAt.get(t)) + 30000 <= h.clock.now()) {
+                answered.add(t);
+                h.answer(t, answerOf(chosen, t));
+              }
+            }
+            await settle();
+          }
+          assert(r.state === 'resolved', `width ${width}: the batch is ${r.state} after 200 s`);
+          const got = ids(r.value);
+          same(got, want.slice(0, got.length), `width ${width}: not a prefix of the fold`);
+          lengths[width] = got.length;
+          statuses[width] = r.value.status === 'complete' ? 'complete' : `${r.value.status}/${r.value.reason}`;
+          endedAt[width] = h.clock.now() - origin;
+          h.pool.close();
+        }
+        same(lengths, { 1: 3, 2: 6, 4: 10, 8: 10 }, 'the pinned prefix at each width');
+        same(statuses, { 1: 'partial/time-limit', 2: 'partial/time-limit', 4: 'complete', 8: 'complete' }, 'the status at each width');
+        process.stdout.write(`NOTE live ${variant}: puzzles at the stop by width ${JSON.stringify(lengths)}, ended at ${JSON.stringify(endedAt)} ms from the origin\n`);
+      },
+    },
+    {
+      name: `live ${variant}: the deadline applies to the listed levels only`,
+      async run() {
+        const { igLiveOf } = await browserModule(await engine(variant), 'generation-client');
+        const clock = { now: () => 5000 };
+        same(igLiveOf({ igOrigin: 1000 }, 'hard', clock), { origin: 1000, setCutAt: 47000 }, 'the fixture level');
+        assert(igLiveOf({ igOrigin: 1000 }, 'easy', clock) === null, 'an unlisted level has a deadline');
+        assert(igLiveOf({}, 'hard', clock) === null, 'a request without an origin has a deadline');
+      },
+    },
+    {
+      name: `live ${variant}: the host bound around a held assembly`,
+      async run() {
+        const { set, chosen, want } = await wanted();
+        const tree = await engine(variant);
+        const { validatePack } = await treeModule(tree, 'pack');
+        // An assembly gate (T07b's igAssemblyGate): it records every assembly the client enters and holds the named one
+        // until release().
+        const gate = (/** @type {'set' | 'batch'} */ hold) => {
+          /** @type {string[]} */
+          const entered = [];
+          /** @type {() => void} */
+          let open = () => {};
+          const held = new Promise((resolve) => {
+            open = () => resolve(undefined);
+          });
+          return {
+            entered,
+            release: () => open(),
+            fn: (/** @type {string} */ phase) => {
+              entered.push(phase);
+              return phase === hold ? held : Promise.resolve();
+            },
+          };
+        };
+        {
+          // (a) The batch's own pack assembly is held beyond 120 s: the response is already there at the bound.
+          const g = gate('batch');
+          const { h, client } = await scripted(4, (t) => (t.payload.slot <= 3 ? answerOf(chosen, t) : undefined), g.fn);
+          const s = { t0: h.clock.now() };
+          const bound = tree.e.runner.igBoundStart(s, { levelId: 'hard' }, h.clock, client);
+          const original = client.generateBatch(batchInput(set, { igOrigin: s.t0 }));
+          const o = track(original);
+          /** @type {number | null} */
+          let at = null;
+          const r = track(bound.batch(original).then((v) => {
+            at = h.clock.now() - s.t0;
+            return v;
+          }));
+          await settle();
+          h.clock.advance(115000);
+          await settle();
+          same(g.entered, ['batch'], '(a) the batch did not enter its pack assembly at the stop');
+          assert(r.state === 'pending' && o.state === 'pending', `(a) settled before the bound: ${r.state}, ${o.state}`);
+          h.clock.advance(4000);
+          await settle();
+          same([r.state, at], ['resolved', 119000], '(a) the response at the bound');
+          h.clock.advance(1000);
+          await settle();
+          h.clock.advance(5000);
+          await settle();
+          assert(o.state === 'pending', '(a) the held assembly ended by itself');
+          const v = r.value;
+          same([v.status, v.reason, ids(v)], ['partial', 'response-bound', want.slice(0, 3)], '(a) the prefix of the same fold');
+          same(Object.keys(v.made).sort(), [...ids(v)].sort(), '(a) one recipe entry per accepted candidate');
+          assert(v.pack !== undefined && validatePack(v.pack).ok === true, '(a) the prefix has no valid assembled pack');
+          assert(h.held.every((t) => t.worker.terminated), '(a) a held task was not cancelled');
+          const before = JSON.stringify(v);
+          g.release();
+          for (const t of h.held) {
+            h.answer(t, answerOf(chosen, t));
+          }
+          await settle();
+          same([o.state, o.value?.status, o.value?.reason], ['resolved', 'partial', 'time-limit'], "(a) the batch's own result after the release");
+          same([v.made, v.seenLayouts, v.seenClues, v.pack], [o.value.made, o.value.seenLayouts, o.value.seenClues, o.value.pack], "(a) the snapshot is not the batch's own prefix");
+          same(JSON.stringify(r.value), before, '(a) the release or a late answer changed the response');
+          bound.clear();
+          h.pool.close();
+        }
+        {
+          // (b) A set attempt succeeds at 10 s and its pack assembly is held: the bound ends the set phase at 119 s.
+          const { set: pieceSet, calibration } = await setFixture(variant);
+          const g = gate('set');
+          const { h, client } = await scripted(4, undefined, g.fn);
+          const s = { t0: h.clock.now() };
+          const bound = tree.e.runner.igBoundStart(s, { levelId: 'hard' }, h.clock, client);
+          const original = client.generateSet(setInput({ igOrigin: s.t0 }));
+          const o = track(original);
+          /** @type {number | null} */
+          let at = null;
+          const r = track(bound.set(original).then((v) => {
+            at = h.clock.now() - s.t0;
+            return v;
+          }));
+          await settle();
+          h.clock.advance(10000);
+          h.answer(/** @type {any} */ (h.held.find((t) => t.payload.attempt === 0)), { value: { ok: true, set: pieceSet, calibration, attempt: 0 } });
+          await settle();
+          same(g.entered, ['set'], '(b) the set did not enter its pack assembly');
+          h.clock.advance(108999);
+          await settle();
+          assert(r.state === 'pending', `(b) ended before the bound: ${JSON.stringify(r.value)}`);
+          h.clock.advance(1);
+          await settle();
+          same([r.state, r.value, at], ['resolved', { status: 'failed', reason: 'response-bound', failures: {} }, 119000], '(b) a set held in its assembly at the bound');
+          h.clock.advance(1000);
+          await settle();
+          assert(o.state === 'pending', '(b) the held set assembly ended by itself');
+          g.release();
+          await settle();
+          same([o.state, o.value?.status, o.value?.attempt], ['resolved', 'complete', 0], '(b) the set after its release');
+          same(r.value, { status: 'failed', reason: 'response-bound', failures: {} }, '(b) the release changed the response');
+          bound.clear();
+          h.pool.close();
+        }
+      },
+    },
+  ];
+}
+
+/**
  * One set request on a scripted pool of the tree `variant` (the tree `<variant>-w8-test` for width 8): the pool and
  * the client are that tree's `core/browser/worker-pool.js` and `generation-client.js`. A `setAttempt` task is answered
  * at once when `script[attempt].now` is true, else held; then, at most 64 times, the held task with the lowest attempt
@@ -11679,6 +12018,7 @@ const v4Cases = [
       same([plain.result.state, plain.result.value?.partialReason], ['resolved', 'cancelled'], 'live: the row after its cancel');
     },
   },
+        ...liveCases('live-test'),
 ];
 
 /** @param {string} text @returns {string} The text without the worktree's absolute root (records refuse it). */

@@ -475,13 +475,13 @@ seconds); each AC row with its evidence; the questions and rulings; the deviatio
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 05:30 +07:00 (dispatch, base `b4cb389`); 2026-11-24 05:37 +07:00 (accepted); the developer reported 05:30:28-05:33:47 |
+| Waiting for rulings | none |
+| Agent id, model | `5d9b8067-f401-4daf-8874-94e416a13a5a`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 24 calls; 1,757,127 input, 17,131 output, 1,686,975 cache-read tokens |
+| AI credits | 51.54 (developer only) |
+| Questions and rulings | none; every pinned scripted value held on the first run (the 46-s cut; the three-puzzle prefix; widths 1, 2, 4, 8 giving 3, 6, 10, 10 puzzles ended at 115, 115, 90, 60 s; the 119-s bound); no behaviour deviation (placement after `hostBoundCase`, README wording) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | the locked selection block (`--v4`, `S24-T07c-orch`): the eleven `live` cases PASS (the width NOTE as above), `IG ... exit=0 seconds=28.709 quiet=15`, `cases: 11 passed, as required`; `self-test --items`: 224 passed, 0 failed (35.8 s); `firewall check --task S24-T07c`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the two Scope files |
+| Commit | this task's commit |
+| Issues and named items | T08c runs `liveCases` on the frozen test twins |
