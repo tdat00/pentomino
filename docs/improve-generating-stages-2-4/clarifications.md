@@ -36,7 +36,7 @@
 - **Recommendation:** both SAs (a).
 - **Blocked meanwhile:** the budget table of the frozen arms (T06, T08) and their proofs.
 
-**Answer (owner, <date>):**
+**Answer (owner, 2026-11-23 16:30 +07:00, Discord message 1574356572102991934):** (a). Verbatim: "Tôi trả lời Q-S24 đều là a" ("I answer all Q-S24 with a").
 
 ## Q-S24-4: A short pilot on the eight control boards never tested
 
@@ -59,7 +59,7 @@
 - **Recommendation:** both SAs (a).
 - **Blocked meanwhile:** nothing hard; the SAs want its reading before the freeze values are fixed (T06).
 
-**Answer (owner, <date>):**
+**Answer (owner, 2026-11-23 16:30 +07:00, Discord message 1574356572102991934):** (a). Verbatim: "Tôi trả lời Q-S24 đều là a" ("I answer all Q-S24 with a").
 
 ## Q-S24-5: The 20-request check of the new Hell 1 settings before the freeze
 
@@ -84,7 +84,7 @@
 - **Recommendation:** both SAs (a); the read gate is agreed.
 - **Blocked meanwhile:** the freeze record (T12).
 
-**Answer (owner, <date>):**
+**Answer (owner, 2026-11-23 16:30 +07:00, Discord message 1574356572102991934):** (a). Verbatim: "Tôi trả lời Q-S24 đều là a" ("I answer all Q-S24 with a").
 
 ## Q-S24-6: Machine time to time the faster-kernel candidates (P7)
 
@@ -107,7 +107,7 @@
 - **Recommendation:** both SAs (a).
 - **Blocked meanwhile:** the spike's timing result, which decides whether P7 goes to phase 1.
 
-**Answer (owner, <date>):**
+**Answer (owner, 2026-11-23 16:30 +07:00, Discord message 1574356572102991934):** (a). Verbatim: "Tôi trả lời Q-S24 đều là a" ("I answer all Q-S24 with a").
 
 ## Q-S24-7: Skip the duplicate rows of stage 4 (N-V4-18)?
 
@@ -125,4 +125,4 @@
 - **Recommendation:** both SAs (a).
 - **Blocked meanwhile:** nothing; with (b), task T-N18 before the activation.
 
-**Answer (owner, <date>):**
+**Answer (owner, 2026-11-23 16:30 +07:00, Discord message 1574356572102991934):** (a). Verbatim: "Tôi trả lời Q-S24 đều là a" ("I answer all Q-S24 with a").
