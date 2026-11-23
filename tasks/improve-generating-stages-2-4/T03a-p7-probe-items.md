@@ -7,7 +7,7 @@
 | Depends on | S01 |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (claude-sonnet-5.5) |
-| Estimate | developer 3 h, machine 0 min allocated (one locked verification case of about a minute) |
+| Estimate | developer 3 h, machine 0 min allocated (two locked verification cases of about a minute each) |
 
 ## Goal
 
@@ -95,7 +95,8 @@ T03c the bindings, the go rule and the commands; T03d, T04 and T05a add candidat
   `kernelItem` (line 323), and the cached input-construction engine `inputEngine(root)` before them.
 - Change: `tools/ig-proto/lib/lanes.mjs`: `DEFAULT_LIMITS.itemReserveS` (line 22) gains `'p7-equal': 120, 'p7-time': 90`.
 - Change: `tools/ig-proto/lib/items.mjs`: `ITEM_LANES` (line 22) gains `'p7-equal': 2, 'p7-time': 1`.
-- Change: `tools/ig-proto/self-test.mjs`: two cases appended to `itemCases` (`--items`) and one to `v4Cases` (`--v4`).
+- Change: `tools/ig-proto/self-test.mjs`: two cases appended to `itemCases` (`--items`) and two to `v4Cases` (`--v4`;
+  the second, `p7: timing items of base against base`, by ruling R-P24-06).
 - Change: `tools/ig-proto/README.md`: a new section `## P7's spike (stages 2 to 4 pack, T03a to T05b)` after the
   section `## The fitting reader (stages 2 to 4 pack, T02b and T02c)` (T02c's).
 - Do not change: every other file; no variant is added here. Guards: G1, G2 (the data file is an addition), G3 lists
@@ -259,10 +260,58 @@ T03c the bindings, the go rule and the commands; T03d, T04 and T05a add candidat
     `inputEngine(p.inputRoot)`, before any timing); then, per tree, `board = t.board.boardFromRows(boardRows)` before
     its timing; `rateOf(t, w, board)` = `outcomeOf(() => t.difficulty.rate(board, pieces, clues, w))`, timed with
     `performance.now()` around that call only.
-    Order: `round` even → reference then candidate; odd → candidate then reference. Result: when both outcomes have
-    `result`, `{ outcome: 'ok', refMs, candMs, same }` (ms rounded to 3 decimals, `same` the equality of the two
-    outcomes); else `{ outcome: 'error', reason: 'a rating threw', reference: <outcome>, candidate: <outcome> }`; no carve
-    or no subset: `{ outcome: 'no-set', reason }` or `{ outcome: 'no-subset' }`.
+    Order: `round` even → reference then candidate; odd → candidate then reference. **A capped rating is a timed rating**
+    (ruling R-P24-06): `rate` throws `IncompleteRatingError` (`code` `rating-incomplete`, own `counters` `{ nodes,
+    work, stop }`) when the deduction path was capped (RES-04, `difficulty.js:63-79` and `:316-322` of the frozen source),
+    and the generator charges that work and goes on (`clues.js:323-344`), so its time is real work time. `rateOf` keeps
+    the thrown error's `counters` (null otherwise) beside the outcome. Result: when each rating returned a result or
+    threw `IncompleteRatingError`, `{ outcome: 'ok', refMs, candMs, same, capped }` (ms rounded to 3 decimals; `same` the
+    equality of the two outcomes and of the two `counters`; `capped` `'both'`, `'one'` or `'none'`, the ratings that
+    threw `IncompleteRatingError`); else `{ outcome: 'error', reason: 'a rating threw', reference: <outcome>, candidate:
+    <outcome> }`; no carve or no subset: `{ outcome: 'no-set', reason }` or `{ outcome: 'no-subset' }`. In
+    `lib/lane-worker.mjs` (the code of T03a's first round, at the end of `p7TimeItem`), `rateOf` and the result are:
+
+    ```js
+      const rateOf = (/** @type {any} */ t, /** @type {any} */ w, /** @type {any} */ board) => {
+        let ms = 0;
+        /** @type {any} */
+        let counters = null;
+        const outcome = outcomeOf(() => {
+          const t0 = performance.now();
+          try {
+            return t.difficulty.rate(board, pieces, clues, w);
+          } catch (error) {
+            counters = /** @type {any} */ (error)?.counters ?? null;
+            throw error;
+          } finally {
+            ms = performance.now() - t0;
+          }
+        });
+        return { outcome, ms, counters };
+      };
+    ```
+
+    and, replacing the two returns after the two `rateOf` calls:
+
+    ```js
+      /** @param {ReturnType<typeof rateOf>} r @returns {boolean} A result, or a capped deduction path (RES-04). */
+      const timed = (r) => 'result' in r.outcome || r.outcome.error?.name === 'IncompleteRatingError';
+      /** @param {ReturnType<typeof rateOf>} r @returns {boolean} */
+      const cappedOf = (r) => !('result' in r.outcome);
+      if (timed(reference) && timed(candidate)) {
+        return {
+          outcome: 'ok',
+          refMs: round3(reference.ms),
+          candMs: round3(candidate.ms),
+          same: isDeepStrictEqual(reference.outcome, candidate.outcome) && isDeepStrictEqual(reference.counters, candidate.counters),
+          capped: cappedOf(reference) && cappedOf(candidate) ? 'both' : cappedOf(reference) || cappedOf(candidate) ? 'one' : 'none',
+        };
+      }
+      return { outcome: 'error', reason: 'a rating threw', reference: reference.outcome, candidate: candidate.outcome };
+    ```
+
+    A capped rating on one tree only is `same: false` (T03b's `notSame`: the timing verdict `failed`); any other thrown
+    error stays an item error (T03b's `errors`: the verdict `incomplete`, and the pack author rules).
 11. In `handle`: `if (kind === 'p7-equal') { return p7EqualItem(p); }` and `if (kind === 'p7-time') { return
     p7TimeItem(p); }` before the test kinds. `lanes.mjs` and `items.mjs`: the reserves and lanes of the Scope.
 
@@ -273,6 +322,7 @@ T03c the bindings, the go rule and the commands; T03d, T04 and T05a add candidat
 | `self-test.mjs` (`--items`) | `p7: settings, work inputs and limits` | `settingsOf('quick')`, `settingsOf('full')`, `settingsOf('x')`; `workInputs({ search: { work: 107 }, census: { work: 100 } })` and `workInputs({ search: { work: 9 }, census: null })`; `limitsFor` with `base = { lookaheadWidth: 2, nodes: 100, solutions: 2, work: 1000, census: 50, memoryBytes: 4096 }`, `refWork: 7, refCensusWork: 100, refBytes: 300, extraBytes: 40` for each setting; `limitsFor('screen:500', ...)`, `('screen:-1', ...)`, `('screen:1e3', ...)`, `('wat', ...)`; the conversion `[...new Map([[95000000, ['fixed']], [7, ['mainWork-1', 'tail-mid']]]).keys()].map((W) => \`screen:${W}\`)` | the two lists of step 4; the throw `p7-probe: unknown tier x`; `{ refWork: 7, refCensusWork: 100 }` and `{ refWork: 9, refCensusWork: 0 }`; `work-half` work 3, `work-minus1` 6, `work-ref` 7 (not 53, 106, 107); `census-half` census 50; `mem-below` memoryBytes 299; `mem-ref` 339; `mem-fast` 340; `canonical` and `fixture` the same object `base`; `tie1` diagnostics `{ tieOrder: 1 }`; with `extraBytes: 0`: `mem-ref` and `mem-fast` null; `screen:500` work 500; the throws `p7-probe: bad screen setting screen:-1`, `... screen:1e3`, `p7-probe: unknown setting wat`; `['screen:95000000', 'screen:7']` |
 | same file (`--items`) | `p7: outcomes, fixtures and declarations` | `outcomeOf(() => ({ a: [1, 2] }))`; `outcomeOf(() => { const e = new RangeError('m'); e.code = 'c'; e.details = { b: 1 }; throw e; })`; `memoryManifest()`; `fixtureInput` of `mem-near-reference`; `runtimeItems([{ id: 'x', kind: 'p7-equal', variant: 'base', payload: { source: 'pm4', otherTree: 'tests/artifacts/ig-proto/tree-frozen/base' } }, { id: 'y', kind: 'p7-equal', variant: 'base', payload: { source: 'kernel', otherTree: 'tests/artifacts/ig-proto/tree-frozen/base', inputTree: 'tests/artifacts/ig-proto/tree-frozen/instr' } }])` | `{ result: { a: [1, 2] } }`; `{ error: { name: 'RangeError', code: 'c', message: 'm', details: { b: 1 } } }`; five fixtures, nine sequence and two capacity entries; 126 board rows of 32 `#`, two pieces of 2,016 cells, the second piece id `r1`, `clues` `[]`; the payloads `{ source: 'pm4', otherRoot: abs('tests/artifacts/ig-proto/tree-frozen/base') }` and `{ source: 'kernel', otherRoot: abs('tests/artifacts/ig-proto/tree-frozen/base'), inputRoot: abs('tests/artifacts/ig-proto/tree-frozen/instr') }`, without `otherTree` or `inputTree` |
 | same file (`--v4`, locked) | `p7: equality items of base against base` | `runItems` on the scratch task `S24-T03a-dev` (step `equal`, horizon 285) with `runtimeItems` of: `equal:base:kernel:10x10-nightmare:0` and `equal:base:kernel:26x26-hell-1:0` (each with settings `canonical`, `tie1`, `work-half`; the input built by `instr`); the PM4 item of `10x10-nightmare`, its first set with `pieces !== null`, order 0, full-tier settings; the five memory fixture items, the sequence item and the capacity item of `equalDeclarations('base', 'quick')`; and a construction-error item `{ id: 'equal:base:pm4:bad-clue', kind: 'p7-equal', variant: 'base', payload: { source: 'pm4', boardRows: <the PM4 item's>, pieces: <its>, clues: [{ ...<its first clue>, piece: 'no-such-piece' }], levelId: <its>, settings: ['canonical', 'work-half', 'mem-ref'], otherTree } }`; the folder is removed at the end | every item `completed`, `same: true`; the two kernel items `outcome` `ok` (never `no-set` or `no-subset`: the Hell 1 input is built by `instr`), `compared` `['canonical', 'tie1', 'work-half']`, `skipped` `[]`; the PM4 item compared at least two `screen:` settings; the memory items' `refBytes` equal the manifest's (`mem-near-reference` 33,107,689; `mem-above` 33,630,537) and `mem-above`'s `fixture` step's `referenceError` is `{ name: 'ModelError', code: 'model-too-large', message: 'deduction buffers need 33630537 bytes, the limit is 33554432', details: { bytes: 33630537, limit: 33554432 } }` and its `candidateError` is deep-equal to it; every step's `representation` null (the reference has no lists); the sequence item has nine steps and the capacity item two; the bad-clue item compared `['canonical']` with an `invalid-clue` error on both trees (its `canonical` step's `referenceError` and `candidateError` both of code `invalid-clue`) and `inapplicable` `['work-half', 'mem-ref']` |
+| same file (`--v4`, locked) | `p7: timing items of base against base` (ruling R-P24-06) | as the equality case: `runItems({ task: 'S24-T03a-dev-time', step: 'time', label: 'selftest', horizonS: elapsedS() + 285, items: runtimeItems(items) })` after `fresh(artifactDir('selftest', 'S24-T03a-dev-time'))`, the folder removed at the end; `items` = the three declarations of `await timeDeclarations('base')` with the ids `time:base:10x10-nightmare:0:0`, `time:base:10x10-nightmare:0:1` and `time:base:26x26-hell-1:0:0`, in that order | the run `{ exitCode: 0, done: true, progress: 3, refused: null }`; every item's end `completed`; each result `outcome` `ok`, `same` true, `refMs` and `candMs` finite numbers above 0; `capped` `'none'` for the two 10x10 items and `'both'` for the Hell 1 item (both trees threw `IncompleteRatingError` with equal `counters`) |
 
 ## Documentation
 
@@ -281,8 +331,8 @@ T03c the bindings, the go rule and the commands; T03d, T04 and T05a add candidat
 `kernel-window-v1`, the catalogue `data/boards-v1.json`; outside every timed interval; why `base` cannot build the Hell 1
 inputs), the settings (steps 4 and 6), the memory fixture manifest (step 2, its table and
 why the near-limit models are synthetic), the equality rule (step 7), the two item kinds and what their results record
-(steps 9 and 10), "equality runs are locked verification under the task ids `V4-P7E-<candidate>-<tier>`; the timing run
-is `V4-P7` (S02)".
+(steps 9 and 10; a capped rating on both trees is a timed pair with `capped: 'both'`, ruling R-P24-06), "equality runs
+are locked verification under the task ids `V4-P7E-<candidate>-<tier>`; the timing run is `V4-P7` (S02)".
 
 ## Commands and gates
 
@@ -290,7 +340,7 @@ is `V4-P7` (S02)".
 |---|---|---|---|
 | `node tools\ig-proto\firewall.mjs snapshot --task S24-T03a --label frozen` | repository root, first | `firewall: snapshot of S24-T03a` | 1 min |
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task S24-T03a --horizon-s 285` | repository root (unlocked) | every case `PASS` | 5 min |
-| check-list §3.1's selection block with `$Id = 'S24-T03a'`, `$GroupArgs = @('--v4')`, `$Locked = $true`, `$Required = @('p7: equality items of base against base')` | PowerShell 7 at the repository root | `PASS <n> p7: equality items of base against base`; `IG S24-T03a cases exit=0`; `cases: 1 passed, as required` | 5 min |
+| check-list §3.1's selection block with `$Id = 'S24-T03a'`, `$GroupArgs = @('--v4')`, `$Locked = $true`, `$Required = @('p7: equality items of base against base', 'p7: timing items of base against base')` | PowerShell 7 at the repository root | `PASS <n> p7: equality items of base against base`; `PASS <m> p7: timing items of base against base`; `IG S24-T03a cases exit=0`; `cases: 2 passed, as required` | 5 min |
 | `node tools\ig-proto\lib\tree.mjs check-edits --all --label frozen` | repository root | no error | 3 min |
 | `node tools\ig-proto\firewall.mjs check --task S24-T03a --label frozen` | repository root, last | `firewall: OK, ...` | 1 min |
 | `npm run check` | repository root | `check-conventions: OK`, `check-site: OK` | 2 min |
@@ -319,7 +369,7 @@ is `V4-P7` (S02)".
 | ID | Criterion | How it is verified | Evidence |
 |---|---|---|---|
 | T03a-T01 | `settingsOf`, `workInputs`, `limitsFor`, `outcomeOf`, `memoryManifest`, `fixtureInput`, `runtimeItems` return the Tests table's values (main-work boundaries from main work; screen settings from the map's keys) | `--items` | the PASS lines |
-| T03a-T02 | The memory fixtures reproduce the manifest's bytes on the reference engine; a model-construction error is compared; `p7-equal` items of `base` against `base` end equal on every source | the `--v4` case through the lock helper | the PASS line, the helper line |
+| T03a-T02 | The memory fixtures reproduce the manifest's bytes on the reference engine; a model-construction error is compared; `p7-equal` items of `base` against `base` end equal on every source; `p7-time` items time both trees, a capped rating on both trees included as a timed pair (`capped: 'both'`, `same: true`; ruling R-P24-06) | the two `--v4` cases through the lock helper | the PASS lines, the helper line |
 | T03a-T03 | The new kinds have their reserves and lanes (`p7-equal` 120 s, 2 lanes; `p7-time` 90 s, 1 lane) | the diff of `lanes.mjs` and `items.mjs` | the diff |
 | T03a-T04 | `npm run check`, `check-edits`, the firewall and G1 to G3 pass | the gates | their output |
 
