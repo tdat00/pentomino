@@ -121,10 +121,15 @@ verification record of T09a and the trees, and judges them with T09a's checks.
    `fr-frozen`) and keep, per id, with `info = readTreeInfo(id)`, `{ ...info, paramsHash: sha256(JSON.stringify(info.params))
    }` (the whole `ig-tree.json`: `variant`, `chain`, `treeId`, `copyDigest`, `edits`, `files`, `params`); read the runs files
    `L.runsDir/*.runs.json` (name order) and, per distinct `doc.shard`, `L.rawDir/<shard>/shard.json` (null when absent
-   or unparseable); per declared row key, its journal files in `L.rawDir/<shard>/logs/` (names starting `<rowKey>.`):
+   or unparseable); per declared row key, its journal files in `L.rawDir/<shard>/logs/` (names starting `<rowKey>.` and
+   ending `.jsonl`, except the row identity file `<rowKey>.row.jsonl`, which `arm.mjs` checks when the row runs and which
+   the v4 readers neither read nor bind, as `verdicts.mjs` `readJournals` and `fit-read.mjs`; ruling R-P24-14):
    the worker files' lines and the `<rowKey>.link.jsonl` lines (null when absent) with `parseLines`, their problems
    kept; read `L.verifyState` and `L.verifyIdentity` (null when absent or unparseable). **Captures** (under
-   `L.inputs`, `writeJson`): `<id>.ig-tree.json` of each of `LIVE_ARMS` (`readTreeInfo(id)`); `<id>.ig-tree.json` of
+   `L.inputs`, `writeJson`; first, ruling R-P24-14, each of the seven capture paths of step 3 is removed with
+   `rmSync(abs(path), { force: true })`, `rmSync` joining the `node:fs` import, so that a receipt binds only its own
+   run's captures; a passing receipt was refused before this): `<id>.ig-tree.json` of
+   each of `LIVE_ARMS` (`readTreeInfo(id)`); `<id>.ig-tree.json` of
    each of `LIVE_TWINS` only when its `treeId` equals `identity.trees[id].treeId` (then `twins[id]` = that whole record;
    otherwise it is not captured and `twins[id]` is absent); `harness.json` only when `harnessInfo().harnessHash` equals
    the runs' common hash; `verify-state.json` and `verify-identity.json` when they exist. `evidence` is
@@ -145,8 +150,10 @@ verification record of T09a and the trees, and judges them with T09a's checks.
    params } } }, shard: <the shard name>, rows: <its five rows> }`, the rows as T09a's clean rows (`matrixRun(caseId,
    rep, 10, { igSetMs: 30000 })`, `rowKey` `<caseId>~<rep>`, `seed` `landscape/<caseId>/<rep>`, `localRep` 0); per shard
    `rawDir/<shard>/shard.json` `{ treeId, copyDigest, harnessHash }` of the same identity; per row
-   `rawDir/<shard>/logs/<rowKey>.1.2.jsonl` (the closed ledger of T09a's test, call `<rowKey>:1:2:1`) and
-   `<rowKey>.link.jsonl` (`{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }`); the verification's
+   `rawDir/<shard>/logs/<rowKey>.1.2.jsonl` (the closed ledger of T09a's test, call `<rowKey>:1:2:1`),
+   `<rowKey>.link.jsonl` (`{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }`) and `<rowKey>.row.jsonl` (`{
+   t: 'row', row: <rowKey>, seed, caseId, localRep: 0, pid: 1 }`, the row identity line `arm.mjs` writes, so that the
+   cases run on the real layout of a logs folder; ruling R-P24-14); the verification's
    `state.json` and `identity.json` at `verifyState`, `verifyIdentity` (task `V4-LIVE-verify`, label `frozen`, group
    `v4`, the fifteen `LIVE_CASES` passing and selected once, today's harness hash, `FROZEN_COMMIT`, `FROZEN_DIGEST`,
    `trees` with today's identities of the two arms and the two test derivatives); then `edit(paths)` may change a
@@ -157,7 +164,7 @@ verification record of T09a and the trees, and judges them with T09a's checks.
 | Test file | Case name | Input | Expected |
 |---|---|---|---|
 | `self-test.mjs` (`--items`) | `live-deadline: the receipt's verdicts` | `liveReceipt` with the parsed contents of `liveFixture('tests/artifacts/ig-proto/selftest/S24-T09b-dev', 'S24-T09b-dev')` (read back into the step-4 arguments, `twins` the two derivatives' identities, `harnessNow` today's, `evidence` `[]`); then one variant at a time: row `14x14-nightmare~3` `responseMs` 130000; `trees['fr-frozen-none'].treeId` `'t3'`; `harnessNow` `'x'`; one runs file's `meta.source.sourceDigest` `'x'`; one raw shard's `copyDigest` `'x'`; one raw shard null; `identity` null; `freezeVariants` null; `twins['fr-frozen-live-test'].chain` with `fr-frozen-none` in place of `fr-frozen` (the recorded tree id unchanged: a consistent identity of the wrong parent); `twins['fr-frozen-none-live-test'].edits` with an extra `{ id: 'x-1' }` before `w8-1` | `kind` `live-deadline`, `verdict` `pass`, the five `LIVE_DEADLINE_FIELDS` at the root exactly, two arms, 25 expected and 25 observed ids; then `fail`; `incomplete` with `stale tree fr-frozen-none`; `producer changed since the observation`; `runs file <path> is not of the frozen source`; `runs file <path> differs from its raw shard`; `no raw shard identity live-26x26-hell-1`; `no verification identity`; `no freeze record`; `the test derivative fr-frozen-live-test is not fr-frozen with w8`; `the test derivative fr-frozen-none-live-test has an edit other than w8-1` |
-| same (`--items`) | `live-deadline: CLI receipt` | in fresh private namespaces under `tests/artifacts/ig-proto/selftest/S24-T09b-dev/` (removed at the end): (a) `liveFixture(...)`, then `receiptCommand(['--task', 'S24-T09b-dev', '--require-pass', '--label', 'frozen', '--source-label', 'self-test'], { layout })`; (b) the same command again; (c) a fresh fixture with row `26x26-hell-1~2` `responseMs` 130000; (d) a fresh fixture without `verifyIdentity`; (e) a fresh fixture whose receipt path holds the text `{` | (a) returns 0; the receipt's `verdict` `pass`; its `evidence` paths equal `liveEvidencePaths(layout, ...)` (every file of step 3, each hash equal to the file's); the sorted listing of `layout.inputs` is exactly `fr-frozen-live-test.ig-tree.json`, `fr-frozen-none-live-test.ig-tree.json`, `fr-frozen-none.ig-tree.json`, `fr-frozen.ig-tree.json`, `harness.json`, `verify-identity.json`, `verify-state.json` (the seven copies: four trees, the harness, the verification state and identity); (b) returns 1 (`receipt ... exists (a passing receipt is never rewritten)`), and the sha256 of every file under the namespace is unchanged, the captures included; (c) returns 2, the receipt is written with `verdict` `fail`; (d) returns 2, `verdict` `incomplete` with `no verification identity`; (e) returns 1 (`receipt ... is unreadable`), nothing written |
+| same (`--items`) | `live-deadline: CLI receipt` | in fresh private namespaces under `tests/artifacts/ig-proto/selftest/S24-T09b-dev/` (removed at the end): (a) `liveFixture(...)`, then `receiptCommand(['--task', 'S24-T09b-dev', '--require-pass', '--label', 'frozen', '--source-label', 'self-test'], { layout })`; (b) the same command again; (c) a fresh fixture with row `26x26-hell-1~2` `responseMs` 130000; (d) a fresh fixture without `verifyIdentity`; (e) a fresh fixture whose receipt path holds the text `{`; (f) a fresh fixture whose edit removes `verifyState`, writes `{"stale":true}` to `<inputs>/verify-state.json` and to `<inputs>/fr-frozen-live-test.ig-tree.json`, and sets the verification identity's `trees['fr-frozen-live-test'].treeId` to `'d9'` (captures that an earlier run would have left; R-P24-14) | (a) returns 0; the receipt's `verdict` `pass`; its `evidence` paths equal `liveEvidencePaths(layout, ...)` (every file of step 3, each hash equal to the file's; no path ends `.row.jsonl`); the sorted listing of `layout.inputs` is exactly `fr-frozen-live-test.ig-tree.json`, `fr-frozen-none-live-test.ig-tree.json`, `fr-frozen-none.ig-tree.json`, `fr-frozen.ig-tree.json`, `harness.json`, `verify-identity.json`, `verify-state.json` (the seven copies: four trees, the harness, the verification state and identity); (b) returns 1 (`receipt ... exists (a passing receipt is never rewritten)`), and the sha256 of every file under the namespace is unchanged, the captures included; (c) returns 2, the receipt is written with `verdict` `fail`; (d) returns 2, `verdict` `incomplete` with `no verification identity`; (e) returns 1 (`receipt ... is unreadable`), nothing written; (f) returns 2, `verdict` `incomplete` with `no verification state`; neither stale file exists afterwards and no `evidence` entry names either |
 
 ## Documentation
 
@@ -166,6 +173,13 @@ binds (the freeze, the runs files with their raw shard identities, the rows' jou
 captured trees and harness), the identity rules, the verdicts, the captures (a test derivative only when it matches
 the record), "written once", and the command; `## Commands` gains `node tools\ig-proto\live-deadline.mjs receipt --task
 V4-LIVE --require-pass --label frozen --source-label "frozen 3fc65f4"` (run by `V4-LIVE`'s plan only).
+
+The subsection's first paragraph, which T09a wrote before the receipt existed, is updated (ruling R-P24-14):
+"`live-deadline.mjs` will hold the receipt" becomes "`live-deadline.mjs` holds the receipt", and "T09a adds its
+constants and pure checks; T09b adds the receipt." becomes "T09a added its constants and pure checks and T09b the
+receipt.". The receipt's text also says that the rows' journal files are the worker files and the link file (the row
+identity file `<rowKey>.row.jsonl` is neither read nor bound), and that each run that is not refused first removes the
+seven capture paths, so that a receipt binds only its own run's captures.
 
 ## Commands and gates
 

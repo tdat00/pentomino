@@ -76,8 +76,11 @@ requires the receipt's evidence index to hold every mandatory input.
    tree folder or today's harness.
 3. Add `export function liveRequiredEvidence(task, { layout = liveLayout(task), readFile = readRepoFile, listDir })`
    (the same `listDir` default): the runs files as step 2 lists them (`{ path, shard }`), the journal files of each
-   `LIVE_ROWS` key (`<layout.rawDir>/<shard>/logs/` names starting `<rowKey>.`, for the shard whose runs file holds the
-   key), and returns `liveEvidencePaths(layout, { runs, journalFiles })`.
+   `LIVE_ROWS` key (`<layout.rawDir>/<shard>/logs/` names starting `<rowKey>.` and ending `.jsonl`, except the row
+   identity file `<rowKey>.row.jsonl`: exactly the files T09b's `receiptCommand` reads and binds, ruling R-P24-14; for
+   the shard whose runs file holds the key), and returns `liveEvidencePaths(layout, { runs, journalFiles })`. A real
+   logs folder holds one `<rowKey>.row.jsonl` per row and `liveFixture` writes them too, so the second case's passing
+   `accept` checks that the receipt's index and this list agree.
 4. In `accept` (`v4-check.mjs:1595-1601` at the base), replace the kind check, the `--step` check and the expectation
    with:
 
