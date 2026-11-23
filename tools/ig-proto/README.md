@@ -2727,9 +2727,39 @@ and the verdicts, T03c the bindings, the go rule and the commands.
   `candMs`; a pair that differs or has an invalid time is `failed` (`notSame`, `invalid`), a missing, censored or error item or any problem is `incomplete`;
   only a `measured` verdict has `refMs`, `candMs`, `ratio` (`refMs / candMs`) and `geoRatio` (the geometric mean of the pairs' ratios), never a ratio of a
   subset. A pair whose deduction path was capped on both trees (`capped: 'both'`) is timed like any other and listed in `capped`, never a problem.
+- **The bindings** (`equalityEvidencePaths(candidate, tier)`, `equalityBinding(report, { tier, candidate, reference, fileHash, requiredInputs })`, pure). The
+  twelve required paths of an equality run are its `experiment.json`, `state.json` and `items.jsonl` (under
+  `tests/artifacts/ig-proto/frozen/V4-P7E-<candidate>-<tier>/equal/`) and the nine corpus inputs (`corpusInputPaths('equal')`); a report must list each of
+  them exactly once, whatever else it lists. A binding is `{ ok: true }` or `{ ok: false, reason }`, checked in this order: no report; the verdict is not
+  `equal`; the report is of another tier; it was made on another candidate or reference tree (the identities `declared` in the report against the trees now
+  looked up, or the ones a timing run declared); it used another corpus version; its memory coverage is incomplete; it binds no input; a required path is
+  not bound, or bound more than once; then every listed input is hashed again (`the <tier> report's input <path> is missing` or `changed`).
+- **The go rule** (`goDecision({ quick, full, timing })`, D-P24-05): `go = quick.ok && full.ok && timing.verdict === 'measured' && timing.notSame.length === 0
+  && timing.ratio >= P7_GO_RATIO` (1.04); `reasons` lists the failed parts (`quick: <reason>`, `full: <reason>`, `timing <verdict>`, `differing <n>`,
+  `ratio <r> below 1.04`).
+- **The commands** (`node tools\ig-proto\p7-probe.mjs <command> ... --label frozen --source-label <SL>`; a refusal prints `p7-probe: <reason>` on stderr, exits
+  1 and writes nothing; the historical task ids of check-list §3.1 are refused):
+  - `equal --candidate <variant> --tier <quick | full> --task V4-P7E-<candidate>-<tier> [--horizon-s <H>]` (locked verification): declares the run
+    (`declareRun`, step `equal`; an existing `experiment.json` must equal the fresh declaration, else the run is refused with no dispatch), then runs the
+    pending items (horizon 285 s by default) and prints `p7-probe: equal <candidate> <tier>: <ended> of <total> items ended, done <true|false>`.
+  - `bind --candidate <variant> --task V4-P7` (unlocked): reads both equality reports (`docs/improve-generating/evidence/frozen/V4-P7E-<candidate>-<tier>/p7.json`)
+    **before any tree is looked up**: a missing one refuses `<candidate> cannot be timed: no <tier> equality report` (an unparseable one: `the <tier> equality
+    report is unreadable`) and nothing is created, even when the candidate has no manifest yet; only then are the candidate and reference trees looked up and
+    both reports bound against them. `time` refuses a candidate whose quick and full equality reports are not `equal` on the same candidate and reference trees
+    and corpus, or whose inputs are missing or changed.
+  - `time --candidate <variant> --task V4-P7 [--horizon-s <H>]` (locked): the same refusals as `bind`, then as `equal` with the step `time-<candidate>`.
+  - `report --task <V4-P7E-<candidate>-<tier> | V4-P7>` (unlocked): writes `docs/improve-generating/evidence/frozen/<task>/p7.json` and `p7.md`, replacing an
+    earlier report of the task and never touching the raw observations. For an equality run: `equalVerdict` of the run (the read problems added), and the
+    inputs are the run's files (`readRun`) followed by the declaration's corpus inputs. For `V4-P7`: the candidates are the `time-<candidate>` steps of
+    `tools/ig-proto/plans/V4-P7.json` (the declared set, never the folders that exist); per candidate its `timeVerdict`, both equality bindings checked
+    against the trees the time run declared (the identities actually timed) and `goDecision`; the inputs are the run's files, the declared corpus inputs and
+    the two equality reports that exist. The markdown holds the verdicts, the coverage table of the memory fixtures (reference bytes, list bytes,
+    representation), the diagnostics and the problems; `V4-P7` prints one `p7-probe: <c> go <yes|no> (ratio, quick, full, timing)` line per candidate.
+    `report` refuses a task without a run (`report needs a run: <task> has none (...)`: no `experiment.json`, `state.json` or `items.jsonl` of the equality
+    run, or no `time-<candidate>` run of any declared candidate) before any tree is looked up, and writes nothing.
 - **Runs**: the equality runs are locked verification under the task ids `V4-P7E-<candidate>-<tier>`; the timing run is `V4-P7` (S02).
 - **Self-test**: `--items` (unlocked): `p7: settings, work inputs and limits`, `p7: outcomes, fixtures and declarations`, `p7: the experiment declaration`,
-  `p7: equality verdict`, `p7: timing verdict`; `--v4` (locked): `p7: equality
+  `p7: equality verdict`, `p7: timing verdict`, `p7: bindings and go`; `--v4` (locked): `p7: equality
   items of base against base`, `p7: timing items of base against base`.
 
 ## Phase-1 bench of P6 (V4-T14)

@@ -202,13 +202,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 01:47 +07:00 (dispatch, base `f6470ff`); 2026-11-24 02:01 +07:00 (accepted); 15 min. The developer reported 01:47:11-01:52 and, in the fix round, 01:58:22-01:59:20 |
+| Waiting for rulings | about 6 min (the pack author's review) |
+| Agent id, model | `1dde757d-01c7-4225-a8b9-6848848fef51`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 42 calls; 4,134,687 input, 39,744 output, 3,895,850 cache-read tokens |
+| AI credits | 138.41 (developer only) |
+| Questions and rulings | no QUESTION; the eight open details accepted and one guard added by ruling R-P24-08 (fix round: `report` refuses a task without a run, before any tree), after the developer's scratch `report` on a task without a run wrote and then deleted a folder under `docs/improve-generating/evidence/frozen/V4-P7E-base-quick` (not to be repeated); pack amendment `fba563d` |
+| Fix rounds | 1 (R-P24-08) |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T03c-orch2`: 221 passed, 0 failed (36.3 s); `report --task V4-P7E-p7-c1-quick`: exit 1, `report needs a run: ...`; `time` and `bind --candidate p7-c1`: exit 1, `no quick equality report`; no folder `V4-P7`, `V4-P7E-p7-c1-quick` (artifacts and evidence) or `tree-frozen/p7-c1`; no `variants/p7-c1.json`; `firewall check --task S24-T03c`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the three Scope files |
+| Commit | this task's commit |
+| Issues and named items | `equal`, `time` and `report` first run on real data in T03d's quick equality run; the `V4-P7` "needs a run" refusal is exercised once T05b writes the plan |

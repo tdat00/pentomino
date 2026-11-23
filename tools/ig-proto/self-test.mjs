@@ -8928,6 +8928,64 @@ const itemCases = [
       hasProblem(short, 'the declaration does not hold 90 items', 'a shortened declaration');
     },
   },
+  {
+    name: 'p7: bindings and go',
+    async run() {
+      const { corpusInputPaths, equalityBinding, equalityEvidencePaths, goDecision } = await import('./p7-probe.mjs');
+      const dir = 'tests/artifacts/ig-proto/frozen/V4-P7E-p7-x-quick/equal';
+      const required = equalityEvidencePaths('p7-x', 'quick');
+      same(required, [`${dir}/experiment.json`, `${dir}/state.json`, `${dir}/items.jsonl`, ...corpusInputPaths('equal')], 'the required paths');
+      assert(required.length === 12, 'twelve required paths');
+      const candidate = { variant: 'p7-x', treeId: 'T1', copyDigest: 'C1', root: 'r' };
+      const reference = { variant: 'base', treeId: 'T0', copyDigest: 'C0', root: 'r0' };
+      const clean = () => ({
+        meta: { inputs: required.map((path) => ({ path, sha256: 'h' })) },
+        equal: { verdict: 'equal', declared: { candidate: { ...candidate }, reference: { ...reference }, tier: 'quick', corpusVersion: 'p7-corpus-v1' }, coverage: { complete: true } },
+      });
+      /** @param {any} report @param {(path: string) => string | null} [fileHash] */
+      const bind = (report, fileHash = () => 'h') => equalityBinding(report, { tier: 'quick', candidate, reference, fileHash, requiredInputs: required });
+      /** @param {any} report @param {string} reason @param {string} label */
+      const refused = (report, reason, label) => same(bind(report), { ok: false, reason }, label);
+      /** @param {string} path @returns {(report: any) => void} */
+      const without = (path) => (report) => { report.meta.inputs = report.meta.inputs.filter((/** @type {{ path: string }} */ i) => i.path !== path); };
+      same(bind(clean()), { ok: true }, 'a passing report');
+      refused(null, 'no quick equality report', 'no report');
+      const incomplete = clean();
+      incomplete.equal.verdict = 'incomplete';
+      refused(incomplete, 'quick equality is incomplete', 'an incomplete verdict');
+      const other = clean();
+      other.equal.declared.candidate.treeId = 'T9';
+      refused(other, 'the quick report was made on another candidate tree', 'another candidate tree');
+      const none = clean();
+      none.meta.inputs = [];
+      refused(none, 'the quick report binds no input', 'no input');
+      const boards = clean();
+      without('tools/ig-proto/data/boards-v1.json')(boards);
+      refused(boards, 'the quick report does not bind tools/ig-proto/data/boards-v1.json', 'the catalogue removed');
+      const state = `${dir}/state.json`;
+      same(bind(clean(), (path) => (path === state ? null : 'h')), { ok: false, reason: `the quick report's input ${state} is missing` }, 'a missing state');
+      same(bind(clean(), (path) => (path === 'tools/ig-proto/data/p7-memory-fixtures.json' ? 'h2' : 'h')), { ok: false, reason: "the quick report's input tools/ig-proto/data/p7-memory-fixtures.json changed" }, 'a changed manifest');
+      for (const name of ['experiment.json', 'state.json', 'items.jsonl']) {
+        const report = clean();
+        without(`${dir}/${name}`)(report);
+        refused(report, `the quick report does not bind ${dir}/${name}`, `${name} removed`);
+      }
+      const corpusOnly = clean();
+      corpusOnly.meta.inputs = corpusOnly.meta.inputs.filter((/** @type {{ path: string }} */ i) => corpusInputPaths('equal').includes(i.path));
+      refused(corpusOnly, `the quick report does not bind ${dir}/experiment.json`, 'only the corpus inputs');
+      const twice = clean();
+      twice.meta.inputs.push({ path: state, sha256: 'h' });
+      refused(twice, `the quick report binds ${state} more than once`, 'a duplicated state');
+
+      const good = { ok: true };
+      same(goDecision({ quick: { ok: true }, full: good, timing: { verdict: 'measured', notSame: [], ratio: 1.04 } }), { go: true, reasons: [] }, 'go at 1.04');
+      same(goDecision({ quick: { ok: true }, full: good, timing: { verdict: 'measured', notSame: [], ratio: 1.0399 } }), { go: false, reasons: ['ratio 1.0399 below 1.04'] }, 'no go below 1.04');
+      same(goDecision({ quick: bind(other), full: good, timing: { verdict: 'measured', notSame: [], ratio: 1.04 } }),
+        { go: false, reasons: ['quick: the quick report was made on another candidate tree'] }, 'no go on another tree');
+      same(goDecision({ quick: { ok: true }, full: good, timing: { verdict: 'incomplete', notSame: [], ratio: null } }), { go: false, reasons: ['timing incomplete'] }, 'no go without a measurement');
+      same(goDecision({ quick: { ok: true }, full: good, timing: { verdict: 'failed', notSame: ['t1', 't2'], ratio: null } }).reasons, ['timing failed', 'differing 2'], 'differing pairs');
+    },
+  },
 ];
 
 /**

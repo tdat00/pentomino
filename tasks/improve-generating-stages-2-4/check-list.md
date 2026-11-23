@@ -34,7 +34,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T02d The fitting reader indexes the publication metadata it reads (`fit-read.mjs prefixes`; the S01 reading's W3, ruling R-P24-05) (depends on S01)
 - [x] T03a P7: the equality and timing items and their memory fixtures (`p7-probe.mjs`, part 1) (depends on S01)
 - [x] T03b P7: the experiment declaration, the log and corpus checks and the verdicts (`p7-probe.mjs`, part 2) (depends on T03a)
-- [ ] T03c P7: the equality bindings, the go rule and the probe's commands (`p7-probe.mjs`, part 3) (depends on T03b)
+- [x] T03c P7: the equality bindings, the go rule and the probe's commands (`p7-probe.mjs`, part 3) (depends on T03b)
 - [ ] T03d P7 C1: ordered live-row lists for R4 (`p7-c1`) (depends on T03c)
 - [ ] T04 P7: R5 on the live-row lists (`p7-c1r5`) (depends on T03d; skipped or revised when the pack author's ruling on a dropped `p7-c1` says so)
 - [ ] T05a P7 C5: `select`, `liveRowOf` and `listRows` on the lists (`p7-c1r5c5`) (depends on T04; the same rule)
@@ -600,7 +600,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T02d | 2026-11-24 01:05 | 2026-11-24 01:09 | 5 min | 28.98 | this task's commit |
 | T03a | 2026-11-24 01:09 | 2026-11-24 01:35 | 26 min | 224.15 | this task's commit |
 | T03b | 2026-11-24 01:35 | 2026-11-24 01:46 | 12 min | 129.64 | this task's commit |
-| T03c | | | | | |
+| T03c | 2026-11-24 01:47 | 2026-11-24 02:01 | 15 min | 138.41 | this task's commit |
 | T03d | | | | | |
 | T04 | | | | | |
 | T05a | | | | | |
