@@ -38,7 +38,7 @@ import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
 import { preparePackPath, writePackFile } from './lib/packs.mjs';
 import { abs, artifactDir, elapsedS, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, IG_DIR, mp12b1Report, parseArgs, rel, ROOT, SOURCE_KIND, sourceRoot } from './lib/paths.mjs';
 import { ACCEPTED_FORMAT, acceptedBinding, checkAccepted, LIVE_DEADLINE_FIELDS, proofCheck, proofEnvelope, readRepoFile, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
-import { harnessInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersions, toCrlf, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
+import { harnessInfo, readTreeInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersions, toCrlf, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
 import { parseCases as armCases, publishCommand, publishPlan } from './arm.mjs';
@@ -9229,7 +9229,219 @@ const itemCases = [
       assert(!stateOnly.incomplete.some((t) => t.startsWith('the verification record is')), `(19) ${JSON.stringify(stateOnly.incomplete)}`);
     },
   },
+  {
+    name: "live-deadline: the receipt's verdicts",
+    async run() {
+      const { LIVE_ARMS, LIVE_COVERAGE, LIVE_TWINS, liveLayout, liveReceipt } = await import('./live-deadline.mjs');
+      const { parseLines } = await import('./verdicts.mjs');
+      const base = 'tests/artifacts/ig-proto/selftest/S24-T09b-dev';
+      try {
+        const layout = await liveFixture(base, 'S24-T09b-dev');
+        const json = (/** @type {string} */ path) => JSON.parse(readFileSync(abs(path), 'utf8'));
+        const names = readdirSync(abs(layout.runsDir)).sort();
+        const runs = names.map((n) => ({ path: `${layout.runsDir}/${n}`, doc: json(`${layout.runsDir}/${n}`) }));
+        const shard0 = runs[0].doc.shard;
+        const rawShards = Object.fromEntries(runs.map(({ doc }) => [doc.shard, json(`${layout.rawDir}/${doc.shard}/shard.json`)]));
+        /** @type {Record<string, any>} */
+        const journals = {};
+        for (const { doc } of runs) {
+          for (const row of doc.rows) {
+            const logs = `${layout.rawDir}/${doc.shard}/logs`;
+            const text = (/** @type {string} */ n) => readFileSync(abs(`${logs}/${n}`), 'utf8');
+            const worker = parseLines(text(`${row.rowKey}.1.2.jsonl`), 'w');
+            const link = parseLines(text(`${row.rowKey}.link.jsonl`), 'l');
+            journals[row.rowKey] = { lines: worker.lines, links: link.lines, problems: [...worker.problems, ...link.problems] };
+          }
+        }
+        const today = (/** @type {string} */ id) => readTreeInfo(id);
+        const clean = {
+          freezeVariants: json(layout.freeze).variants,
+          trees: Object.fromEntries(LIVE_ARMS.map((id) => [id, { ...today(id), paramsHash: sha256(JSON.stringify(today(id).params)) }])),
+          twins: Object.fromEntries(LIVE_TWINS.map((id) => [id, today(id)])),
+          runs, rawShards, journals, state: json(layout.verifyState), identity: json(layout.verifyIdentity), harnessNow: harnessInfo().harnessHash, evidence: [],
+        };
+        const verdict = (/** @type {(x: any) => void} */ edit) => {
+          const x = structuredClone(clean);
+          edit(x);
+          return liveReceipt(x);
+        };
+        const ok = liveReceipt(clean);
+        same([ok.kind, ok.verdict, ok.reasons], ['live-deadline', 'pass', []], `the clean receipt: ${JSON.stringify(ok.reasons)}`);
+        same([ok.live, ok.postHoc, ok.workCutoffMs, ok.responseBoundMs, ok.reserveChecked], [true, false, 115000, 120000, true], 'the five fields at the root');
+        same(Object.keys(LIVE_DEADLINE_FIELDS).every((k) => ok[k] === /** @type {any} */ (LIVE_DEADLINE_FIELDS)[k]), true, 'the fields are LIVE_DEADLINE_FIELDS');
+        same([ok.arms.length, ok.coverage.expected.length, ok.coverage.observed.length, ok.coverage.missing, ok.rows.length], [2, 25, 25, [], 10], 'two arms, 25 ids');
+        same(ok.coverage.expected, [...LIVE_COVERAGE], 'the declared coverage');
+        /** @type {[string, (x: any) => void, string, string | null][]} */
+        const variants = [
+          ['(1) a response of 130 s', (x) => { x.runs[0].doc.rows[3].run.responseMs = 130000; }, 'fail', null],
+          ['(2) a stale tree', (x) => { x.trees['fr-frozen-none'].treeId = 't3'; }, 'incomplete', 'stale tree fr-frozen-none'],
+          ['(3) another producer today', (x) => { x.harnessNow = 'x'; }, 'incomplete', 'producer changed since the observation'],
+          ['(4) another source', (x) => { x.runs[0].doc.meta.source.sourceDigest = 'x'; }, 'incomplete', `runs file ${runs[0].path} is not of the frozen source`],
+          ['(5) a raw shard of another copy', (x) => { x.rawShards[shard0].copyDigest = 'x'; }, 'incomplete', `runs file ${runs[0].path} differs from its raw shard`],
+          ['(6) a missing raw shard', (x) => { x.rawShards['live-26x26-hell-1'] = null; }, 'incomplete', 'no raw shard identity live-26x26-hell-1'],
+          ['(7) no verification identity', (x) => { x.identity = null; }, 'incomplete', 'no verification identity'],
+          ['(8) no freeze record', (x) => { x.freezeVariants = null; }, 'incomplete', 'no freeze record'],
+          ['(9) a twin of the wrong parent', (x) => { x.twins['fr-frozen-live-test'].chain = x.twins['fr-frozen-live-test'].chain.map((/** @type {string} */ c) => (c === 'fr-frozen' ? 'fr-frozen-none' : c)); }, 'incomplete',
+            'the test derivative fr-frozen-live-test is not fr-frozen with w8'],
+          ['(10) a twin with an extra edit', (x) => {
+            const edits = x.twins['fr-frozen-none-live-test'].edits;
+            edits.splice(edits.findIndex((/** @type {any} */ e) => e.id === 'w8-1'), 0, { id: 'x-1' });
+          }, 'incomplete', 'the test derivative fr-frozen-none-live-test has an edit other than w8-1'],
+        ];
+        for (const [label, edit, expected, reason] of variants) {
+          const r = verdict(edit);
+          same(r.verdict, expected, `${label}: ${JSON.stringify(r.reasons)}`);
+          if (reason !== null) {
+            assert(r.reasons.includes(reason), `${label}: ${JSON.stringify(r.reasons)} lacks "${reason}"`);
+          }
+        }
+        same(liveLayout('T', null).receipt, 'docs/improve-generating/evidence/frozen/T/live-deadline.json', 'the real layout');
+      } finally {
+        rmSync(abs(base), { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'live-deadline: CLI receipt',
+    async run() {
+      const { liveEvidencePaths, receiptCommand } = await import('./live-deadline.mjs');
+      const root = 'tests/artifacts/ig-proto/selftest/S24-T09b-dev';
+      const argv = ['--task', 'S24-T09b-dev', '--require-pass', '--label', 'frozen', '--source-label', 'self-test'];
+      /** @param {string} dir @returns {string[]} */
+      const walkFiles = (dir) => readdirSync(abs(dir), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walkFiles(`${dir}/${e.name}`) : [`${dir}/${e.name}`]));
+      /** @param {string} base @returns {Record<string, string>} */
+      const hashes = (base) => Object.fromEntries(walkFiles(base).sort().map((p) => [p, sha256File(abs(p))]));
+      /** @param {any} layout @param {string[]} [extra] */
+      const run = async (layout, extra = argv) => {
+        let stdout = '';
+        let stderr = '';
+        const code = await receiptCommand(extra, { layout, stdout: (t) => { stdout += t; }, stderr: (t) => { stderr += t; } });
+        return { code, stdout, stderr };
+      };
+      /** @param {string} layout */
+      const stored = (layout) => JSON.parse(readFileSync(abs(layout), 'utf8'));
+      try {
+        const a = await liveFixture(`${root}/a`, 'S24-T09b-dev');
+        const first = await run(a);
+        same(first.code, 0, `(a) ${first.stderr}`);
+        same(first.stdout, `receipt: live-deadline pass -> ${a.receipt}\n`, '(a) the printed line');
+        const receipt = stored(a.receipt);
+        same(receipt.verdict, 'pass', `(a) ${JSON.stringify(receipt.reasons)}`);
+        const logs = walkFiles(`${a.rawDir}`).filter((p) => p.includes('/logs/') && !p.endsWith('.row.jsonl'));
+        const expected = liveEvidencePaths(a, {
+          runs: ['live-14x14-nightmare', 'live-26x26-hell-1'].map((shard) => ({ path: `${a.runsDir}/${shard}.runs.json`, shard })), journalFiles: logs,
+        });
+        same(receipt.evidence.map((/** @type {any} */ e) => e.path), expected, '(a) the evidence index');
+        assert(walkFiles(a.rawDir).some((p) => p.endsWith('.row.jsonl')) && !receipt.evidence.some((/** @type {any} */ e) => e.path.endsWith('.row.jsonl')), '(a) no row identity file is bound');
+        assert(receipt.evidence.every((/** @type {any} */ e) => e.sha256 === sha256File(abs(e.path))), '(a) each hash is the file\'s');
+        same(readdirSync(abs(a.inputs)).sort(), ['fr-frozen-live-test.ig-tree.json', 'fr-frozen-none-live-test.ig-tree.json', 'fr-frozen-none.ig-tree.json', 'fr-frozen.ig-tree.json',
+          'harness.json', 'verify-identity.json', 'verify-state.json'], '(a) the seven captures');
+        const before = hashes(`${root}/a`);
+        const second = await run(a);
+        same(second.code, 1, '(b) exit');
+        assert(second.stderr.includes(`receipt ${a.receipt} exists (a passing receipt is never rewritten)`), `(b) ${second.stderr}`);
+        same(hashes(`${root}/a`), before, '(b) no byte changed');
+        const late = await liveFixture(`${root}/c`, 'S24-T09b-dev', (l) => {
+          const path = `${l.runsDir}/live-26x26-hell-1.runs.json`;
+          const doc = JSON.parse(readFileSync(abs(path), 'utf8'));
+          doc.rows.find((/** @type {any} */ r) => r.rowKey === '26x26-hell-1~2').run.responseMs = 130000;
+          writeJson(abs(path), doc);
+        });
+        const failed = await run(late);
+        same([failed.code, stored(late.receipt).verdict], [2, 'fail'], `(c) ${failed.stderr}`);
+        assert(failed.stderr.includes('the receipt is fail'), `(c) ${failed.stderr}`);
+        const noIdentity = await liveFixture(`${root}/d`, 'S24-T09b-dev', (l) => { rmSync(abs(l.verifyIdentity)); });
+        const open = await run(noIdentity);
+        same([open.code, stored(noIdentity.receipt).verdict], [2, 'incomplete'], `(d) ${open.stderr}`);
+        assert(stored(noIdentity.receipt).reasons.includes('no verification identity'), `(d) ${JSON.stringify(stored(noIdentity.receipt).reasons)}`);
+        assert(!existsSync(abs(`${noIdentity.inputs}/verify-identity.json`)), '(d) nothing captured for the missing identity');
+        const broken = await liveFixture(`${root}/e`, 'S24-T09b-dev', (l) => { writeText(abs(l.receipt), '{'); });
+        const beforeBroken = hashes(`${root}/e`);
+        const refused = await run(broken);
+        same(refused.code, 1, '(e) exit');
+        assert(refused.stderr.includes(`receipt ${broken.receipt} is unreadable`), `(e) ${refused.stderr}`);
+        same(hashes(`${root}/e`), beforeBroken, '(e) nothing written');
+        const stale = await liveFixture(`${root}/f`, 'S24-T09b-dev', (l) => {
+          rmSync(abs(l.verifyState));
+          writeText(abs(`${l.inputs}/verify-state.json`), '{"stale":true}');
+          writeText(abs(`${l.inputs}/fr-frozen-live-test.ig-tree.json`), '{"stale":true}');
+          const identity = JSON.parse(readFileSync(abs(l.verifyIdentity), 'utf8'));
+          identity.trees['fr-frozen-live-test'].treeId = 'd9';
+          writeJson(abs(l.verifyIdentity), identity);
+        });
+        const staleRun = await run(stale);
+        same([staleRun.code, stored(stale.receipt).verdict], [2, 'incomplete'], `(f) ${staleRun.stderr}`);
+        assert(stored(stale.receipt).reasons.includes('no verification state'), `(f) ${JSON.stringify(stored(stale.receipt).reasons)}`);
+        assert(!existsSync(abs(`${stale.inputs}/verify-state.json`)) && !existsSync(abs(`${stale.inputs}/fr-frozen-live-test.ig-tree.json`)), '(f) the stale captures are gone');
+        assert(!stored(stale.receipt).evidence.some((/** @type {any} */ e) => e.path.endsWith('/verify-state.json') || e.path.endsWith('/fr-frozen-live-test.ig-tree.json')), '(f) no stale file is bound');
+        same((await run(a, ['--task', 'V4-S2', '--label', 'frozen'])).stderr, 'live-deadline: V4-S2 is a historical namespace\n', 'a historical namespace');
+        same((await run(a, ['--label', 'frozen'])).stderr, 'live-deadline: receipt needs --task\n', 'no task');
+        same((await run(a, ['--task', 'x'])).stderr, 'live-deadline: --label frozen only\n', 'no label');
+      } finally {
+        rmSync(abs(root), { recursive: true, force: true });
+      }
+    },
+  },
 ];
+
+/**
+ * A complete passing input set of a live-deadline receipt under the private folder `base` (T09b): the freeze record with
+ * today's identities of the two frozen arms, two runs files of five clean rows each with their raw shard identities and closed
+ * journals, and the live verification's state and identity; `edit(layout)` may change a file before the case runs.
+ * @param {string} base Repository-relative folder under tests/artifacts/ig-proto/selftest/; removed first.
+ * @param {string} task
+ * @param {(layout: any) => void} [edit]
+ * @returns {Promise<any>} The `liveLayout(task, base)`.
+ */
+async function liveFixture(base, task, edit = () => {}) {
+  const { LIVE_ARMS, LIVE_CASES, LIVE_DECLARED, LIVE_TWINS, LIVE_VERIFY_TASK, liveLayout } = await import('./live-deadline.mjs');
+  const layout = liveLayout(task, base);
+  rmSync(abs(base), { recursive: true, force: true });
+  /** @type {Record<string, any>} */
+  const infos = {};
+  for (const id of [...LIVE_ARMS, ...LIVE_TWINS]) {
+    await ensureTree(id);
+    infos[id] = readTreeInfo(id);
+  }
+  const identityOf = (/** @type {string} */ id) => ({ treeId: infos[id].treeId, copyDigest: infos[id].copyDigest, paramsHash: sha256(JSON.stringify(infos[id].params)) });
+  writeJson(abs(layout.freeze), { variants: Object.fromEntries(LIVE_ARMS.map((id) => [id, { treeId: identityOf(id).treeId, paramsHash: identityOf(id).paramsHash }])) });
+  const harnessHash = harnessInfo().harnessHash;
+  const frozen = infos['fr-frozen'];
+  const { S, C, B, P, E } = ledgerLines();
+  for (const caseId of ['14x14-nightmare', '26x26-hell-1']) {
+    const shard = `live-${caseId}`;
+    const declared = LIVE_DECLARED.filter((d) => d.caseId === caseId);
+    const rows = [];
+    for (const d of declared) {
+      rows.push({ rowKey: d.rowKey, caseId, rep: d.rep, seed: d.seed, localRep: 0, run: await matrixRun(caseId, d.rep, 10, { igSetMs: 30000 }) });
+    }
+    writeJson(abs(`${layout.runsDir}/${shard}.runs.json`), {
+      meta: {
+        source: { frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST }, harness: { harnessHash },
+        trees: { 'fr-frozen': { treeId: frozen.treeId, copyDigest: frozen.copyDigest, params: frozen.params } },
+      },
+      shard, rows,
+    });
+    writeJson(abs(`${layout.rawDir}/${shard}/shard.json`), { treeId: frozen.treeId, copyDigest: frozen.copyDigest, harnessHash });
+    for (const d of declared) {
+      const c = `${d.rowKey}:1:2:1`;
+      const lines = [S(c, 'set', 0, 10), C(c), B(c), P(c, 0, 100, 0), B(c), P(c, 1, 50, 10), E(c, 160, 2, 0)];
+      writeText(abs(`${layout.rawDir}/${shard}/logs/${d.rowKey}.1.2.jsonl`), lines.map((l) => JSON.stringify(l)).join('\n'));
+      writeText(abs(`${layout.rawDir}/${shard}/logs/${d.rowKey}.link.jsonl`), JSON.stringify({ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }));
+      writeText(abs(`${layout.rawDir}/${shard}/logs/${d.rowKey}.row.jsonl`), JSON.stringify({ t: 'row', row: d.rowKey, seed: d.seed, caseId, localRep: 0, pid: 1 }));
+    }
+  }
+  writeJson(abs(layout.verifyState), {
+    task: LIVE_VERIFY_TASK, label: 'frozen', done: true, results: LIVE_CASES.map((name) => ({ name, pass: true, reason: null, ms: 1 })),
+  });
+  writeJson(abs(layout.verifyIdentity), {
+    format: 'ig-selftest-identity', version: 1, task: LIVE_VERIFY_TASK, label: 'frozen', group: 'v4', selected: [...LIVE_CASES], harnessHash,
+    frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST, trees: Object.fromEntries([...LIVE_ARMS, ...LIVE_TWINS].map((id) => [id, identityOf(id)])),
+    startedAt: '2026-11-24T00:00:00.000Z', endedAt: '2026-11-24T00:01:00.000Z',
+  });
+  edit(layout);
+  return layout;
+}
 
 /**
  * V4-T14's synthetic bench data (a run is `newRunRecord` of tools/bench/report.js; no bench runs).

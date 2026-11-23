@@ -140,6 +140,7 @@ node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6]
 node tools\ig-proto\self-test.mjs [--frozen | --items | --v4] --list --label frozen   # prints "<index> <name>" per case of the group; runs nothing, writes nothing (unlocked)
 node tools\ig-proto\fit-prior.mjs [--replace]       # recomputes data\prior-v1.json; exit 1 when it differs (unlocked)
 node tools\ig-proto\freeze.mjs check --label frozen --source-label "frozen 3fc65f4"   # unlocked (T08b): the six checks of the four frozen trees against the freeze's constants
+node tools\ig-proto\live-deadline.mjs receipt --task V4-LIVE --require-pass --label frozen --source-label "frozen 3fc65f4"   # unlocked (T09b): writes the live-deadline receipt once; run by V4-LIVE's plan only
 node tools\ig-proto\verify.mjs --task T --arm A[,A2] --label provisional --source-label <label> --horizon-s 285   # locked
 node tools\ig-proto\compare.mjs --task T --pairs before:after --reference mp12b1 --label provisional                # unlocked
 node tools\ig-proto\compare.mjs --task IGP-03 --pairs IGP-01/before:w095,IGP-01/after:a3 --reference mp12b1 --pm4 IGP-02 --label provisional   # study
@@ -1736,8 +1737,8 @@ It prints `freeze: <name> pass (<detail>)` per check, then `freeze: check pass (
 
 ### The live-deadline receipt (T09a to T09c)
 
-`live-deadline.mjs` will hold the receipt of kind `live-deadline` (N-V4-13): it binds the live verification of S04 and the ten rows of `V4-LIVE` for both
-bounded twins. It is unlocked and rates nothing. T09a adds its constants and pure checks; T09b adds the receipt.
+`live-deadline.mjs` holds the receipt of kind `live-deadline` (N-V4-13): it binds the live verification of S04 and the ten rows of `V4-LIVE` for both
+bounded twins. It is unlocked and rates nothing. T09a added its constants and pure checks and T09b the receipt.
 
 - **The identity record.** Every self-test run (any group) writes `self-test/identity.json` after `self-test/state.json`, which keeps its format: `format`
   `ig-selftest-identity`, `version` 1, `task`, `label`, `group` (`items`, `v4`, `frozen` or `default`), `selected` (the names of the cases it ran),
@@ -1761,6 +1762,29 @@ bounded twins. It is unlocked and rates nothing. T09a adds its constants and pur
   file; its parameters equal the parent's apart from `variant` and `liveDeadline`; and its `liveDeadline` is `LIVE_TEST_DEADLINE`. A twin whose tree id
   matches the identity record but whose derivation differs is refused.
 - **Self-test.** Two cases of the `--items` group: `live-deadline: row checks` and `live-deadline: verification checks`.
+- **The receipt** (T09b: `node tools\ig-proto\live-deadline.mjs receipt --task V4-LIVE [--require-pass] --label frozen --source-label <SL>`). `liveLayout(task)` gives
+  its paths: the receipt `docs/improve-generating/evidence/frozen/<task>/live-deadline.json` (kind `live-deadline`, the five `LIVE_DEADLINE_FIELDS` at its
+  root, then `rows` (the ten rows' table), `verification` and `reasons`), the published `fr-frozen/*.runs.json`, the raw `fr-frozen/<shard>/shard.json` and
+  `logs/` under `tests/artifacts/ig-proto/frozen/<task>/`, the verification's `state.json` and `identity.json` under `V4-LIVE-verify/self-test/`, the freeze
+  record `V4-S3/freeze.json` and the captures under `<task>/inputs/live-deadline/`. The command reads them and binds each in the evidence index (`liveEvidencePaths`,
+  in this order: the freeze, the runs files, the raw shards, the rows' journal files, then the captures), each with its SHA-256. A row's journal files are its worker
+  files and its link file; the row identity file `<rowKey>.row.jsonl` is neither read nor bound.
+- **The identity rules.** `liveReceipt` is incomplete, with the reason named, for: no freeze record; a stale `fr-frozen` or `fr-frozen-none` tree (tree id or
+  parameter hash against `freeze.json`); no published rows; a runs file not of the frozen source; rows of another tree than the freeze's `fr-frozen`; a missing raw
+  shard identity; a runs file whose tree id, copy digest or harness hash differs from its raw shard's; runs of different producers; today's producer differing from
+  the runs'; then the row checks and the verification checks above. A failure of either check makes the verdict `fail`; otherwise any reason or any of the 25 ids
+  missing makes it `incomplete`; else `pass`. No current file supplies a missing past identity.
+- **The captures.** Under `inputs/live-deadline/`: `fr-frozen.ig-tree.json` and `fr-frozen-none.ig-tree.json` (today's, always), the two test derivatives'
+  `ig-tree.json` only when their tree id equals the verification identity's (otherwise the derivation check reports it missing), `harness.json` only when today's
+  producer is the runs' common one, and `verify-state.json` and `verify-identity.json` when the verification's records exist. Each run that is not refused first
+  removes these seven paths, so that a receipt binds only its own run's captures.
+- **Written once.** A receipt that passed is never rewritten and one that is not a JSON object with a string `verdict` is refused (`live-deadline: receipt <path> exists
+  (a passing receipt is never rewritten)` or `... is unreadable`, exit 1, nothing read or written); a `fail` or `incomplete` one is replaced. `--label frozen` and
+  `--task` are required, and a historical namespace is refused. The command prints `receipt: live-deadline <verdict> -> <path>`; a receipt that does not pass also
+  prints its reasons on stderr, and `--require-pass` then exits 2. It is unlocked and rates nothing; only `V4-LIVE`'s plan runs it on the real task.
+- **Self-test (T09b).** Two more cases of the `--items` group: `live-deadline: the receipt's verdicts` (`liveReceipt` on a complete synthetic input and ten one-fault
+  variants) and `live-deadline: CLI receipt` (the command through its `io.layout` seam under `tests/artifacts/ig-proto/selftest/S24-T09b-dev/`: a pass, the refusal of a
+  second one with no byte changed, a failing row, a missing identity and a malformed stored receipt).
 
 ## Admission statistics (V4-T09a)
 

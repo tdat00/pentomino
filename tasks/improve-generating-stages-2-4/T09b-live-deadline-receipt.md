@@ -236,13 +236,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 06:23 +07:00 (dispatch, base `c546e8f`); 2026-11-24 06:47 +07:00 (accepted); 25 min. The developer reported 06:23:44-06:29:32 and, in the fix round, 06:44:03-06:45:20 |
+| Waiting for rulings | about 12 min (the pack author's review and its real-record check) |
+| Agent id, model | `e20d2b9a-6251-4019-9532-86474ec159be`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 47 calls; 5,927,906 input, 47,568 output, 5,599,226 cache-read tokens |
+| AI credits | 185.73 (developer only) |
+| Questions and rulings | no QUESTION; ruling R-P24-14 by SA-Opus, a fix round: each receipt run removes the seven capture paths first (variant f), the fixture writes the row identity files `<rowKey>.row.jsonl` (never bound), the stale README lines; details 1-7 and 9 accepted (the removed late-row assertion was the developer's own); T09c's evidence check corrected in the same amendment `174e250` |
+| Fix rounds | 1 (R-P24-14) |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T09b-orch2`: 229 passed, 0 failed (39.7 s; cases 228, 229 PASS); no `S24-T09b-dev` folder left; `live-deadline.mjs receipt` without `--task`: exit 1, `receipt needs --task`, no `V4-LIVE` folder; `firewall check --task S24-T09b`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the three Scope files |
+| Commit | this task's commit |
+| Issues and named items | the stale-capture item closed by the fix round; the receipt first runs on real rows in S04 |
