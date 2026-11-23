@@ -51,6 +51,7 @@ import {
 import { buildWidthReport, CONTEXT, loggedWidth, machineInfo, widthDispatch, widthItems, widthRows, widthStats, widthVerdict } from './width-probe.mjs';
 import { linkSummary, timelineProblem } from './linkage.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
+import { computePriorS3, familyShare, pilotShare } from './fit-prior-s3.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
 import { baselineVerdict, buildStepReceipt, captureStepInputs, expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, priorVerdict, replayVerdict, stage1Expectation, stage1Inputs, stage1Verdict, stepEvidence, stepExpectation } from './v4-check.mjs';
 
@@ -9025,6 +9026,40 @@ const itemCases = [
       } finally {
         rmSync(join(SELFTEST_DIR, 'write-plan-p7'), { recursive: true, force: true });
       }
+    },
+  },
+  {
+    name: 'prior-s3: the rules on synthetic records',
+    run() {
+      /** @param {number[]} reps @returns {any[]} */
+      const pilotLines = (reps) => reps.flatMap((r) => [3, 5].map((wc, i) => ({ r, wc: r === 4 ? wc + 3 : wc, call: `c${r}${'ab'[i]}` })))
+        .flatMap(({ r, wc, call }) => [{ t: 'start', call, row: `x~${r}`, K: 10 }, { t: 'end', call, locate: { wc } }]);
+      const nullWc = [{ t: 'start', call: 'c0n', row: 'x~0', K: 10 }, { t: 'end', call: 'c0n', locate: { wc: null } }];
+      same(pilotShare([...pilotLines([0, 1, 2, 3, 4]), ...nullWc]), { share: 0.4, n: 10 }, 'the piloted rule');
+      same(thrownBy(() => pilotShare(pilotLines([0, 1, 2, 4]))), 'fit-prior-s3: rep 3 has no call', 'a missing rep');
+      /** @param {string} seed @param {any[]} probes @returns {any} */
+      const family = (seed, probes) => ({ set: { seed, K: 10 }, probes });
+      same(familyShare([
+        family('s1', [{ eligible: true, inBand: true, count: 4 }, { eligible: true, inBand: false, count: 9 }]),
+        family('s1', [{ eligible: true, inBand: true, count: 6 }]),
+        family('s2', [{ eligible: false, inBand: true, count: 2 }]),
+      ]), { share: 0.5, n: 2, seeds: 1 }, 'the window rule');
+      same(thrownBy(() => familyShare([family('s1', [{ eligible: false, inBand: true, count: 2 }])])), 'fit-prior-s3: no eligible probe', 'no eligible probe');
+    },
+  },
+  {
+    name: 'prior-s3: the table of plan 4.1',
+    run() {
+      const { cells } = computePriorS3();
+      same(Object.keys(cells).length, 27, 'the number of cells');
+      const plan = { 196: 0.4, 215: 0.404412, 256: 0.358108, 300: 0.443429, 324: 0.347222, 360: 0.331514, 400: 0.368421, 420: 0.390244, 480: 0.297161, 484: 0.2875, 576: 0.219512, 676: 0.2 };
+      same(Object.keys(cells).filter((k) => k.startsWith('hell-1@')).map((k) => [Number(k.slice(7)), cells[k].share]).sort((a, b) => a[0] - b[0]),
+        Object.entries(plan).map(([area, share]) => [Number(area), share]), 'the twelve Hell 1 shares of plan 4.1');
+      const prior = JSON.parse(readFileSync(join(IG_DIR, 'data', 'prior-v1.json'), 'utf8'));
+      const nightmare = Object.keys(cells).filter((k) => k.startsWith('nightmare@'));
+      same(nightmare.length, 15, 'the Nightmare entries');
+      same(Object.fromEntries(nightmare.map((k) => [k, cells[k]])), Object.fromEntries(nightmare.map((k) => [k, prior.cells[k]])), 'the Nightmare entries are prior-v1\'s');
+      same([196, 400, 576, 676].map((a) => cells[`hell-1@${a}`].n), [68, 75, 70, 64], 'the pilots\' n');
     },
   },
 ];

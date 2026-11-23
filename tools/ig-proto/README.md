@@ -1528,6 +1528,36 @@ re-checks the stage-1 results on the final trees.
   a real call's `start` line per arm and level), `fr: bracket-close re-rating (synthetic)` and `fr: (c4) probe
   (synthetic)` (the ordinals of the family subset and of the sample, with the skip and the double skip).
 
+## The frozen family (stages 2 to 4 pack)
+
+The variants, tables and checks of the freeze of plan v4's stage 3 and of the stage-4 runs; plan
+`docs/improve-generating-stages-2-4/plan.md`, pack `tasks/improve-generating-stages-2-4/`.
+
+### The prior table prior-s3-v1 (T06a)
+
+`data/prior-s3-v1.json` is P4's table prior of the freeze: 27 cells, the 15 `nightmare@<area>` entries of `prior-v1.json` copied unchanged and a
+complete Hell 1 table of 12 `hell-1@<area>` entries (the start is `clamp(round(share x K), 1, K - 2)`, the prototype's `priorCount`). It is written
+by `fit-prior-s3.mjs` from committed records only (it reads, rates nothing and runs unlocked), with the SHA-256 of every file read in its `source`.
+Seeds of the fitting reps only (plan 4.7): no validation, Master or second-validation rep is read.
+
+- **Piloted boards** (`14x14-hell-1`, `20x20-hell-1`, `24x24-hell-1`, `26x26-hell-1`; areas 196, 400, 576, 676): from
+  `evidence/frozen/V4-S2/fr-base/pilot-<cell>.calls.jsonl`, every call whose `end` line has a finite `locate.wc`; per rep (0 to 4, the `start` line's
+  `row`) the median of `wc / K`; the share is the median of the five per-rep medians, rounded to 6 decimals (`pilotShare`).
+- **The other eight areas** (215, 256, 300, 324, 360, 420, 480, 484): from IGP-05's `families-windows.jsonl` and `families-failed-sets.jsonl`, the
+  `hell-1` families of the case; per family the median of `count / K` of the probes that are `eligible && inBand` (a family without one is skipped);
+  per seed the median of its families'; the share is the median over the seeds, rounded to 6 decimals (`familyShare`).
+- **Check and write.** Without `--write` the file must exist and equal the recomputed table (exit 0, `reproduced`, else 1); `--write` writes it and
+  refuses an existing file: written once, a different table is a new id (`prior-s3-v2`), never a rewrite.
+
+  ```
+  node tools\ig-proto\fit-prior-s3.mjs --label frozen --source-label <SL>
+  node tools\ig-proto\fit-prior-s3.mjs --write --label frozen --source-label <SL>
+  ```
+
+  `fr-frozen` loads the table through `paramFiles.prior` with `priorTable` `prior-s3-v1` (T08a).
+- **Self-test.** Two cases of the `--items` group: `prior-s3: the rules on synthetic records` (both rules and the two refusals) and `prior-s3: the
+  table of plan 4.1` (27 cells, the 12 shares of the plan, the 15 Nightmare entries equal to `prior-v1`'s, the pilots' counts 68, 75, 70, 64).
+
 ## Admission statistics (V4-T09a)
 
 The statistics of plan section 5.2 are fixed in code before any validation seed runs (the provisional seeds are

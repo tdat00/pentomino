@@ -164,13 +164,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 05:10 +07:00 (dispatch, base `dcce593`); 2026-11-24 05:16 +07:00 (accepted); the developer reported 05:10:26-05:12:29 |
+| Waiting for rulings | about 4 min (the pack author's review of the open details) |
+| Agent id, model | `e1a730da-3df6-4167-b0fa-26ede04a6efa`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 22 calls; 1,649,714 input, 16,274 output, 1,550,484 cache-read tokens |
+| AI credits | 56.58 (developer only) |
+| Questions and rulings | no QUESTION; the open details (`pilotShare` reads reps 0 to 4 only; `call <id> has no start line`; the short README rules) accepted by SA-Opus as ruling R-P24-10 |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `bt-prior-check.mjs`: all 12 Hell 1 entries reproduced; `fit-prior-s3`: `data/prior-s3-v1.json reproduced (27 cells)`; a second `--write`: exit 1, `exists: a frozen table is never rewritten`; `fit-prior`: `data/prior-v1.json reproduced (83 cells)`; `self-test --items --task S24-T06a-orch`: 224 passed, 0 failed (35 s; cases 223, 224 PASS); `firewall check --task S24-T06a`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the four Scope files |
+| Commit | this task's commit |
+| Issues and named items | none |
