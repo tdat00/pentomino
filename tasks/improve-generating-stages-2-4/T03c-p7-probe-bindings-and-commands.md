@@ -110,6 +110,13 @@ candidate without its equality reports before they look up any tree.
        and `goDecision`; `inputs` = per candidate its `run.inputs`, its time declaration's `corpus.inputs` and the two
        equality reports `{ path, sha256: fileHash(path) }` that exist;
      - any other task refuses `report knows V4-P7E-<candidate>-<tier> and V4-P7`.
+     - **A report needs a run** (ruling R-P24-08): for `V4-P7E-<candidate>-<tier>`, immediately after `readRun` and
+       before `expectedCorpus` (so no tree is looked up or built), a `run.inputs` that is empty (none of
+       `experiment.json`, `state.json`, `items.jsonl` exists) refuses `report needs a run: <T> has none (no
+       experiment.json, state.json or items.jsonl under tests/artifacts/ig-proto/frozen/<T>/equal)`; for `V4-P7`, after
+       the plan's candidates are read, when every candidate's `readRun(T, \`time-${c}\`).inputs` is empty, it refuses
+       `report needs a run: V4-P7 has none (no time-<candidate> run under tests/artifacts/ig-proto/frozen/V4-P7)`. A
+       refusal writes nothing, and no folder is created.
      It writes `${EVIDENCE}/<T>/p7.json` (`{ meta: { format: 'ig-p7-report', version: 1, task, writtenAt,
      reportProducer: { harnessHash }, inputs }, equal: <verdict> }` or `{ meta, time: { <c>: verdict }, go: { <c>:
      decision } }`) and `p7.md` (the verdicts, the coverage table of the memory fixtures with their reference bytes, list
@@ -133,7 +140,8 @@ README, the P7 section: the commands and their refusals (`bind` and `time` read 
 and what each binding rechecks (the twelve required paths of `equalityEvidencePaths`: the run's `experiment.json`,
 `state.json` and `items.jsonl` and the nine corpus inputs, each listed exactly once whatever the report lists, then the
 hash of every listed input); the go rule (D-P24-05); "`time` refuses a candidate whose quick and full equality
-reports are not `equal` on the same candidate and reference trees and corpus, or whose inputs are missing or changed".
+reports are not `equal` on the same candidate and reference trees and corpus, or whose inputs are missing or changed";
+"`report` refuses a task without a run, before any tree" (ruling R-P24-08).
 
 ## Commands and gates
 
@@ -144,6 +152,7 @@ reports are not `equal` on the same candidate and reference trees and corpus, or
 | `Test-Path tools\ig-proto\variants\p7-c1.json` | repository root | `False` (T03d creates it) | 1 min |
 | `node tools\ig-proto\p7-probe.mjs time --candidate p7-c1 --task V4-P7 --label frozen --source-label "frozen 3fc65f4" --horizon-s 285` | repository root (unlocked: it refuses before any work) | exit 1; `p7-probe: p7-c1 cannot be timed: no quick equality report`; no folder `tests\artifacts\ig-proto\frozen\V4-P7` | 1 min |
 | `node tools\ig-proto\p7-probe.mjs bind --candidate p7-c1 --task V4-P7 --label frozen --source-label "frozen 3fc65f4"` | repository root (unlocked) | exit 1; `p7-probe: p7-c1 cannot be timed: no quick equality report`; no folder `tests\artifacts\ig-proto\frozen\V4-P7` | 1 min |
+| `node tools\ig-proto\p7-probe.mjs report --task V4-P7E-p7-c1-quick --label frozen --source-label "frozen 3fc65f4"` | repository root (unlocked: it refuses before any tree; ruling R-P24-08) | exit 1; `p7-probe: report needs a run: V4-P7E-p7-c1-quick has none (no experiment.json, state.json or items.jsonl under tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1-quick/equal)`; no folder `docs\improve-generating\evidence\frozen\V4-P7E-p7-c1-quick` | 1 min |
 | `node tools\ig-proto\firewall.mjs check --task S24-T03c --label frozen` | repository root, last | `firewall: OK, ...` | 1 min |
 | `npm run check` | repository root | `check-conventions: OK`, `check-site: OK` | 2 min |
 | G1, G2, G3 | repository root | G1, G2 print nothing; G3 lists the three files | 1 min |
@@ -172,7 +181,7 @@ reports are not `equal` on the same candidate and reference trees and corpus, or
 | ID | Criterion | How it is verified | Evidence |
 |---|---|---|---|
 | T03c-T01 | `equalityEvidencePaths`, `equalityBinding` and `goDecision` return the Tests table's values | `--items` | the PASS line |
-| T03c-T02 | `time` and `bind` refuse `p7-c1` (no manifest yet) on its missing quick report and write nothing | the refusal gates | their output; no folder |
+| T03c-T02 | `time` and `bind` refuse `p7-c1` (no manifest yet) on its missing quick report, and `report` refuses a task without a run (ruling R-P24-08); each writes nothing | the refusal gates | their output; no folder |
 | T03c-T03 | `npm run check`, the firewall and G1 to G3 pass | the gates | their output |
 
 ## Checklist (the developer confirms every item in the final report)
