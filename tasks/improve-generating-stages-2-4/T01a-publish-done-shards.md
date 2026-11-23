@@ -78,9 +78,10 @@ refuse to label an observation with a producer other than the one that measured 
    }
 
    /**
-    * The plan of a publication (N-V4-19, review R01): complete publications are kept, done shards without one are
-    * published, other shards are named (`--done-only`) or refuse the command (the default); a partial publication
-    * always refuses it. Pure.
+    * The plan of a publication (N-V4-19, review R01): a partial publication refuses the command first, in both modes,
+    * before any other shard is judged (the first in name order is named); otherwise complete publications are kept,
+    * done shards without one are published, and the other shards are named (`--done-only`) or refuse the command (the
+    * default). Pure.
     * @param {{ name: string, done: boolean, publication: 'none' | 'complete' | 'incomplete', recorded: number | null,
     *   expected: number | null }[]} shards In name order.
     * @param {{ arm: string, doneOnly: boolean }} o
@@ -88,6 +89,10 @@ refuse to label an observation with a producer other than the one that measured 
     *   notDone: { shard: string, recorded: number | null, expected: number | null }[] }}
     */
    export function publishPlan(shards, { arm, doneOnly }) {
+     const partial = shards.find((s) => s.publication === 'incomplete');
+     if (partial !== undefined) {
+       return { refuse: `incomplete publication ${arm}/${partial.name}: a ruling is required`, publish: [], kept: [], notDone: [] };
+     }
      /** @type {string[]} */
      const publish = [];
      /** @type {string[]} */
@@ -95,9 +100,6 @@ refuse to label an observation with a producer other than the one that measured 
      /** @type {{ shard: string, recorded: number | null, expected: number | null }[]} */
      const notDone = [];
      for (const s of shards) {
-       if (s.publication === 'incomplete') {
-         return { refuse: `incomplete publication ${arm}/${s.name}: a ruling is required`, publish: [], kept: [], notDone: [] };
-       }
        if (s.publication === 'complete') {
          kept.push(s.name);
        } else if (s.done) {
@@ -111,6 +113,10 @@ refuse to label an observation with a producer other than the one that measured 
      return { refuse: null, publish, kept, notDone };
    }
    ```
+
+   The partial publication is checked before the loop (ruling R-P24-01 of 2026-11-23 on T01a's QUESTION 1, check-list
+   §5.4): it needs a ruling whatever the mode, so it is never hidden behind the default mode's not-done refusal of a
+   shard that sorts before it.
 
 2. Replace `publishCommand` by `export async function publishCommand(argv, io = {})` with this behaviour (the published
    contents are today's, `arm.mjs:259-291`):
@@ -151,7 +157,7 @@ refuse to label an observation with a producer other than the one that measured 
 
 | Test file | Case name | Input | Expected |
 |---|---|---|---|
-| `self-test.mjs` (`--items`) | `publish: the plan of a publication (N-V4-19)` | `publishPlan` of `[{ name: 'pilot-a', done: true, publication: 'none', recorded: 5, expected: 5 }, { name: 'pilot-b', done: false, publication: 'none', recorded: 2, expected: 5 }, { name: 'pilot-c', done: true, publication: 'complete', recorded: 5, expected: 5 }]` with `{ arm: 'fr', doneOnly: true }`, then `doneOnly: false`; then with `pilot-c`'s publication `incomplete` (both modes) | `{ refuse: null, publish: ['pilot-a'], kept: ['pilot-c'], notDone: [{ shard: 'pilot-b', recorded: 2, expected: 5 }] }`; `refuse` `shard pilot-b of arm fr is not done: nothing published`; `refuse` `incomplete publication fr/pilot-c: a ruling is required` in both modes |
+| `self-test.mjs` (`--items`) | `publish: the plan of a publication (N-V4-19)` | `publishPlan` of `[{ name: 'pilot-a', done: true, publication: 'none', recorded: 5, expected: 5 }, { name: 'pilot-b', done: false, publication: 'none', recorded: 2, expected: 5 }, { name: 'pilot-c', done: true, publication: 'complete', recorded: 5, expected: 5 }]` with `{ arm: 'fr', doneOnly: true }`, then `doneOnly: false`; then with `pilot-c`'s publication `incomplete` (both modes) | `{ refuse: null, publish: ['pilot-a'], kept: ['pilot-c'], notDone: [{ shard: 'pilot-b', recorded: 2, expected: 5 }] }`; `refuse` `shard pilot-b of arm fr is not done: nothing published`; `refuse` `incomplete publication fr/pilot-c: a ruling is required` in both modes (the partial publication is judged before any other shard, so in the default mode it wins over `pilot-b`'s not-done refusal; ruling R-P24-01) |
 | same | `publish: stopped shards, resume and immutable outputs` | in a fresh folder `tests/artifacts/ig-proto/selftest/S24-T01a-dev/` (helper `fresh`): an arm folder with shards `pilot-a` (done), `pilot-b` (not done: `state.json` `{ done: false, recorded: 0, expected: 1 }`), `pilot-c` (done) and an out folder holding a pre-written complete publication of `pilot-c` (runs JSON, runs markdown ending `This tree writes no journal.`); every `shard.json` `{ variant: 'base', treeId: 't', copyDigest: 'c', harnessHash: 'h', rows: [{ key: 'x~0', caseId: 'x', rep: 0, seed: 'landscape/x/0' }] }`, every done shard's `rows/x~0/report.json` `{ runs: [await matrixRun('x', 0)] }`; `io` `{ armDir, outDir, producerOf: () => ({ treeId: 't', copyDigest: 'c', harnessHash: 'h' }), metaOf: async () => ({ format: 'ig-proto-runs', version: 1, label: 'frozen', source: { label: 'selftest', sourceDigest: '0'.repeat(64), equalsMp12b1Source: false }, rerun: 'selftest' }), say }`. Run `publishCommand([... '--done-only'], io)`; then make `pilot-b` done (its `state.json` and report) and run the default `publishCommand`; then add `pilot-d` (done) with only `pilot-d.runs.json` in the out folder and run the default; then remove `pilot-d`'s files, add `pilot-e` (done, `shard.json` `treeId` `'other'`) and run the default | first run: returns 0, `pilot-a`'s two files written (runs JSON, runs markdown; no journal), `pilot-c`'s bytes unchanged, the lines `arm: kept fr/pilot-c: already published`, `arm: not published fr/pilot-b: not done (0 of 1 rows recorded; its rows count as missing)` and `arm: done-only: published 1, kept 1, not done 1 of 3 shards of fr`; second run: returns 0, `pilot-b` published, `pilot-a` and `pilot-c` byte-identical to before; third run: throws `incomplete publication fr/pilot-d: a ruling is required`, no file created; fourth run: throws a message starting `producer changed fr/pilot-e: observed tree other`, no `pilot-e` file created; the case removes its folder at the end |
 
 ## Documentation

@@ -550,6 +550,12 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | D-S24-28 | Q-S24-6 (a): up to 20 counted minutes for `V4-P7` (at most three composites; 15.50 / 19.37) | owner | `ff9adcf` |
 | D-S24-29 | Q-S24-7 (a): N-V4-18 not implemented; stage 4 keeps both identical arms' rows on the seven boards fixed without a screen | owner | `ff9adcf` |
 
+### 5.4 Rulings on developer questions (pack author)
+
+| ID | Date | Task, question | Ruling | Changed in the pack |
+|---|---|---|---|---|
+| R-P24-01 | 2026-11-23 | T01a, QUESTION 1 (Dev-Sonnet, agent 3993e5d4): `publishPlan` as written judged the shards in name order, so in the default mode `pilot-b` (not done) refused before `pilot-c` (partial), against the Tests row (`incomplete publication fr/pilot-c: a ruling is required` in both modes) | Option A, the developer's default: a partial publication refuses the command first, in both modes, before any other shard is judged (the first partial shard in name order is named); the default mode's not-done refusal applies only when no publication is partial. This is the contract the task already stated (the doc comment "a partial publication always refuses it", review R01's "a partial one is refused", the Tests row); Step 1's code contradicted it. No other test, refusal text or output changes | T01a Step 1 (`publishPlan` and its doc comment, a note after the code), the Tests row's Expected (the precedence stated) |
+
 ## 6. Named items
 
 ### 6.1 Open for later packs (inherited and of the plan)
