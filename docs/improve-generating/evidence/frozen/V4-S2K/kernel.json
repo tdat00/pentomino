@@ -1,0 +1,980 @@
+{
+  "meta": {
+    "format": "ig-proto-kernel",
+    "version": 1,
+    "task": "V4-S2K",
+    "label": "frozen",
+    "labelText": "frozen (3fc65f4)",
+    "createdAt": "2026-11-23T05:03:05.982Z",
+    "source": {
+      "label": "frozen 3fc65f4",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": false,
+      "kind": "frozen",
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "equalsFrozenSource": true,
+      "firewall": "471ca7e6897dae9b8d42fd34700bfc4358f1e200cb6a690dcc1f34f205efdd89"
+    },
+    "harness": {
+      "harnessHash": "8833366cfc3c49f457dc9eda1c32e318ec99e3c502ed91fcc3daaa822ae05533",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "84a198615646925fb64eb00d0ed23238b827e497a130f3f2dbe31f3f18803d66",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/fake-pool.mjs": "132bd8accf1453b82d1f38a7869c9642c9fc8ac5c645a03b7250c8c2f672813a",
+        "tools/ig-proto/lib/items.mjs": "c1111fa042b4c5dfd2c58585e49da9acf9518eff095e066137b0efb3e2d7bf53",
+        "tools/ig-proto/lib/lane-worker.mjs": "0f04190fc96b6bbb6a990aa6a081419ddceff50fcce9a765c556c8240b48aefe",
+        "tools/ig-proto/lib/lanes.mjs": "bf96264243059b5f667e88442e0492dd938002f7dcd5e8505cd9563de8a9b500",
+        "tools/ig-proto/lib/ledger.mjs": "53c2760b88d9f0a83bf1442f61119fbafadcb7225e8ead6e3faadf78baeb777b",
+        "tools/ig-proto/lib/packs.mjs": "ce449eecb938202e487b9e99c6c153bb897480e38ba475b87f070e26f22559d4",
+        "tools/ig-proto/lib/paths.mjs": "c0e9a057708264a2c6d83f197b18dfaffa327774b93b14fa9af797d08fdf7637",
+        "tools/ig-proto/lib/proof.mjs": "db22a68a3aac1d14f08db9abec1e1f3d114f938ee0c69b9b0beda738fa0a778a",
+        "tools/ig-proto/lib/records.mjs": "80b56021f1ae45189b3b811784c0fefb1bfac1d457cfbd12bc379bb7d3612f9a",
+        "tools/ig-proto/lib/sets.mjs": "23671cfa598ee767f405d18a1d2f8c1f95f9ca0356cbbbcd677b5fbd82050954",
+        "tools/ig-proto/lib/tree.mjs": "c35e4f5509687f2f84f5c008d834b1d70eea141718bbd869dba05155251f3675",
+        "tools/ig-proto/lib/width-worker-test.mjs": "82bff97154cdb13eb08ac5f12ea3cea5bf611deb77c932ebb4e92cb18873276f",
+        "tools/ig-proto/lib/width-worker.mjs": "fbc6c9291267c760d8b16fdea36e4b44364e95b686ed2d2b3cefe20ca2106270",
+        "tools/ig-proto/arm.mjs": "5fe5854f1fb183d6827b7c18f55bd5fc16de6206db4d73c7e1b7543f0aec2165",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "fa372834239566783c8faeb866b908701067af1d8b7bffca7736130c57f01983",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/identity.mjs": "6a6e554c592e9178a930329625e7fe08a854add6a3668c7f0ff95cccc830df9d",
+        "tools/ig-proto/kernel-probe.mjs": "e8507e3d1cc2873012df429bb908b1545e90ce36c47b3bc70eaf3fa66684d474",
+        "tools/ig-proto/linkage.mjs": "3c0e4acb2ef9b10e49c8a4d57445f0b7c0176c467aa8a86a175a92afbc1ca47a",
+        "tools/ig-proto/manifest.mjs": "75135bc251ed050d6cc97860d161f91a956d9f6a89b1a45cee45dacc5e28ce12",
+        "tools/ig-proto/pm1-inventory.mjs": "25a4f82515a20ea41804f7958da4c12aa1779c5f530ea2a2c041663a5e0e05de",
+        "tools/ig-proto/pm1.mjs": "eb5448500ed81ab97ebb92aad040bbaec781d3224587ce60ec9248a59e644177",
+        "tools/ig-proto/pm2-worker.mjs": "4e126db9770ebc7a056643541ce8fed3b82030cccc30b226ef5c343508269215",
+        "tools/ig-proto/pm2.mjs": "4e308b6f85cc2f2d9b1de3c48c929b96c3781c16341e0e558e84b58be8495d92",
+        "tools/ig-proto/pm4.mjs": "9a7cc13d8a98eb104b6c0a534c7eb7ddbbae7972da52b4bbd1cf25090b83bf63",
+        "tools/ig-proto/receipt.mjs": "16b74bb4dfc81f781e288cf111795a2da0d812faed1addc70e55f411698e4506",
+        "tools/ig-proto/run-task.ps1": "999ca9f639ab393651744f149723b7ec850df695418820907d9daecd38f12611",
+        "tools/ig-proto/self-test.mjs": "50e85b07e851246e1e33b38559b5c25bbe67981a78ed2d89b298e091dac20a05",
+        "tools/ig-proto/snapshot.mjs": "45c1624e0ec8af04069d1ee5b9a3a6fa0a74e989148de80b7df8fffc4209792a",
+        "tools/ig-proto/summary.mjs": "ab5ed7c65f358c6c43d46c89de9554e5bf93badd538611ba6890c6235fa7b5e9",
+        "tools/ig-proto/v4-check.mjs": "16184834d4e680fb8a013df2e77c3dc1e8fa8433b659e3b8b46e27344a46c811",
+        "tools/ig-proto/verdicts.mjs": "6eb4c7c5f2e93e96192800040585a89c6805192f8bf50db87ed1f2b8a326f43a",
+        "tools/ig-proto/verify.mjs": "ea594451955ca2e954e37da38eb53f01a0dddffc1bc2697ae6b27d050ecb5d73",
+        "tools/ig-proto/width-probe.mjs": "5e7fc422a795a758a81ac4a3d968ac0699345844e5430f80f62a28dd920658dc",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/frozen-round-v1.json": "be7428d10b91cdf37a9893d373660a23e2c0deea66427a15db0deafe823b6a4b",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133",
+        "tools/ig-proto/data/verdict-manifest.example.json": "ffff98ba065c024f9e99f9416cdef046e04243279f3e8d951d749e9cc76aa32d",
+        "tools/ig-proto/data/verdict-manifest.schema.md": "416d4da2749f5f158fae8cfd25929671c7fd7a6e5ff3647f8bef7a0a804eafbf"
+      }
+    },
+    "trees": {
+      "r4c": {
+        "treeId": "f23f8adec96d1c7119cbeda8471d87f923d59c8659e8bdc3b441c66585037471",
+        "copyDigest": "91e41687fd5a3e766cfc8dca6b6efe8c2cf3c4ea8026ef32b6373012e129712a",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "r4c-1",
+          "r4c-2",
+          "r4c-3",
+          "r4c-4",
+          "r4c-5",
+          "r4c-6",
+          "r4c-7",
+          "r4c-8",
+          "r4c-9",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "r4c",
+          "diagnosticOffers": true
+        }
+      },
+      "instr": {
+        "treeId": "d51da656c64fd2cbdd130905d4c23445dad3ebb0f9b0e271259a3e8763b570de",
+        "copyDigest": "cd08daa3b41c2ecad8b6fe7b88eeb01a48f9e279de10187fe96d675814579205",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "instr",
+          "diagnosticOffers": true
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 0,
+      "nodeSeconds": 0,
+      "countedSeconds": 0,
+      "lockWaitSeconds": 0
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\V4-S2K.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "task": "V4-S2K",
+  "verdict": "equal",
+  "line": "counters: equal",
+  "items": [],
+  "cases": [
+    "10x10-nightmare",
+    "12x12-nightmare",
+    "14x14-nightmare",
+    "26x26-nightmare",
+    "26x26-hell-1"
+  ],
+  "rows": [
+    {
+      "item": "counters:r4c:10x10-nightmare:ig-v4/kernel/10x10-nightmare:0",
+      "caseId": "10x10-nightmare",
+      "subsetIndex": 0,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 4,
+      "same": true,
+      "r4": {
+        "calls": 5417,
+        "pieces": 24484,
+        "staticRows": 5800451,
+        "liveRows": 1223823,
+        "dirtyPieces": 22967,
+        "countChanged": 20940,
+        "r4Kills": 14181,
+        "kills": 2226421,
+        "undoEntries": 2377195
+      },
+      "ms": 784.821,
+      "itemMs": 858
+    },
+    {
+      "item": "counters:r4c:10x10-nightmare:ig-v4/kernel/10x10-nightmare:1",
+      "caseId": "10x10-nightmare",
+      "subsetIndex": 1,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 4,
+      "same": true,
+      "r4": {
+        "calls": 6131,
+        "pieces": 33820,
+        "staticRows": 3828067,
+        "liveRows": 1362139,
+        "dirtyPieces": 29976,
+        "countChanged": 25569,
+        "r4Kills": 16251,
+        "kills": 1848966,
+        "undoEntries": 2016838
+      },
+      "ms": 813.742,
+      "itemMs": 821
+    },
+    {
+      "item": "counters:r4c:10x10-nightmare:ig-v4/kernel/10x10-nightmare:2",
+      "caseId": "10x10-nightmare",
+      "subsetIndex": 2,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 5,
+      "same": true,
+      "r4": {
+        "calls": 6801,
+        "pieces": 33466,
+        "staticRows": 6443717,
+        "liveRows": 1430936,
+        "dirtyPieces": 31311,
+        "countChanged": 28469,
+        "r4Kills": 12444,
+        "kills": 2848675,
+        "undoEntries": 3049521
+      },
+      "ms": 1091.436,
+      "itemMs": 1096
+    },
+    {
+      "item": "counters:r4c:10x10-nightmare:ig-v4/kernel/10x10-nightmare:3",
+      "caseId": "10x10-nightmare",
+      "subsetIndex": 3,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 5,
+      "same": true,
+      "r4": {
+        "calls": 8903,
+        "pieces": 46361,
+        "staticRows": 9033052,
+        "liveRows": 2023615,
+        "dirtyPieces": 41980,
+        "countChanged": 37174,
+        "r4Kills": 18824,
+        "kills": 3301761,
+        "undoEntries": 3542459
+      },
+      "ms": 1424.421,
+      "itemMs": 1428
+    },
+    {
+      "item": "counters:r4c:10x10-nightmare:ig-v4/kernel/10x10-nightmare:4",
+      "caseId": "10x10-nightmare",
+      "subsetIndex": 4,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 6,
+      "same": true,
+      "r4": {
+        "calls": 8443,
+        "pieces": 51957,
+        "staticRows": 5539220,
+        "liveRows": 1983538,
+        "dirtyPieces": 42036,
+        "countChanged": 34191,
+        "r4Kills": 16778,
+        "kills": 2560024,
+        "undoEntries": 2783326
+      },
+      "ms": 1353.108,
+      "itemMs": 1356
+    },
+    {
+      "item": "counters:r4c:10x10-nightmare:ig-v4/kernel/10x10-nightmare:5",
+      "caseId": "10x10-nightmare",
+      "subsetIndex": 5,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 6,
+      "same": true,
+      "r4": {
+        "calls": 26817,
+        "pieces": 168038,
+        "staticRows": 18394248,
+        "liveRows": 4882331,
+        "dirtyPieces": 135434,
+        "countChanged": 109918,
+        "r4Kills": 95878,
+        "kills": 6595961,
+        "undoEntries": 7228733
+      },
+      "ms": 4124.056,
+      "itemMs": 4128
+    },
+    {
+      "item": "counters:r4c:12x12-nightmare:ig-v4/kernel/12x12-nightmare:0",
+      "caseId": "12x12-nightmare",
+      "subsetIndex": 0,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 4,
+      "same": true,
+      "r4": {
+        "calls": 13878,
+        "pieces": 81452,
+        "staticRows": 20798252,
+        "liveRows": 7176074,
+        "dirtyPieces": 74499,
+        "countChanged": 67764,
+        "r4Kills": 43178,
+        "kills": 12835594,
+        "undoEntries": 13372063
+      },
+      "ms": 4777.133,
+      "itemMs": 4782
+    },
+    {
+      "item": "counters:r4c:12x12-nightmare:ig-v4/kernel/12x12-nightmare:1",
+      "caseId": "12x12-nightmare",
+      "subsetIndex": 1,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 4,
+      "same": true,
+      "r4": {
+        "calls": 2303,
+        "pieces": 17733,
+        "staticRows": 3022920,
+        "liveRows": 1454202,
+        "dirtyPieces": 14271,
+        "countChanged": 12338,
+        "r4Kills": 6838,
+        "kills": 1450860,
+        "undoEntries": 1519990
+      },
+      "ms": 946.813,
+      "itemMs": 951
+    },
+    {
+      "item": "counters:r4c:12x12-nightmare:ig-v4/kernel/12x12-nightmare:2",
+      "caseId": "12x12-nightmare",
+      "subsetIndex": 2,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 5,
+      "same": true,
+      "r4": {
+        "calls": 14652,
+        "pieces": 116157,
+        "staticRows": 26495525,
+        "liveRows": 7637115,
+        "dirtyPieces": 95811,
+        "countChanged": 78822,
+        "r4Kills": 23454,
+        "kills": 9454412,
+        "undoEntries": 9971725
+      },
+      "ms": 5522.34,
+      "itemMs": 5529
+    },
+    {
+      "item": "counters:r4c:12x12-nightmare:ig-v4/kernel/12x12-nightmare:3",
+      "caseId": "12x12-nightmare",
+      "subsetIndex": 3,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 5,
+      "same": true,
+      "r4": {
+        "calls": 535,
+        "pieces": 3256,
+        "staticRows": 508968,
+        "liveRows": 272410,
+        "dirtyPieces": 2723,
+        "countChanged": 2247,
+        "r4Kills": 1811,
+        "kills": 341086,
+        "undoEntries": 359752
+      },
+      "ms": 156.325,
+      "itemMs": 163
+    },
+    {
+      "item": "counters:r4c:12x12-nightmare:ig-v4/kernel/12x12-nightmare:4",
+      "caseId": "12x12-nightmare",
+      "subsetIndex": 4,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 6,
+      "same": true,
+      "r4": {
+        "calls": 3189,
+        "pieces": 17912,
+        "staticRows": 3115485,
+        "liveRows": 1087918,
+        "dirtyPieces": 16170,
+        "countChanged": 14113,
+        "r4Kills": 17667,
+        "kills": 2002343,
+        "undoEntries": 2116942
+      },
+      "ms": 720.729,
+      "itemMs": 726
+    },
+    {
+      "item": "counters:r4c:12x12-nightmare:ig-v4/kernel/12x12-nightmare:5",
+      "caseId": "12x12-nightmare",
+      "subsetIndex": 5,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 6,
+      "same": true,
+      "r4": {
+        "calls": 878,
+        "pieces": 4781,
+        "staticRows": 677814,
+        "liveRows": 271708,
+        "dirtyPieces": 4054,
+        "countChanged": 3432,
+        "r4Kills": 8534,
+        "kills": 481589,
+        "undoEntries": 512348
+      },
+      "ms": 197.608,
+      "itemMs": 201
+    },
+    {
+      "item": "counters:r4c:14x14-nightmare:ig-v4/kernel/14x14-nightmare:0",
+      "caseId": "14x14-nightmare",
+      "subsetIndex": 0,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 4,
+      "same": true,
+      "r4": {
+        "calls": 5714,
+        "pieces": 51662,
+        "staticRows": 22979523,
+        "liveRows": 8908005,
+        "dirtyPieces": 47364,
+        "countChanged": 43456,
+        "r4Kills": 21460,
+        "kills": 10793578,
+        "undoEntries": 11037080
+      },
+      "ms": 4551.482,
+      "itemMs": 4557
+    },
+    {
+      "item": "counters:r4c:14x14-nightmare:ig-v4/kernel/14x14-nightmare:1",
+      "caseId": "14x14-nightmare",
+      "subsetIndex": 1,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 4,
+      "same": true,
+      "r4": {
+        "calls": 2703,
+        "pieces": 31820,
+        "staticRows": 8371800,
+        "liveRows": 3107332,
+        "dirtyPieces": 24726,
+        "countChanged": 20649,
+        "r4Kills": 3945,
+        "kills": 2287803,
+        "undoEntries": 2384214
+      },
+      "ms": 3131.531,
+      "itemMs": 3137
+    },
+    {
+      "item": "counters:r4c:14x14-nightmare:ig-v4/kernel/14x14-nightmare:2",
+      "caseId": "14x14-nightmare",
+      "subsetIndex": 2,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 5,
+      "same": true,
+      "r4": {
+        "calls": 9400,
+        "pieces": 67758,
+        "staticRows": 23651380,
+        "liveRows": 6864400,
+        "dirtyPieces": 60449,
+        "countChanged": 54667,
+        "r4Kills": 43875,
+        "kills": 10538701,
+        "undoEntries": 10938988
+      },
+      "ms": 4327.173,
+      "itemMs": 4333
+    },
+    {
+      "item": "counters:r4c:14x14-nightmare:ig-v4/kernel/14x14-nightmare:3",
+      "caseId": "14x14-nightmare",
+      "subsetIndex": 3,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 5,
+      "same": true,
+      "r4": {
+        "calls": 3929,
+        "pieces": 41231,
+        "staticRows": 16034518,
+        "liveRows": 3925577,
+        "dirtyPieces": 32077,
+        "countChanged": 26151,
+        "r4Kills": 9504,
+        "kills": 3257807,
+        "undoEntries": 3391212
+      },
+      "ms": 3550.994,
+      "itemMs": 3558
+    },
+    {
+      "item": "counters:r4c:14x14-nightmare:ig-v4/kernel/14x14-nightmare:4",
+      "caseId": "14x14-nightmare",
+      "subsetIndex": 4,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 6,
+      "same": true,
+      "r4": {
+        "calls": 338,
+        "pieces": 2641,
+        "staticRows": 760098,
+        "liveRows": 413088,
+        "dirtyPieces": 2514,
+        "countChanged": 2239,
+        "r4Kills": 1114,
+        "kills": 402464,
+        "undoEntries": 414466
+      },
+      "ms": 214.203,
+      "itemMs": 228
+    },
+    {
+      "item": "counters:r4c:14x14-nightmare:ig-v4/kernel/14x14-nightmare:5",
+      "caseId": "14x14-nightmare",
+      "subsetIndex": 5,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 6,
+      "same": true,
+      "r4": {
+        "calls": 4495,
+        "pieces": 41186,
+        "staticRows": 12571935,
+        "liveRows": 4861902,
+        "dirtyPieces": 34725,
+        "countChanged": 30147,
+        "r4Kills": 9408,
+        "kills": 5199157,
+        "undoEntries": 5366574
+      },
+      "ms": 3348.241,
+      "itemMs": 3356
+    },
+    {
+      "item": "counters:r4c:26x26-nightmare:ig-v4/kernel/26x26-nightmare:0",
+      "caseId": "26x26-nightmare",
+      "subsetIndex": 0,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 5,
+      "same": true,
+      "r4": {
+        "calls": 182,
+        "pieces": 2070,
+        "staticRows": 2446589,
+        "liveRows": 1082848,
+        "dirtyPieces": 1999,
+        "countChanged": 1897,
+        "r4Kills": 158,
+        "kills": 988442,
+        "undoEntries": 1005451
+      },
+      "ms": 877.137,
+      "itemMs": 896
+    },
+    {
+      "item": "counters:r4c:26x26-nightmare:ig-v4/kernel/26x26-nightmare:1",
+      "caseId": "26x26-nightmare",
+      "subsetIndex": 1,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 5,
+      "same": true,
+      "r4": {
+        "calls": 140,
+        "pieces": 1845,
+        "staticRows": 2287301,
+        "liveRows": 1558879,
+        "dirtyPieces": 1697,
+        "countChanged": 1624,
+        "r4Kills": 1656,
+        "kills": 1080009,
+        "undoEntries": 1096377
+      },
+      "ms": 990.471,
+      "itemMs": 1012
+    },
+    {
+      "item": "counters:r4c:26x26-nightmare:ig-v4/kernel/26x26-nightmare:2",
+      "caseId": "26x26-nightmare",
+      "subsetIndex": 2,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 6,
+      "same": true,
+      "r4": {
+        "calls": 99,
+        "pieces": 1487,
+        "staticRows": 1827398,
+        "liveRows": 1117286,
+        "dirtyPieces": 1403,
+        "countChanged": 1032,
+        "r4Kills": 0,
+        "kills": 1403911,
+        "undoEntries": 1421374
+      },
+      "ms": 877.799,
+      "itemMs": 900
+    },
+    {
+      "item": "counters:r4c:26x26-nightmare:ig-v4/kernel/26x26-nightmare:3",
+      "caseId": "26x26-nightmare",
+      "subsetIndex": 3,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 6,
+      "same": true,
+      "r4": {
+        "calls": 126,
+        "pieces": 1605,
+        "staticRows": 2180159,
+        "liveRows": 1377599,
+        "dirtyPieces": 1491,
+        "countChanged": 1395,
+        "r4Kills": 281,
+        "kills": 863561,
+        "undoEntries": 875782
+      },
+      "ms": 908.281,
+      "itemMs": 927
+    },
+    {
+      "item": "counters:r4c:26x26-nightmare:ig-v4/kernel/26x26-nightmare:4",
+      "caseId": "26x26-nightmare",
+      "subsetIndex": 4,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 7,
+      "same": true,
+      "r4": {
+        "calls": 177,
+        "pieces": 2109,
+        "staticRows": 2727091,
+        "liveRows": 1570315,
+        "dirtyPieces": 1986,
+        "countChanged": 1971,
+        "r4Kills": 4180,
+        "kills": 1710690,
+        "undoEntries": 1733677
+      },
+      "ms": 989.412,
+      "itemMs": 1010
+    },
+    {
+      "item": "counters:r4c:26x26-nightmare:ig-v4/kernel/26x26-nightmare:5",
+      "caseId": "26x26-nightmare",
+      "subsetIndex": 5,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 7,
+      "same": true,
+      "r4": {
+        "calls": 49,
+        "pieces": 324,
+        "staticRows": 258484,
+        "liveRows": 137713,
+        "dirtyPieces": 308,
+        "countChanged": 299,
+        "r4Kills": 702,
+        "kills": 130595,
+        "undoEntries": 135298
+      },
+      "ms": 131.309,
+      "itemMs": 149
+    },
+    {
+      "item": "counters:r4c:26x26-hell-1:ig-v4/kernel/26x26-hell-1:0",
+      "caseId": "26x26-hell-1",
+      "subsetIndex": 0,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 5,
+      "same": true,
+      "r4": {
+        "calls": 213,
+        "pieces": 4844,
+        "staticRows": 10454056,
+        "liveRows": 4745619,
+        "dirtyPieces": 4086,
+        "countChanged": 3979,
+        "r4Kills": 6016,
+        "kills": 2043152,
+        "undoEntries": 2055731
+      },
+      "ms": 3871.805,
+      "itemMs": 3887
+    },
+    {
+      "item": "counters:r4c:26x26-hell-1:ig-v4/kernel/26x26-hell-1:1",
+      "caseId": "26x26-hell-1",
+      "subsetIndex": 1,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 5,
+      "same": true,
+      "r4": {
+        "calls": 194,
+        "pieces": 5127,
+        "staticRows": 11581734,
+        "liveRows": 7202783,
+        "dirtyPieces": 4728,
+        "countChanged": 4357,
+        "r4Kills": 7747,
+        "kills": 2203748,
+        "undoEntries": 2215913
+      },
+      "ms": 3964.003,
+      "itemMs": 3983
+    },
+    {
+      "item": "counters:r4c:26x26-hell-1:ig-v4/kernel/26x26-hell-1:2",
+      "caseId": "26x26-hell-1",
+      "subsetIndex": 2,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 6,
+      "same": true,
+      "r4": {
+        "calls": 290,
+        "pieces": 6571,
+        "staticRows": 12708945,
+        "liveRows": 6961284,
+        "dirtyPieces": 5678,
+        "countChanged": 5405,
+        "r4Kills": 1554,
+        "kills": 3610524,
+        "undoEntries": 3635013
+      },
+      "ms": 3963.552,
+      "itemMs": 3983
+    },
+    {
+      "item": "counters:r4c:26x26-hell-1:ig-v4/kernel/26x26-hell-1:3",
+      "caseId": "26x26-hell-1",
+      "subsetIndex": 3,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 6,
+      "same": true,
+      "r4": {
+        "calls": 281,
+        "pieces": 5835,
+        "staticRows": 11035132,
+        "liveRows": 6975493,
+        "dirtyPieces": 5198,
+        "countChanged": 4955,
+        "r4Kills": 16935,
+        "kills": 3456111,
+        "undoEntries": 3475542
+      },
+      "ms": 3661.33,
+      "itemMs": 3678
+    },
+    {
+      "item": "counters:r4c:26x26-hell-1:ig-v4/kernel/26x26-hell-1:4",
+      "caseId": "26x26-hell-1",
+      "subsetIndex": 4,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 7,
+      "same": true,
+      "r4": {
+        "calls": 102,
+        "pieces": 2871,
+        "staticRows": 6118866,
+        "liveRows": 4296534,
+        "dirtyPieces": 2507,
+        "countChanged": 2430,
+        "r4Kills": 2976,
+        "kills": 1691746,
+        "undoEntries": 1698872
+      },
+      "ms": 3414.396,
+      "itemMs": 3445
+    },
+    {
+      "item": "counters:r4c:26x26-hell-1:ig-v4/kernel/26x26-hell-1:5",
+      "caseId": "26x26-hell-1",
+      "subsetIndex": 5,
+      "status": "completed",
+      "outcome": "ok",
+      "g": 7,
+      "same": true,
+      "r4": {
+        "calls": 348,
+        "pieces": 7945,
+        "staticRows": 14134268,
+        "liveRows": 8832089,
+        "dirtyPieces": 7262,
+        "countChanged": 6921,
+        "r4Kills": 5131,
+        "kills": 5461205,
+        "undoEntries": 5491667
+      },
+      "ms": 4199.325,
+      "itemMs": 4232
+    }
+  ],
+  "perCase": [
+    {
+      "caseId": "10x10-nightmare",
+      "items": 6,
+      "measured": 6,
+      "sums": {
+        "calls": 62512,
+        "pieces": 358126,
+        "staticRows": 49038755,
+        "liveRows": 12906382,
+        "dirtyPieces": 303704,
+        "countChanged": 256261,
+        "r4Kills": 174356,
+        "kills": 19381808,
+        "undoEntries": 20998072
+      },
+      "dirtyShare": 0.848,
+      "countChangedShare": 0.7156
+    },
+    {
+      "caseId": "12x12-nightmare",
+      "items": 6,
+      "measured": 6,
+      "sums": {
+        "calls": 35435,
+        "pieces": 241291,
+        "staticRows": 54618964,
+        "liveRows": 17899427,
+        "dirtyPieces": 207528,
+        "countChanged": 178716,
+        "r4Kills": 101482,
+        "kills": 26565884,
+        "undoEntries": 27852820
+      },
+      "dirtyShare": 0.8601,
+      "countChangedShare": 0.7407
+    },
+    {
+      "caseId": "14x14-nightmare",
+      "items": 6,
+      "measured": 6,
+      "sums": {
+        "calls": 26579,
+        "pieces": 236298,
+        "staticRows": 84369254,
+        "liveRows": 28080304,
+        "dirtyPieces": 201855,
+        "countChanged": 177309,
+        "r4Kills": 89306,
+        "kills": 32479510,
+        "undoEntries": 33532534
+      },
+      "dirtyShare": 0.8542,
+      "countChangedShare": 0.7504
+    },
+    {
+      "caseId": "26x26-nightmare",
+      "items": 6,
+      "measured": 6,
+      "sums": {
+        "calls": 773,
+        "pieces": 9440,
+        "staticRows": 11727022,
+        "liveRows": 6844640,
+        "dirtyPieces": 8884,
+        "countChanged": 8218,
+        "r4Kills": 6977,
+        "kills": 6177208,
+        "undoEntries": 6267959
+      },
+      "dirtyShare": 0.9411,
+      "countChangedShare": 0.8706
+    },
+    {
+      "caseId": "26x26-hell-1",
+      "items": 6,
+      "measured": 6,
+      "sums": {
+        "calls": 1428,
+        "pieces": 33193,
+        "staticRows": 66033001,
+        "liveRows": 39013802,
+        "dirtyPieces": 29459,
+        "countChanged": 28047,
+        "r4Kills": 40359,
+        "kills": 18466486,
+        "undoEntries": 18572738
+      },
+      "dirtyShare": 0.8875,
+      "countChangedShare": 0.845
+    }
+  ],
+  "withoutCounters": [],
+  "profile": {
+    "verdict": "complete",
+    "line": "profile: complete",
+    "items": [],
+    "cases": [
+      "14x14-nightmare",
+      "26x26-nightmare"
+    ],
+    "note": "reduced-inlining profile, diagnostic only (plan P7)",
+    "rows": [
+      {
+        "item": "profile:instr:14x14-nightmare:ig-v4/kernel/14x14-nightmare",
+        "caseId": "14x14-nightmare",
+        "status": "completed",
+        "ratings": 6,
+        "ms": 10401.525,
+        "itemMs": 10710,
+        "record": {
+          "item": "profile:instr:14x14-nightmare:ig-v4/kernel/14x14-nightmare",
+          "caseId": "14x14-nightmare",
+          "file": "tests/artifacts/ig-proto/frozen/V4-S2K/profile/out/14x14-nightmare/CPU.20261123.120251.15284.0.001.cpuprofile",
+          "sha256": "078e5226038010b0255d2ddc131346fed172c89ca9a29b014f5a0c1d7d8f3c5c",
+          "totalMs": 10629.445,
+          "deduceMs": 10099.633,
+          "fewestColumnMs": 4.824,
+          "share": 0.0004776411182465739
+        }
+      },
+      {
+        "item": "profile:instr:26x26-nightmare:ig-v4/kernel/26x26-nightmare",
+        "caseId": "26x26-nightmare",
+        "status": "completed",
+        "ratings": 6,
+        "ms": 3388.089,
+        "itemMs": 3718,
+        "record": {
+          "item": "profile:instr:26x26-nightmare:ig-v4/kernel/26x26-nightmare",
+          "caseId": "26x26-nightmare",
+          "file": "tests/artifacts/ig-proto/frozen/V4-S2K/profile/out/26x26-nightmare/CPU.20261123.120301.7940.0.001.cpuprofile",
+          "sha256": "4c50e2ee2ca9a9b5b1dae33cdbe0f6526bb6ac272b455d13272cc2ad05e04c6b",
+          "totalMs": 3646.224,
+          "deduceMs": 2324.655,
+          "fewestColumnMs": 0,
+          "share": 0
+        }
+      }
+    ],
+    "records": [
+      {
+        "item": "profile:instr:14x14-nightmare:ig-v4/kernel/14x14-nightmare",
+        "caseId": "14x14-nightmare",
+        "file": "tests/artifacts/ig-proto/frozen/V4-S2K/profile/out/14x14-nightmare/CPU.20261123.120251.15284.0.001.cpuprofile",
+        "sha256": "078e5226038010b0255d2ddc131346fed172c89ca9a29b014f5a0c1d7d8f3c5c",
+        "totalMs": 10629.445,
+        "deduceMs": 10099.633,
+        "fewestColumnMs": 4.824,
+        "share": 0.0004776411182465739
+      },
+      {
+        "item": "profile:instr:26x26-nightmare:ig-v4/kernel/26x26-nightmare",
+        "caseId": "26x26-nightmare",
+        "file": "tests/artifacts/ig-proto/frozen/V4-S2K/profile/out/26x26-nightmare/CPU.20261123.120301.7940.0.001.cpuprofile",
+        "sha256": "4c50e2ee2ca9a9b5b1dae33cdbe0f6526bb6ac272b455d13272cc2ad05e04c6b",
+        "totalMs": 3646.224,
+        "deduceMs": 2324.655,
+        "fewestColumnMs": 0,
+        "share": 0
+      }
+    ]
+  }
+}
