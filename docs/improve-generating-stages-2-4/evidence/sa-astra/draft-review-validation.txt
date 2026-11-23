@@ -1,0 +1,25 @@
+SA-Astra joint-draft review validation, 2026-11-23
+Working directory: Q:\git\pentomino
+
+Read-only arithmetic:
+node --check docs\improve-generating-stages-2-4\evidence\sa-astra\draft-review-check.mjs
+node docs\improve-generating-stages-2-4\evidence\sa-astra\draft-review-check.mjs
+
+Results:
+Syntax check and final arithmetic exit 0.
+Two complete arithmetic runs produce byte-identical draft-review-check.json.
+Prior values, work intervals, 20-row Hell price, pre-proof price and round account reproduce.
+P7 timing proxy with the declared runner overheads: 11.3965-12.8965 counted minutes.
+Formal P7 projection/guard remains 15.495625/19.369531; requested allowance remains 20.
+All three shared drafts' LF-normalized hashes match the versions read by the numeric check.
+No shared draft was modified.
+
+Repository validation:
+npm run check
+check-conventions: OK
+check-site: OK
+
+Own new files: CRLF, UTF-8 without BOM, no trailing whitespace, final newline.
+The owner's delegation of 2026-11-23 15:29 +07:00 is recorded in the review, with joint answers to Q-S24-1/Q-S24-2.
+Only unlocked reads/arithmetic/convention checks were performed. No git command, benchmark, generation, rating,
+replay, locked test, stage, commit or push was performed.

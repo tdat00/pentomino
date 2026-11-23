@@ -1,0 +1,1833 @@
+{
+  "label": "Unlocked joint-draft arithmetic; proposed runner scenarios are not measurements of unbuilt configurations",
+  "prior": {
+    "14x14-hell-1": {
+      "perSeed": [
+        0.40625,
+        0.3943014705882353,
+        0.4,
+        0.40625,
+        0.375
+      ],
+      "share": 0.4,
+      "oldSetPriors": [
+        8,
+        9
+      ],
+      "newStartsOnEndedSetCalls": [
+        13,
+        14
+      ]
+    },
+    "20x20-hell-1": {
+      "perSeed": [
+        0.38095238095238093,
+        0.34210526315789475,
+        0.3205128205128205,
+        0.3684210526315789,
+        0.3684210526315789
+      ],
+      "share": 0.3684210526315789,
+      "oldSetPriors": [
+        null
+      ],
+      "newStartsOnEndedSetCalls": [
+        14,
+        15
+      ]
+    },
+    "24x24-hell-1": {
+      "perSeed": [
+        0.23076923076923078,
+        0.21951219512195122,
+        0.2,
+        0.23076923076923078,
+        0.1951219512195122
+      ],
+      "share": 0.21951219512195122,
+      "oldSetPriors": [
+        6
+      ],
+      "newStartsOnEndedSetCalls": [
+        9
+      ]
+    },
+    "26x26-hell-1": {
+      "perSeed": [
+        0.15476190476190477,
+        0.20975609756097563,
+        0.1923076923076923,
+        0.2,
+        0.2
+      ],
+      "share": 0.2,
+      "oldSetPriors": [
+        5
+      ],
+      "newStartsOnEndedSetCalls": [
+        8
+      ]
+    }
+  },
+  "requireCalls": [
+    {
+      "stage": "set",
+      "work": 5816758768,
+      "result": "ok"
+    },
+    {
+      "stage": "batch",
+      "work": 6829466707,
+      "result": "ok"
+    }
+  ],
+  "work": {
+    "broad": {
+      "screen": {
+        "lo": 146838769708,
+        "hi": 342552331544,
+        "accepted": 150,
+        "loRatio": 978925131.3866667,
+        "hiRatio": 2283682210.2933335,
+        "completedRatio": 978925131.3866667,
+        "complete": true,
+        "rows": 15,
+        "terminatedCalls": 78
+      },
+      "noScreen": {
+        "lo": 376843785716,
+        "hi": 635137324596,
+        "accepted": 150,
+        "loRatio": 2512291904.7733335,
+        "hiRatio": 4234248830.64,
+        "completedRatio": 2512291904.7733335,
+        "complete": true,
+        "rows": 15,
+        "terminatedCalls": 79
+      },
+      "verdict": "pass"
+    },
+    "narrow": {
+      "screen": {
+        "lo": 96830921661,
+        "hi": 192515882155,
+        "accepted": 100,
+        "loRatio": 968309216.61,
+        "hiRatio": 1925158821.55,
+        "completedRatio": 968309216.61,
+        "complete": true,
+        "rows": 10,
+        "terminatedCalls": 52
+      },
+      "noScreen": {
+        "lo": 263497942059,
+        "hi": 393634669337,
+        "accepted": 100,
+        "loRatio": 2634979420.59,
+        "hiRatio": 3936346693.37,
+        "completedRatio": 2634979420.59,
+        "complete": true,
+        "rows": 10,
+        "terminatedCalls": 52
+      },
+      "verdict": "pass"
+    },
+    "completedOnlySurrogate": {
+      "broadLo": 2.93677539416,
+      "noneLo": 7.536875714320001,
+      "narrowLo": 4.20353530636,
+      "threshold": 0.7246234160049927,
+      "warning": "Assumes narrow class always passes; uses completed-unit lower bounds, not identified expected total consumed work or a calibrated admission probability."
+    }
+  },
+  "account": {
+    "loggedS": 10252.712000000001,
+    "offLogS": 87.4,
+    "accountMinutes": 172.33520000000001,
+    "liveGuardMinutes": 43.9055041257699,
+    "liveMinimumCap": 217,
+    "grant": 749
+  },
+  "hellCheck": {
+    "projected": 67.68795805087369,
+    "guard": 84.60994756359212,
+    "rows": 20,
+    "proxy": [
+      19.972916666666666,
+      21.972916666666666
+    ]
+  },
+  "preProof": {
+    "projected": 71.2,
+    "guard": 89,
+    "proxy": [
+      20.043033333333334,
+      22.043033333333334
+    ]
+  },
+  "spike": {
+    "pairedItemMsSum": 69310,
+    "projected": 15.49562499999999,
+    "guard": 19.369531249999987,
+    "draftBareItemsAndQuiet": {
+      "idle": 11.146499999999998,
+      "full": 12.646499999999998
+    },
+    "proxyWithRunnerOverheads": [
+      11.396499999999996,
+      12.896499999999998
+    ]
+  },
+  "chain": [
+    {
+      "name": "control",
+      "guard": 28.243734011735235,
+      "capAtGuardSpend": 201,
+      "capAtProxySpend": [
+        201,
+        201
+      ],
+      "proxy": [
+        15.959042207510551,
+        19.959042207510553
+      ]
+    },
+    {
+      "name": "spike",
+      "guard": 19.369531249999987,
+      "capAtGuardSpend": 220,
+      "capAtProxySpend": [
+        208,
+        212
+      ],
+      "proxy": [
+        11.396499999999996,
+        12.896499999999998
+      ]
+    },
+    {
+      "name": "S3P proofs",
+      "guard": 89,
+      "capAtGuardSpend": 309,
+      "capAtProxySpend": [
+        289,
+        295
+      ],
+      "proxy": [
+        20.043033333333334,
+        22.043033333333334
+      ]
+    },
+    {
+      "name": "Hell check",
+      "guard": 84.60994756359212,
+      "capAtGuardSpend": 394,
+      "capAtProxySpend": [
+        305,
+        312
+      ],
+      "proxy": [
+        19.972916666666666,
+        21.972916666666666
+      ]
+    },
+    {
+      "name": "LIVE",
+      "guard": 43.9055041257699,
+      "capAtGuardSpend": 438,
+      "capAtProxySpend": [
+        284,
+        294
+      ],
+      "proxy": [
+        4,
+        5
+      ]
+    },
+    {
+      "name": "S4",
+      "guard": 1481.858106417258,
+      "capAtGuardSpend": 1920,
+      "capAtProxySpend": [
+        1726,
+        1737
+      ],
+      "proxy": [
+        464.2767082351509,
+        509.7767082351509
+      ]
+    },
+    {
+      "name": "S4C",
+      "guard": 732.0213794942938,
+      "capAtGuardSpend": 2652,
+      "capAtProxySpend": [
+        1441,
+        1497
+      ],
+      "proxy": [
+        169.83342821004217,
+        182.83342821004217
+      ]
+    }
+  ],
+  "end": {
+    "guardAccount": 2651.343402862649,
+    "lowAccount": 877.8168286527036,
+    "highAccount": 946.8168286527036
+  },
+  "inputs": [
+    {
+      "path": "docs\\improve-generating-stages-2-4\\clarifications.md",
+      "sha256Lf": "c71fd74beaef573043c22b67c1b34e235c11971082aef74d59804f52b6d92480"
+    },
+    {
+      "path": "docs\\improve-generating-stages-2-4\\evidence\\sa-opus\\j1-numbers.json",
+      "sha256Lf": "781d83e3a29b7aa86973d2bc633b07993cb5001d07c8569c75d9e3d539504276"
+    },
+    {
+      "path": "docs\\improve-generating-stages-2-4\\evidence\\sa-opus\\x1-prices.json",
+      "sha256Lf": "84e5587eadfa6ada67bebd1f064ad4f3e254d2e3216da7a4c0266a1f21b71c8f"
+    },
+    {
+      "path": "docs\\improve-generating-stages-2-4\\plan.md",
+      "sha256Lf": "4fce891ca737327b08ed2297639e5a12e9fdede186f4cbbe6ac08fdec0515dec"
+    },
+    {
+      "path": "docs\\improve-generating-stages-2-4\\report.md",
+      "sha256Lf": "47d47cee4b0dd369de476e765298c70c513d3548305062b7e2f31f078b8cf8c8"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1.runs.json",
+      "sha256Lf": "ed9d720b0785f9f1dd64a7f6af9a291c3c31f91c5b46e5d4bf8972e46b85a170"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1.runs.json",
+      "sha256Lf": "3ef75f9d4e1a2f10c9deddec557584964f78d41e74ee7580cd3fe74afb80820d"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1.runs.json",
+      "sha256Lf": "7964e80141a36c297901c7833f07861e8a922b669cefa783d4cb31c1ab3f69a9"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1.runs.json",
+      "sha256Lf": "71a999419127abede6546851393df813faafb7cd5be6a54d7be3a8194abc0c0f"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare.runs.json",
+      "sha256Lf": "43fefa4f4ea0ab9babeb55e7c23fad34b3a0bdc04889cfd84221b98c31ac4688"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare.runs.json",
+      "sha256Lf": "c77c09360bceab13f55bb355712698e79e3185c1bb283c7ea19e10c3b3e5a9d3"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare.runs.json",
+      "sha256Lf": "84da7f976c5cc1aa5f0b7b1af4c0f76198289ded4e0b291e30807521b44389ab"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare.runs.json",
+      "sha256Lf": "cd1dfe516edcc3362716ebcc90fc67f9618fc6cc22bec30bb56aee5c8f9c55ba"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare.runs.json",
+      "sha256Lf": "bf7aada90cc717e60c50b039c3f630c726171bb775a28047481b9ef9705d1098"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare.runs.json",
+      "sha256Lf": "3eb6bd806744749437e32e56666ed175bc7d64fdbf197ef38f071f84245143e2"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2K\\kernel.json",
+      "sha256Lf": "40a0d351383388bf8ac7c7ca2fe4c57759b4cbd62ffac41f88be380adf7d2de2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\IGP-02\\invocations.jsonl",
+      "sha256Lf": "42cc68ef20f8838b412158e4f8f2d293f03b863dbb58df93dcd997ba089645f2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~0.9132.1.jsonl",
+      "sha256Lf": "c52e5a3023965455ae6cdb46265805e59dd898dbd7a221f194a78450334502ad"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~0.9132.2.jsonl",
+      "sha256Lf": "a7f9f57e14220cda3bf16b049e57de4d3a4dc66f6cdeee69c8e570738a7a47cb"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~0.9132.3.jsonl",
+      "sha256Lf": "afa3d55073c851e4a6e83a64c18bb4fd7e12a1df2433031c475b51576d9d70f9"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~0.9132.4.jsonl",
+      "sha256Lf": "df25d71f80d855961b85fec164a34d565f299832814cba1462982ae5b8262c9d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~0.9132.5.jsonl",
+      "sha256Lf": "f328060e6d03f378bc326b713f65025ef345a788ad07f8524a683c5a7cb4820f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~0.9132.6.jsonl",
+      "sha256Lf": "b90161661c7f97100b77bbe969c49058604ffc3c6bd829f036b8a17bfb7f621c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~0.9132.7.jsonl",
+      "sha256Lf": "0d8d2f865710c410319e0d1d455417dfe1bbea8d3b99911adeecbd0bf5cb86a5"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~0.link.jsonl",
+      "sha256Lf": "9fc5ccbf2c1b7543f1a74eae900e6d4c7003094bc00b487353601c84a031c124"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~1.9316.1.jsonl",
+      "sha256Lf": "2c54b20c37ef2da8be0d8fac19a38428eb6c6edf4a0c9b55ce5fba65187587bd"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~1.9316.2.jsonl",
+      "sha256Lf": "0cf35944a26e9f682a9807a3422f432c1463f6c2ef76ff98dbb921a3580bfdcd"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~1.9316.3.jsonl",
+      "sha256Lf": "46b8c5ea6705dd793087950bca9905146b9971c6557f3a5b8726390afacc796a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~1.9316.4.jsonl",
+      "sha256Lf": "5de021f07fdae4fe2999bdc914e1f49227449122ac7268a7580a2fa0df2b0889"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~1.9316.5.jsonl",
+      "sha256Lf": "cbf7f099673ca5f6d61b9c2f35eaa29f6397bd771a54592a8cbda26f6f7f5266"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~1.link.jsonl",
+      "sha256Lf": "7958a82e954b6a7190c8242cb297e11179b3fdd32109544469cea480efc7e955"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~2.10620.1.jsonl",
+      "sha256Lf": "8e53922961fe63f939eeea8a6e5a07229e5612ef94027496163377a52e6deed4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~2.10620.2.jsonl",
+      "sha256Lf": "06e0a1ca28cb93216de4f7866d2d2f779133c1b1abb93d4a786ac0ee53e29f4c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~2.10620.3.jsonl",
+      "sha256Lf": "795d8a305c5724bf423fa3152c315787f461004cda666eb480e78d6191e1b9b2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~2.10620.4.jsonl",
+      "sha256Lf": "ee8de1ed5939f7bfb1aea90caebe0e7ace55bbb4c608e8c23809fccf74dcfb6a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~2.10620.5.jsonl",
+      "sha256Lf": "8b49c91abde3799bfbfc086c066746600c22197c977cddd9403475a0ca5212d1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~2.10620.6.jsonl",
+      "sha256Lf": "9bf30bcb85a8ad7dee8489b20064b9c7f7095acb06b846758d2b0911b0ba48b8"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~2.link.jsonl",
+      "sha256Lf": "d642e05a02a4e860f092371a6602f47d1bc4bc9142df26bef0c94e49848e9418"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.20848.1.jsonl",
+      "sha256Lf": "b8743f47c96104f3492381b85f22761c74dc67f228fcbc5683a711ee18d059e3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.20848.2.jsonl",
+      "sha256Lf": "edaf8c7296cc1d24f78a35a2391446efade2f7560c0bd91b223234c77bd50eed"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.20848.3.jsonl",
+      "sha256Lf": "5d4f4e1cd53fb7783d9744c1114a0d46161603b8453c2fa980e929e21d0b6b28"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.20848.4.jsonl",
+      "sha256Lf": "4ea1b65a26cb670e1badbed8bccbe47dc14b561b329e1ec92113bcf994864345"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.20848.5.jsonl",
+      "sha256Lf": "897947910a8a22eb53f0622d72b97a37365509fa53d24f37b08bbc10453039eb"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.20848.6.jsonl",
+      "sha256Lf": "e1761c472794dcb6a6950e570aaa8840d2520ce07c76bd7920287652aab470dc"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl",
+      "sha256Lf": "2eb2058388f4233b838d0d506911127f0e25cb8c1d41ad82c92a91db764b67b6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~4.9172.1.jsonl",
+      "sha256Lf": "a5c06a96da864d7965a410304417176e681e75c4d7ee409f69b0f581b62a6356"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~4.9172.2.jsonl",
+      "sha256Lf": "c8d7d3555af720cb16f07219bc96fc21b5143bf4e78135bd2965080e82f5813e"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~4.9172.3.jsonl",
+      "sha256Lf": "807151069f0d9a7f4011d7cb2c2dc3724f33902bf5930b0cc29f6aa62426b92d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~4.9172.4.jsonl",
+      "sha256Lf": "0a9e9618fb4cf32628d24823ad1a410a79c4589b5a114427bf5f23937a4905a0"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~4.9172.5.jsonl",
+      "sha256Lf": "2351a448a5842306adcf80d1f5786954b413ad7e59d8fdc57ac3fe89088a808b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~4.9172.6.jsonl",
+      "sha256Lf": "0e698a78df1c1cee536ca62896286590aa7f97e77be889a560ee79386672fd40"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~4.9172.7.jsonl",
+      "sha256Lf": "5911fadaf9036a980e50669482b3d1054b0f1a6c68a3818a09f6503d1eef33e4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~4.link.jsonl",
+      "sha256Lf": "7a14d5473adc1c4f74bc72b23b84a280f56517491ba992ea57ea1b886f90ada3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~0.11488.1.jsonl",
+      "sha256Lf": "0f578359336d2749894c0755e9485dd92922fc45b60de3af6fc4b40ae2592074"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~0.11488.2.jsonl",
+      "sha256Lf": "e4bfaf7ec610b1ea0e3e972b4d5ee942aeeeb9f8d94c0f17f7e32e10fd76e13c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~0.11488.3.jsonl",
+      "sha256Lf": "fc6cd84f199ee6f45bf9a2dc70f0d54f9d34252e46617f3c23fe51da5446a93d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~0.11488.4.jsonl",
+      "sha256Lf": "03c9eab3307f0ee7b11e98bb11b3c393873ba61e6a2460ac85e1e985e92f512e"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~0.11488.5.jsonl",
+      "sha256Lf": "1c3a85821615c2aedf558024a5bfb300b4dae6ebf2d296f726625884f28ae9fd"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~0.11488.6.jsonl",
+      "sha256Lf": "2d4b0ffe6e9f7fa5cead5b90fa47af3eaba5ba3450483a0a04ea8284cf6936cc"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~0.11488.7.jsonl",
+      "sha256Lf": "af1e85f8a22c4674e3eb8f732f6cc90e86f47916cbeb95625da4b98756698cd2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~0.link.jsonl",
+      "sha256Lf": "75981722f85421f02806dcfe6c5aa04f94faef046ce9902f2e1dafbdb7801d54"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~1.21324.1.jsonl",
+      "sha256Lf": "95de5bf1e090c5d1e53aece32dde83f626f319a2280ded97b4987ed357e645c1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~1.21324.2.jsonl",
+      "sha256Lf": "2713bc0436ca17a00ad47302641cbec14654efb19841e2f90bef5769025310f7"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~1.21324.3.jsonl",
+      "sha256Lf": "9c347f9adcd59ecc376c5f65669b269d1f54fa101b8c6b7a02b3da3463592b6e"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~1.21324.4.jsonl",
+      "sha256Lf": "9d9db45bd6597c42f0cec19a71747440a29403548777208b7859cec8044ca26c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~1.21324.5.jsonl",
+      "sha256Lf": "ad9cdc33b9cc48f5766a5d3bbfae22fe6c1924644185f64526fd2cdd5c653afb"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~1.21324.6.jsonl",
+      "sha256Lf": "f14c36c7c22079a42ad34df7ffe134e7c46cfeece15f99c8787696b6a24735d0"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~1.link.jsonl",
+      "sha256Lf": "88088e3e5b0897af96d107926324c4e3ab090e04083e230f55a1e19978a0d529"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~2.9140.1.jsonl",
+      "sha256Lf": "6f736d6b066f412cac913e51f466f5929b056cb21b39d5ccd1d2b62c610a440b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~2.9140.2.jsonl",
+      "sha256Lf": "768370a7dc7f4cee076f023295a1706729c68e8aca58dfee96cd61c2d01ab4a2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~2.9140.3.jsonl",
+      "sha256Lf": "02ad6a7470c0dd1d0d288159272350c1eefa0706b529d7da923fbbc30cf64be3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~2.9140.4.jsonl",
+      "sha256Lf": "50b05cd4c09c8797b7a8f039a8c011fe499c2e06f7fe014f676cebfc64f44e04"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~2.9140.5.jsonl",
+      "sha256Lf": "bfc798383e18ba2fc3c84cc9cc1b42c49b2daab42c3941cb071aa55c2fe3a855"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~2.9140.6.jsonl",
+      "sha256Lf": "655059dcf070c907ac9bf7e6cf115bec8f037ce4d4e38ab90cc2dbb63ea1ca37"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~2.link.jsonl",
+      "sha256Lf": "b9ecdda084539eafc79ba1596be3317fdbffc59ed77ecdd2d5affc73a517aae6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~3.7848.1.jsonl",
+      "sha256Lf": "48666a52d0bc31f6468d3867e71010c89afce284a6603505f5c6b44d2d8eeef3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~3.7848.2.jsonl",
+      "sha256Lf": "08bcf9e3aa683286d1256e68f57250d11a745308e2b5849169d5136e88ab2a0a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~3.7848.3.jsonl",
+      "sha256Lf": "87159550e06d055c7ec7d9504342b39e3a601ff2ccadb466be5eca58db26c69e"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~3.7848.4.jsonl",
+      "sha256Lf": "b27133be429f9ee1b8b5e4ab675182fea1849b3399015dfa2294f41ac5622d47"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~3.7848.5.jsonl",
+      "sha256Lf": "1ca368b7d1fd56a2d7d8cc3193f3468a25288e8b8ba57ae7f395b1fd98916326"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~3.7848.6.jsonl",
+      "sha256Lf": "02488d358a1f4c098b9970201beb9578b77b5c3f2253017bd95d3690a7ff6421"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~3.link.jsonl",
+      "sha256Lf": "35fbfd2564eb46bbb9854c4dbf85fe68044833b7b8e2a3f157a7fe1154aa58a6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~4.7520.1.jsonl",
+      "sha256Lf": "f40ae296db660c117b57633443a6a55ef1fa722977ae5b9239fb02cd9d34e3b3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~4.7520.2.jsonl",
+      "sha256Lf": "5331fa5744b6e55f3cd29c27226802aa3a6107194b13d5d7e62041908cc21e97"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~4.7520.3.jsonl",
+      "sha256Lf": "5758b04ea81d517ce654ebd51fb7f62038016fc6d0730eece18f0e4d39a96993"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~4.7520.4.jsonl",
+      "sha256Lf": "ca4e00f2dbb9d9edd5fe8e9635b84783ad3cb9b3f1e53ddbf06d6b39ca8c5750"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~4.7520.5.jsonl",
+      "sha256Lf": "52aa64f2f1eb2c4ab22f9e936d8224dc4993b095790d3a7edabc1b72265eb9b8"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~4.7520.6.jsonl",
+      "sha256Lf": "2cac46979cef6352717c7ca088a61528ccf6ac70f4728cccfb1c69bc74aa2d1d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~4.7520.7.jsonl",
+      "sha256Lf": "ba7205d9de3518799062570c538625d27f6714e0709a844ffebd8c854be24a77"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1\\logs\\20x20-hell-1~4.link.jsonl",
+      "sha256Lf": "fa86288cd8b9d581bce661285d2dd81af80bfcb11e851484b2610a3fffd8ff31"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~0.20832.1.jsonl",
+      "sha256Lf": "9a7d5cf6bb0d193787c08b0d21305449356134dc1e78d2eb441712f4d37a6048"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~0.20832.2.jsonl",
+      "sha256Lf": "8c6dce738d75e0cac0e1d2b655d4d0059201ee1b0a9deff58927b74591429937"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~0.20832.3.jsonl",
+      "sha256Lf": "2b1460b29a31fe5d4dfa1107347572f0b5200e131b98d37d481e806b589ac228"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~0.20832.4.jsonl",
+      "sha256Lf": "bce421cf976849acbe3a92fb953557f56f66c9701af7e317c00a076e41970b3a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~0.20832.5.jsonl",
+      "sha256Lf": "a0a8d4ce62e790d35f1606bc446544b792eb19d37ea403b985522d9b1e08b7d4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~0.link.jsonl",
+      "sha256Lf": "db0aa087d97635f20a08646fe2f4a12d156b1766e57340d68dd1c48496d812f6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~1.22168.1.jsonl",
+      "sha256Lf": "a5dcf7291d739c912c6f282a8848dae1dd1b5522139d48fe2898006090fcc2eb"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~1.22168.2.jsonl",
+      "sha256Lf": "554d79bdd3a8b43b240446c0cb4af18eab07f20556dda0563a0d47948e7a8132"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~1.22168.3.jsonl",
+      "sha256Lf": "009795b50943f9cf3850870cc47ebc151ce4b3675852f96bf0f63d619598fff7"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~1.22168.4.jsonl",
+      "sha256Lf": "e697c7ebcc3dc401a20b1ec73c105697d848797982b00d1bcba80ed23bc1982f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~1.22168.5.jsonl",
+      "sha256Lf": "5ed1946267ffebc1bfbfda870a3a68349a062ffc5e66be46e764610ec496b965"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~1.22168.6.jsonl",
+      "sha256Lf": "0f298423650c13dfa2d6381d26cb17b173444d2e368d27a4e618345d6c1f04af"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~1.link.jsonl",
+      "sha256Lf": "41f1821d22819631d18ce9b8af9d8be99defbbcdfa963780ba90f1d7e28172f4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~2.23696.1.jsonl",
+      "sha256Lf": "490665eb39efa5c144bf5d03e451061e4c99984dcd50a5aaf17b23e3149d2622"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~2.23696.2.jsonl",
+      "sha256Lf": "b26944779e36691cf8a425d8533a533e8a7e11a9a445dfbd2dd307ad068332b5"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~2.23696.3.jsonl",
+      "sha256Lf": "46f0f67c7c96a3f22ab170d3abb1db26a94c6081eda3cf64e26c11c738d0e4ce"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~2.23696.4.jsonl",
+      "sha256Lf": "e0c418048cc79d9330ab4d3d9877f595f5553bc6ce74b3409605e5110a778d28"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~2.23696.5.jsonl",
+      "sha256Lf": "31cae57d8c29d46344d95f9fa16a91ca692eb5a29d79387171452b0e0148961f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~2.23696.6.jsonl",
+      "sha256Lf": "041102e6b8f3dfc494ae837d88cffaf6e40b4c2bc669fe2584dec0320cc16ba9"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~2.link.jsonl",
+      "sha256Lf": "10f9531da04bc26913f30ecce8f308631f7c2a415f856b00caff6373e561a27a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~3.14300.1.jsonl",
+      "sha256Lf": "5461d3df14517ef60a5859ef12d268f371701505ce7ae30c46127c30e5c1cda6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~3.14300.2.jsonl",
+      "sha256Lf": "42c6c18b11a577f3ce16a1a351c566a5114be8d0c305604cc262b60a09ea7f1d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~3.14300.3.jsonl",
+      "sha256Lf": "7248531ed1578fc4a3bf0665a56bf130f1c6dc931e5e9f39c8dc0a1933dc00e2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~3.14300.4.jsonl",
+      "sha256Lf": "f4664be935ec483e6413f2c8b512c8c0c036f2e088c019a4ee3c6927ac8887d1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~3.14300.5.jsonl",
+      "sha256Lf": "62f4ce4d15cca052d151cc6fed1ebf38dbd29d8d5bd6f019140b5c421716714b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~3.14300.6.jsonl",
+      "sha256Lf": "cb3edee737978a036d2c30d8a4f1a2626c28b49196adfa597d01438fa6a7aeb6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~3.14300.7.jsonl",
+      "sha256Lf": "f131eec487547e206c2ddcd2dd2c83f23afc3c8e1b58f9b05af27f016ca83110"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~3.link.jsonl",
+      "sha256Lf": "93ad491a528eb1586ab0ce548d0bfd95659d8ccefb788e645773943e23e65af9"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~4.8284.1.jsonl",
+      "sha256Lf": "1257ce9746866198b0f62dd31b8869a275f3f83fa2b840d8f94059dacfa95f57"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~4.8284.2.jsonl",
+      "sha256Lf": "f5604a659592a5723537e17c8596c72cdc5a6c9f6662bdc316084148fd1a56bd"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~4.8284.3.jsonl",
+      "sha256Lf": "4ec29541c782b757e389afb0ceb0850cf5e23a5acd002acf481fa13a0feadf04"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~4.8284.4.jsonl",
+      "sha256Lf": "92225b7205d04c9b51b5ffb168c16416a5d1dd51bd3c1897e48df6c5b64a9a60"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1\\logs\\24x24-hell-1~4.link.jsonl",
+      "sha256Lf": "ad36af83e11085600fe2ece63e7d060b763cae605e89c8e6104cbac9f77ae604"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~0.13928.1.jsonl",
+      "sha256Lf": "a3fd521dd074aeaaf9345a5536be83cb9db9ab8d00a5033166f1f2d52f0f8eb3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~0.13928.2.jsonl",
+      "sha256Lf": "1e8d10f3472329d054c9e1286010edab519d3f2e2ae9015b60750db01fba009a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~0.13928.3.jsonl",
+      "sha256Lf": "de81bbeb759cc10aea6266becbf4969a56c2f93c05f12ad01fecbed2b6e97541"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~0.13928.4.jsonl",
+      "sha256Lf": "adbf77e8ab21e0726f9b5047e77276af8da0ec646563073b443da88455beeb07"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~0.13928.5.jsonl",
+      "sha256Lf": "16a7a4b9a0946c964a68246579dfc64434fd220d9ff9610d11bf704a1e50d546"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~0.13928.6.jsonl",
+      "sha256Lf": "046c1427974e7c774f5b999da30e1adf4c65218b64dc8e06c71915bfeaa0688c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~0.13928.7.jsonl",
+      "sha256Lf": "63a86017b8ff5a0de01a42659062a3154ef29554ca9e95877f1b5f742d27b715"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~0.link.jsonl",
+      "sha256Lf": "cabaddfca18ed38b00886457e771fb6a6836dd0e0ced1710ecd0158570e7cce0"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~1.8864.1.jsonl",
+      "sha256Lf": "2b72af66c33d6d9c5845c2e96e005dc56974384765787ba56b03411cae1f3005"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~1.8864.2.jsonl",
+      "sha256Lf": "008e7408ca13b790a4124f967359267a982a4546cae23986345dbf10af0ee7ab"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~1.8864.3.jsonl",
+      "sha256Lf": "078c1855aab05a0538f1dc7bf7145adb3b1040dfe1a4bad8d99ac7f974e844e9"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~1.8864.4.jsonl",
+      "sha256Lf": "d2343a633da2a089460cfc20f67742ce570bf8b6d72e300506aae69509435604"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~1.8864.5.jsonl",
+      "sha256Lf": "64cd406478c6993aab355de49ba0b02ea4f0df5cabed5ab4c59718575230b444"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~1.8864.6.jsonl",
+      "sha256Lf": "766a7f9eb76855b8895b451a2cb2b43e49c86ff2991adc9e99e1fa4af1d880f3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~1.link.jsonl",
+      "sha256Lf": "a0c0114a5fa16f7783659407e3483e60d22764e99c056b42aafa7f3a0a4992b9"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~2.25020.1.jsonl",
+      "sha256Lf": "e8007e7e1fc7761441b649d756fcc47604f64c241d5426224ab6336e4baa159d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~2.25020.2.jsonl",
+      "sha256Lf": "3f34d558199086dfeacb531e90a4de3cb4d92c14f4a7a93cfa449fcf165bc274"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~2.25020.3.jsonl",
+      "sha256Lf": "d47429d707cf6109e36f273c13e41099dff5ac3126916e28ab0c3c1352c62195"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~2.25020.4.jsonl",
+      "sha256Lf": "90fdf7c573cd7f185d56ef84e9df0d794efc4c3838e4472de1cd03aa7725c6d0"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~2.25020.5.jsonl",
+      "sha256Lf": "f1735043773d6effe50c9c51667c7fc5985114cb42c99c767b0c753d397c37b3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~2.25020.6.jsonl",
+      "sha256Lf": "de5b4c068c2ce781f27e6f5328c033edb78bd67fc6189906504a46b630468e30"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~2.25020.7.jsonl",
+      "sha256Lf": "65370cbe2698a79fdc7733f002c884cbd0a3c6cfd145044f335a4ad3401b2550"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~2.link.jsonl",
+      "sha256Lf": "b6235fccdb6210652477089cfd3aab73979087979d2427bcd340023a016d7340"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~3.22952.1.jsonl",
+      "sha256Lf": "eef34a5e4e3c6b66914a7086bd14947b8248ff8b0119257c4f5b0b33b063e5cf"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~3.22952.2.jsonl",
+      "sha256Lf": "3a5c0c5c3a4be550253cea3321ff153d50c0015bbd04b5d478c8046055436ceb"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~3.22952.3.jsonl",
+      "sha256Lf": "ff19c24a492c6315b4a447f3de67f6a2c50fbb853734e01b67eafc2f79e3573b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~3.22952.4.jsonl",
+      "sha256Lf": "c80abc3f82201e2b4fa197218f795b696273f201c79ca6050278d4608a01eb41"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~3.22952.5.jsonl",
+      "sha256Lf": "d8ca240e8df7ea993ab4ff7d7b13983710031d783e12e6d3fee56044b8a4be4e"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~3.22952.6.jsonl",
+      "sha256Lf": "589efdbf5e023695b5e2360c2b0118cafb5df04cc2cfc73b1a6a53b6a99264f1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~3.22952.7.jsonl",
+      "sha256Lf": "f97ff93b4e1c00c77080ee189c5b0fed70161af8de65ea97ee4a691d5865eff2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~3.link.jsonl",
+      "sha256Lf": "11043935530513b503abbf2d20cb6f12b48da8e0a3720d1e3c37603af3d849b4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~4.10232.1.jsonl",
+      "sha256Lf": "e01397731c9fb890303ef217e009e7bd8dd66c7f79b64fe3269792eb2f960262"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~4.10232.2.jsonl",
+      "sha256Lf": "3e6bd9858b0fabaaf765bae246ca29cbb70cca8775f0bcbbb3dbd8bd5088b120"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~4.10232.3.jsonl",
+      "sha256Lf": "9f9ed5a13268623ac94da9e894d176dbeae76d00eda36b07840f665d2044f89c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~4.10232.4.jsonl",
+      "sha256Lf": "59bfbfe0e1d91f1235e8a943d3cb29f670a59aef8e8bdc3e56362b1458edd516"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~4.10232.5.jsonl",
+      "sha256Lf": "bf58f37e05743b076b4071b6d540d427beb20bbeceb38b4b77a4b7b321f8a694"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1\\logs\\26x26-hell-1~4.link.jsonl",
+      "sha256Lf": "2cc55327c9d01dc590d14e2bb118655ef582c8314c2fce1b9b013b988e1085ad"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.22252.1.jsonl",
+      "sha256Lf": "c419f7584259081b2a80bcd9cdeb57019720c8282b59e13d0dc83d3f12b81043"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.22252.2.jsonl",
+      "sha256Lf": "9fa3fcdf515d98f921dfb77c6005bbcddbbf58911d73f2cbc6d9a93dcdc6803f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.22252.3.jsonl",
+      "sha256Lf": "f5e4cd1895cd288a69c651ebb2c35ad343920f4b332f7697327a6f10bfe41db1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.22252.4.jsonl",
+      "sha256Lf": "eaae337f8f47c721a7e698f1cc0044963c7eea78a349293ab53fb3ad6c2ea25a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.22252.5.jsonl",
+      "sha256Lf": "77ed97228152aaf934577cf5864002607eb2a090c3f7cea59f3d14fad6ce4347"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.22252.6.jsonl",
+      "sha256Lf": "cd28c9de7945ba74c0ce767444c1b7eb889d2b40138e852bcbd84c9a01a96f37"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.22252.7.jsonl",
+      "sha256Lf": "4579c5e6c1ee6dc2adbca9193e1baae82ebdd605a3e5319ef06154bdb80b8834"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.link.jsonl",
+      "sha256Lf": "1c65988ff968709bbe216b757d88871588776f4691d993714872c06598ec73e2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.13076.1.jsonl",
+      "sha256Lf": "c4a336c64eb5a5573a97abdc33df35566e98a78eba80e7790134af3ea7af23a8"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.13076.2.jsonl",
+      "sha256Lf": "ad54ec123385ef20235930dc254ab5113e6f02a1a4dea9cafbbe3f0d5d326393"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.13076.3.jsonl",
+      "sha256Lf": "e0b81fa2889c42f262bde0a8b1c9b5eb8dabdeeab31be7fb07749af98def4740"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.13076.4.jsonl",
+      "sha256Lf": "ca1360dbdb4b7cdc012a6f8de05ac24abf8893d55b1c50293dcbe16099c973a3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.13076.5.jsonl",
+      "sha256Lf": "455d1fded0542485375e058ff17d8a7056e19311fc93708aa2d31385e8b3f1e1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.13076.6.jsonl",
+      "sha256Lf": "138d1e651fe8679d9380b9111566d43b420202a281bb0ce20e39a99d7e8fcd87"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.link.jsonl",
+      "sha256Lf": "e0497d3015a2c1bf4eb95e56bbd5120330bdb8d4983107b873520afab5935acd"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.10608.1.jsonl",
+      "sha256Lf": "c9e4bb1a39f8a250e40889759ed3dc70cdd31429a0f95c3701e7787b06334455"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.10608.2.jsonl",
+      "sha256Lf": "597bfd30316461a556686e2c52912fc2e1e8617374b24719e96e5d9eeb264048"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.10608.3.jsonl",
+      "sha256Lf": "735d5f1ec326a47ebc8fbe30a675ac0305a4cf0b79cb7d99e2a83c1b5a27a8bd"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.10608.4.jsonl",
+      "sha256Lf": "4ad16c4598aedf7004f843c52505924791ca89919d0142c44a4aade137cc3c11"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.10608.5.jsonl",
+      "sha256Lf": "8445d037159ba1db0665ee31e4fa58279aed8828bd43a01d6708ee4672ef52a4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.link.jsonl",
+      "sha256Lf": "3150145b99d706e99ee5415a562192059b466d82d4cc1a3e54ed4d5ae6c284fa"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.10560.1.jsonl",
+      "sha256Lf": "081bea32e1525f31241e470b42b0d019e7e22a92c11e166c7f56fc735dd5cfb3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.10560.2.jsonl",
+      "sha256Lf": "ae5a4cffb655e9ab56306d6c2d13c1e3c97c166172be8a20e198897c67e14cf0"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.10560.3.jsonl",
+      "sha256Lf": "7c33d8c211d4875ca70a6e8a18d9872dfa8a377680110cbebf69d3736d1b6261"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.10560.4.jsonl",
+      "sha256Lf": "d5ee936525a76c7344de4a44ddb7d9f21c7533146402ed3e5efa982ce81ef119"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.10560.5.jsonl",
+      "sha256Lf": "ae7a0b12939fe431139c7cbed2481853dbcf770bf5f462c3346d3eb392c9b12b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.10560.6.jsonl",
+      "sha256Lf": "e35a886feaa5ac4b8445e798356584c9f148dd71e10e2d6513a85971c0f41d03"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.link.jsonl",
+      "sha256Lf": "782e397b4b9162b0c0ccae2db66b7a619dd6beb3eda0fe694499f252f8ec556f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.2792.1.jsonl",
+      "sha256Lf": "4b4b7ce1091c1dd9c432cbe476245c6a27b8cfe0c99006ded829f7f7c5cbc56e"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.2792.2.jsonl",
+      "sha256Lf": "954c272ddee8a44dfa0ed4822b25f0994265aef2bab0ca1c7a714606e7f7d107"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.2792.3.jsonl",
+      "sha256Lf": "528d6f6b9ead4b96cdc26d1716bd0451fd6bca6ac2ac1759582abce4164b22ae"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.2792.4.jsonl",
+      "sha256Lf": "6a7fc8c71bfc5c551cb8871ba29336b86286e0dd3b5c5e6357226f7bbbcaa8da"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.2792.5.jsonl",
+      "sha256Lf": "7942c20e6cf7daef1098f333e939034502196ff2aba2b38754a6d338cd2c191f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.2792.6.jsonl",
+      "sha256Lf": "bc57e68628c142946237383c46cf00e3b81a444bb0e5be0c3ad4e890563ee35f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.2792.7.jsonl",
+      "sha256Lf": "43256d66369507faf65b3ab4655e9b4afe5403c427806c3f149f3871414fdf10"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.link.jsonl",
+      "sha256Lf": "6cb6599274556a230dda722e8ddb2391698820d460873e88070d61c07b3d5bee"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.13688.1.jsonl",
+      "sha256Lf": "e04c4484ecc2ca1792ef52b41b07db1a4aa96f0c94b27aba56a31629e0deaf9a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.13688.2.jsonl",
+      "sha256Lf": "3dea2120f4ae23c105ef6a7e45c815a2b0f28d543e9c65c961a69aae5290c84a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.13688.3.jsonl",
+      "sha256Lf": "3864a0384a3dd5f5d87f6f87a1e33ff4310a07ad3dcdf994e7b1f0b0690f0c98"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.13688.4.jsonl",
+      "sha256Lf": "93ac5343cb2c2d1dcae85fef9ce59328f3149851b1549d0d0d413c9e99e0ffc8"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.13688.5.jsonl",
+      "sha256Lf": "464aa6ff640026668783f9c5ef1b5600c8ec51ddf1d0225724ec3d238426461e"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.13688.6.jsonl",
+      "sha256Lf": "0dcc04bbab2944095a7bf1aa9bcf3a3ea9e01a205fe01ae738d8b3da0361eea2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.13688.7.jsonl",
+      "sha256Lf": "0fbc94a19ad65c55b2b96d6958bc2d07224205eb66da2ad5a2995df7ec25ad16"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.link.jsonl",
+      "sha256Lf": "30453d72767ad7914441d51096e2dc6542ba1a96c9f94ec3a55fd310679e72f6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.13308.1.jsonl",
+      "sha256Lf": "e72423ad2fc19e122c43d4b6203addc7180e0558ccdf80286c49d1760f9a918d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.13308.2.jsonl",
+      "sha256Lf": "456367bcc8dabf6b4d150dfc29545893c5f713c5ec2af131269f746ae4d7337f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.13308.3.jsonl",
+      "sha256Lf": "bbb453a3b3174d04b0939f71d7a18c9824c300f4dca5f15815fabca0e6077802"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.13308.4.jsonl",
+      "sha256Lf": "f6a4fa82cf77014e0831712df2da7723dec5d18f546ea7a68b9715c966ef66b9"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.13308.5.jsonl",
+      "sha256Lf": "ba5c3b359f368b0ebd61325d414e70490e19242098178bc0fc10665ff8a836b1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.13308.6.jsonl",
+      "sha256Lf": "efdb2a37acf9e823a075f8ffa74fdb2b82946d3b569442803d2dc4df8ae702de"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.13308.7.jsonl",
+      "sha256Lf": "f80ed634a0862566931e413b197c576027d7168a7d19d78cf8e4cd1486482987"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.link.jsonl",
+      "sha256Lf": "45b8fa9261be81534c24ea06a05ea937dccb20608d07a40c2f3ce524991f0beb"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.8164.1.jsonl",
+      "sha256Lf": "364de67d4393541d87ccb460f7e22f0f33298299bcfc46a14c09e3c2dc7b052a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.8164.2.jsonl",
+      "sha256Lf": "dd2ef27cf82b4aeed8cdcdfbd7f1165b3d685db1580d47b5ed0517cb1f534a6f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.8164.3.jsonl",
+      "sha256Lf": "aea47bf950c062b32051e824a4d77aa7179b6357a431889b2f053918dd93b072"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.8164.4.jsonl",
+      "sha256Lf": "e79283195a1ea1c4d57ccd199050ffaf190239e29c4a50aa4a0d925f52f320c3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.8164.5.jsonl",
+      "sha256Lf": "b75027d0b9eb70e3d4d863eb1ad15dfee69ba377a1eeffa60678fb7428a727a2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.8164.6.jsonl",
+      "sha256Lf": "5d2c5042bfee5b317e55d82d1faa801250fd30b6ca8b5c235bacf7b6ea134033"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.link.jsonl",
+      "sha256Lf": "e0a6a57a2c795325b8cc9fecc3953feb0b60b04e09304961add09b35cb685978"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.19232.1.jsonl",
+      "sha256Lf": "055f0cb9c4a0793ddfc7612bb20d42e9acb359a7456f3365853dda32682e4e02"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.19232.2.jsonl",
+      "sha256Lf": "e2565040de9d4c071494e1eb2336954cda8f4ed6db6a9d5de87c565357a655f4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.19232.3.jsonl",
+      "sha256Lf": "db497b5195e7d32b87080259d26267d96514f5ca11aa1e3b147e71ebaba00725"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.19232.4.jsonl",
+      "sha256Lf": "a6e3d8e118a2908a00e3940439114961ccd5634d0dfc118d92c518183dfdd81a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.19232.5.jsonl",
+      "sha256Lf": "d04ea182ff553f429033b6aaa22e4dbea2716d108a7553303c7746dd559a5c17"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.link.jsonl",
+      "sha256Lf": "3f446dcef5193fe789a35e2525535cebed2b57e7be85c09c9cb3adb4db9de68b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.7276.1.jsonl",
+      "sha256Lf": "1c098320e10caca0a4ce344b156b96741383c2e74dfb84bd0dbfda7b8ff7f1e9"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.7276.2.jsonl",
+      "sha256Lf": "1f5ac450cd0f5bc77d202aa2f6f84eaf886f57042aa6989d364a7e025632a588"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.7276.3.jsonl",
+      "sha256Lf": "f3ecf35b76ec637b048571d9672656aa5856a1b0addaffdb5dc251dd80534df5"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.7276.4.jsonl",
+      "sha256Lf": "37df703bbdd8583ba77a1246333a03f759fa4d945fd998730ce1958c73c304b4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.7276.5.jsonl",
+      "sha256Lf": "2a214be3324165a241b1b56d3acfedee53ccf8acf63747424eaf271a618c2321"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.link.jsonl",
+      "sha256Lf": "c94e61e41801204e06bd304bfd5efb72f5606eb4c7250e7cd5c409c0e28a1007"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.22160.1.jsonl",
+      "sha256Lf": "cda3ac1c940839dc3ff1515fd024ec3f9d75eca1f114d6bfa02b89167ed67e15"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.22160.2.jsonl",
+      "sha256Lf": "f67ca0567cacd1d06cb132cca058b5891e5d65dea3d04b1eb1ce8e934edf0ac3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.22160.3.jsonl",
+      "sha256Lf": "27cd53d0b7aba32d3abcb072277642b4b88acc6143af24c956479accc089d83e"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.22160.4.jsonl",
+      "sha256Lf": "a751dde6a44730efc6617c49aa85ccf6d9585f98099fb1f37e6bea710f68c1af"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.22160.5.jsonl",
+      "sha256Lf": "4fbbe683acc2412cb086b327a1d3bd56c9672a24974874c54aece2eafde55c5d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.22160.6.jsonl",
+      "sha256Lf": "6e0179d90a384bf106a831534fbe79f42980c1b4bc6ab4fccfaa33699546e0b4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.22160.7.jsonl",
+      "sha256Lf": "0184205cd1546775bb27f686a06bd513beb4778c078d6c622006401820f98724"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.link.jsonl",
+      "sha256Lf": "f0271851e522859cf4cc5f5c01c7071045fe0a26670a97e7c9ed5066c215605d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.15560.1.jsonl",
+      "sha256Lf": "6fc5e8a61b7f6c557157bb06315ee77e37bb017532a70475bb4e45e2a9ec7621"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.15560.2.jsonl",
+      "sha256Lf": "20e82757d177c00a5ef0ab8ee6c0383955da80c04ec05ae713c48aade58bc467"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.15560.3.jsonl",
+      "sha256Lf": "c2a03cf41059b81b9ae39b56d340e93e2d391cf662e9ee5b16727c1dc04f38e9"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.15560.4.jsonl",
+      "sha256Lf": "ac2aef3b9387cbbcf2a9832ef03e0684a613661c7ba60ce771c2e84fdeaf3ee4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.15560.5.jsonl",
+      "sha256Lf": "cddb6a47028cfd4fe1f22eee9f8250f7f29ca5ab1a2523ec3332843a1f7cc06c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.15560.6.jsonl",
+      "sha256Lf": "543b0efa2960611aa4d7aac28f88355f820f9648422f349dcd4a878fd5cbbc02"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.link.jsonl",
+      "sha256Lf": "ab32c85aa02f13a2e584e7427a8114a72645cd08ffb71fc2dde82094f2cbd0ca"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.14980.1.jsonl",
+      "sha256Lf": "e9f37174e2414266f3850a4113ba2214c969a11ee2d347dba980afac87c3bc49"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.14980.2.jsonl",
+      "sha256Lf": "cdfd5c6d9cafa9871ffa710d6853a47381794e04bc9e45f31e7dcb5cb272eb5f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.14980.3.jsonl",
+      "sha256Lf": "fa5b855c6428e06249fc7895451470b6b1625213b4dee0e279a296597f1bb10b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.14980.4.jsonl",
+      "sha256Lf": "3c792f4d4b25e592c40ef49374b1c15aeb5ad845204b002d286a93a828c8eb53"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.14980.5.jsonl",
+      "sha256Lf": "e455119f68c2f74864e7db09f9883fd39bb6066639c8855d12f9cc9950da59de"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.14980.6.jsonl",
+      "sha256Lf": "1d37a594811c188753fe1c807fc08acd5e702d1c1ea4e205fd99ea77aabe4028"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.link.jsonl",
+      "sha256Lf": "ed5e9c75c441a7e8baf2bedb211515e78762c678acc0ed7f812e9d2b5458ef49"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.12852.1.jsonl",
+      "sha256Lf": "0ffb6cec12cc840f7383293d075345167e56af776f2e7145c85bc94a6e63f295"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.12852.2.jsonl",
+      "sha256Lf": "64946ac3bfebc710e1625da21b2514391d320d927e201b3030ffac95235fbd16"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.12852.3.jsonl",
+      "sha256Lf": "262e3b16797e669bacc818ff26ac82ec20b5dcd2605404e62ccae6ca0b1e7126"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.12852.4.jsonl",
+      "sha256Lf": "52c6f094a9be3ff8683e6d3299ad3ee1f97742f93143e4370565bc70890a774b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.12852.5.jsonl",
+      "sha256Lf": "cf82dbabcca756bf2585114a70e59262d740e0c0db9f215feacc915fdfd90134"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.12852.6.jsonl",
+      "sha256Lf": "cd34808743c17f3e84efc14551cc81f85e88038d6039c369660c8b2c69d929a3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.12852.7.jsonl",
+      "sha256Lf": "49c65cff85baeac9b70cc3f2980d06f0a1a5b392d2b66ed89380e5310f7e66d0"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.link.jsonl",
+      "sha256Lf": "c5e9d0f89714530916e1a86fff821bcb47ae0dbbd25ac01f70e98edda4241db1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.20120.1.jsonl",
+      "sha256Lf": "e94a2b00028aad82a495dbbcb46641720e8a46619904bb974802aee78830d811"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.20120.2.jsonl",
+      "sha256Lf": "d10ef49711893f3b8437392232b8fb7b6c66b538d9cb51586e2baef7cbc46c1a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.20120.3.jsonl",
+      "sha256Lf": "9c1252c1fbd9a3a79c3bc226d92ab9975c69420127cc689463df7fab948dbcc8"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.20120.4.jsonl",
+      "sha256Lf": "655dabd089ab07d7fb7c28f40f4a2c6c372dfc913cf9479025b9e4042c300047"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.20120.5.jsonl",
+      "sha256Lf": "7ccf9dc7eae7a5970130550c156b5e954e4b353eefe1ebe5b1f26c873e6f8824"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.20120.6.jsonl",
+      "sha256Lf": "6f0e092055586d2d73cf442f333e87a096a10db1a106e8c67b472be230cb0b1c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.link.jsonl",
+      "sha256Lf": "7ddf4f7356964f2697953394ce111adb7d9bcc854ac89c88484f361291501e6d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.3200.1.jsonl",
+      "sha256Lf": "7339427e6451188c76af190e97705aa1ea2325a74ec905d37b9a9ef125e2e06a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.3200.2.jsonl",
+      "sha256Lf": "43e4b6b22352f1d28780b8ca62cdfa0b18314473f5d6abdaecb97087cb4348e2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.3200.3.jsonl",
+      "sha256Lf": "b2185fc6baab20b540405e96916482c698bc11538ca4cd43d5979cd7cec8a9c0"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.3200.4.jsonl",
+      "sha256Lf": "a666e72503bd42178d2967ccb838e81d761264e3fc5796000dfc16442fba00f1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.3200.5.jsonl",
+      "sha256Lf": "dd6ab451b98464966be1cb965cbfce31b393623a96a3f8a1d36c6bb55bb99cd1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.3200.6.jsonl",
+      "sha256Lf": "687b001bc92c01ccd829d92417e49624ebeb8ce4deb54e6565fec276a4331cdd"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.3200.7.jsonl",
+      "sha256Lf": "6e0173379cdb22e1be53c3778028c101029a1f34f2661664e6270b4d6f433f92"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.link.jsonl",
+      "sha256Lf": "fa2addd489b3e8f16bfbc4ec9cfe6c75827275abbda75770aaba7079010008ce"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.23888.1.jsonl",
+      "sha256Lf": "0b5e1fcda97d541e3c608f58377b3133ed30f96ccc88173ee06fbddfeb3dcf12"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.23888.2.jsonl",
+      "sha256Lf": "869cc7126da3dc6ce30aec0fc5b37101dec0fa80ffdd09a97b28253b7567ad75"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.23888.3.jsonl",
+      "sha256Lf": "cb9bfb840d3e6c3cdf644b00377b0005816600d4faeaeb7d30cefa6adc2b5e0a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.23888.4.jsonl",
+      "sha256Lf": "c9deb981a676b8c465e630dca788bd77ef933bc7849e2de57c86be98f4ff674d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.23888.5.jsonl",
+      "sha256Lf": "ac668a40fa834960a324482d8c305a026df4745ffb230a2ca570513ae577a24f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.23888.6.jsonl",
+      "sha256Lf": "d20fc5fe04bfdebf32a99ef4918a85b7dac280f9178c4db8614facd3f22cc8e5"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.23888.7.jsonl",
+      "sha256Lf": "a42bbecbea7b3a310c86daec63664ad760cec7d4ea2c02cc086007f75c547e29"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~1.link.jsonl",
+      "sha256Lf": "41b9c5a784a001f452dbeda702e145a82703f796717a167886508085a8b04914"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.3604.1.jsonl",
+      "sha256Lf": "91fedaad771f7ae67d16168b111c47df5a4d441e34b50b7226173b6beb88e5ce"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.3604.2.jsonl",
+      "sha256Lf": "ae8f405e12f118a9b0d167ff39813cf427267d0c84a80f500a7022cce61f75f4"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.3604.3.jsonl",
+      "sha256Lf": "a043a126159788d8e8a1cda5ec14c859c976b65905b3909b75defde33521a43a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.3604.4.jsonl",
+      "sha256Lf": "3ee872681cf82c6425baabe1aab8058658af6b9fd5fada0f7b878ebfe9ce57d9"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.3604.5.jsonl",
+      "sha256Lf": "79257ffd915dfab18cdd617d05aba843def6ecaf032b20a9ad73a98340e4537d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~2.link.jsonl",
+      "sha256Lf": "30e2b2cbf1cab983c4559cb5f9e72254330d6eceba2fe8b366b44f80feaec156"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.11640.1.jsonl",
+      "sha256Lf": "867a033ddb20d4bfb83759179ea205a76da40950d9bca20d5e288a08e9b10c41"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.11640.2.jsonl",
+      "sha256Lf": "a0a11d13211cb0ace69aeaa46a8d88091acd6aa740b64712c0699303c09a51fc"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.11640.3.jsonl",
+      "sha256Lf": "5a0f9aae7bd986ff61d93c4d2bc97269def4de08f6b503076b7b48f834db3f5f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.11640.4.jsonl",
+      "sha256Lf": "dda755ae7c48d79c973b0d026083a239c6f18c559d5c31aeb65d4af41bb3c050"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.11640.5.jsonl",
+      "sha256Lf": "17ef5412a236423719fc7360c828a7854b53eb6e70c6228e9741476d3d551ff5"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.11640.6.jsonl",
+      "sha256Lf": "19f57178389b6c44367979f1db86f97083f058249fc1513c3b3f0c2e40bb650b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~3.link.jsonl",
+      "sha256Lf": "9e922cc0b32c5875d9249a04b96f33192d494e3135cd714a78cf1cb38210cd4d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.18904.1.jsonl",
+      "sha256Lf": "bcd6f0443a251169b15555d2439eddc49e21bc032452b35ffe770c9020cc1913"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.18904.2.jsonl",
+      "sha256Lf": "14a52ee91e1a715383a61acfe16a87231c143803f50740dd6487ef1166b71f50"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.18904.3.jsonl",
+      "sha256Lf": "8d868269c793761168cb3583dfd98cf9a3369d4d7964db47443e4e9d9bae8226"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.18904.4.jsonl",
+      "sha256Lf": "b57d46e52efa2f855a09a84331d46ff8a91eea9d01405fb0cb0715b6fe867d1a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.18904.5.jsonl",
+      "sha256Lf": "d3e21775403e9a1c147554cf6ef1db752ce6bf3858845513e32a00418dcd5c7a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.18904.6.jsonl",
+      "sha256Lf": "82e54fc0e435ffc384cd97e5eb3c39a70ba7efcb14f98b01a29f84ae4f54ab52"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.18904.7.jsonl",
+      "sha256Lf": "c6b86d4f0f97781f25859eb6732c6ff5f7b4948d9924689668f76850e9167730"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare\\logs\\14x14-nightmare~4.link.jsonl",
+      "sha256Lf": "7bd38ddce67d7cc1953944067626bd929efdccc575fcb85ee4d6094e3858b174"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.23012.1.jsonl",
+      "sha256Lf": "3050b35a00491ee4e3669f4a40017cbbc1cc212d224b5cdcb126bb147ce76b47"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.23012.2.jsonl",
+      "sha256Lf": "42541c7c3e09f653a27adc98826861649fd9b9239c85b4f49d1c44738ae36910"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.23012.3.jsonl",
+      "sha256Lf": "2f1ee19ab71331b24c6a308006811214bcd9338ab905374ad2e2455b9ff3ecdf"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.23012.4.jsonl",
+      "sha256Lf": "4c62006fbce0c808f32e328bc8e7414a98b3cf255932618896310b8ec88c555e"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.23012.5.jsonl",
+      "sha256Lf": "fb9059e26831e037c7be3ce1662600e2d663cfdf2eabee6350c0beba45439069"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.23012.6.jsonl",
+      "sha256Lf": "ec217bd5bd53e8c03a4779f3351a76b3ffe312e66b1d5d649b80d927937efa63"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.23012.7.jsonl",
+      "sha256Lf": "0acdde9b8b0ab82309f2e7bbc7c0490d856c65d43643c6eb322dc0fa27260129"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~0.link.jsonl",
+      "sha256Lf": "c275df919a1896208149897069572aa1674a314eab65771fff9769e5da882d17"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.14832.1.jsonl",
+      "sha256Lf": "0cd20fcd0707ea6f52d20ad3b7179b776bb62c1d615f6fd11d94fb821c752669"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.14832.2.jsonl",
+      "sha256Lf": "0817aa56911fa7d935a0eeca868b0b5b162b51742c4f0efed22033b7bf7d8c87"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.14832.3.jsonl",
+      "sha256Lf": "19a3809dd1557945cd0a141e77537e5cdb5b9b786378ca061af57aff2f1cbbc2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.14832.4.jsonl",
+      "sha256Lf": "5f39e8aa5c4527ded7878989c36904a2f5d5eafc6a5be649d78ddbd303db901d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.14832.5.jsonl",
+      "sha256Lf": "06af73c076a0513a0830db08311561fc4059794cbf2489ac6be6b43d611da9c7"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.14832.6.jsonl",
+      "sha256Lf": "0475b0621764a4627204c7027892a9c12e3d1b9caacb0cd9590ff560ab13cd7f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~1.link.jsonl",
+      "sha256Lf": "2817db03249c576920bc20041840b7621439f1d7505122563eef1901f48b9b0a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.2656.1.jsonl",
+      "sha256Lf": "e086767c8c34f3bf1ec1286e72d1d044c2f1c2ab2e6655462a86d3c0b7271c66"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.2656.2.jsonl",
+      "sha256Lf": "b0ad9b9d4373a20455bf1c5f78beb83eaf2eb127cbd03fed3a276e969c0c1d9a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.2656.3.jsonl",
+      "sha256Lf": "3cc76e8d0e3713083c3e40afeae430b045428972e47004131bbe52bb955221a6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.2656.4.jsonl",
+      "sha256Lf": "29f2e3b8b3a6442668d34d6170627941aee1442477946f0a2d16e0bc26e0c1e0"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.2656.5.jsonl",
+      "sha256Lf": "da1522ea9d911ad74384227df57145da654c145ba5d85351ae52ddfa8339bf37"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.2656.6.jsonl",
+      "sha256Lf": "eade4b501d415014da202975aa8b405cf3c68db9491869d1d2f1b4c0cf5963c0"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~2.link.jsonl",
+      "sha256Lf": "82c92216cf9f4d7b37d6abcda85b85c345faea03231028e1a09614b93176c0bf"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.1824.1.jsonl",
+      "sha256Lf": "7dfc0e4f1b7dc3c06410e7de7820f67f4ef9ed7b78944c4b6401e652c3391858"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.1824.2.jsonl",
+      "sha256Lf": "ce7274e2e481b1fff90b4c314ad03311044df3f382a9546b025907f9781333e3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.1824.3.jsonl",
+      "sha256Lf": "85e3b5c5bcfe5d922459e7c2f6abcf90389d923a72cab60b4ab29cf58b4ac2c6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.1824.4.jsonl",
+      "sha256Lf": "681eac0f15953df7a4e6d901ba2a72f7fe1c864d2369aea86f652a8d3998494e"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.1824.5.jsonl",
+      "sha256Lf": "3e738cf23ba4f7f120ebf105da2c63f527f82f01fdeb24eb5e0026d980f927eb"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.1824.6.jsonl",
+      "sha256Lf": "5d25ff8d227801e5dd624846432ae1cbd0350ef0b699304dd67cdd893c23701b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.1824.7.jsonl",
+      "sha256Lf": "fad17a271a77c279b351445e9ad985f0d7d47173e271b21ed3b5de16855a90ea"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~3.link.jsonl",
+      "sha256Lf": "df3a92dedd8e9c7e15474d8cff2377d55fd2d00a80f1228beb2cccdd70b495f5"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.15084.1.jsonl",
+      "sha256Lf": "85488da2d0165db454aaf21f10534e5c0074bd8f98691f65f9d9a71466a4c168"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.15084.2.jsonl",
+      "sha256Lf": "92682c33d782c718b2151238b175a392448e36fb50f21e922918e66fce549cb3"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.15084.3.jsonl",
+      "sha256Lf": "1f76a1003ddc58e792dba3990c30f1b5c0229d302b4599e2ce8786d0a86055dd"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.15084.4.jsonl",
+      "sha256Lf": "be2d3e1a15d7476cc15630b189db833cb7333c95d1d160afd21811e5d413fb38"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.15084.5.jsonl",
+      "sha256Lf": "9f884ce4dad2b2e4c103a2961507c68eab02b58a5dd9aa48e1919435c7522840"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare\\logs\\15x15b10-nightmare~4.link.jsonl",
+      "sha256Lf": "66f41d65eca4ea974312c6be3308ffa8c0dc37a71bfb1430bbdfa2b1e30db3b8"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.2792.1.jsonl",
+      "sha256Lf": "decb4cd5b45bf1ea55f9292b0c08b643d8c7a9bcb4b9825977965ac9232a9ec0"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.2792.2.jsonl",
+      "sha256Lf": "6c4f2e86b97ae339e279b531fba3d120cfda81ec919b928db9ea53f045e9454a"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.2792.3.jsonl",
+      "sha256Lf": "560555e1609cc855af09d69a460d49d8554e039d3f12e49ed8c2bd036cce741c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.2792.4.jsonl",
+      "sha256Lf": "6bbd8340cb7fbef2bd13c1e6a682f791aeda890f2744c7f6e27da7a50d113b23"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.2792.5.jsonl",
+      "sha256Lf": "b43d995430c2e7e12dece1f70b954acd6d81c76a432ab4df07be8cd8952d60a1"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.2792.6.jsonl",
+      "sha256Lf": "fb8ba17ac967a45474f537a886dcfc05665cfa177bf0bcfd1e3d93d31db0d9f2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.2792.7.jsonl",
+      "sha256Lf": "17178ad4099112712526efd9aa472f40a030c6278124abbf1c5dfca791ebe487"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~0.link.jsonl",
+      "sha256Lf": "4ce1f10c59e0fd2b610c8424cfed440166bd3cd92739f2ca87a0aa79fbcb2ebf"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.24568.1.jsonl",
+      "sha256Lf": "535c6756139e94419fd897c6749e700725966ae269fc53e46331ab9db41f38ec"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.24568.2.jsonl",
+      "sha256Lf": "da53447eb39cedef891e4b88c87903400989c60898c8e3fae0488d043dbf64ba"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.24568.3.jsonl",
+      "sha256Lf": "0811b4a2208efefd90c39e0c81d06827031706079479cbe313224f6ea2c3efde"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.24568.4.jsonl",
+      "sha256Lf": "6df8aef1d7751751d7f176e1d869e3886d0e258581e5794736766311fe39e22b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.24568.5.jsonl",
+      "sha256Lf": "14fb561e123ef5949f755bd2ab6554aeea30a9840a945e1e9dd0e991bafc344f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.24568.6.jsonl",
+      "sha256Lf": "f212d9e94340b4be1cdc00926ae656d0a679db11975342a6df1eb0fb595f8731"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~1.link.jsonl",
+      "sha256Lf": "6d035ccd8a6dad07002dbdf6649555a2711536a958dbd90913d86bdb44635a70"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.13720.1.jsonl",
+      "sha256Lf": "d6648a30573f9164ee9b5a742d21680ec98d78acdbb96451d03f70acca02464f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.13720.2.jsonl",
+      "sha256Lf": "05960eef2589abef5c399d6c6f82af360efe3a5411ec8be139649429d8f54467"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.13720.3.jsonl",
+      "sha256Lf": "399e367ffd88eb181657aa5c1c82476a97265432b1ca6d99ca84beec176aaf51"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.13720.4.jsonl",
+      "sha256Lf": "4863cf3261e5b91544db4f16736fb63ba58d2c683157edd0771f7e2c7eceda8c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.13720.5.jsonl",
+      "sha256Lf": "4a813e8d101481d75964a3435257a948c54993a09ac66d061ad5c47be685e940"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~2.link.jsonl",
+      "sha256Lf": "496a72327d839e82178eebbe900ea8fe5c1503c7069a1059bca37bcf51fe12c2"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.20556.1.jsonl",
+      "sha256Lf": "41850f95321a3a8f26062ccc183331f3f505528424c71824d643a90230ad0c73"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.20556.2.jsonl",
+      "sha256Lf": "d3a2a4daea1db4ed09c5dd1e7bdfacf600a4b916079ff34192cc8277c3510e79"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.20556.3.jsonl",
+      "sha256Lf": "52e8b40e368e78393b46aa832fa97376420edb1f8991da72a3bf98a34c2b62fc"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.20556.4.jsonl",
+      "sha256Lf": "4158dc8c5b45b185ea20ea6ea32bdf67b677cf74615c830f94d38e289f4e93ad"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.20556.5.jsonl",
+      "sha256Lf": "da77fee371da9ba3637d515b5df3d846c4b38fd44d181b5974daa30de438780f"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.20556.6.jsonl",
+      "sha256Lf": "f556dfa63616fb216392dcbe12e402b89dde72e9fa379c9268f0b3fbe2bcea51"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.20556.7.jsonl",
+      "sha256Lf": "28467ce973d9f80022009b219b0e05727b5eda2301b3d8d5d0991de9e2ae8868"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~3.link.jsonl",
+      "sha256Lf": "dcb01e8a0d42d722750ab9865c6e101b5296d49db5cdcb9c8c6bffc5261bfddc"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.22184.1.jsonl",
+      "sha256Lf": "ca4944c9796898687150e7d837df92d8d25825b1df59075c09374b2d6f50b556"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.22184.2.jsonl",
+      "sha256Lf": "0de1b80ea949fd45fdb81ec5bba15b19b260b0fc68769975123fec4c46f2dc7b"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.22184.3.jsonl",
+      "sha256Lf": "6788cdae932efe751f6a6f78b52aa271e28bde84f7bf23cf25041c251db97159"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.22184.4.jsonl",
+      "sha256Lf": "cc48f15f8cd98e7d9f3212f3a847518ac8082b3751059f6b017505f70676a010"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.22184.5.jsonl",
+      "sha256Lf": "a2a33c6d19f8f97a6de0d767840747de2712a1e8fe3df5bb37f39e163d81b549"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.22184.6.jsonl",
+      "sha256Lf": "bd85f0e3c6d7f87eca6017a6a8a1d042e44a27b2a3e2733d72fac027020e55ab"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare\\logs\\16x16-nightmare~4.link.jsonl",
+      "sha256Lf": "d331ac4d907b4cb33face4e4a1a2d5e611564331d17b529a1a4ad343e27aaddb"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\invocations.jsonl",
+      "sha256Lf": "fa19a7a27bb8225dd496c8d95a7d47fd7c6edef0e88aa3094710d2d09657f0ca"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\logs\\parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.20844.4.jsonl",
+      "sha256Lf": "d740fe5ecd271635554a394114303c14a9eb3922a5baa1ba16ca698b9744a98c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\logs\\parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.link.jsonl",
+      "sha256Lf": "a6d019914a90adf77fe654021db810535b4c43279a041fb0433ca5611a187142"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-T04\\invocations.jsonl",
+      "sha256Lf": "67d5dcfcdc0c703c3088c0937bb45a69a99754cedbc8bcc604cdf82357e9c3e6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-T05\\invocations.jsonl",
+      "sha256Lf": "c56961d797ccedcde03eacfae0deb51f5745c59ef0a9d947a3cf30e4284f0928"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-T06\\invocations.jsonl",
+      "sha256Lf": "73868436068c2fa858c12faa74620bc9ade964ad2f90ffd5a11dd30befa95e0d"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-T10a\\invocations.jsonl",
+      "sha256Lf": "81be0bcf4242e6c949214758ce1e4fa9e215158e57367cc75e9dc2821bbdc5b6"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-T10b\\invocations.jsonl",
+      "sha256Lf": "d97a8bf38dd406a0c9ceedf5ff199929045503915bc54dc8833ad5e5c8bb4629"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-T10c\\invocations.jsonl",
+      "sha256Lf": "6248b9aa1a6873f8b328b669080023b59fff32d69102254fa28fae33a178e584"
+    },
+    {
+      "path": "tools\\ig-proto\\plans\\V4-LIVE.json",
+      "sha256Lf": "e0e6a0b0d4d6642cfbf4ab87b95723af555d3359c9a0744f6cfa89a4fd666002"
+    },
+    {
+      "path": "tools\\ig-proto\\plans\\V4-S2.json",
+      "sha256Lf": "e835c231aaa5e8f7ee4da05b009ffb0a8ed17c0a3adb249ca02e7f72e01aa9f3"
+    }
+  ]
+}
