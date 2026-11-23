@@ -43,7 +43,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T06a The prior table `prior-s3-v1` and its generator `fit-prior-s3.mjs` (depends on S02)
 - [x] T06b P5's call budget by uniqueness mode and the per-set prior's level filter (`p5-mode`, `ps-levels`) (depends on T06a)
 - [x] T07a The live request deadline in the client and the pool (`live`) (depends on T06b)
-- [ ] T07b The live request deadline's hard response bound in the host (depends on T07a)
+- [x] T07b The live request deadline's hard response bound in the host (depends on T07a)
 - [ ] T07c The live request deadline's scripted-pool cases (depends on T07b)
 - [ ] T08a The four frozen variants, a candidate epoch (depends on T07c)
 - [ ] T08b The freeze's constants and checks (`freeze.mjs check`) (depends on T08a)
@@ -611,7 +611,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T06a | 2026-11-24 05:10 | 2026-11-24 05:16 | about 8 min | 56.58 | this task's commit |
 | T06b | 2026-11-24 05:17 | 2026-11-24 05:21 | about 6 min | 34.44 | this task's commit |
 | T07a | 2026-11-24 05:21 | 2026-11-24 05:25 | about 5 min | 46.59 | this task's commit |
-| T07b | | | | | |
+| T07b | 2026-11-24 05:25 | 2026-11-24 05:30 | about 6 min | 46.37 | this task's commit |
 | T07c | | | | | |
 | T08a | | | | | |
 | T08b | | | | | |

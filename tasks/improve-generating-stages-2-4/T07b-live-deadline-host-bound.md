@@ -408,13 +408,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 05:25 +07:00 (dispatch, base `98b6a1d`); 2026-11-24 05:30 +07:00 (accepted); the developer reported 05:25:46-05:27:59 |
+| Waiting for rulings | none |
+| Agent id, model | `c04a4ece-e183-4f5a-b3ed-3185dbc3b380`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 24 calls; 1,565,220 input, 16,797 output, 1,507,199 cache-read tokens |
+| AI credits | 46.37 (developer only) |
+| Questions and rulings | none; every pinned scripted value held (pending at 118,999 ms then `response-bound` at 119,000; `set:reserve-cut` at 46,000; the cancels); no deviation |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `build live live-test`: both reused (`b4d9cb6e...`, `3b78783f...`); `check-edits --all`: `ok live: 76`, `ok live-test: 77 edits match`, exit 0; the locked selection block (`--v4`, `S24-T07b-orch`): the five `live` cases PASS, `IG ... exit=0 seconds=6.863 quiet=15`, `cases: 5 passed, as required`; P-0 binding pass; `firewall check --task S24-T07b`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the four Scope paths |
+| Commit | this task's commit |
+| Issues and named items | the assembly gate (`lv-15`, `lv-17`) is exercised by T07c; `lv-16`'s invalid-pack throw is not exercised here |

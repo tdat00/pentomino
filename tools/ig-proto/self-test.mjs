@@ -31,7 +31,7 @@ import { checkText } from '../check-conventions.mjs';
 import { decide, readInvocations, totals } from './lib/budget.mjs';
 import { rateAttempt, recordedCall, screenRating, startCountFor, windowSubsets } from './lib/calls.mjs';
 import { loadEngine } from './lib/engine.mjs';
-import { harness, settle, track } from './lib/fake-pool.mjs';
+import { createFakeClock, harness, settle, track } from './lib/fake-pool.mjs';
 import { identityHash, itemIdentity, logEnd, logSpawn, logStart, manifestHash, readItemLog, resumePlan, runCustomItems, runItems, runProcessItems } from './lib/items.mjs';
 import { admits, createLanes, DEFAULT_LIMITS } from './lib/lanes.mjs';
 import { itemLedger, pairPrimitives } from './lib/ledger.mjs';
@@ -9945,6 +9945,136 @@ async function setFixture(variant) {
 }
 
 /**
+ * One row of a tree's runCase on a stub pool without a 115-s stop (T07b). `batch`: set attempt 0 answered at once,
+ * every other task held, so that only the host's bound can end the batch; `set`: every task held, so that the set
+ * stage's reserve cut at 46 s ends it. A held task is released only by its abort signal or the pool's cancelAll.
+ * The clock is not moved: each case moves it.
+ * @param {string} variant
+ * @param {'batch' | 'set'} mode
+ */
+async function hostRow(variant, mode) {
+  const tree = await engine(variant);
+  const { PoolAbortError } = await browserModule(tree, 'worker-pool');
+  const { set, calibration } = await setFixture(variant);
+  const recipe = LIVE_RECIPE();
+  const caseDef = { id: 'live-host', boardRows: recipe.boardRows, rotation: 0, levelId: 'hard', uniqueness: 'any', maxActive: 676 };
+  const spec = { seed: 'fixture-set-0', rep: 0, probeKind: 'generation' };
+  const clock = createFakeClock();
+  /** @type {Set<(e: unknown) => void>} */
+  const held = new Set();
+  const pool = {
+    size: 4,
+    run(/** @type {any} */ task) {
+      return new Promise((resolve, reject) => {
+        if (mode === 'batch' && task.kind === 'setAttempt' && task.payload.attempt === 0) {
+          queueMicrotask(() => resolve({ ok: true, set, calibration, attempt: 0 }));
+          return;
+        }
+        const drop = (/** @type {unknown} */ e) => {
+          held.delete(drop);
+          reject(e);
+        };
+        held.add(drop);
+        task.signal?.addEventListener('abort', () => drop(new PoolAbortError('cancelled')), { once: true });
+      });
+    },
+    runIdle: () => new Promise(() => {}),
+    cancelAll() {
+      for (const drop of [...held]) {
+        drop(new PoolAbortError('cancelled'));
+      }
+    },
+    recycle() {},
+    beginRequest() {},
+    endRequest() {},
+    memory: () => ({ workerBytes: 0, mainBytes: 0, totalBytes: 0, peakBytes: 0, mainBudgetBytes: 0 }),
+    setMainBytes() {},
+    close() {},
+  };
+  const host = {
+    kind: 'node', platform: 'selftest', browserOrNode: 'node', workerCount: 4, lifecycle: 'cold', sourceCommit: 'selftest',
+    sourceDigest: 'selftest', versions: {}, clock, createPool: () => pool,
+    responsiveness: { start() {}, stop: () => ({ method: 'none', maxMainTaskMs: null, longTasksOver50: null, valid: true, notes: [] }) },
+    clickCancel: (/** @type {() => void} */ fn) => fn(),
+  };
+  /** @type {any} */
+  let cancel = null;
+  const result = track(tree.e.runner.runCase(spec, caseDef, host, {
+    certificateWaitMs: 0, registerCancel: (/** @type {any} */ fn) => { cancel = fn ?? cancel; },
+  }));
+  await settle();
+  await settle();
+  return { result, clock, held, calibration, cancel: () => cancel?.() };
+}
+
+/**
+ * The host's hard response bound (T07b) on a tree whose IG.liveDeadline lists the fixture level 'hard':
+ * `live-test` here, `fr-frozen-live-test` and `fr-frozen-none-live-test` in T08c.
+ * @param {string} variant
+ * @returns {{ name: string, run: () => Promise<void> }}
+ */
+function hostBoundCase(variant) {
+  return {
+    name: `live ${variant}: the host's hard response bound`,
+    async run() {
+      // (a) A held batch: at the bound the response is the client's prefix snapshot, the calibration with its pack.
+      const a = await hostRow(variant, 'batch');
+      assert(a.calibration?.rating?.level === 'hard', `the fixture's calibration is of level ${a.calibration?.rating?.level}, not hard`);
+      a.clock.advance(118999);
+      await settle();
+      assert(a.result.state === 'pending', `(a) ended before the bound (${a.result.value?.partialReason})`);
+      a.clock.advance(1);
+      await settle();
+      await settle();
+      assert(a.result.state === 'resolved', `(a) the row is ${a.result.state} at the bound`);
+      const v = a.result.value;
+      same([v.partialReason, v.responseMs, v.acceptedCount, v.interrupted], ['response-bound', 119000, 1, false], '(a) a held batch at the bound');
+      same(v.errors.filter((/** @type {any} */ e) => e.phase === 'validation'), [], '(a) the prefix and its pack are valid');
+      same(a.held.size, 0, '(a) tasks still held after the bound');
+      // (b) Every set attempt held: the reserve cuts the set stage at 46 s, before the bound.
+      const b = await hostRow(variant, 'set');
+      b.clock.advance(45999);
+      await settle();
+      assert(b.result.state === 'pending', `(b) ended before the reserve cut (${b.result.value?.partialReason})`);
+      b.clock.advance(1);
+      await settle();
+      await settle();
+      same([b.result.value?.partialReason, b.result.value?.responseMs, b.result.value?.acceptedCount], ['set:reserve-cut', 46000, 0], '(b) every set attempt held');
+      same(b.held.size, 0, '(b) tasks still held after the cut');
+      // (c) The controller seam: a set or a batch promise that never settles ends at the bound, the batch with the
+      // client's snapshot, which a later settlement does not change.
+      const { e } = await engine(variant);
+      const clock = createFakeClock();
+      const snapshot = { status: 'partial', reason: 'response-bound', accepted: [], made: {}, seenLayouts: [], seenClues: [] };
+      let cancels = 0;
+      const client = { cancel: () => { cancels += 1; }, igPrefix: () => snapshot };
+      const one = e.runner.igBoundStart({ t0: clock.now() }, { levelId: 'hard' }, clock, client);
+      const heldSet = track(one.set(new Promise(() => {})));
+      clock.advance(118999);
+      await settle();
+      assert(heldSet.state === 'pending', '(c) a held set promise ended before the bound');
+      clock.advance(1);
+      await settle();
+      same([heldSet.state, heldSet.value, cancels], ['resolved', { status: 'failed', reason: 'response-bound', failures: {} }, 1], '(c) a held set promise at the bound');
+      clock.advance(1000);
+      one.clear();
+      const two = e.runner.igBoundStart({ t0: clock.now() }, { levelId: 'hard' }, clock, client);
+      /** @type {(v: any) => void} */
+      let release = () => {};
+      const heldBatch = track(two.batch(new Promise((resolve) => { release = resolve; })));
+      clock.advance(119000);
+      await settle();
+      assert(heldBatch.state === 'resolved' && heldBatch.value === snapshot, `(c) a held batch promise is ${heldBatch.state} at the bound`);
+      clock.advance(6000);
+      release({ status: 'complete' });
+      await settle();
+      assert(heldBatch.value === snapshot && cancels === 2, '(c) a later batch result changed the response');
+      two.clear();
+    },
+  };
+}
+
+/**
  * One set request on a scripted pool of the tree `variant` (the tree `<variant>-w8-test` for width 8): the pool and
  * the client are that tree's `core/browser/worker-pool.js` and `generation-client.js`. A `setAttempt` task is answered
  * at once when `script[attempt].now` is true, else held; then, at most 64 times, the held task with the lowest attempt
@@ -11533,6 +11663,20 @@ const v4Cases = [
       await settle();
       same([r.value?.status, r.value?.reason], ['failed', 'time-limit'], 'the set stage at 115 s after its own start');
       h.pool.close();
+    },
+  },
+  hostBoundCase('live-test'),
+  {
+    name: 'live: the host bound is inert without its parameter',
+    async run() {
+      const plain = await hostRow('live', 'batch');
+      plain.clock.advance(178999);
+      await settle();
+      assert(plain.result.state === 'pending', `live: the row ended without a bound (${plain.result.value?.partialReason})`);
+      plain.cancel();
+      await settle();
+      await settle();
+      same([plain.result.state, plain.result.value?.partialReason], ['resolved', 'cancelled'], 'live: the row after its cancel');
     },
   },
 ];

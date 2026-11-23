@@ -1593,8 +1593,23 @@ then the batch's; with the parameter both share one clock from the request start
   passed. The batch (`lv-8`) shares the origin; the generation stop at 115 s keeps today's `time-limit`.
 - **The parameter** `liveDeadline { id, levels, reserve, setStageCapMs, generationStopMs, responseBoundMs, hostMarginMs }` (the freeze: `deadline-s3-v1`,
   `['nightmare', 'hell-1']`, 0.6, 46000, 115000, 120000, 1000), default `null`: the variant is inert without it and for every level it does not list.
-- **Self-test.** Three cases of the `--v4` group: `live: the pool starts a request at its origin`, `live: igLiveOf rule` and `live: inert without its
-  parameter`.
+- **The host's hard response bound** (T07b, `lv-10` to `lv-14`). `igBoundStart(s, caseDef, clock, client)` in the copy's `tools/bench/runner.js`
+  starts at the request origin (`s.t0`, before the set call; the host passes it as `igOrigin` to `generateSet` and `generateBatch`) and, for a level the
+  parameter lists, fires at `t0 + responseBoundMs - hostMarginMs` (119 s): it cancels the client and ends the request at once. In the set phase the
+  response is `{ status: 'failed', reason: 'response-bound', failures: {} }` (`partialReason` `set:response-bound`), even while the set still assembles its
+  pack. In the batch phase it is the client's prefix snapshot `client.igPrefix()` (`lv-16`, `lv-18`): `{ status: 'partial', reason: 'response-bound',
+  accepted, made, seenLayouts, seenClues, pack }`, the batch's own accepted prefix with its provenance and seen histories, and for a non-empty prefix a
+  pack assembled at once from the same parts as the batch's final assembly and validated by the synchronous `validatePack` (an invalid pack throws
+  `GenerationError('internal')`). After the bound the host never awaits the batch, its pool tasks or its pack assembly; a result that settles first is
+  returned unchanged, and the timer is cleared on every terminal path. For a level the parameter does not list, the promises are returned unchanged.
+- **The assembly gate** (`lv-15`, `lv-17`): the client option `igAssemblyGate(phase)` (`'set'` or `'batch'`, returning a promise) is awaited just before the
+  set's and the batch's `assemblePack`, so that scripted cases (T07c) can hold an assembly beyond the bound. A test seam: the bench and the product never
+  set it.
+- **`live-test`** (`extends ['live', 'w8']`, test only, never an arm, a plan step or a binding's `current` id): the deadline on the fixture level `hard`
+  (`deadline-test`, `levels ['hard']`) with the eight-worker pool limit, for the scripted cases. The case factory `hostBoundCase(variant)` is run again by
+  T08c on the bounded frozen twins.
+- **Self-test.** Five cases of the `--v4` group: `live: the pool starts a request at its origin`, `live: igLiveOf rule`, `live: inert without its
+  parameter`, `live live-test: the host's hard response bound` and `live: the host bound is inert without its parameter`.
 
 ## Admission statistics (V4-T09a)
 
