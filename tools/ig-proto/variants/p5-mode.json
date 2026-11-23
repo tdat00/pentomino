@@ -1,0 +1,20 @@
+{
+  "id": "p5-mode",
+  "extends": ["v4"],
+  "description": "Frozen family (stages 2 to 4 pack T06b, plan 4.4): P5's call budget by uniqueness mode and level, IG.callBudget = { id, any: { <level>: units }, require: { <level>: units } }, given to the copy's search as the call's igBudget; inert without that parameter.",
+  "edits": [
+    {
+      "id": "fz-1",
+      "file": "core/engine/clues.js",
+      "find": "    return selectCluesV4(ctx);\n",
+      "replace": "    return selectCluesV4(igModeBudget(ctx));\n"
+    },
+    {
+      "id": "fz-2",
+      "file": "core/engine/clues.js",
+      "append": "\n// ig-proto, variant p5-mode (stages 2 to 4 pack T06b, plan 4.4): P5's call budget by uniqueness mode and level.\n// IG.callBudget = { id, any: { <level id>: units }, require: { <level id>: units } }; an absent or non-positive entry\n// is no budget. Without such a table (undefined, null, or the level-keyed shape of v4-p5) the context is unchanged.\nimport { IG as IG_FZ } from './ig-params.js';\n\n/**\n * @param {any} ctx The SelectContext of a gen-v4 call.\n * @param {any} [table] IG.callBudget by default.\n * @returns {any} ctx itself, or a copy whose igBudget is the call's budget in units (Infinity for none).\n */\nexport function igModeBudget(ctx, table = IG_FZ.callBudget) {\n  if (ctx.igBudget !== undefined || table === undefined || table === null\n    || (table.any === undefined && table.require === undefined)) {\n    return ctx;\n  }\n  const v = table[ctx.uniqueness]?.[ctx.target.id];\n  return { ...ctx, igBudget: typeof v === 'number' && v > 0 ? v : Infinity };\n}\n"
+    }
+  ],
+  "files": [],
+  "params": {}
+}

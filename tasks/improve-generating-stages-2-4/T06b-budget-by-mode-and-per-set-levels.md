@@ -187,13 +187,13 @@ later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 05:17 +07:00 (dispatch, base `6085c33`); 2026-11-24 05:21 +07:00 (accepted); the developer reported 05:17:12-05:18:54 |
+| Waiting for rulings | none |
+| Agent id, model | `73aa96a0-7433-4c59-8b1f-f3461bf56846`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 16 calls; 1,022,735 input, 11,715 output, 970,668 cache-read tokens |
+| AI credits | 34.44 (developer only) |
+| Questions and rulings | none. The developer's notes (case 38 loops over both trees and also asserts no `budgetStop` unbudgeted; case 39 reads the tree's client through `tree.e.root` as `treeModule` does; the README wording) are test and wording details that change no behaviour |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `build p5-mode ps-levels`: both reused (`e17b6153...`, `b51ed8b4...`); `check-edits --all`: `ok p5-mode: 42`, `ok ps-levels: 49`, `ok v4: 40`, `ok v4-ps: 47`, `ok v4-ps-link: 64 edits match`; the locked selection block (`--v4`, `S24-T06b-orch`): the three `fz:` cases PASS, `IG ... exit=0 seconds=0.855 quiet=15`, `cases: 3 passed, as required`; P-0 binding pass; `firewall check --task S24-T06b`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the four Scope files |
+| Commit | this task's commit |
+| Issues and named items | T08a composes `p5-mode` and `ps-levels` into the frozen variants; T08c tests them on the real frozen parameters |

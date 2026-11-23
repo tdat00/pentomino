@@ -1,0 +1,20 @@
+{
+  "id": "ps-levels",
+  "extends": ["v4-ps"],
+  "description": "Frozen family (stages 2 to 4 pack T06b, plan 4.1): the per-set prior of v4-ps only on the levels of IG.perSetLevels; on every level without that parameter.",
+  "edits": [
+    {
+      "id": "fz-3",
+      "file": "core/browser/generation-client.js",
+      "find": "    const igPrior = igPriorOf(request.calibration, levelId, uniqueness);\n",
+      "replace": "    const igPrior = igPerSetLevel(levelId) ? igPriorOf(request.calibration, levelId, uniqueness) : {};\n"
+    },
+    {
+      "id": "fz-4",
+      "file": "core/browser/generation-client.js",
+      "append": "\n// ig-proto, variant ps-levels (stages 2 to 4 pack T06b, plan 4.1): the per-set prior only on the levels listed in\n// IG.perSetLevels (the freeze: ['hell-1']); without the parameter (undefined or null), on every level as in v4-ps.\nimport { IG as IG_PSL } from '../engine/ig-params.js';\n\n/**\n * @param {string} levelId\n * @param {any} [levels] IG.perSetLevels by default.\n * @returns {boolean}\n */\nexport function igPerSetLevel(levelId, levels = IG_PSL.perSetLevels) {\n  return levels === undefined || levels === null || (Array.isArray(levels) && levels.includes(levelId));\n}\n"
+    }
+  ],
+  "files": [],
+  "params": {}
+}

@@ -41,7 +41,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T05b P7: the full equality runs and the plan `V4-P7` (depends on T05a; with no eligible composite, no plan)
 - [x] S02 Run `V4-P7` and write the spike report (orchestrator, then the SAs; approved by the owner up to 20 counted minutes, D-S24-28; the approval re-read before the run; with no eligible composite, the report only) (depends on T05b)
 - [x] T06a The prior table `prior-s3-v1` and its generator `fit-prior-s3.mjs` (depends on S02)
-- [ ] T06b P5's call budget by uniqueness mode and the per-set prior's level filter (`p5-mode`, `ps-levels`) (depends on T06a)
+- [x] T06b P5's call budget by uniqueness mode and the per-set prior's level filter (`p5-mode`, `ps-levels`) (depends on T06a)
 - [ ] T07a The live request deadline in the client and the pool (`live`) (depends on T06b)
 - [ ] T07b The live request deadline's hard response bound in the host (depends on T07a)
 - [ ] T07c The live request deadline's scripted-pool cases (depends on T07b)
@@ -609,7 +609,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T05b | 2026-11-24 02:50 | 2026-11-24 04:25 | 96 min | 93.40 | this task's commit |
 | S02 | 2026-11-24 04:25 | 2026-11-24 05:10 | about 47 min (run 14 min) | – (orchestrator run; SA report in the SA agents) | this task's commit |
 | T06a | 2026-11-24 05:10 | 2026-11-24 05:16 | about 8 min | 56.58 | this task's commit |
-| T06b | | | | | |
+| T06b | 2026-11-24 05:17 | 2026-11-24 05:21 | about 6 min | 34.44 | this task's commit |
 | T07a | | | | | |
 | T07b | | | | | |
 | T07c | | | | | |

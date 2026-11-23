@@ -1558,6 +1558,24 @@ Seeds of the fitting reps only (plan 4.7): no validation, Master or second-valid
 - **Self-test.** Two cases of the `--items` group: `prior-s3: the rules on synthetic records` (both rules and the two refusals) and `prior-s3: the
   table of plan 4.1` (27 cells, the 12 shares of the plan, the 15 Nightmare entries equal to `prior-v1`'s, the pilots' counts 68, 75, 70, 64).
 
+### The budget by mode and the per-set levels (T06b)
+
+Two small variants, the frozen-family edits of plan 4.3 that T08a composes into the four frozen variants; each is inert without its parameter and
+changes no file of the `v4` chain (`check-binding --current v4` stays `pass`). Neither is an arm of its own.
+
+- **`p5-mode`** (extends `v4`; edits `fz-1`, `fz-2` in `core/engine/clues.js`): P5's call budget by uniqueness mode and level. The parameter is
+  `IG.callBudget = { id, any: { <level id>: units }, require: { <level id>: units } }` (the freeze: `any` Nightmare 10 G, Hell 1 40 G; `require`
+  Nightmare 32 G, Hell 1 40 G). The copy-only search reads `ctx.igBudget ?? callBudgetOf(IG.callBudget, target)` and no edit can reach it, so the
+  dispatch `selectClues` calls `igModeBudget(ctx)`, which gives the search the call's `igBudget`. An absent or non-positive entry is no budget
+  (`Infinity`); a seam `igBudget` already on the context wins. Without a table of the mode shape (undefined, null, or the level-keyed shape of `v4-p5`,
+  with no `any` and no `require` key) the context is returned unchanged, and the object is never mutated.
+- **`ps-levels`** (extends `v4-ps`; edits `fz-3`, `fz-4` in `core/browser/generation-client.js`): the per-set prior only on the levels of
+  `IG.perSetLevels` (the freeze: `['hell-1']`), through `igPerSetLevel(levelId)`; an unlisted level gets no `igPrior` and falls back to the table
+  prior. Without the parameter (undefined or null) the prior applies on every level as in `v4-ps`; a value that is not an array lists no level.
+- **Self-test.** Three cases of the `--v4` group (through the lock helper): `fz: budget by uniqueness mode (rule)`, `fz: p5-mode is inert without its
+  parameter` (`v4` and `p5-mode` give the same budgeted and unbudgeted results) and `fz: per-set prior levels (rule)`. The real frozen parameters are
+  T08c's cases.
+
 ## Admission statistics (V4-T09a)
 
 The statistics of plan section 5.2 are fixed in code before any validation seed runs (the provisional seeds are

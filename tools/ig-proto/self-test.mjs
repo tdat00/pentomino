@@ -11383,6 +11383,69 @@ const v4Cases = [
       }
     },
   },
+  {
+    name: 'fz: budget by uniqueness mode (rule)',
+    async run() {
+      const { igModeBudget } = await treeModule(await engine('p5-mode'), 'clues');
+      const T = { id: 'budget-test', any: { nightmare: 10, 'hell-1': 40 }, require: { nightmare: 32, 'hell-1': 0 } };
+      const c = (/** @type {string} */ u, /** @type {string} */ id) => ({ uniqueness: u, target: { id, min: 53, max: 77 } });
+      same(igModeBudget(c('any', 'nightmare'), T).igBudget, 10, 'any, nightmare');
+      same(igModeBudget(c('any', 'hell-1'), T).igBudget, 40, 'any, hell-1');
+      same(igModeBudget(c('require', 'nightmare'), T).igBudget, 32, 'require, nightmare');
+      same(igModeBudget(c('require', 'hell-1'), T).igBudget, Infinity, 'require, hell-1 (0 is no budget)');
+      same(igModeBudget(c('any', 'st-band'), T).igBudget, Infinity, 'any, an absent level');
+      const x = { ...c('any', 'nightmare'), igBudget: 5 };
+      assert(igModeBudget(x, T) === x, 'a seam igBudget must win and leave the context itself');
+      const y = c('any', 'nightmare');
+      assert(igModeBudget(y, null) === y, 'a null table must leave the context');
+      assert(igModeBudget(y, { default: 2000000000 }) === y, 'a level-keyed table must leave the context');
+      assert(igModeBudget(y) === y, 'the p5-mode tree has no callBudget: the context stays');
+      assert(igModeBudget(y, T).igBudget === 10 && !('igBudget' in y), 'the context must not be mutated');
+    },
+  },
+  {
+    name: 'fz: p5-mode is inert without its parameter',
+    async run() {
+      const spec = { prior: null, screen: () => 'cap', canon: (/** @type {number} */ k) => synthetic(100 - 10 * k) };
+      const limit = 1520000000;
+      const budgeted = [];
+      const free = [];
+      for (const variant of ['v4', 'p5-mode']) {
+        budgeted.push(await v4Call('fz-inert', { ...spec, variant, extra: { igBudget: limit } }));
+        free.push(await v4Call('fz-inert', { ...spec, variant }));
+      }
+      for (const [i, r] of budgeted.entries()) {
+        const what = ['v4', 'p5-mode'][i];
+        same(r.counts('locate'), [7, 13], `${what} budgeted: locate counts ${JSON.stringify(r.counts('locate'))}`);
+        same(r.end.locate.budgetStop, { limit, spent: limit, overshoot: 0 }, `${what} budgeted: budgetStop ${JSON.stringify(r.end.locate.budgetStop)}`);
+        same(r.result, { ok: false, reason: 'not-in-band' }, `${what} budgeted: result ${JSON.stringify(r.result)}`);
+      }
+      same(budgeted[1].result, budgeted[0].result, 'the budgeted results of v4 and p5-mode differ');
+      for (const [i, r] of free.entries()) {
+        const what = ['v4', 'p5-mode'][i];
+        same(r.counts('rescue'), [13, 7], `${what} unbudgeted: rescue counts ${JSON.stringify(r.counts('rescue'))}`);
+        assert(r.end.locate.budgetStop === undefined, `${what} unbudgeted: a budgetStop was journaled`);
+      }
+      same(free[1].result, free[0].result, 'the unbudgeted results of v4 and p5-mode differ');
+    },
+  },
+  {
+    name: 'fz: per-set prior levels (rule)',
+    async run() {
+      const tree = await engine('ps-levels');
+      const { igPerSetLevel } = await browserModule(tree, 'generation-client');
+      same(igPerSetLevel('hell-1', ['hell-1']), true, 'a listed level');
+      same(igPerSetLevel('nightmare', ['hell-1']), false, 'an unlisted level');
+      same(igPerSetLevel('hell-1', []), false, 'an empty list');
+      same(igPerSetLevel('hell-1', null), true, 'a null list');
+      same(igPerSetLevel('nightmare', 'hell-1'), false, 'a list that is not an array');
+      same(igPerSetLevel('nightmare'), true, 'the ps-levels tree has no perSetLevels');
+      const text = readFileSync(join(tree.e.root, 'core', 'browser', 'generation-client.js'), 'utf8');
+      const guarded = 'const igPrior = igPerSetLevel(levelId) ? igPriorOf(request.calibration, levelId, uniqueness) : {};';
+      same(text.split(guarded).length - 1, 1, 'the guarded igPrior line');
+      same(text.split('const igPrior = igPriorOf(').length - 1, 0, 'the unguarded igPrior line');
+    },
+  },
 ];
 
 /** @param {string} text @returns {string} The text without the worktree's absolute root (records refuse it). */
