@@ -2,7 +2,7 @@
 // Self-test of the harness (IGP-00 §10). Run under the lock wrapper by run-task.ps1; it carves and rates only small
 // cases (about 60 s). Each case prints `PASS <name>` or `FAIL <name>: <reason>`; the state file records the results
 // and the script exits 1 on any failure.
-//   node tools\ig-proto\self-test.mjs --label <L> --source-label <SL> --horizon-s <H> [--only 1,3] [--proto] [--p6] [--task <T>]
+//   node tools\ig-proto\self-test.mjs --label <L> --source-label <SL> --horizon-s <H> [--only 1,3] [--list] [--proto] [--p6] [--task <T>]
 // `--proto` (IGP-01) adds the prototype's cases after IGP-00's nine; its state goes to <T>/self-test/state.json
 // (default IGP-01 with --proto, else IGP-00). `--p6` (IGP-04) runs all of them and adds the P6 cases (default task IGP-04).
 // `--frozen` (V4-T01a, V4-T01b, V4-T03) runs only the frozen-source group (default task V4-T01a): carve-only checks and records, unlocked.
@@ -55,7 +55,11 @@ import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs
 import { baselineVerdict, buildStepReceipt, captureStepInputs, expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, priorVerdict, replayVerdict, stage1Expectation, stage1Inputs, stage1Verdict, stepEvidence, stepExpectation } from './v4-check.mjs';
 
 const SELFTEST_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'selftest');
-const GIT_CALL = new RegExp('(?:execFileSync|execSync|spawnSync|spawn|execFile|exec|fork)\\(\\s*[\'"`]git\\b|^\\s*&?\\s*git(?:\\.exe)?\\s+(?:rev-parse|status|log|diff|show|add|commit|push|ls-files)\\b', 'm');
+const GIT_CALL = /(?:execFileSync|execSync|spawnSync|spawn|execFile|exec|fork)\(\s*['"`]git(?:\.exe)?\b|(?:^|[;|({&]|\$\(|@\()\s*&?\s*git(?:\.exe)?\s+(?:-C\s+(?:"[^"]*"|'[^']*'|\S+)\s+)?(?:rev-parse|status|log|diff|show|add|commit|push|ls-files)\b/m;
+/** The one file the guard exempts (the README's exception to "No git"): its two read-only calls must still match. */
+const GIT_EXCEPTION = 'tools/ig-proto/phase1/p6-bench.ps1';
+/** The guard's sample texts, `[text, expected]` pairs, kept in a file the scan does not select (N-V4-20). */
+const GIT_GUARD_CASES = join(IG_DIR, 'data', 'git-guard-cases.json');
 
 /** @type {Record<string, any>} */
 const engines = {};
@@ -163,8 +167,23 @@ const cases = [
       for (const variant of ['base', 'instr', 'log']) {
         scanned.push(join((await ensureTree(variant)).root, 'tools', 'calibrate.mjs'));
       }
+      let exempted = 0;
       for (const path of scanned) {
-        assert(!GIT_CALL.test(readFileSync(path, 'utf8')), `${rel(path)} contains a call that starts git`);
+        const found = GIT_CALL.test(readFileSync(path, 'utf8'));
+        if (rel(path) === GIT_EXCEPTION) {
+          assert(found, `${GIT_EXCEPTION} no longer matches the guard: the exception would hide nothing`);
+          exempted += 1;
+          continue;
+        }
+        assert(!found, `${rel(path)} contains a call that starts git`);
+      }
+      assert(exempted === 1, `the guard's exception ${GIT_EXCEPTION} was scanned ${exempted} times`);
+      const samples = JSON.parse(readFileSync(GIT_GUARD_CASES, 'utf8'));
+      assert(Array.isArray(samples) && samples.length === 11
+        && samples.every((s) => Array.isArray(s) && s.length === 2 && typeof s[0] === 'string' && typeof s[1] === 'boolean'),
+      `${rel(GIT_GUARD_CASES)} must hold eleven [text, expected] pairs`);
+      for (const [text, hit] of /** @type {[string, boolean][]} */ (samples)) {
+        assert(GIT_CALL.test(text) === hit, `the guard on ${JSON.stringify(text)}: expected ${hit}`);
       }
     },
   },
@@ -10273,10 +10292,18 @@ export function reservedTaskProblem(label, task, stateExists, historical = HISTO
  * @returns {Promise<number>}
  */
 async function main(argv, { historical = HISTORICAL_SELFTEST } = {}) {
-  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto', 'p6', 'frozen', 'v4', 'items'] });
+  const { args, on } = parseArgs(argv, { values: ['label', 'source-label', 'horizon-s', 'only', 'task'], switches: ['proto', 'p6', 'frozen', 'v4', 'items', 'list'] });
   const label = args.label ?? 'selftest';
   const task = args.task ?? (on.has('items') ? 'V4-T04a' : on.has('v4') ? 'V4-T02a' : on.has('frozen') ? 'V4-T01a' : on.has('p6') ? 'IGP-04' : on.has('proto') ? 'IGP-01' : 'IGP-00');
   const only = args.only === undefined ? null : args.only.split(',').map(Number);
+  const selected = on.has('items') ? itemCases : on.has('v4') ? v4Cases : on.has('frozen') ? frozenCases
+    : [...cases, ...(on.has('proto') || on.has('p6') ? protoCases : []), ...(on.has('p6') ? p6Cases : [])];
+  if (on.has('list')) {
+    for (const [i, c] of selected.entries()) {
+      process.stdout.write(`${i + 1} ${c.name}\n`);
+    }
+    return 0;
+  }
   const reserved = reservedTaskProblem(label, task, label === 'frozen' && existsSync(artifactDir(label, task, 'self-test', 'state.json')), historical);
   if (reserved !== null) {
     process.stderr.write(`${reserved}\n`);
@@ -10286,8 +10313,6 @@ async function main(argv, { historical = HISTORICAL_SELFTEST } = {}) {
   const startedAt = new Date(Date.now() - elapsedS() * 1000).toISOString();
   /** @type {{ name: string, pass: boolean, reason: string | null, ms: number }[]} */
   const results = [];
-  const selected = on.has('items') ? itemCases : on.has('v4') ? v4Cases : on.has('frozen') ? frozenCases
-    : [...cases, ...(on.has('proto') || on.has('p6') ? protoCases : []), ...(on.has('p6') ? p6Cases : [])];
   for (const [i, c] of selected.entries()) {
     if (only !== null && !only.includes(i + 1)) {
       continue;

@@ -18,7 +18,9 @@ records in `docs/improve-generating/evidence/<label>/<task>/`.
   its two worktrees, V4-T14). Identity comes from content: the source digest of
   `SOURCE_FILES`, the firewall manifest, the tree identities and a source label the runner receives
   (`-SourceLabel`). Every tree patches its copy of `tools/calibrate.mjs` so that its `readSource` runs no git (edit
-  `meta-1`).
+  `meta-1`). The self-test's guard (`paths and fingerprint guard`) also matches
+  `git -C <dir> <command>`, a quoted `-C` path and calls inside expressions, reads its sample texts from
+  `data/git-guard-cases.json` (a file it does not scan), and exempts exactly `phase1/p6-bench.ps1` (N-V4-20).
 - **Every long command goes through the lock wrapper.** `run-task.ps1` calls `Invoke-IgNode` of the low-priority
   helper; difficulty-v3 has priority on the machine. Commands that take seconds and rate nothing (building a tree, the
   firewall, publishing, the identity report) run directly. Never run timing or generation outside the wrapper.
@@ -135,6 +137,7 @@ node tools\ig-proto\arm.mjs publish --task T --arm A --label provisional --sourc
 node tools\ig-proto\arm.mjs status --task T --arm A --shard S --label provisional [--check-rows]
 node tools\ig-proto\identity.mjs --task IGP-00 --arms base,log --label provisional
 node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6] [--frozen] [--items] [--task T]   # cases that generate or rate need the lock; --p6 runs every case; --frozen runs only the frozen-source group and --items only the measurement-items group (both unlocked)
+node tools\ig-proto\self-test.mjs [--frozen | --items | --v4] --list --label frozen   # prints "<index> <name>" per case of the group; runs nothing, writes nothing (unlocked)
 node tools\ig-proto\fit-prior.mjs [--replace]       # recomputes data\prior-v1.json; exit 1 when it differs (unlocked)
 node tools\ig-proto\verify.mjs --task T --arm A[,A2] --label provisional --source-label <label> --horizon-s 285   # locked
 node tools\ig-proto\compare.mjs --task T --pairs before:after --reference mp12b1 --label provisional                # unlocked

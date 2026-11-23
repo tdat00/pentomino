@@ -193,13 +193,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-23 23:28 +07:00 (dispatch, base `ef30e9a`); 2026-11-23 23:31 +07:00 (accepted); the developer reported 23:28:26-23:29:44 |
+| Waiting for rulings | none |
+| Agent id, model | `676583b2-65cb-4b1b-85da-6cca29011aaf`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 17 calls; 893,879 input, 9,350 output, 861,351 cache-read tokens |
+| AI credits | 26.09 (developer only) |
+| Questions and rulings | none |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `self-test --list --task S24-T01b-list-orch`: first line `1 paths and fingerprint guard`, exit 0, `Test-Path` False; the selection block (`S24-T01b-orch`, default group, locked): `PASS 1 paths and fingerprint guard`, `IG S24-T01b-orch cases exit=0 seconds=0.458 quiet=15`, `cases: 1 passed, as required`; `firewall check --task S24-T01b`: OK, 289 files; `npm run check`: OK; G1, G2 empty; G3 the three Scope files |
+| Commit | this task's commit |
+| Issues and named items | none |

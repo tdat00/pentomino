@@ -1,0 +1,13 @@
+[
+  ["$head = @(& git -C $worktree rev-parse HEAD)", true],
+  ["$s = $(git status --short)", true],
+  ["git -C x log", true],
+  ["& git diff", true],
+  ["  git status", true],
+  ["spawnSync('git', ['status'])", true],
+  ["const x = (git status)", true],
+  ["// the git status of a worktree", false],
+  ["# git status in a comment", false],
+  ["$head = @(& git -C \"Q:\\a b\" rev-parse HEAD)", true],
+  ["& git.exe -C 'Q:\\a b' status", true]
+]
