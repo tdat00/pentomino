@@ -78,7 +78,13 @@ no-screen arm `fr-none` (reps 0 to 4, fitting seeds) so that a control at risk i
 7. **The readings** (unlocked):
    `node tools\ig-proto\fit-read.mjs preview --task V4-S2B --arm fr-none --label frozen --source-label "frozen 3fc65f4"`
    and `node tools\ig-proto\fit-read.mjs prefixes --task V4-S2B --arm fr-none --budget nightmare=10000000000 --label
-   frozen --source-label "frozen 3fc65f4"`. Then the account: the sum of `countedSeconds` of
+   frozen --source-label "frozen 3fc65f4"`. Run them once the plan has completed (step 6); after a stop, only when the
+   SAs rule that the publication is final: each record is written once (D-P24-07). On a complete run whose rows are
+   valid they print `(8 cells, 0 problems, 0 unexpected)` and `(40 rows, 0 missing, 0 identity problems, 0 incomplete,
+   ...)`; any other count is a warning for step 8, not a stop of the reading. The two commands were first checked on
+   real records, `V4-S2`'s `fr-none` arm through their `io` seam (ruling R-P24-04: 8 cells, 0 problems, 26x26
+   Nightmare's lower bound 0.881 as in stage 2; 40 rows, 821 calls, 0 missing, 0 incomplete, 0 ambiguous). Then the
+   account: the sum of `countedSeconds` of
    `tests\artifacts\ig-proto\frozen\V4-S2B\invocations.jsonl` (the run's counted minutes) and the round's new account
    (logs plus 87.4 s off-log), in the Execution log and the next progress report.
 8. **The SAs' reading** (SA-Opus drafts, SA-Astra reviews; joint text). `docs/improve-generating-stages-2-4/s01-reading.md`
