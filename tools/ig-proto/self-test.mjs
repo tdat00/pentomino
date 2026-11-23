@@ -1468,6 +1468,75 @@ async function captureOutput(run) {
   }
 }
 
+/**
+ * The fixture of the fit-reader command cases (T02c): the plan `V4-XX` (arm `a`: shard `pilot-x`, `x:0-4`; arm `b`: `pilot-y`), the
+ * published runs of the five fitting rows of `x` (T02b's preview case), the raw shard folder with its declaration, row identities,
+ * journals and linkage, and MP12b1's report of `x`.
+ * @param {string} dir The fixture folder, emptied first.
+ * @returns {Promise<any>}
+ */
+async function fitFixture(dir) {
+  fresh(dir);
+  const L = ledgerLines();
+  const reps = [0, 1, 2, 3, 4];
+  const after = [10000, 10000, 30000, 80000, 50000];
+  const before = [10000, 20000, 30000, 40000, 50000];
+  const plansDir = join(dir, 'plans');
+  const runsDir = join(dir, 'runs');
+  const rawDir = join(dir, 'raw');
+  const logs = join(rawDir, 'pilot-x', 'logs');
+  mkdirSync(logs, { recursive: true });
+  const step = (/** @type {string} */ arm, /** @type {string} */ shard, /** @type {string} */ cases) => ({
+    node: ['tools\\ig-proto\\arm.mjs', 'run', '--task', 'V4-XX', '--arm', arm, '--shard', shard, '--cases', cases],
+  });
+  writeJson(join(plansDir, 'V4-XX.json'), { task: 'V4-XX', steps: [step('a', 'pilot-x', 'x:0-4'), step('b', 'pilot-y', 'y:0-4')] });
+  const published = await Promise.all(reps.map(async (r) => ({
+    rowKey: `x~${r}`, caseId: 'x', rep: r, seed: `landscape/x/${r}`, localRep: 0,
+    run: await matrixRun('x', r, 10, { tenthReadyMs: after[r], responseMs: after[r] }),
+  })));
+  const today = await Promise.all(reps.map((r) => matrixRun('x', r, 10, { tenthReadyMs: before[r], responseMs: before[r] })));
+  writeJson(join(runsDir, 'pilot-x.runs.json'), { meta: { trees: { v: { treeId: 'T', copyDigest: 'C' } }, harness: { harnessHash: 'H' } }, shard: 'pilot-x', rows: published });
+  writeText(join(runsDir, 'pilot-x.runs.md'), '# pilot-x');
+  writeJson(join(rawDir, 'pilot-x', 'state.json'), { done: true });
+  writeJson(join(rawDir, 'pilot-x', 'shard.json'), {
+    format: 'ig-proto-shard', version: 1, task: 'V4-XX', arm: 'a', shard: 'pilot-x', variant: 'v',
+    rows: reps.map((r) => ({ key: `x~${r}`, caseId: 'x', rep: r, seed: `landscape/x/${r}` })), treeId: 'T', copyDigest: 'C', harnessHash: 'H',
+  });
+  for (const r of reps) {
+    const c = `x~${r}:1:2:1`;
+    writeJsonl(join(logs, `x~${r}.row.jsonl`), [{ t: 'row', row: `x~${r}`, seed: `landscape/x/${r}`, caseId: 'x', localRep: 0, pid: 1 }]);
+    writeJsonl(join(logs, `x~${r}.1.2.jsonl`), [
+      { ...L.S(c, 'set', 0, 10), level: 'nightmare' }, L.C(c), L.B(c), L.P(c, 0, 100, 0), L.B(c), L.P(c, 1, 50, 10), L.E(c, 160, 2, 0),
+    ]);
+    writeJsonl(join(logs, `x~${r}.link.jsonl`), [{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }]);
+  }
+  writeJson(join(dir, 'mp12b1-x.json'), { runs: today });
+  const outDir = join(dir, 'out');
+  return {
+    dir, outDir, plansDir, runsDir, rawDir, logs, published, today, io: { outDir, plansDir, runsDir, rawDir },
+    files: { runs: join(runsDir, 'pilot-x.runs.json'), shard: join(rawDir, 'pilot-x', 'shard.json'), mp12b1: join(dir, 'mp12b1-x.json') },
+  };
+}
+
+/** @param {string} file @param {(doc: any) => void} edit @returns {void} Rewrites a JSON file after the edit. */
+function editJsonFile(file, edit) {
+  const doc = JSON.parse(readFileSync(file, 'utf8'));
+  edit(doc);
+  writeJson(file, doc);
+}
+
+/** @param {string} dir @returns {Record<string, string>} The raw SHA-256 of every file below the folder, by relative path. */
+function folderHashes(dir) {
+  /** @type {Record<string, string>} */
+  const hashes = {};
+  for (const name of /** @type {string[]} */ (readdirSync(dir, { recursive: true }))) {
+    if (statSync(join(dir, name)).isFile()) {
+      hashes[name] = sha256File(join(dir, name), { raw: true });
+    }
+  }
+  return hashes;
+}
+
 /** @param {(dir: string) => Promise<void>} body @returns {Promise<void>} Runs `body` on an empty scratch folder of the collection cases (V4-T11e) and removes it afterwards. */
 async function onCollections(body) {
   const dir = fresh(artifactDir('selftest', 'collections'));
@@ -8287,6 +8356,193 @@ const itemCases = [
       same(run([0, 1, 3].map((a) => call(a, 'below-to-one'))), { fires: false, side: null, attempts: 3 }, 'attempt 2 missing');
       same(run([...[0, 1, 2, 3].map((a) => call(a, 'below-to-one')), call(4, 'hit')]), { fires: true, side: 'below', attempts: 5 }, 'a fifth attempt');
       same(run([call(0, 'below-to-one'), call(1, 'below-to-one', 'ambiguous'), call(2, 'below-to-one'), call(3, 'below-to-one')]).fires, false, 'an ambiguous call');
+    },
+  },
+  {
+    name: 'fit-read: prefixes of a declared grid',
+    async run() {
+      const { prefixesCommand } = await import('./fit-read.mjs');
+      const L = ledgerLines();
+      const root = join(SELFTEST_DIR, 'S24-T02c-dev');
+      const argv = ['--task', 'V4-XX', '--arm', 'a', '--budget', 'nightmare=9000000000', '--bound', '4', '--label', 'frozen', '--source-label', 'self-test'];
+      /** @param {string} name @param {(fx: any) => void} [edit] @returns {Promise<{ fx: any, record: any }>} */
+      const scenario = async (name, edit) => {
+        const fx = await fitFixture(join(root, 'prefixes', name));
+        edit?.(fx);
+        const out = await captureOutput(() => prefixesCommand(argv, fx.io));
+        same([out.code, out.err], [0, ''], `${name}: ${out.err}`);
+        return { fx, record: JSON.parse(readFileSync(join(fx.outDir, 'fit-read-prefixes-a.json'), 'utf8')) };
+      };
+      /** @param {any} record @param {string} name @returns {string[][]} Every row's identity, after checking that its ledger fields are the clean run's. */
+      const identities = (record, name) => {
+        for (const row of record.rows) {
+          same([row.complete, row.problems], [true, []], `${name}: ${row.rowKey} ledger ${JSON.stringify(row)}`);
+        }
+        return record.rows.map((/** @type {any} */ row) => row.identity);
+      };
+      /** @param {string} file @returns {string[]} */
+      const readLines = (file) => readFileSync(file, 'utf8').split(/\r?\n/).filter((l) => l !== '');
+      try {
+        const { fx, record } = await scenario('clean');
+        same(record.rows.length, 5, 'five rows');
+        for (const row of record.rows) {
+          same([row.publication, row.shardDone, row.rowStatus, row.identity, row.complete, row.problems], ['complete', true, 'valid', [], true, []], `clean: ${JSON.stringify(row)}`);
+          same([row.calls, row.maxSpent, row.affected, row.potentiallyAffected, row.ambiguous, row.bound.fires], [{ clear: 1 }, 160, [], [], [], false], `clean calls: ${JSON.stringify(row)}`);
+        }
+        same([record.summary.declared, record.summary.present, record.summary.missing, record.summary.unexpected, record.summary.identityRows], [5, 5, [], [], 0], 'the clean summary');
+        const wanted = [fx.plansDir + '\\V4-XX.json', fx.files.runs, fx.files.shard];
+        for (const r of [0, 1, 2, 3, 4]) {
+          wanted.push(join(fx.logs, `x~${r}.row.jsonl`), join(fx.logs, `x~${r}.1.2.jsonl`), join(fx.logs, `x~${r}.link.jsonl`));
+        }
+        same(record.inputs[0].path, rel(wanted[0]), 'the plan is the first input');
+        for (const file of wanted) {
+          const found = record.inputs.filter((/** @type {any} */ i) => i.path === rel(file));
+          assert(found.length === 1 && found[0].sha256 === sha256File(file), `the input ${rel(file)}: ${JSON.stringify(found)}`);
+        }
+        assert(existsSync(join(fx.outDir, 'fit-read-prefixes-a.md')), 'the Markdown record exists');
+        const linkless = (await scenario('link-removed', (k) => rmSync(join(k.logs, 'x~3.link.jsonl')))).record.rows[3];
+        same([linkless.complete, linkless.problems.includes('no linkage')], [false, true], `rep 3 without linkage: ${JSON.stringify(linkless)}`);
+        const stray = (await scenario('unowned', (k) => writeJsonl(join(k.logs, 'x~2.1.2.jsonl'), [
+          ...readLines(join(k.logs, 'x~2.1.2.jsonl')).map((l) => JSON.parse(l)), L.P('zz', 0, 1, 0),
+        ]))).record.rows[2];
+        same([stray.complete, stray.problems, stray.rowStatus], [false, ['unowned p line zz'], 'valid'], `rep 2 with an unowned line: ${JSON.stringify(stray)}`);
+        const gone = (await scenario('row-removed', (k) => editJsonFile(k.files.runs, (d) => d.rows.splice(4, 1)))).record;
+        same([gone.rows[4].rowStatus, gone.summary.missing], ['missing', ['x~4']], 'a missing published row');
+        const extra = (await scenario('extra-row', (k) => editJsonFile(k.files.runs, (d) => d.rows.push({ ...d.rows[0], rowKey: 'x~7' })))).record;
+        same(extra.summary.unexpected, ['x~7'], 'an unexpected published row');
+        const seed = (await scenario('wrong-seed', (k) => editJsonFile(k.files.runs, (d) => {
+          d.rows[1].seed = 'landscape/x/20';
+          d.rows[1].run.seed = 'landscape/x/20';
+        }))).record;
+        same([seed.rows[1].rowStatus, seed.rows[1].identity], ['invalid', ['wrong declared identity (seed "landscape/x/20", declared "landscape/x/1")']], 'a self-consistent wrong seed');
+        same(identities(seed, 'wrong seed').map((/** @type {any} */ i) => i.length), [0, 1, 0, 0, 0], 'the other rows are clean');
+        const rep = (await scenario('wrong-rep', (k) => editJsonFile(k.files.runs, (d) => { d.rows[2].rep = 7; }))).record;
+        same([rep.rows[2].rowStatus, rep.rows[2].identity], ['invalid', ['wrong declared identity (rep 7, declared 2)']], 'a row of another rep');
+        identities(rep, 'wrong rep');
+        const noHeader = (await scenario('no-row-identity', (k) => rmSync(join(k.logs, 'x~3.row.jsonl')))).record;
+        same(noHeader.rows[3].identity, ['no row identity'], 'a missing row identity');
+        identities(noHeader, 'no row identity');
+        const producer = (await scenario('producer', (k) => editJsonFile(k.files.shard, (d) => { d.harnessHash = 'H2'; }))).record;
+        for (const row of producer.rows) {
+          same(row.identity, ["the publication's producer H is not the shard's H2"], 'a producer mismatch');
+        }
+        same(producer.summary.identityRows, 5, 'the producer mismatch rows');
+        identities(producer, 'producer');
+        const absent = (await scenario('no-shard', (k) => rmSync(k.files.shard))).record;
+        for (const row of absent.rows) {
+          same(row.identity, ['no shard declaration'], 'no shard declaration');
+        }
+        identities(absent, 'no shard');
+        const stripped = (await scenario('stripped', (k) => {
+          editJsonFile(k.files.shard, (d) => {
+            delete d.treeId;
+            delete d.copyDigest;
+            delete d.harnessHash;
+          });
+          editJsonFile(k.files.runs, (d) => {
+            delete d.meta.trees.v.treeId;
+            delete d.meta.trees.v.copyDigest;
+            delete d.meta.harness.harnessHash;
+          });
+        })).record;
+        for (const row of stripped.rows) {
+          same(row.identity, [
+            "the shard's treeId is missing or malformed", "the shard's copyDigest is missing or malformed", "the shard's harnessHash is missing or malformed",
+            "the publication's tree identity is missing or malformed", "the publication's copy identity is missing or malformed",
+            "the publication's producer identity is missing or malformed",
+          ], 'stripped identities');
+        }
+        same(stripped.summary.identityRows, 5, 'the stripped rows');
+        identities(stripped, 'stripped');
+        const blank = (await scenario('blank-producer', (k) => {
+          editJsonFile(k.files.shard, (d) => { d.harnessHash = ''; });
+          editJsonFile(k.files.runs, (d) => { d.meta.harness.harnessHash = ''; });
+        })).record;
+        for (const row of blank.rows) {
+          same(row.identity, ["the shard's harnessHash is missing or malformed", "the publication's producer identity is missing or malformed"], 'blank producers never agree');
+        }
+        same(blank.summary.identityRows, 5, 'the blank rows');
+        identities(blank, 'blank producer');
+        const twice = (await scenario('shard-entry-twice', (k) => editJsonFile(k.files.shard, (d) => d.rows.push({ ...d.rows[0] })))).record;
+        same(identities(twice, 'shard entry twice'), [['the shard declares x~0 more than once'], [], [], [], []], 'a duplicate shard entry');
+        same(twice.summary.identityRows, 1, 'the duplicate shard entry rows');
+        const header = (await scenario('header-twice', (k) => {
+          const file = join(k.logs, 'x~0.row.jsonl');
+          const lines = readLines(file).map((l) => JSON.parse(l));
+          writeJsonl(file, [...lines, lines[0]]);
+        })).record;
+        same(identities(header, 'header twice'), [['the row identity appears more than once'], [], [], [], []], 'a duplicate row header');
+        same(header.summary.identityRows, 1, 'the duplicate header rows');
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'fit-read: preview of a declared grid',
+    async run() {
+      const { fitScope, previewCell, previewCommand } = await import('./fit-read.mjs');
+      const root = join(SELFTEST_DIR, 'S24-T02c-dev');
+      try {
+        const fx = await fitFixture(join(root, 'preview', 'clean'));
+        const file = fx.files.mp12b1;
+        const lookup = () => ({ path: rel(file), report: JSON.parse(readFileSync(file, 'utf8')) });
+        const out = await captureOutput(() => previewCommand(['--task', 'V4-XX', '--arm', 'a', '--label', 'frozen', '--source-label', 'self-test'], { ...fx.io, mp12b1: lookup }));
+        same([out.code, out.err], [0, ''], `the preview: ${out.err}`);
+        const record = JSON.parse(readFileSync(join(fx.outDir, 'fit-read-preview-a.json'), 'utf8'));
+        const plan = JSON.parse(readFileSync(join(fx.plansDir, 'V4-XX.json'), 'utf8'));
+        const runs = JSON.parse(readFileSync(fx.files.runs, 'utf8')).rows;
+        const expected = JSON.parse(JSON.stringify(previewCell('x', fitScope(plan, 'a'), runs, lookup().report.runs)));
+        same(record.cells, [expected], 'the cell is the clean preview');
+        same(record.cells[0].ratios, [1, 2, 1, 0.5, 1], 'the ratios');
+        same([record.declared, record.missing, record.unexpected], [5, [], []], 'the declared, missing and unexpected rows');
+        const mp = record.inputs.filter((/** @type {any} */ i) => i.path === rel(file));
+        assert(mp.length === 1 && mp[0].sha256 === sha256File(file), `the MP12b1 input: ${JSON.stringify(mp)}`);
+        assert(existsSync(join(fx.outDir, 'fit-read-preview-a.md')), 'the Markdown record exists');
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'fit-read: command refusals',
+    async run() {
+      const { prefixesCommand, previewCommand } = await import('./fit-read.mjs');
+      const root = join(SELFTEST_DIR, 'S24-T02c-dev');
+      const common = ['--task', 'V4-XX', '--arm', 'a', '--label', 'frozen', '--source-label', 'self-test'];
+      /** @param {string[]} extra */
+      const prefixes = (extra) => [...common, ...extra];
+      try {
+        const once = await fitFixture(join(root, 'refusals', 'a'));
+        const first = await captureOutput(() => prefixesCommand(prefixes(['--budget', 'nightmare=9000000000']), once.io));
+        same(first.code, 0, `the first call: ${first.err}`);
+        const written = join(once.outDir, 'fit-read-prefixes-a.json');
+        const bytes = readFileSync(written);
+        const second = await captureOutput(() => prefixesCommand(prefixes(['--budget', 'nightmare=9000000000']), once.io));
+        assert(second.code === 1 && second.err.startsWith('fit-read: a record is written once ('), `the second call: ${second.code} ${second.err}`);
+        assert(bytes.equals(readFileSync(written)), 'the second call changed the record');
+        /** @type {[string, (io: any) => Promise<{ code: number, out: string, err: string }>, string][]} */
+        const refused = [
+          ['b', (io) => captureOutput(() => prefixesCommand(prefixes(['--budget', 'nightmare=0']), io)), 'fit-read: bad --budget nightmare=0\n'],
+          ['c', (io) => captureOutput(() => prefixesCommand(prefixes(['--budget', 'nightmare=1.5']), io)), 'fit-read: bad --budget nightmare=1.5\n'],
+          ['d', (io) => captureOutput(() => prefixesCommand(prefixes(['--budget', 'nightmare=9', '--bound', '0']), io)), 'fit-read: bad --bound 0\n'],
+          ['e', (io) => captureOutput(() => prefixesCommand(prefixes(['--budget', 'nightmare=9', '--bound', '33']), io)), 'fit-read: bad --bound 33\n'],
+          ['f', (io) => captureOutput(() => prefixesCommand(['--task', 'V4-XX', '--arm', 'a', '--label', 'selftest', '--budget', 'nightmare=9'], io)), 'fit-read: --label frozen only\n'],
+          ['g', (io) => captureOutput(() => prefixesCommand(['--task', 'V4-S2', '--arm', 'a', '--label', 'frozen', '--budget', 'nightmare=9'], io)),
+            "fit-read: V4-S2 is a historical namespace: its records are read by the SAs' scripts, never written\n"],
+          ['h', (io) => captureOutput(() => previewCommand(['--task', 'V4-S2B', '--arm', 'fr-none', '--label', 'frozen'], io)), 'fit-read: no plan '],
+        ];
+        for (const [name, run, text] of refused) {
+          const fx = await fitFixture(join(root, 'refusals', name));
+          const before = folderHashes(fx.dir);
+          const got = await run(fx.io);
+          assert(got.code === 1 && got.out === '' && (name === 'h' ? got.err.startsWith(text) : got.err === text), `${name}: ${got.code} ${JSON.stringify(got.err)}`);
+          assert(!existsSync(fx.outDir), `${name}: an output folder exists`);
+          same(folderHashes(fx.dir), before, `${name}: the fixture changed`);
+        }
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
     },
   },
 ];

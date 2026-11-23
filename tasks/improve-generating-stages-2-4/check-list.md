@@ -29,7 +29,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T01b N-V4-20: the self-test's git guard sees `git -C` and calls inside expressions; `--list` for the gates (depends on T01a)
 - [x] T02a The plan writer (`manifest.mjs write-plan`) and the plan `V4-S2B` (depends on T01b)
 - [x] T02b The fitting reader, part 1: the declared grid, the no-regression preview and the call prefixes (pure) (depends on T02a)
-- [ ] T02c The fitting reader, part 2: the commands `preview` and `prefixes` and their records (depends on T02b)
+- [x] T02c The fitting reader, part 2: the commands `preview` and `prefixes` and their records (depends on T02b)
 - [ ] S01 Run `V4-S2B` and read it (orchestrator, then the SAs; approved by the owner, D-S24-26; the approval re-read before the run) (depends on T02c)
 - [ ] T03a P7: the equality and timing items and their memory fixtures (`p7-probe.mjs`, part 1) (depends on S01)
 - [ ] T03b P7: the experiment declaration, the log and corpus checks and the verdicts (`p7-probe.mjs`, part 2) (depends on T03a)
@@ -577,6 +577,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 
 | ID | Description | Numbers | Routed to |
 |---|---|---|---|
+| N-P24-01 | A transient `EPERM, Permission denied` on `docs/improve-generating/evidence/frozen/V4-T11d-selftest` failed the existing `--items` case `receipt: a passing receipt is written once` once during T02c's gate re-run; the case passed alone and the group re-ran clean; the empty untracked folder stays | 1 of 3 runs on 2026-11-24 | watch; act only if it recurs (R-P24-04) |
 | | | | |
 
 ## 7. Summary (filled by the orchestrator)
@@ -587,7 +588,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T01b | 2026-11-23 23:28 | 2026-11-23 23:31 | 5 min | 26.09 | this task's commit |
 | T02a | 2026-11-23 23:32 | 2026-11-23 23:47 | 15 min | 83.86 | this task's commit |
 | T02b | 2026-11-23 23:47 | 2026-11-23 23:57 | 11 min | 53.20 | this task's commit |
-| T02c | | | | | |
+| T02c | 2026-11-23 23:57 | 2026-11-24 00:13 | 16 min | 112.29 | this task's commit |
 | S01 | | | | | |
 | T03a | | | | | |
 | T03b | | | | | |

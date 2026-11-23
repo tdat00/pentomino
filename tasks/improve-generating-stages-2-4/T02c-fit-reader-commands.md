@@ -237,13 +237,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-23 23:57 +07:00 (dispatch, base `713d7cd`); 2026-11-24 00:13 +07:00 (accepted); 16 min. The developer reported 23:57:54-00:03:49 |
+| Waiting for rulings | about 10 min (the pack author's review of the open details and its real-record check) |
+| Agent id, model | `62d90955-42b0-4f24-86d9-330518ca8202`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 33 calls; 3,165,573 input, 47,682 output, 3,028,256 cache-read tokens |
+| AI credits | 112.29 (developer only) |
+| Questions and rulings | no QUESTION; R-P24-03 applied; the developer's nine open details accepted by SA-Opus as ruling R-P24-04, with a read-only check of `preview` and `prefixes` on V4-S2's real `fr-none` records (8 cells, 0 problems, 26x26 lower bound 0.881; 40 rows, 821 calls, 0 affected at 10 G / 40 G) and a guard added to S01 step 7; pack amendment `846005f` |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `self-test --items`: first run 214 passed, 1 failed (the existing case `receipt: a passing receipt is written once`, transient `EPERM` on the empty scratch folder `docs/improve-generating/evidence/frozen/V4-T11d-selftest`); that case alone PASS; full group re-run `S24-T02c-orch3`: 215 passed, 0 failed (35.3 s); `fit-read preview --task V4-S2`: refused, exit 1, the historical-namespace text; `firewall check --task S24-T02c`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the three Scope files |
+| Commit | this task's commit |
+| Issues and named items | N-P24-01 (transient `EPERM` in an existing receipt case), see check-list §6.2 |

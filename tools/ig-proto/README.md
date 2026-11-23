@@ -2602,6 +2602,51 @@ existing plan or item manifest is refused (`plan exists: a plan is never rewritt
 `V4-S2B` (the control pilot: `fr-none` on the eight unpiloted Nightmare controls, reps 0 to 4, 40 rows at 260 s, prerequisite the accepted P-1
 binding of `fr-none`; allocation 23 min, guard 28.24 min). Self-test (`--items`, unlocked): `write-plan: V4-S2B`.
 
+## The fitting reader (stages 2 to 4 pack, T02b and T02c)
+
+`fit-read.mjs` is a read-only tool: the SAs' readings of the control pilot (S01, on `V4-S2B`) and of the proposed budgets (T11, on `V4-S3P`)
+are commands, not hand reads. It runs unlocked and never changes a published or raw file.
+
+```
+node tools\ig-proto\fit-read.mjs preview --task <T> --arm <A> --label frozen --source-label <SL>
+node tools\ig-proto\fit-read.mjs prefixes --task <T> --arm <A> --budget <level>=<units>[,<level>=<units>...] [--bound <n>] --label frozen --source-label <SL>
+```
+
+- **The declared grid** (`fitScope`): the rows of the plan's `arm.mjs run` steps of the arm, `--cases <cell>:0-4` (the fitting reps 0 to 4),
+  each key `<cell>~<rep>` once, with its case, rep, seed `landscape/<cell>/<rep>` and shard. Only these rows are read.
+- **`preview`** reads every `*.runs.json` of `evidence/frozen/<task>/<arm>/` and MP12b1's report of each cell (`mp12b1Report`), checks each row's
+  declared identity (`declaredRowProblem`: key, case, rep and seed, also of its run, before `ingestRow`) and writes, per cell, the ten counts
+  of today's search and of the run, the five ratios, their geometric mean and the lower bound of the no-regression check (`previewCell`).
+  A missing, duplicate, invalid, censored or incorrect row, or a missing MP12b1 report or run, is a problem of its pair: the ratio, the lower
+  bound and the verdict of that cell are then null. It is a fitting warning on five seeds and a different time, never the stage-4
+  no-regression verdict.
+- **`prefixes`** reads, for every declared key (a missing one included), its publication (`publicationOf`), the raw `state.json`, the shard
+  declaration `shard.json`, the row identity `logs/<rowKey>.row.jsonl`, the worker journals `logs/<rowKey>.*.jsonl` and the linkage
+  `logs/<rowKey>.link.jsonl`. Its row holds `rowStatus` (`missing`, `duplicate`, `invalid` or `ingestRow`'s), `complete` (the work ledger of
+  `rowLedger`), `unreadable` (a journal line that does not parse) and the calls' prefixes against the `--budget` levels (`callPrefixes`) and,
+  with `--bound`, the attempt bound's firing (`boundFirings`); the parse, ledger and prefix problems are listed once each in `problems`. A
+  missing linkage keeps the problem `no linkage`: nothing missing is read as zero work or as a complete ledger.
+- **The row identity** (`rawIdentityProblems`, kept apart in `identity`, never merged into `problems`): the declared-row problem, then the
+  shard declaration and the row header checked against the declared task, arm, shard, case, rep and seed and against the publication's `meta`
+  (the shard's tree, copy and producer identities). Every identity field must be a non-empty string, and exactly one matching shard entry and
+  one row header must exist: a missing, malformed, duplicate or mismatched identity is a row problem, never a clear row under T11's read gate.
+- **The gate's text** (plan section 8.2, T11): the reader accumulates main, census and uniqueness units in primitive order and identifies
+  any recorded next primitive whose selection-call spent total before it is at least the proposed budget; a terminated call whose completed
+  total already reaches the budget is potentially affected, even without a following begin line; a running primitive is not assumed cut by
+  P5: the check is between primitives, not inside one.
+- **Records**: `evidence/frozen/<task>/fit-read-<command>-<arm>.json` and `.md`, each written once (an existing one is refused). The JSON
+  holds `meta`, the declared, missing and unexpected rows, the cells or the rows with the `summary` (declared, present, missing, unexpected,
+  identity rows, incomplete, unreadable and ambiguous rows, affected, potentially affected and ambiguous calls, bound firings) and `inputs`:
+  every file read (the plan first) with its sha256. Refused, writing nothing: a label other than `frozen`, a missing `--task` or `--arm`, a
+  historical namespace (`IGP-02`, `V4-T04*`, `V4-S2`, `V4-S2P`, `V4-S2K`, `V4-S2W`), a plan that does not exist, a malformed grid, an
+  existing record, a `--budget` entry that is not `<level>=<integer above 0>` and a `--bound` that is not an integer from 1 to 32.
+- **Missing, invalid or ambiguous evidence is a warning with its reason, never zero work or a clear reading; the records are written once;
+  the verdict words belong to the SAs' readings (S01, T11)**, not to the tool.
+- **Self-test** (`--items`, unlocked): `fit-read: the declared grid`, `fit-read: preview of a cell`, `fit-read: call prefixes`, `fit-read: the
+  four-attempt bound` (T02b, the pure functions) and `fit-read: prefixes of a declared grid`, `fit-read: preview of a declared grid`,
+  `fit-read: command refusals` (T02c, the commands on private fixtures under `tests/artifacts/ig-proto/selftest/`; `io` carries the private
+  folders and `mp12b1` the report seam).
+
 ## Phase-1 bench of P6 (V4-T14)
 
 Not a run plan (`run-task.ps1` does not run it): the production bench of the old version (main `3fc65f4`) and the new one (the commit
