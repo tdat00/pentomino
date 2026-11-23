@@ -2620,7 +2620,7 @@ node tools\ig-proto\fit-read.mjs prefixes --task <T> --arm <A> --budget <level>=
   A missing, duplicate, invalid, censored or incorrect row, or a missing MP12b1 report or run, is a problem of its pair: the ratio, the lower
   bound and the verdict of that cell are then null. It is a fitting warning on five seeds and a different time, never the stage-4
   no-regression verdict.
-- **`prefixes`** reads, for every declared key (a missing one included), its publication (`publicationOf`), the raw `state.json`, the shard
+- **`prefixes`** reads, for every declared key (a missing one included), its publication (`publicationOf`, which reads `<shard>.runs.md`), the raw `state.json`, the shard
   declaration `shard.json`, the row identity `logs/<rowKey>.row.jsonl`, the worker journals `logs/<rowKey>.*.jsonl` and the linkage
   `logs/<rowKey>.link.jsonl`. Its row holds `rowStatus` (`missing`, `duplicate`, `invalid` or `ingestRow`'s), `complete` (the work ledger of
   `rowLedger`), `unreadable` (a journal line that does not parse) and the calls' prefixes against the `--budget` levels (`callPrefixes`) and,

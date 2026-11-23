@@ -710,6 +710,12 @@ export async function prefixesCommand(argv, io = {}) {
         links = parsed.lines;
         parseProblems.push(...parsed.problems);
       }
+      // The publication's markdown is read by publicationOf (it names the published journal): index it first (T02d).
+      const runsMd = join(ctx.runsDir, `${shard}.runs.md`);
+      if (existsSync(runsMd)) {
+        addInput(runsMd);
+      }
+      const publication = publicationOf(ctx.runsDir, shard);
       const ledger = rowLedger(lines, links);
       const prefixes = callPrefixes(lines, budgets);
       /** @type {string[]} */
@@ -727,7 +733,7 @@ export async function prefixesCommand(argv, io = {}) {
       const ids = (/** @type {string} */ wanted) => prefixes.calls.filter((c) => c.status === wanted).map((c) => c.call);
       return {
         rowKey, cell: declared.caseId, rep: declared.rep, shard,
-        publication: publicationOf(ctx.runsDir, shard),
+        publication,
         shardDone: done,
         rowStatus,
         identity,

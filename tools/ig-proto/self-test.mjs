@@ -8390,7 +8390,7 @@ const itemCases = [
           same([row.calls, row.maxSpent, row.affected, row.potentiallyAffected, row.ambiguous, row.bound.fires], [{ clear: 1 }, 160, [], [], [], false], `clean calls: ${JSON.stringify(row)}`);
         }
         same([record.summary.declared, record.summary.present, record.summary.missing, record.summary.unexpected, record.summary.identityRows], [5, 5, [], [], 0], 'the clean summary');
-        const wanted = [fx.plansDir + '\\V4-XX.json', fx.files.runs, fx.files.shard];
+        const wanted = [fx.plansDir + '\\V4-XX.json', fx.files.runs, join(fx.runsDir, 'pilot-x.runs.md'), fx.files.shard];
         for (const r of [0, 1, 2, 3, 4]) {
           wanted.push(join(fx.logs, `x~${r}.row.jsonl`), join(fx.logs, `x~${r}.1.2.jsonl`), join(fx.logs, `x~${r}.link.jsonl`));
         }

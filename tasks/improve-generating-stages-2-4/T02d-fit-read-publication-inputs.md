@@ -141,13 +141,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 01:05 +07:00 (dispatch, base `ab34a2c`); 2026-11-24 01:09 +07:00 (accepted); about 5 min. The developer reported 01:05:53-01:07:13 |
+| Waiting for rulings | none |
+| Agent id, model | `cc9f41a4-87d3-4f71-8bd5-05f4c285ff78`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 14 calls; 726,261 input, 6,586 output, 663,217 cache-read tokens |
+| AI credits | 28.98 (developer only) |
+| Questions and rulings | none |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T02d-orch`: 215 passed, 0 failed (35.2 s); `git status --short -- docs/improve-generating/evidence/frozen/V4-S2B` empty; `firewall check --task S24-T02d`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the three Scope files. The developer also showed case 213 fails without the fix (negative check, reverted) |
+| Commit | this task's commit |
+| Issues and named items | none (N-P24-02 closed by this task) |
