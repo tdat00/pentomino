@@ -1,0 +1,3446 @@
+{
+  "base": "1afce41",
+  "evidenceCommit": "35b401e",
+  "note": "Unlocked computations only. No original analysis/evidence rewritten.",
+  "totals": {
+    "rows": 165,
+    "accepted": 1642,
+    "completed": 164,
+    "calls": 3410,
+    "ended": 2567,
+    "uncappedEnded": 2258,
+    "uncappedResults": {
+      "ok": 2258
+    },
+    "p5Results": {
+      "not-in-band": 69,
+      "ok": 240
+    }
+  },
+  "crossChecks": [
+    {
+      "arm": "fr-base",
+      "cell": "12x12-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 12.801508799999999,
+      "agree": true
+    },
+    {
+      "arm": "fr-base",
+      "cell": "14x14-hell-1",
+      "accepted": 42,
+      "ten": 4,
+      "t10": 93.57091524999998,
+      "agree": true
+    },
+    {
+      "arm": "fr-base",
+      "cell": "14x14-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 8.8836773,
+      "agree": true
+    },
+    {
+      "arm": "fr-base",
+      "cell": "20x20-hell-1",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 38.378173499999995,
+      "agree": true
+    },
+    {
+      "arm": "fr-base",
+      "cell": "24x24-hell-1",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 37.102013299999996,
+      "agree": true
+    },
+    {
+      "arm": "fr-base",
+      "cell": "26x26-hell-1",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 31.8610451,
+      "agree": true
+    },
+    {
+      "arm": "fr-base",
+      "cell": "26x26-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 17.528920000000003,
+      "agree": true
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "10x10-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 16.2844389,
+      "agree": true
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "12x12-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 6.7593057,
+      "agree": true
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "14x14-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 8.8696673,
+      "agree": true
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "15x15b10-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 8.137478400000001,
+      "agree": true
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "15x20-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 10.416293,
+      "agree": true
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "16x16-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 7.880927,
+      "agree": true
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "26x26-hell-1",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 35.809624400000004,
+      "agree": true
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "26x26-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 11.7132194,
+      "agree": true
+    },
+    {
+      "arm": "fr-none",
+      "cell": "10x10-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 10.6438349,
+      "agree": true
+    },
+    {
+      "arm": "fr-none",
+      "cell": "12x12-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 12.905202899999999,
+      "agree": true
+    },
+    {
+      "arm": "fr-none",
+      "cell": "14x14-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 24.079025599999998,
+      "agree": true
+    },
+    {
+      "arm": "fr-none",
+      "cell": "15x15b10-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 24.315536799999997,
+      "agree": true
+    },
+    {
+      "arm": "fr-none",
+      "cell": "15x20-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 19.7078126,
+      "agree": true
+    },
+    {
+      "arm": "fr-none",
+      "cell": "16x16-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 17.838170400000003,
+      "agree": true
+    },
+    {
+      "arm": "fr-none",
+      "cell": "26x26-hell-1",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 32.3037256,
+      "agree": true
+    },
+    {
+      "arm": "fr-none",
+      "cell": "26x26-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 17.9395322,
+      "agree": true
+    },
+    {
+      "arm": "fr-close",
+      "cell": "12x12-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 12.8730729,
+      "agree": true
+    },
+    {
+      "arm": "fr-close",
+      "cell": "14x14-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 8.9596067,
+      "agree": true
+    },
+    {
+      "arm": "fr-close",
+      "cell": "26x26-hell-1",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 32.077444199999995,
+      "agree": true
+    },
+    {
+      "arm": "fr-c4",
+      "cell": "14x14-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 10.7453997,
+      "agree": true
+    },
+    {
+      "arm": "fr-c4",
+      "cell": "26x26-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 20.3030352,
+      "agree": true
+    },
+    {
+      "arm": "fr-ps",
+      "cell": "20x20-hell-1",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 32.5074252,
+      "agree": true
+    },
+    {
+      "arm": "fr-ps",
+      "cell": "26x26-hell-1",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 28.0300622,
+      "agree": true
+    },
+    {
+      "arm": "fr-p5",
+      "cell": "14x14-nightmare",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 8.6773785,
+      "agree": true
+    },
+    {
+      "arm": "fr-p5",
+      "cell": "20x20-hell-1",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 42.022377399999996,
+      "agree": true
+    },
+    {
+      "arm": "fr-p5",
+      "cell": "26x26-hell-1",
+      "accepted": 50,
+      "ten": 5,
+      "t10": 35.1318012,
+      "agree": true
+    }
+  ],
+  "classes": {
+    "196-215": {
+      "cells": [
+        "14x14-nightmare",
+        "15x15b10-nightmare"
+      ],
+      "work": {
+        "screen": {
+          "lo": 96830921661,
+          "hi": 192515882155,
+          "accepted": 100,
+          "loRatio": 968309216.61,
+          "hiRatio": 1925158821.55,
+          "completedRatio": 968309216.61,
+          "complete": true,
+          "rows": 10,
+          "terminatedCalls": 52
+        },
+        "noScreen": {
+          "lo": 263497942059,
+          "hi": 393634669337,
+          "accepted": 100,
+          "loRatio": 2634979420.59,
+          "hiRatio": 3936346693.37,
+          "completedRatio": 2634979420.59,
+          "complete": true,
+          "rows": 10,
+          "terminatedCalls": 52
+        },
+        "verdict": "pass"
+      },
+      "faster": {
+        "geoMean": 2.536513899197127,
+        "lower": 2.406151964166613,
+        "cellGeoMeans": {
+          "14x14-nightmare": 2.601069472036843,
+          "15x15b10-nightmare": 2.473560521927144
+        },
+        "pass": true
+      },
+      "clue": {
+        "n": 10,
+        "medianDiff": 0,
+        "moved2": 0,
+        "pass": true
+      },
+      "byCell": {
+        "14x14-nightmare": {
+          "n": 5,
+          "medianDiff": 0,
+          "moved2": 0,
+          "pass": true
+        },
+        "15x15b10-nightmare": {
+          "n": 5,
+          "medianDiff": 0,
+          "moved2": 0,
+          "pass": true
+        }
+      },
+      "marginG": 0.7098205990400002,
+      "sharedSeedMarginsG": [
+        0.30483095734999993,
+        0.22484907525,
+        0.9151203533999999,
+        1.195798565,
+        0.9085040441999999
+      ]
+    },
+    "196-256": {
+      "cells": [
+        "14x14-nightmare",
+        "15x15b10-nightmare",
+        "16x16-nightmare"
+      ],
+      "work": {
+        "screen": {
+          "lo": 146838769708,
+          "hi": 342552331544,
+          "accepted": 150,
+          "loRatio": 978925131.3866667,
+          "hiRatio": 2283682210.2933335,
+          "completedRatio": 978925131.3866667,
+          "complete": true,
+          "rows": 15,
+          "terminatedCalls": 78
+        },
+        "noScreen": {
+          "lo": 376843785716,
+          "hi": 635137324596,
+          "accepted": 150,
+          "loRatio": 2512291904.7733335,
+          "hiRatio": 4234248830.64,
+          "completedRatio": 2512291904.7733335,
+          "complete": true,
+          "rows": 15,
+          "terminatedCalls": 79
+        },
+        "verdict": "pass"
+      },
+      "faster": {
+        "geoMean": 2.4330332608465537,
+        "lower": 2.3485776761745654,
+        "cellGeoMeans": {
+          "14x14-nightmare": 2.601069472036843,
+          "15x15b10-nightmare": 2.473560521927144,
+          "16x16-nightmare": 2.238564669398984
+        },
+        "pass": true
+      },
+      "clue": {
+        "n": 15,
+        "medianDiff": 0,
+        "moved2": 0,
+        "pass": true
+      },
+      "byCell": {
+        "14x14-nightmare": {
+          "n": 5,
+          "medianDiff": 0,
+          "moved2": 0,
+          "pass": true
+        },
+        "15x15b10-nightmare": {
+          "n": 5,
+          "medianDiff": 0,
+          "moved2": 0,
+          "pass": true
+        },
+        "16x16-nightmare": {
+          "n": 5,
+          "medianDiff": 0.5,
+          "moved2": 0,
+          "pass": true
+        }
+      },
+      "marginG": 0.22860969448000001,
+      "sharedSeedMarginsG": [
+        -0.17825251480000018,
+        0.2690325752333331,
+        0.3434869812333336,
+        0.321910094,
+        0.38687133673333357
+      ]
+    },
+    "196-324 measured": {
+      "cells": [
+        "14x14-nightmare",
+        "15x15b10-nightmare",
+        "16x16-nightmare",
+        "15x20-nightmare"
+      ],
+      "work": {
+        "screen": {
+          "lo": 189842724248,
+          "hi": 539546208786,
+          "accepted": 200,
+          "loRatio": 949213621.24,
+          "hiRatio": 2697731043.93,
+          "completedRatio": 949213621.24,
+          "complete": true,
+          "rows": 20,
+          "terminatedCalls": 102
+        },
+        "noScreen": {
+          "lo": 447346975709,
+          "hi": 874166567779,
+          "accepted": 200,
+          "loRatio": 2236734878.545,
+          "hiRatio": 4370832838.895,
+          "completedRatio": 2236734878.545,
+          "complete": true,
+          "rows": 20,
+          "terminatedCalls": 103
+        },
+        "verdict": "unknown"
+      },
+      "faster": {
+        "geoMean": 2.2084116552528243,
+        "lower": 2.04979928974534,
+        "cellGeoMeans": {
+          "14x14-nightmare": 2.601069472036843,
+          "15x15b10-nightmare": 2.473560521927144,
+          "16x16-nightmare": 2.238564669398984,
+          "15x20-nightmare": 1.6514901361245806
+        },
+        "pass": true
+      },
+      "clue": {
+        "n": 20,
+        "medianDiff": 0,
+        "moved2": 0,
+        "pass": true
+      },
+      "byCell": {
+        "14x14-nightmare": {
+          "n": 5,
+          "medianDiff": 0,
+          "moved2": 0,
+          "pass": true
+        },
+        "15x15b10-nightmare": {
+          "n": 5,
+          "medianDiff": 0,
+          "moved2": 0,
+          "pass": true
+        },
+        "16x16-nightmare": {
+          "n": 5,
+          "medianDiff": 0.5,
+          "moved2": 0,
+          "pass": true
+        },
+        "15x20-nightmare": {
+          "n": 5,
+          "medianDiff": 0,
+          "moved2": 0,
+          "pass": true
+        }
+      },
+      "marginG": -0.46099616538499977,
+      "sharedSeedMarginsG": [
+        -0.7842611845,
+        -0.5933353960499997,
+        -0.02044445194999981,
+        -0.20897073707500027,
+        -0.6979690573499999
+      ]
+    },
+    "16x16 alone": {
+      "cells": [
+        "16x16-nightmare"
+      ],
+      "work": {
+        "screen": {
+          "lo": 50007848047,
+          "hi": 150036449389,
+          "accepted": 50,
+          "loRatio": 1000156960.94,
+          "hiRatio": 3000728987.78,
+          "completedRatio": 1000156960.94,
+          "complete": true,
+          "rows": 5,
+          "terminatedCalls": 26
+        },
+        "noScreen": {
+          "lo": 113345843657,
+          "hi": 241502655259,
+          "accepted": 50,
+          "loRatio": 2266916873.14,
+          "hiRatio": 4830053105.18,
+          "completedRatio": 2266916873.14,
+          "complete": true,
+          "rows": 5,
+          "terminatedCalls": 27
+        },
+        "verdict": "unknown"
+      },
+      "faster": {
+        "geoMean": 2.238564669398984,
+        "lower": 2.2004053734525035,
+        "cellGeoMeans": {
+          "16x16-nightmare": 2.238564669398984
+        },
+        "pass": true
+      },
+      "clue": {
+        "n": 5,
+        "medianDiff": 0.5,
+        "moved2": 0,
+        "pass": true
+      },
+      "byCell": {
+        "16x16-nightmare": {
+          "n": 5,
+          "medianDiff": 0.5,
+          "moved2": 0,
+          "pass": true
+        }
+      },
+      "marginG": -0.7338121146400003,
+      "sharedSeedMarginsG": [
+        -1.1444194591,
+        0.3573995751999998,
+        -0.7997797630999999,
+        -1.425866848,
+        -0.6563940781999998
+      ]
+    }
+  },
+  "sameConfig": [
+    {
+      "a": "fr-base",
+      "b": "fr-none",
+      "cell": "12x12-nightmare",
+      "identical": 5,
+      "ratios": [
+        1.0029477039494612,
+        1.0081001467577009,
+        1.0029027784636524,
+        0.9984416819802899,
+        1.0044839388311246
+      ],
+      "geoMean": 1.0033704353168036
+    },
+    {
+      "a": "fr-base",
+      "b": "fr-none",
+      "cell": "26x26-nightmare",
+      "identical": 5,
+      "ratios": [
+        1.0030668745024933,
+        1.0264403797298296,
+        1.007985565901437,
+        1.023388462852425,
+        1.0234248430593553
+      ],
+      "geoMean": 1.016817191698832
+    },
+    {
+      "a": "fr-base",
+      "b": "fr-none",
+      "cell": "26x26-hell-1",
+      "identical": 5,
+      "ratios": [
+        0.9943929638710972,
+        1.0113957347450602,
+        1.0138940985335099,
+        1.0005253732369424,
+        0.9988120939239236
+      ],
+      "geoMean": 1.0037758228041633
+    },
+    {
+      "a": "fr-base",
+      "b": "fr-screen",
+      "cell": "14x14-nightmare",
+      "identical": 5,
+      "ratios": [
+        1.004765105128239,
+        0.9982502953389821,
+        1.0033633409641936,
+        0.9995634564028174,
+        1.1095316800847774
+      ],
+      "geoMean": 1.0222154944501787
+    }
+  ],
+  "openBounds": [
+    {
+      "arm": "fr-base",
+      "cell": "12x12-nightmare",
+      "open": 26,
+      "kinds": {
+        "rate": 26
+      },
+      "completeMedian": 376614875.5,
+      "boundMedian": 1311119167,
+      "ratio": 3.481326023724732
+    },
+    {
+      "arm": "fr-base",
+      "cell": "14x14-hell-1",
+      "open": 27,
+      "kinds": {
+        "rate": 27
+      },
+      "completeMedian": 760029234,
+      "boundMedian": 1344889408,
+      "ratio": 1.7695232602065936
+    },
+    {
+      "arm": "fr-base",
+      "cell": "14x14-nightmare",
+      "open": 26,
+      "kinds": {
+        "screen": 26
+      },
+      "completeMedian": 173826365,
+      "boundMedian": 1536793413,
+      "ratio": 8.840968474488896
+    },
+    {
+      "arm": "fr-base",
+      "cell": "20x20-hell-1",
+      "open": 27,
+      "kinds": {
+        "rate": 27
+      },
+      "completeMedian": 140578902.5,
+      "boundMedian": 8874494526,
+      "ratio": 63.12821033725171
+    },
+    {
+      "arm": "fr-base",
+      "cell": "24x24-hell-1",
+      "open": 23,
+      "kinds": {
+        "rate": 23
+      },
+      "completeMedian": 591336792.5,
+      "boundMedian": 57338192904,
+      "ratio": 96.96368234012769
+    },
+    {
+      "arm": "fr-base",
+      "cell": "26x26-hell-1",
+      "open": 28,
+      "kinds": {
+        "rate": 28
+      },
+      "completeMedian": 558612741.5,
+      "boundMedian": 102133159074,
+      "ratio": 182.83356516313904
+    },
+    {
+      "arm": "fr-base",
+      "cell": "26x26-nightmare",
+      "open": 24,
+      "kinds": {
+        "rate": 24
+      },
+      "completeMedian": 185669101.5,
+      "boundMedian": 144406940234,
+      "ratio": 777.7650619696676
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "10x10-nightmare",
+      "open": 21,
+      "kinds": {
+        "screen": 21
+      },
+      "completeMedian": 133264468,
+      "boundMedian": 419509278,
+      "ratio": 3.147945467354434
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "12x12-nightmare",
+      "open": 25,
+      "kinds": {
+        "screen": 25
+      },
+      "completeMedian": 134186854,
+      "boundMedian": 720684734,
+      "ratio": 5.37075512628085
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "14x14-nightmare",
+      "open": 26,
+      "kinds": {
+        "screen": 26
+      },
+      "completeMedian": 173200957,
+      "boundMedian": 1549723751,
+      "ratio": 8.947547275965686
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "15x15b10-nightmare",
+      "open": 26,
+      "kinds": {
+        "screen": 26
+      },
+      "completeMedian": 167271226,
+      "boundMedian": 2144281102,
+      "ratio": 12.81918685763683
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "15x20-nightmare",
+      "open": 24,
+      "kinds": {
+        "screen": 24
+      },
+      "completeMedian": 113393234,
+      "boundMedian": 6386080813,
+      "ratio": 56.31800582563859
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "16x16-nightmare",
+      "open": 26,
+      "kinds": {
+        "screen": 26
+      },
+      "completeMedian": 139413369.5,
+      "boundMedian": 4013274062,
+      "ratio": 28.786866542236467
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "26x26-hell-1",
+      "open": 24,
+      "kinds": {
+        "screen": 24
+      },
+      "completeMedian": 304661762,
+      "boundMedian": 100070557734,
+      "ratio": 328.4644488270241
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "26x26-nightmare",
+      "open": 22,
+      "kinds": {
+        "screen": 22
+      },
+      "completeMedian": 181766415,
+      "boundMedian": 142079687734,
+      "ratio": 781.660835055805
+    },
+    {
+      "arm": "fr-none",
+      "cell": "10x10-nightmare",
+      "open": 19,
+      "kinds": {
+        "rate": 19
+      },
+      "completeMedian": 299803815.5,
+      "boundMedian": 1003013730,
+      "ratio": 3.345566927916566
+    },
+    {
+      "arm": "fr-none",
+      "cell": "12x12-nightmare",
+      "open": 28,
+      "kinds": {
+        "rate": 28
+      },
+      "completeMedian": 359822964.5,
+      "boundMedian": 1318196005,
+      "ratio": 3.663457130457831
+    },
+    {
+      "arm": "fr-none",
+      "cell": "14x14-nightmare",
+      "open": 26,
+      "kinds": {
+        "rate": 26
+      },
+      "completeMedian": 328640969.5,
+      "boundMedian": 2199659382,
+      "ratio": 6.693198919619181
+    },
+    {
+      "arm": "fr-none",
+      "cell": "15x15b10-nightmare",
+      "open": 26,
+      "kinds": {
+        "rate": 26
+      },
+      "completeMedian": 273237645,
+      "boundMedian": 2884742180,
+      "ratio": 10.55763081254781
+    },
+    {
+      "arm": "fr-none",
+      "cell": "15x20-nightmare",
+      "open": 23,
+      "kinds": {
+        "rate": 23
+      },
+      "completeMedian": 126370145,
+      "boundMedian": 7301229830,
+      "ratio": 57.77654073278146
+    },
+    {
+      "arm": "fr-none",
+      "cell": "16x16-nightmare",
+      "open": 27,
+      "kinds": {
+        "rate": 27
+      },
+      "completeMedian": 178830454,
+      "boundMedian": 4743052816,
+      "ratio": 26.52262357953864
+    },
+    {
+      "arm": "fr-none",
+      "cell": "26x26-hell-1",
+      "open": 28,
+      "kinds": {
+        "rate": 28
+      },
+      "completeMedian": 565875592,
+      "boundMedian": 101260164752,
+      "ratio": 178.94421703914028
+    },
+    {
+      "arm": "fr-none",
+      "cell": "26x26-nightmare",
+      "open": 24,
+      "kinds": {
+        "rate": 24
+      },
+      "completeMedian": 185731675,
+      "boundMedian": 144406940234,
+      "ratio": 777.5030308319784
+    }
+  ],
+  "boot": {
+    "196-215/independent-cells": {
+      "pass": 4000,
+      "unknown": 0,
+      "draws": 4000,
+      "assumption": "Synthetic draws from the same five fitting seeds; not validation and not a bound for unseen seeds."
+    },
+    "196-215/common-seed-vector": {
+      "pass": 4000,
+      "unknown": 0,
+      "draws": 4000,
+      "assumption": "Synthetic draws from the same five fitting seeds; not validation and not a bound for unseen seeds."
+    },
+    "196-256/independent-cells": {
+      "pass": 4000,
+      "unknown": 0,
+      "draws": 4000,
+      "assumption": "Synthetic draws from the same five fitting seeds; not validation and not a bound for unseen seeds."
+    },
+    "196-256/common-seed-vector": {
+      "pass": 3999,
+      "unknown": 1,
+      "draws": 4000,
+      "assumption": "Synthetic draws from the same five fitting seeds; not validation and not a bound for unseen seeds."
+    },
+    "196-324 measured/independent-cells": {
+      "pass": 0,
+      "unknown": 4000,
+      "draws": 4000,
+      "assumption": "Synthetic draws from the same five fitting seeds; not validation and not a bound for unseen seeds."
+    },
+    "196-324 measured/common-seed-vector": {
+      "pass": 0,
+      "unknown": 4000,
+      "draws": 4000,
+      "assumption": "Synthetic draws from the same five fitting seeds; not validation and not a bound for unseen seeds."
+    },
+    "16x16 alone/independent-cells": {
+      "pass": 0,
+      "unknown": 4000,
+      "draws": 4000,
+      "assumption": "Synthetic draws from the same five fitting seeds; not validation and not a bound for unseen seeds."
+    },
+    "16x16 alone/common-seed-vector": {
+      "pass": 0,
+      "unknown": 4000,
+      "draws": 4000,
+      "assumption": "Synthetic draws from the same five fitting seeds; not validation and not a bound for unseen seeds."
+    }
+  },
+  "mechanismCounterexamples": [
+    {
+      "cell": "14x14-nightmare",
+      "rep": 0,
+      "sameKeys": true,
+      "close": [
+        {
+          "tuple": [
+            "close",
+            5,
+            "capped",
+            null,
+            760101147,
+            0,
+            -1,
+            -1,
+            8276,
+            0,
+            "work-cap",
+            1,
+            2000.231,
+            ""
+          ],
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-close\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.24768.5.jsonl:14"
+        },
+        {
+          "tuple": [
+            "close",
+            6,
+            "capped",
+            null,
+            760109936,
+            0,
+            -1,
+            -1,
+            10508,
+            0,
+            "work-cap",
+            1,
+            2103.731,
+            ""
+          ],
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-close\\pilot-14x14-nightmare\\logs\\14x14-nightmare~0.24768.6.jsonl:24"
+        }
+      ],
+      "baseT10": 5270.2300000000005,
+      "closeT10": 6824.6801000000005,
+      "costFraction": 0.2949491957656496,
+      "evidence": [
+        "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-close\\pilot-14x14-nightmare.runs.json:597",
+        "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-14x14-nightmare.runs.json:596"
+      ]
+    }
+  ],
+  "prefix": [
+    {
+      "level": "nightmare",
+      "calls": 1613,
+      "maximum": 6610196040,
+      "overshootExamplesAt2G": [
+        {
+          "arm": "fr-base",
+          "cell": "12x12-nightmare",
+          "rep": 2,
+          "beforeLastPrimitive": 1451963186,
+          "work": 2252187822,
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-12x12-nightmare\\logs\\12x12-nightmare~2.24704.6.jsonl:17"
+        },
+        {
+          "arm": "fr-base",
+          "cell": "12x12-nightmare",
+          "rep": 3,
+          "beforeLastPrimitive": 1642659228,
+          "work": 2369747247,
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-12x12-nightmare\\logs\\12x12-nightmare~3.22440.2.jsonl:31"
+        },
+        {
+          "arm": "fr-base",
+          "cell": "12x12-nightmare",
+          "rep": 4,
+          "beforeLastPrimitive": 1964403596,
+          "work": 2804524633,
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-12x12-nightmare\\logs\\12x12-nightmare~4.2964.5.jsonl:15"
+        }
+      ],
+      "risks": [
+        {
+          "budgetG": 2,
+          "totalExceeds": 132,
+          "nextPrimitiveBlocked": 106,
+          "finalPrimitiveOvershootOnly": 26
+        },
+        {
+          "budgetG": 8,
+          "totalExceeds": 0,
+          "nextPrimitiveBlocked": 0,
+          "finalPrimitiveOvershootOnly": 0
+        },
+        {
+          "budgetG": 10,
+          "totalExceeds": 0,
+          "nextPrimitiveBlocked": 0,
+          "finalPrimitiveOvershootOnly": 0
+        },
+        {
+          "budgetG": 16,
+          "totalExceeds": 0,
+          "nextPrimitiveBlocked": 0,
+          "finalPrimitiveOvershootOnly": 0
+        },
+        {
+          "budgetG": 32,
+          "totalExceeds": 0,
+          "nextPrimitiveBlocked": 0,
+          "finalPrimitiveOvershootOnly": 0
+        },
+        {
+          "budgetG": 40,
+          "totalExceeds": 0,
+          "nextPrimitiveBlocked": 0,
+          "finalPrimitiveOvershootOnly": 0
+        }
+      ]
+    },
+    {
+      "level": "hell-1",
+      "calls": 645,
+      "maximum": 26167589073,
+      "overshootExamplesAt2G": [
+        {
+          "arm": "fr-base",
+          "cell": "14x14-hell-1",
+          "rep": 0,
+          "beforeLastPrimitive": 1520103543,
+          "work": 2360159967,
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~0.9132.6.jsonl:50"
+        },
+        {
+          "arm": "fr-base",
+          "cell": "14x14-hell-1",
+          "rep": 1,
+          "beforeLastPrimitive": 1520093977,
+          "work": 2360153086,
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~1.9316.4.jsonl:27"
+        },
+        {
+          "arm": "fr-base",
+          "cell": "14x14-hell-1",
+          "rep": 2,
+          "beforeLastPrimitive": 1600182742,
+          "work": 2440271505,
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~2.10620.5.jsonl:63"
+        }
+      ],
+      "risks": [
+        {
+          "budgetG": 2,
+          "totalExceeds": 341,
+          "nextPrimitiveBlocked": 279,
+          "finalPrimitiveOvershootOnly": 62
+        },
+        {
+          "budgetG": 8,
+          "totalExceeds": 27,
+          "nextPrimitiveBlocked": 26,
+          "finalPrimitiveOvershootOnly": 1
+        },
+        {
+          "budgetG": 10,
+          "totalExceeds": 17,
+          "nextPrimitiveBlocked": 16,
+          "finalPrimitiveOvershootOnly": 1
+        },
+        {
+          "budgetG": 16,
+          "totalExceeds": 5,
+          "nextPrimitiveBlocked": 5,
+          "finalPrimitiveOvershootOnly": 0
+        },
+        {
+          "budgetG": 32,
+          "totalExceeds": 0,
+          "nextPrimitiveBlocked": 0,
+          "finalPrimitiveOvershootOnly": 0
+        },
+        {
+          "budgetG": 40,
+          "totalExceeds": 0,
+          "nextPrimitiveBlocked": 0,
+          "finalPrimitiveOvershootOnly": 0
+        }
+      ]
+    }
+  ],
+  "requireCases": [
+    {
+      "arm": "fr-base",
+      "item": "parity-fr-base:fr-base:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "ok": true,
+      "units": 10273954138,
+      "ms": 35967.482,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\items.jsonl:3"
+    },
+    {
+      "arm": "fr-base",
+      "item": "parity-fr-base:fr-base:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "ok": false,
+      "units": 20608465971,
+      "ms": 92609.129,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\items.jsonl:11"
+    },
+    {
+      "arm": "fr-screen",
+      "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "ok": true,
+      "units": 4038718747,
+      "ms": 15456.792,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-screen\\items.jsonl:3"
+    },
+    {
+      "arm": "fr-screen",
+      "item": "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "ok": false,
+      "units": 19023287126,
+      "ms": 80238.644,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-screen\\items.jsonl:11"
+    },
+    {
+      "arm": "fr-none",
+      "item": "parity-fr-none:fr-none:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "ok": true,
+      "units": 10273954138,
+      "ms": 35772.933,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-none\\items.jsonl:5"
+    },
+    {
+      "arm": "fr-none",
+      "item": "parity-fr-none:fr-none:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "ok": false,
+      "units": 20608465971,
+      "ms": 92173.025,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-none\\items.jsonl:11"
+    },
+    {
+      "arm": "fr-close",
+      "item": "parity-fr-close:fr-close:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "ok": true,
+      "units": 10273954138,
+      "ms": 36053.258,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-close\\items.jsonl:5"
+    },
+    {
+      "arm": "fr-close",
+      "item": "parity-fr-close:fr-close:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "ok": false,
+      "units": 20608465971,
+      "ms": 92391.681,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-close\\items.jsonl:11"
+    },
+    {
+      "arm": "fr-c4",
+      "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "ok": true,
+      "units": 3174858721,
+      "ms": 11624.57,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-c4\\items.jsonl:3"
+    },
+    {
+      "arm": "fr-c4",
+      "item": "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "ok": false,
+      "units": 20253774745,
+      "ms": 89147.154,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-c4\\items.jsonl:11"
+    },
+    {
+      "arm": "fr-ps",
+      "item": "parity-fr-ps:fr-ps:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "ok": true,
+      "units": 10273954138,
+      "ms": 35977.554,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-ps\\items.jsonl:5"
+    },
+    {
+      "arm": "fr-ps",
+      "item": "parity-fr-ps:fr-ps:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "ok": false,
+      "units": 20608465971,
+      "ms": 96620.442,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-ps\\items.jsonl:11"
+    },
+    {
+      "arm": "fr-p5",
+      "item": "parity-fr-p5:fr-p5:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "ok": true,
+      "units": 2005384500,
+      "ms": 7233.988,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\items.jsonl:3"
+    },
+    {
+      "arm": "fr-p5",
+      "item": "parity-fr-p5:fr-p5:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "ok": false,
+      "units": 2165659155,
+      "ms": 6315.107,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\items.jsonl:11"
+    }
+  ],
+  "requireGeneration": [
+    {
+      "arm": "fr-base",
+      "item": "parity-fr-base:fr-base:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "outcome": "ok",
+      "work": 5816758806,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\items.jsonl:23"
+    },
+    {
+      "arm": "fr-base",
+      "item": "parity-fr-base:fr-base:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+      "outcome": "ok",
+      "work": 12646225540,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\items.jsonl:24"
+    },
+    {
+      "arm": "fr-screen",
+      "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "outcome": "ok",
+      "work": 848850058,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-screen\\items.jsonl:23"
+    },
+    {
+      "arm": "fr-screen",
+      "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+      "outcome": "ok",
+      "work": 1440988758,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-screen\\items.jsonl:24"
+    },
+    {
+      "arm": "fr-none",
+      "item": "parity-fr-none:fr-none:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "outcome": "ok",
+      "work": 5816758806,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-none\\items.jsonl:23"
+    },
+    {
+      "arm": "fr-none",
+      "item": "parity-fr-none:fr-none:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+      "outcome": "ok",
+      "work": 12646225540,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-none\\items.jsonl:24"
+    },
+    {
+      "arm": "fr-close",
+      "item": "parity-fr-close:fr-close:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "outcome": "ok",
+      "work": 5816758806,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-close\\items.jsonl:23"
+    },
+    {
+      "arm": "fr-close",
+      "item": "parity-fr-close:fr-close:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+      "outcome": "ok",
+      "work": 12646225540,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-close\\items.jsonl:24"
+    },
+    {
+      "arm": "fr-c4",
+      "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "outcome": "ok",
+      "work": 11765495749,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-c4\\items.jsonl:23"
+    },
+    {
+      "arm": "fr-c4",
+      "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+      "outcome": "ok",
+      "work": 16118246234,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-c4\\items.jsonl:24"
+    },
+    {
+      "arm": "fr-ps",
+      "item": "parity-fr-ps:fr-ps:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "outcome": "ok",
+      "work": 5816758806,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-ps\\items.jsonl:23"
+    },
+    {
+      "arm": "fr-ps",
+      "item": "parity-fr-ps:fr-ps:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+      "outcome": "ok",
+      "work": 12136560179,
+      "status": "matched",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-ps\\items.jsonl:24"
+    },
+    {
+      "arm": "fr-p5",
+      "item": "parity-fr-p5:fr-p5:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "outcome": "no-record",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\items.jsonl:23"
+    },
+    {
+      "arm": "fr-p5",
+      "item": "parity-fr-p5:fr-p5:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+      "outcome": "no-record",
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\items.jsonl:24"
+    }
+  ],
+  "headBlocking": {
+    "row": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1.runs.json:1711",
+    "slot3": [
+      {
+        "t": "link",
+        "ev": "dispatch",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 0,
+        "inflight": 2,
+        "at": 1795409372364.094,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:10",
+        "batchSeconds": 0.004613037109375
+      },
+      {
+        "t": "link",
+        "ev": "complete",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 0,
+        "ok": true,
+        "inflight": 3,
+        "outcome": "candidate",
+        "at": 1795409382321.081,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:14",
+        "batchSeconds": 9.96160009765625
+      },
+      {
+        "t": "link",
+        "ev": "await",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 0,
+        "at": 1795409404909.473,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:19",
+        "batchSeconds": 32.54999194335937
+      },
+      {
+        "t": "link",
+        "ev": "consume",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 0,
+        "result": "rejected",
+        "accepted": 2,
+        "at": 1795409404911.1414,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:20",
+        "batchSeconds": 32.551660400390624
+      },
+      {
+        "t": "link",
+        "ev": "await",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 1,
+        "at": 1795409404911.5872,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:21",
+        "batchSeconds": 32.552106201171874
+      },
+      {
+        "t": "link",
+        "ev": "dispatch",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 1,
+        "inflight": 4,
+        "at": 1795409406350.551,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:23",
+        "batchSeconds": 33.99107006835938
+      },
+      {
+        "t": "link",
+        "ev": "dispatch",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 2,
+        "inflight": 4,
+        "at": 1795409453525.1106,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:31",
+        "batchSeconds": 81.16562963867187
+      },
+      {
+        "t": "link",
+        "ev": "dispatch",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 3,
+        "inflight": 4,
+        "at": 1795409458182.7612,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:33",
+        "batchSeconds": 85.8232802734375
+      },
+      {
+        "t": "link",
+        "ev": "dispatch",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 4,
+        "inflight": 4,
+        "at": 1795409459663.2415,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:35",
+        "batchSeconds": 87.30376049804687
+      },
+      {
+        "t": "link",
+        "ev": "complete",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 3,
+        "ok": true,
+        "inflight": 3,
+        "outcome": "candidate",
+        "at": 1795409473462.1597,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:36",
+        "batchSeconds": 101.1026787109375
+      },
+      {
+        "t": "link",
+        "ev": "dispatch",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 5,
+        "inflight": 4,
+        "at": 1795409473462.6133,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:37",
+        "batchSeconds": 101.10313232421875
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 1,
+        "done": false,
+        "at": 1795409487377.5527,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:46",
+        "batchSeconds": 115.01807177734375
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 2,
+        "done": false,
+        "at": 1795409487379.3958,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:50",
+        "batchSeconds": 115.01991479492187
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 3,
+        "done": true,
+        "at": 1795409487379.9163,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:51",
+        "batchSeconds": 115.02043530273437
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 4,
+        "done": false,
+        "at": 1795409487380.3083,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:52",
+        "batchSeconds": 115.02082739257813
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 5,
+        "done": false,
+        "at": 1795409487380.6287,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:53",
+        "batchSeconds": 115.02114770507812
+      },
+      {
+        "t": "link",
+        "ev": "complete",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 1,
+        "ok": false,
+        "inflight": 3,
+        "outcome": "error",
+        "at": 1795409487387.5732,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:55",
+        "batchSeconds": 115.02809228515625
+      },
+      {
+        "t": "link",
+        "ev": "complete",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 2,
+        "ok": false,
+        "inflight": 2,
+        "outcome": "error",
+        "at": 1795409487387.9995,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:56",
+        "batchSeconds": 115.0285185546875
+      },
+      {
+        "t": "link",
+        "ev": "complete",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 4,
+        "ok": false,
+        "inflight": 1,
+        "outcome": "error",
+        "at": 1795409487388.3767,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:57",
+        "batchSeconds": 115.02889575195313
+      },
+      {
+        "t": "link",
+        "ev": "complete",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 5,
+        "ok": false,
+        "inflight": 0,
+        "outcome": "error",
+        "at": 1795409487388.8655,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:58",
+        "batchSeconds": 115.02938452148437
+      }
+    ],
+    "doneDiscards": [
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 4,
+        "attempt": 0,
+        "done": true,
+        "at": 1795409487375.8657,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:42",
+        "batchSeconds": 115.016384765625
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 5,
+        "attempt": 0,
+        "done": true,
+        "at": 1795409487376.2803,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:43",
+        "batchSeconds": 115.01679931640625
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 6,
+        "attempt": 0,
+        "done": true,
+        "at": 1795409487376.6663,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:44",
+        "batchSeconds": 115.01718530273438
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 7,
+        "attempt": 0,
+        "done": true,
+        "at": 1795409487377.1047,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:45",
+        "batchSeconds": 115.01762377929687
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 8,
+        "attempt": 0,
+        "done": true,
+        "at": 1795409487377.919,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:47",
+        "batchSeconds": 115.01843798828125
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 9,
+        "attempt": 0,
+        "done": true,
+        "at": 1795409487378.428,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:48",
+        "batchSeconds": 115.01894702148438
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 10,
+        "attempt": 0,
+        "done": true,
+        "at": 1795409487378.7937,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:49",
+        "batchSeconds": 115.01931274414062
+      },
+      {
+        "t": "link",
+        "ev": "discard",
+        "batch": 1,
+        "slot": 3,
+        "attempt": 3,
+        "done": true,
+        "at": 1795409487379.9163,
+        "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:51",
+        "batchSeconds": 115.02043530273437
+      }
+    ],
+    "batchEnd": {
+      "t": "link",
+      "ev": "end",
+      "batch": 1,
+      "status": "partial",
+      "reason": "time-limit",
+      "accepted": 2,
+      "at": 1795409487381.0015,
+      "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1\\logs\\14x14-hell-1~3.link.jsonl:54",
+      "batchSeconds": 115.0215205078125
+    }
+  },
+  "priors": [
+    {
+      "cell": "14x14-hell-1",
+      "old": 0.265179,
+      "actualBaseSetPriors": {
+        "8": 7,
+        "9": 13
+      },
+      "opusPooledWc": 0.403125,
+      "opusCallWeights": {
+        "fr-base/0": 11,
+        "fr-base/1": 16,
+        "fr-base/2": 13,
+        "fr-base/3": 12,
+        "fr-base/4": 16
+      },
+      "baseWindowPerSeed": [
+        0.40625,
+        0.3943014705882353,
+        0.4,
+        0.40625,
+        0.375
+      ],
+      "baseWindowSeedBalanced": 0.4,
+      "acceptedPerSeed": [
+        0.375,
+        0.38235294117647056,
+        0.4,
+        0.359375,
+        0.40625
+      ],
+      "acceptedSeedBalanced": 0.38235294117647056,
+      "windowNonHits": {
+        "hit": 42,
+        "window": 26
+      }
+    },
+    {
+      "cell": "20x20-hell-1",
+      "old": null,
+      "actualBaseSetPriors": {
+        "null": 20
+      },
+      "opusPooledWc": 0.3684210526315789,
+      "opusCallWeights": {
+        "fr-base/0": 18,
+        "fr-base/1": 14,
+        "fr-base/2": 14,
+        "fr-base/3": 16,
+        "fr-base/4": 13
+      },
+      "baseWindowPerSeed": [
+        0.38095238095238093,
+        0.34210526315789475,
+        0.3205128205128205,
+        0.3684210526315789,
+        0.3684210526315789
+      ],
+      "baseWindowSeedBalanced": 0.3684210526315789,
+      "acceptedPerSeed": [
+        0.38095238095238093,
+        0.34210526315789475,
+        0.2948717948717949,
+        0.32894736842105265,
+        0.3684210526315789
+      ],
+      "acceptedSeedBalanced": 0.34210526315789475,
+      "windowNonHits": {
+        "hit": 58,
+        "window": 17
+      }
+    },
+    {
+      "cell": "24x24-hell-1",
+      "old": 0.141026,
+      "actualBaseSetPriors": {
+        "6": 20
+      },
+      "opusPooledWc": 0.21951219512195122,
+      "opusCallWeights": {
+        "fr-base/0": 15,
+        "fr-base/1": 11,
+        "fr-base/2": 13,
+        "fr-base/3": 16,
+        "fr-base/4": 15
+      },
+      "baseWindowPerSeed": [
+        0.23076923076923078,
+        0.21951219512195122,
+        0.2,
+        0.23076923076923078,
+        0.1951219512195122
+      ],
+      "baseWindowSeedBalanced": 0.21951219512195122,
+      "acceptedPerSeed": [
+        0.23076923076923078,
+        0.25,
+        0.21250000000000002,
+        0.21794871794871795,
+        0.1951219512195122
+      ],
+      "acceptedSeedBalanced": 0.21794871794871795,
+      "windowNonHits": {
+        "hit": 62,
+        "window": 8
+      }
+    },
+    {
+      "cell": "26x26-hell-1",
+      "old": 0.128205,
+      "actualBaseSetPriors": {
+        "5": 20
+      },
+      "opusPooledWc": 0.2,
+      "opusCallWeights": {
+        "fr-base/0": 12,
+        "fr-base/1": 14,
+        "fr-base/2": 12,
+        "fr-base/3": 13,
+        "fr-base/4": 13,
+        "fr-close/0": 12,
+        "fr-close/1": 14,
+        "fr-close/2": 12,
+        "fr-close/3": 13,
+        "fr-close/4": 13,
+        "fr-none/0": 12,
+        "fr-none/1": 14,
+        "fr-none/2": 12,
+        "fr-none/3": 13,
+        "fr-none/4": 13,
+        "fr-screen/0": 19,
+        "fr-screen/1": 16,
+        "fr-screen/2": 12,
+        "fr-screen/3": 11,
+        "fr-screen/4": 14
+      },
+      "baseWindowPerSeed": [
+        0.15476190476190477,
+        0.20975609756097563,
+        0.1923076923076923,
+        0.2,
+        0.2
+      ],
+      "baseWindowSeedBalanced": 0.2,
+      "acceptedPerSeed": [
+        0.15476190476190477,
+        0.20731707317073172,
+        0.1923076923076923,
+        0.2,
+        0.2
+      ],
+      "acceptedSeedBalanced": 0.2,
+      "windowNonHits": {
+        "hit": 223,
+        "window": 41
+      }
+    }
+  ],
+  "pm1": [
+    {
+      "cell": "15x15b10-hell-1",
+      "area": 215,
+      "families": 4,
+      "eligible": 3,
+      "seedBalancedShare": 0.40441176470588236,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:1",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:2",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:3",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:4"
+      ]
+    },
+    {
+      "cell": "16x16-hell-1",
+      "area": 256,
+      "families": 4,
+      "eligible": 3,
+      "seedBalancedShare": 0.3581081081081081,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:5",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:6",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:7",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:8"
+      ]
+    },
+    {
+      "cell": "15x20-hell-1",
+      "area": 300,
+      "families": 4,
+      "eligible": 4,
+      "seedBalancedShare": 0.44342948717948716,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:9",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:10",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:11",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:12"
+      ]
+    },
+    {
+      "cell": "18x18-hell-1",
+      "area": 324,
+      "families": 4,
+      "eligible": 6,
+      "seedBalancedShare": 0.3472222222222222,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:13",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:14",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:15",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:16"
+      ]
+    },
+    {
+      "cell": "18x20-hell-1",
+      "area": 360,
+      "families": 4,
+      "eligible": 6,
+      "seedBalancedShare": 0.3315142065142065,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:17",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:18",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:19",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:20"
+      ]
+    },
+    {
+      "cell": "20x20-hell-1",
+      "area": 400,
+      "families": 4,
+      "eligible": 11,
+      "seedBalancedShare": 0.3822408536585366,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:21",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:22",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:23",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:24"
+      ]
+    },
+    {
+      "cell": "20x21-hell-1",
+      "area": 420,
+      "families": 4,
+      "eligible": 3,
+      "seedBalancedShare": 0.3902439024390244,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:25",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:26",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:27",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:28"
+      ]
+    },
+    {
+      "cell": "32x15-hell-1",
+      "area": 480,
+      "families": 4,
+      "eligible": 6,
+      "seedBalancedShare": 0.29716117216117216,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:29",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:30",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:31",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:32"
+      ]
+    },
+    {
+      "cell": "22x22-hell-1",
+      "area": 484,
+      "families": 4,
+      "eligible": 5,
+      "seedBalancedShare": 0.28750000000000003,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:33",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:34",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:35",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:36"
+      ]
+    },
+    {
+      "cell": "14x14-hell-1",
+      "area": 196,
+      "families": 8,
+      "eligible": 7,
+      "seedBalancedShare": 0.390625,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:1",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:2",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:3",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:4",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:5",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:6",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:7",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:8"
+      ]
+    },
+    {
+      "cell": "24x24-hell-1",
+      "area": 576,
+      "families": 8,
+      "eligible": 8,
+      "seedBalancedShare": 0.24404761904761907,
+      "inputs": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:9",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:10",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:11",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:12",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:13",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:14",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:15",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:16"
+      ]
+    }
+  ],
+  "revisedPriorCandidate": [
+    {
+      "key": "hell-1@196",
+      "share": 0.4,
+      "source": "fr-base ended-call wc/K, median within each pilot seed then across seeds"
+    },
+    {
+      "key": "hell-1@215",
+      "share": 0.404412,
+      "source": "PM1 eligible window shares, balanced by order then seed"
+    },
+    {
+      "key": "hell-1@256",
+      "share": 0.358108,
+      "source": "PM1 eligible window shares, balanced by order then seed"
+    },
+    {
+      "key": "hell-1@300",
+      "share": 0.443429,
+      "source": "PM1 eligible window shares, balanced by order then seed"
+    },
+    {
+      "key": "hell-1@324",
+      "share": 0.347222,
+      "source": "PM1 eligible window shares, balanced by order then seed"
+    },
+    {
+      "key": "hell-1@360",
+      "share": 0.331514,
+      "source": "PM1 eligible window shares, balanced by order then seed"
+    },
+    {
+      "key": "hell-1@400",
+      "share": 0.368421,
+      "source": "fr-base ended-call wc/K, median within each pilot seed then across seeds"
+    },
+    {
+      "key": "hell-1@420",
+      "share": 0.390244,
+      "source": "PM1 eligible window shares, balanced by order then seed"
+    },
+    {
+      "key": "hell-1@480",
+      "share": 0.297161,
+      "source": "PM1 eligible window shares, balanced by order then seed"
+    },
+    {
+      "key": "hell-1@484",
+      "share": 0.2875,
+      "source": "PM1 eligible window shares, balanced by order then seed"
+    },
+    {
+      "key": "hell-1@576",
+      "share": 0.219512,
+      "source": "fr-base ended-call wc/K, median within each pilot seed then across seeds"
+    },
+    {
+      "key": "hell-1@676",
+      "share": 0.2,
+      "source": "fr-base ended-call wc/K, median within each pilot seed then across seeds"
+    }
+  ],
+  "kernelRatios": [
+    {
+      "cell": "10x10-nightmare",
+      "items": 6,
+      "dirty": 0.8480367245047832,
+      "changed": 0.7155610036690997,
+      "live": 0.2631873912785918
+    },
+    {
+      "cell": "12x12-nightmare",
+      "items": 6,
+      "dirty": 0.8600735211839646,
+      "changed": 0.7406658350290728,
+      "live": 0.32771450956118464
+    },
+    {
+      "cell": "14x14-nightmare",
+      "items": 6,
+      "dirty": 0.8542391387146738,
+      "changed": 0.7503618312469847,
+      "live": 0.33282626867839793
+    },
+    {
+      "cell": "26x26-nightmare",
+      "items": 6,
+      "dirty": 0.9411016949152542,
+      "changed": 0.8705508474576271,
+      "live": 0.5836639515130099
+    },
+    {
+      "cell": "26x26-hell-1",
+      "items": 6,
+      "dirty": 0.8875064019522189,
+      "changed": 0.8449673123851414,
+      "live": 0.5908227917734649
+    }
+  ],
+  "profiles": [
+    {
+      "cell": "14x14-nightmare",
+      "total": 10629.445000000002,
+      "deduce": 10099.633000000002,
+      "fewest": 4.824,
+      "top": [
+        {
+          "name": "reachable",
+          "ms": 1899.1110000000022,
+          "totalShare": 0.1786651137477076
+        },
+        {
+          "name": "ruleR4",
+          "ms": 1761.0880000000013,
+          "totalShare": 0.16568014604713616
+        },
+        {
+          "name": "select",
+          "ms": 1408.8240000000026,
+          "totalShare": 0.13253975160509343
+        },
+        {
+          "name": "gather",
+          "ms": 1171.9209999999975,
+          "totalShare": 0.1102523226753605
+        },
+        {
+          "name": "neighbourCell",
+          "ms": 741.9270000000002,
+          "totalShare": 0.0697992228192535
+        },
+        {
+          "name": "ruleR8",
+          "ms": 675.9780000000003,
+          "totalShare": 0.06359485372942804
+        },
+        {
+          "name": "undo",
+          "ms": 629.2739999999995,
+          "totalShare": 0.05920102131390674
+        },
+        {
+          "name": "kill",
+          "ms": 567.9480000000005,
+          "totalShare": 0.053431576154728724
+        },
+        {
+          "name": "ruleR5",
+          "ms": 460.23800000000034,
+          "totalShare": 0.04329840363255093
+        },
+        {
+          "name": "ruleR9",
+          "ms": 227.27600000000012,
+          "totalShare": 0.021381737240279253
+        }
+      ]
+    },
+    {
+      "cell": "26x26-nightmare",
+      "total": 3646.2240000000006,
+      "deduce": 2324.655,
+      "fewest": 0,
+      "top": [
+        {
+          "name": "ruleR4",
+          "ms": 691.245,
+          "totalShare": 0.18957831444255754
+        },
+        {
+          "name": "uncover",
+          "ms": 428.7870000000001,
+          "totalShare": 0.11759754749022551
+        },
+        {
+          "name": "cover",
+          "ms": 415.71200000000005,
+          "totalShare": 0.11401164602065039
+        },
+        {
+          "name": "select",
+          "ms": 382.76699999999977,
+          "totalShare": 0.10497627134262726
+        },
+        {
+          "name": "undo",
+          "ms": 208.36500000000004,
+          "totalShare": 0.05714541948053658
+        },
+        {
+          "name": "neighbourCell",
+          "ms": 201.54600000000008,
+          "totalShare": 0.055275265589826636
+        },
+        {
+          "name": "kill",
+          "ms": 194.01300000000003,
+          "totalShare": 0.05320929268196359
+        },
+        {
+          "name": "ruleR8",
+          "ms": 193.62000000000006,
+          "totalShare": 0.05310150994563143
+        },
+        {
+          "name": "walk",
+          "ms": 95.40199999999997,
+          "totalShare": 0.026164602065040423
+        },
+        {
+          "name": "ruleR5",
+          "ms": 89.37700000000001,
+          "totalShare": 0.024512207697607168
+        }
+      ]
+    }
+  ],
+  "widthRatios": [
+    {
+      "cell": "26x26-nightmare",
+      "width": 1,
+      "n": 18,
+      "median": 548.1855,
+      "versusFour": 0.9805643850024418
+    },
+    {
+      "cell": "26x26-nightmare",
+      "width": 2,
+      "n": 36,
+      "median": 552.6475,
+      "versusFour": 0.9885457677385429
+    },
+    {
+      "cell": "26x26-nightmare",
+      "width": 4,
+      "n": 72,
+      "median": 559.0509999999999,
+      "versusFour": 1
+    },
+    {
+      "cell": "26x26-nightmare",
+      "width": 8,
+      "n": 144,
+      "median": 606.687,
+      "versusFour": 1.0852086840019963
+    },
+    {
+      "cell": "14x14-nightmare",
+      "width": 1,
+      "n": 18,
+      "median": 1780.6979999999999,
+      "versusFour": 0.9933953943489033
+    },
+    {
+      "cell": "14x14-nightmare",
+      "width": 2,
+      "n": 36,
+      "median": 1796.577,
+      "versusFour": 1.00225378890366
+    },
+    {
+      "cell": "14x14-nightmare",
+      "width": 4,
+      "n": 72,
+      "median": 1792.5369999999998,
+      "versusFour": 1
+    },
+    {
+      "cell": "14x14-nightmare",
+      "width": 8,
+      "n": 144,
+      "median": 1831.441,
+      "versusFour": 1.0217033176999974
+    }
+  ],
+  "controls": [
+    "3x29-nightmare",
+    "10x10-nightmare",
+    "18x18-nightmare",
+    "18x20-nightmare",
+    "20x20-nightmare",
+    "20x21-nightmare",
+    "32x15-nightmare",
+    "22x22-nightmare",
+    "24x24-nightmare",
+    "26x26-nightmare"
+  ],
+  "unpiloted": [
+    "3x29-nightmare",
+    "18x18-nightmare",
+    "18x20-nightmare",
+    "20x20-nightmare",
+    "20x21-nightmare",
+    "32x15-nightmare",
+    "22x22-nightmare",
+    "24x24-nightmare"
+  ],
+  "todayPreview": [
+    {
+      "cell": "10x10-nightmare",
+      "arm": "fr-screen",
+      "ratios": [
+        0.6233410192988044,
+        1.126430042302215,
+        1.648138035625891,
+        0.9628543661834649,
+        1.6367627625167975
+      ],
+      "noRegressionDiagnostic": {
+        "geoMean": 1.127701013517557,
+        "lower": 0.9107985882414261,
+        "pass": true
+      },
+      "note": "Five fitting seeds and a different source/time; not the formal validation gate."
+    },
+    {
+      "cell": "10x10-nightmare",
+      "arm": "fr-none",
+      "ratios": [
+        1.3840169565597145,
+        1.5832271887823228,
+        2.3333121287112215,
+        0.9293626062672109,
+        2.5041503791081916
+      ],
+      "noRegressionDiagnostic": {
+        "geoMean": 1.6409699106124287,
+        "lower": 1.3288094965736503,
+        "pass": true
+      },
+      "note": "Five fitting seeds and a different source/time; not the formal validation gate."
+    },
+    {
+      "cell": "26x26-nightmare",
+      "arm": "fr-screen",
+      "ratios": [
+        0.6972855814516716,
+        2.184989872759672,
+        1.8984311832360876,
+        2.2047287952970738,
+        1.8355946927488274
+      ],
+      "noRegressionDiagnostic": {
+        "geoMean": 1.6356010774570748,
+        "lower": 1.2928437080486757,
+        "pass": true
+      },
+      "note": "Five fitting seeds and a different source/time; not the formal validation gate."
+    },
+    {
+      "cell": "26x26-nightmare",
+      "arm": "fr-none",
+      "ratios": [
+        0.5456640054431051,
+        1.707488023232726,
+        1.4180747942587364,
+        1.325292977752707,
+        1.0149298095967076
+      ],
+      "noRegressionDiagnostic": {
+        "geoMean": 1.1218789597205931,
+        "lower": 0.881012525826164,
+        "pass": false
+      },
+      "note": "Five fitting seeds and a different source/time; not the formal validation gate."
+    }
+  ],
+  "account": {
+    "loggedS": 10252.712000000001,
+    "offLogS": 87.4,
+    "countedS": 10340.112000000001,
+    "minutes": 172.33520000000001,
+    "liveGuardS": 2634.330247546194,
+    "liveMinimumAccountMinutes": 217,
+    "grant": 749,
+    "runnerCap": 747
+  },
+  "prices": {
+    "controlPilot": {
+      "projectedMinutes": 22.594987209388194,
+      "guardMinutes": 28.24373401173524,
+      "invocations": 8,
+      "units": 40,
+      "ceilingMinutes": 630
+    },
+    "preactivationP1": {
+      "projectedMinutes": 71.2,
+      "guardMinutes": 89,
+      "invocations": 8,
+      "units": 48,
+      "ceilingMinutes": 756
+    },
+    "S4": {
+      "projectedMinutes": 1185.486485133807,
+      "guardMinutes": 1481.858106417258,
+      "invocations": 137,
+      "units": 1168,
+      "ceilingMinutes": 18396
+    },
+    "S4C": {
+      "projectedMinutes": 585.617103595435,
+      "guardMinutes": 732.0213794942938,
+      "invocations": 51,
+      "units": 380,
+      "ceilingMinutes": 5985
+    },
+    "optionalDuplicateSavingS4Only": {
+      "projectedMinutes": 240.37080630897228,
+      "guardMinutes": 300.4635078862153,
+      "invocations": 21,
+      "units": 140,
+      "ceilingMinutes": 2205
+    },
+    "projectedOverheadS": 0.9445786599999991,
+    "publishedOpusScenario": {
+      "totals": {
+        "V4-S4": {
+          "node": 26733.724247309052,
+          "invocations": 91,
+          "minutesQuiet15": 468.3120707884842,
+          "minutesQuiet45": 513.8120707884842
+        },
+        "V4-S4C": {
+          "node": 9800.00569260253,
+          "invocations": 26,
+          "minutesQuiet15": 169.83342821004217,
+          "minutesQuiet45": 182.83342821004217
+        }
+      },
+      "mapping": [
+        {
+          "id": "V4-S4/fr-frozen/val-14x14-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 9.95880668
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-14x14-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 23.952553159999994
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-15x15b10-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 10.738512539999999
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-15x15b10-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 24.33194566
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-12x12-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 16.5131302
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-12x12-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 16.5131302
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-16x16-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 10.084914979999999
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-16x16-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 21.100461739999997
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-15x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 17.208827579999998
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-15x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 17.208827579999998
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-26x26-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 33.03877722
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-26x26-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 33.03877722
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-20x20-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 36.97333724
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-20x20-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 36.97333724
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-3x29-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 6.522449644509549
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-3x29-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 6.522449644509549
+        },
+        {
+          "id": "V4-S4/log-link/val-3x29-nightmare",
+          "assumedSource": null,
+          "rowS": 6.522449644509549
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-10x10-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 19.75551822
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-10x10-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 19.75551822
+        },
+        {
+          "id": "V4-S4/log-link/val-10x10-nightmare",
+          "assumedSource": null,
+          "rowS": 25.966522278418612
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-18x18-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 39.247635677853964
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-18x18-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 39.247635677853964
+        },
+        {
+          "id": "V4-S4/log-link/val-18x18-nightmare",
+          "assumedSource": null,
+          "rowS": 39.247635677853964
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-18x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.296731705686877
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-18x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.296731705686877
+        },
+        {
+          "id": "V4-S4/log-link/val-18x20-nightmare",
+          "assumedSource": null,
+          "rowS": 18.296731705686877
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-20x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 22.453525218216395
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-20x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 22.453525218216395
+        },
+        {
+          "id": "V4-S4/log-link/val-20x20-nightmare",
+          "assumedSource": null,
+          "rowS": 22.453525218216395
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-20x21-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 25.845405607876845
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-20x21-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 25.845405607876845
+        },
+        {
+          "id": "V4-S4/log-link/val-20x21-nightmare",
+          "assumedSource": null,
+          "rowS": 25.845405607876845
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-32x15-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 12.954626261507073
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-32x15-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 12.954626261507073
+        },
+        {
+          "id": "V4-S4/log-link/val-32x15-nightmare",
+          "assumedSource": null,
+          "rowS": 12.954626261507073
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-22x22-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.81300295484614
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-22x22-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.81300295484614
+        },
+        {
+          "id": "V4-S4/log-link/val-22x22-nightmare",
+          "assumedSource": null,
+          "rowS": 18.81300295484614
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-24x24-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 20.175129419629773
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-24x24-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 20.175129419629773
+        },
+        {
+          "id": "V4-S4/log-link/val-24x24-nightmare",
+          "assumedSource": null,
+          "rowS": 20.175129419629773
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-26x26-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.439380779999997
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-26x26-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.439380779999997
+        },
+        {
+          "id": "V4-S4/log-link/val-26x26-nightmare",
+          "assumedSource": null,
+          "rowS": 20.162456583723777
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-14x14-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 9.95880668
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-15x15b10-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 10.738512539999999
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-12x12-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 16.5131302
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-16x16-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 10.084914979999999
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-15x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 17.208827579999998
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-26x26-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 33.03877722
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-20x20-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 36.97333724
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-3x29-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 6.522449644509549
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-10x10-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 19.75551822
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-18x18-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 39.247635677853964
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-18x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.296731705686877
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-20x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 22.453525218216395
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-20x21-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 25.845405607876845
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-32x15-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 12.954626261507073
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-22x22-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.81300295484614
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-24x24-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 20.175129419629773
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-26x26-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.439380779999997
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-6x10-master",
+          "assumedSource": "fr-none",
+          "rowS": 2.2805848727974793
+        },
+        {
+          "id": "V4-S4/log-link/master-6x10-master",
+          "assumedSource": null,
+          "rowS": 2.2805848727974793
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-3x29-master",
+          "assumedSource": "fr-none",
+          "rowS": 3.0866804387093625
+        },
+        {
+          "id": "V4-S4/log-link/master-3x29-master",
+          "assumedSource": null,
+          "rowS": 3.0866804387093625
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-10x10-master",
+          "assumedSource": "fr-none",
+          "rowS": 10.299341420406513
+        },
+        {
+          "id": "V4-S4/log-link/master-10x10-master",
+          "assumedSource": null,
+          "rowS": 10.299341420406513
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-12x12-master",
+          "assumedSource": "fr-none",
+          "rowS": 7.1926594650287266
+        },
+        {
+          "id": "V4-S4/log-link/master-12x12-master",
+          "assumedSource": null,
+          "rowS": 7.1926594650287266
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-14x14-master",
+          "assumedSource": "fr-none",
+          "rowS": 3.713775357904012
+        },
+        {
+          "id": "V4-S4/log-link/master-14x14-master",
+          "assumedSource": null,
+          "rowS": 3.713775357904012
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-15x15b10-master",
+          "assumedSource": "fr-none",
+          "rowS": 6.3650020724399825
+        },
+        {
+          "id": "V4-S4/log-link/master-15x15b10-master",
+          "assumedSource": null,
+          "rowS": 6.3650020724399825
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-16x16-master",
+          "assumedSource": "fr-none",
+          "rowS": 5.784367274616292
+        },
+        {
+          "id": "V4-S4/log-link/master-16x16-master",
+          "assumedSource": null,
+          "rowS": 5.784367274616292
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-15x20-master",
+          "assumedSource": "fr-none",
+          "rowS": 5.16024999024204
+        },
+        {
+          "id": "V4-S4/log-link/master-15x20-master",
+          "assumedSource": null,
+          "rowS": 5.16024999024204
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-18x18-master",
+          "assumedSource": "fr-none",
+          "rowS": 4.714683416394261
+        },
+        {
+          "id": "V4-S4/log-link/master-18x18-master",
+          "assumedSource": null,
+          "rowS": 4.714683416394261
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-18x20-master",
+          "assumedSource": "fr-none",
+          "rowS": 4.568342118186918
+        },
+        {
+          "id": "V4-S4/log-link/master-18x20-master",
+          "assumedSource": null,
+          "rowS": 4.568342118186918
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-20x20-master",
+          "assumedSource": "fr-none",
+          "rowS": 5.723931698070645
+        },
+        {
+          "id": "V4-S4/log-link/master-20x20-master",
+          "assumedSource": null,
+          "rowS": 5.723931698070645
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-20x21-master",
+          "assumedSource": "fr-none",
+          "rowS": 5.2201110549299585
+        },
+        {
+          "id": "V4-S4/log-link/master-20x21-master",
+          "assumedSource": null,
+          "rowS": 5.2201110549299585
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-32x15-master",
+          "assumedSource": "fr-none",
+          "rowS": 5.8204254301583624
+        },
+        {
+          "id": "V4-S4/log-link/master-32x15-master",
+          "assumedSource": null,
+          "rowS": 5.8204254301583624
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-22x22-master",
+          "assumedSource": "fr-none",
+          "rowS": 7.280962219059676
+        },
+        {
+          "id": "V4-S4/log-link/master-22x22-master",
+          "assumedSource": null,
+          "rowS": 7.280962219059676
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-24x24-master",
+          "assumedSource": "fr-none",
+          "rowS": 7.148457674277852
+        },
+        {
+          "id": "V4-S4/log-link/master-24x24-master",
+          "assumedSource": null,
+          "rowS": 7.148457674277852
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-26x26-master",
+          "assumedSource": "fr-none",
+          "rowS": 9.673088282639402
+        },
+        {
+          "id": "V4-S4/log-link/master-26x26-master",
+          "assumedSource": null,
+          "rowS": 9.673088282639402
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-24x24-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 36.31820835999999
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-24x24-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 36.31820835999999
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-24x24-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 36.31820835999999
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-14x14-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 114.06236434
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-14x14-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 114.06236434
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-14x14-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 114.06236434
+        }
+      ]
+    },
+    "correctedOpusScenario": {
+      "totals": {
+        "V4-S4": {
+          "node": 26491.602494109055,
+          "invocations": 91,
+          "minutesQuiet15": 464.2767082351509,
+          "minutesQuiet45": 509.7767082351509
+        },
+        "V4-S4C": {
+          "node": 9800.00569260253,
+          "invocations": 26,
+          "minutesQuiet15": 169.83342821004217,
+          "minutesQuiet45": 182.83342821004217
+        }
+      },
+      "mapping": [
+        {
+          "id": "V4-S4/fr-frozen/val-14x14-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 9.95880668
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-14x14-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 23.952553159999994
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-15x15b10-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 10.738512539999999
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-15x15b10-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 24.33194566
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-12x12-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 16.5131302
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-12x12-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 16.5131302
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-16x16-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 10.084914979999999
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-16x16-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 21.100461739999997
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-15x20-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 10.499789439999999
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-15x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 17.208827579999998
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-26x26-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 33.03877722
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-26x26-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 33.03877722
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-20x20-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 36.97333724
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-20x20-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 36.97333724
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-3x29-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 6.522449644509549
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-3x29-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 6.522449644509549
+        },
+        {
+          "id": "V4-S4/log-link/val-3x29-nightmare",
+          "assumedSource": null,
+          "rowS": 6.522449644509549
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-10x10-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 19.75551822
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-10x10-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 19.75551822
+        },
+        {
+          "id": "V4-S4/log-link/val-10x10-nightmare",
+          "assumedSource": null,
+          "rowS": 25.966522278418612
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-18x18-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 39.247635677853964
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-18x18-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 39.247635677853964
+        },
+        {
+          "id": "V4-S4/log-link/val-18x18-nightmare",
+          "assumedSource": null,
+          "rowS": 39.247635677853964
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-18x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.296731705686877
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-18x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.296731705686877
+        },
+        {
+          "id": "V4-S4/log-link/val-18x20-nightmare",
+          "assumedSource": null,
+          "rowS": 18.296731705686877
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-20x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 22.453525218216395
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-20x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 22.453525218216395
+        },
+        {
+          "id": "V4-S4/log-link/val-20x20-nightmare",
+          "assumedSource": null,
+          "rowS": 22.453525218216395
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-20x21-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 25.845405607876845
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-20x21-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 25.845405607876845
+        },
+        {
+          "id": "V4-S4/log-link/val-20x21-nightmare",
+          "assumedSource": null,
+          "rowS": 25.845405607876845
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-32x15-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 12.954626261507073
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-32x15-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 12.954626261507073
+        },
+        {
+          "id": "V4-S4/log-link/val-32x15-nightmare",
+          "assumedSource": null,
+          "rowS": 12.954626261507073
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-22x22-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.81300295484614
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-22x22-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.81300295484614
+        },
+        {
+          "id": "V4-S4/log-link/val-22x22-nightmare",
+          "assumedSource": null,
+          "rowS": 18.81300295484614
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-24x24-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 20.175129419629773
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-24x24-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 20.175129419629773
+        },
+        {
+          "id": "V4-S4/log-link/val-24x24-nightmare",
+          "assumedSource": null,
+          "rowS": 20.175129419629773
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-26x26-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 13.042331259999997
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-26x26-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.439380779999997
+        },
+        {
+          "id": "V4-S4/log-link/val-26x26-nightmare",
+          "assumedSource": null,
+          "rowS": 20.162456583723777
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-14x14-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 9.95880668
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-15x15b10-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 10.738512539999999
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-12x12-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 16.5131302
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-16x16-nightmare",
+          "assumedSource": "fr-screen",
+          "rowS": 10.084914979999999
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-15x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 17.208827579999998
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-26x26-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 33.03877722
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-20x20-hell-1",
+          "assumedSource": "fr-ps",
+          "rowS": 36.97333724
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-3x29-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 6.522449644509549
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-10x10-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 19.75551822
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-18x18-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 39.247635677853964
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-18x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.296731705686877
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-20x20-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 22.453525218216395
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-20x21-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 25.845405607876845
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-32x15-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 12.954626261507073
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-22x22-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.81300295484614
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-24x24-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 20.175129419629773
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-26x26-nightmare",
+          "assumedSource": "fr-none",
+          "rowS": 18.439380779999997
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-6x10-master",
+          "assumedSource": "fr-none",
+          "rowS": 2.2805848727974793
+        },
+        {
+          "id": "V4-S4/log-link/master-6x10-master",
+          "assumedSource": null,
+          "rowS": 2.2805848727974793
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-3x29-master",
+          "assumedSource": "fr-none",
+          "rowS": 3.0866804387093625
+        },
+        {
+          "id": "V4-S4/log-link/master-3x29-master",
+          "assumedSource": null,
+          "rowS": 3.0866804387093625
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-10x10-master",
+          "assumedSource": "fr-none",
+          "rowS": 10.299341420406513
+        },
+        {
+          "id": "V4-S4/log-link/master-10x10-master",
+          "assumedSource": null,
+          "rowS": 10.299341420406513
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-12x12-master",
+          "assumedSource": "fr-none",
+          "rowS": 7.1926594650287266
+        },
+        {
+          "id": "V4-S4/log-link/master-12x12-master",
+          "assumedSource": null,
+          "rowS": 7.1926594650287266
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-14x14-master",
+          "assumedSource": "fr-none",
+          "rowS": 3.713775357904012
+        },
+        {
+          "id": "V4-S4/log-link/master-14x14-master",
+          "assumedSource": null,
+          "rowS": 3.713775357904012
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-15x15b10-master",
+          "assumedSource": "fr-none",
+          "rowS": 6.3650020724399825
+        },
+        {
+          "id": "V4-S4/log-link/master-15x15b10-master",
+          "assumedSource": null,
+          "rowS": 6.3650020724399825
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-16x16-master",
+          "assumedSource": "fr-none",
+          "rowS": 5.784367274616292
+        },
+        {
+          "id": "V4-S4/log-link/master-16x16-master",
+          "assumedSource": null,
+          "rowS": 5.784367274616292
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-15x20-master",
+          "assumedSource": "fr-none",
+          "rowS": 5.16024999024204
+        },
+        {
+          "id": "V4-S4/log-link/master-15x20-master",
+          "assumedSource": null,
+          "rowS": 5.16024999024204
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-18x18-master",
+          "assumedSource": "fr-none",
+          "rowS": 4.714683416394261
+        },
+        {
+          "id": "V4-S4/log-link/master-18x18-master",
+          "assumedSource": null,
+          "rowS": 4.714683416394261
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-18x20-master",
+          "assumedSource": "fr-none",
+          "rowS": 4.568342118186918
+        },
+        {
+          "id": "V4-S4/log-link/master-18x20-master",
+          "assumedSource": null,
+          "rowS": 4.568342118186918
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-20x20-master",
+          "assumedSource": "fr-none",
+          "rowS": 5.723931698070645
+        },
+        {
+          "id": "V4-S4/log-link/master-20x20-master",
+          "assumedSource": null,
+          "rowS": 5.723931698070645
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-20x21-master",
+          "assumedSource": "fr-none",
+          "rowS": 5.2201110549299585
+        },
+        {
+          "id": "V4-S4/log-link/master-20x21-master",
+          "assumedSource": null,
+          "rowS": 5.2201110549299585
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-32x15-master",
+          "assumedSource": "fr-none",
+          "rowS": 5.8204254301583624
+        },
+        {
+          "id": "V4-S4/log-link/master-32x15-master",
+          "assumedSource": null,
+          "rowS": 5.8204254301583624
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-22x22-master",
+          "assumedSource": "fr-none",
+          "rowS": 7.280962219059676
+        },
+        {
+          "id": "V4-S4/log-link/master-22x22-master",
+          "assumedSource": null,
+          "rowS": 7.280962219059676
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-24x24-master",
+          "assumedSource": "fr-none",
+          "rowS": 7.148457674277852
+        },
+        {
+          "id": "V4-S4/log-link/master-24x24-master",
+          "assumedSource": null,
+          "rowS": 7.148457674277852
+        },
+        {
+          "id": "V4-S4/fr-frozen/master-26x26-master",
+          "assumedSource": "fr-none",
+          "rowS": 9.673088282639402
+        },
+        {
+          "id": "V4-S4/log-link/master-26x26-master",
+          "assumedSource": null,
+          "rowS": 9.673088282639402
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-24x24-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 36.31820835999999
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-24x24-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 36.31820835999999
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-24x24-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 36.31820835999999
+        },
+        {
+          "id": "V4-S4/fr-frozen/val-14x14-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 114.06236434
+        },
+        {
+          "id": "V4-S4/fr-frozen-none/val-14x14-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 114.06236434
+        },
+        {
+          "id": "V4-S4C/shipped-uncapped/val-14x14-hell-1",
+          "assumedSource": "fr-base",
+          "rowS": 114.06236434
+        }
+      ]
+    }
+  }
+}
