@@ -2593,6 +2593,15 @@ price, and each approval is asked again with `approval --plan <id>` when it is n
   gate of the task: `approval` then `run-task.ps1 -DryRun` with the requested cumulative cap (a dry run without `-LockHelper`, the only run that may
   pass a cap above the granted one), and a last dry run with the counted minutes already spent, rounded down, which stops honestly.
 
+### Written plans (stages 2 to 4 pack)
+
+`manifest.mjs write-plan --plan <id> --label frozen --source-label <SL>` writes `plans/<id>.json` (and its item manifests under
+`plans/items/`) once, `generatedBy` `manifest.mjs write-plan`, from `writtenPlan(id)`, which uses T11c's `rowStep`, `parityPass`, `planOf` and
+`stepPrice` and the step builders `gateStep`, `firewallSnapshotStep`, `treesStep`, `publishStep` and `firewallCheckStep` (exported for it); an
+existing plan or item manifest is refused (`plan exists: a plan is never rewritten`), and `compile` is never run again (N-V4-02). Plans:
+`V4-S2B` (the control pilot: `fr-none` on the eight unpiloted Nightmare controls, reps 0 to 4, 40 rows at 260 s, prerequisite the accepted P-1
+binding of `fr-none`; allocation 23 min, guard 28.24 min). Self-test (`--items`, unlocked): `write-plan: V4-S2B`.
+
 ## Phase-1 bench of P6 (V4-T14)
 
 Not a run plan (`run-task.ps1` does not run it): the production bench of the old version (main `3fc65f4`) and the new one (the commit

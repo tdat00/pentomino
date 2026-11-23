@@ -22,6 +22,7 @@
 //   node tools\ig-proto\manifest.mjs verdict-input --purpose <selection|final> --activation <record> [--selection <receipt>] --out <manifest> --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs price --label frozen --source-label "frozen 3fc65f4"
 //   node tools\ig-proto\manifest.mjs approval --plan <id> [--after <ids>] [--optional] --label frozen --source-label "frozen 3fc65f4"
+//   node tools\ig-proto\manifest.mjs write-plan --plan <id> --label frozen --source-label "frozen 3fc65f4"
 //
 // The row-level readings (`runStatus`, `reachedTen`) are those of verdicts.mjs, which loads the frozen source when it is
 // imported: self-test.mjs therefore loads this module on first use, as it does verdicts.mjs.
@@ -1120,28 +1121,28 @@ export function planOf({ task, generatedBy, runnable, blockedBy, prerequisites, 
 }
 
 /** @param {string} plan @param {Prerequisite[]} prerequisites @returns {Step} The gate: a blocked plan stops here, at its first step. */
-const gateStep = (plan, prerequisites) => unlockedStep('prerequisites', [`${IG}manifest.mjs`, 'check-prerequisites', '--plan', plan], {
+export const gateStep = (plan, prerequisites) => unlockedStep('prerequisites', [`${IG}manifest.mjs`, 'check-prerequisites', '--plan', plan], {
   consumes: prerequisites.flatMap((p) => (p.type === 'file' || p.type === 'accepted' ? [p.path] : p.type === 'selection' ? [p.activation] : [])),
   expect: 'prerequisites: pass',
 });
 
 /** @param {string} task @returns {Step} */
-const firewallSnapshotStep = (task) => unlockedStep('firewall-snapshot', [`${IG}firewall.mjs`, 'snapshot', '--task', task], {
+export const firewallSnapshotStep = (task) => unlockedStep('firewall-snapshot', [`${IG}firewall.mjs`, 'snapshot', '--task', task], {
   dependsOn: ['prerequisites'], produces: [`${RAW}/${task}/firewall-before.json`], expect: `firewall: snapshot of ${task}`,
 });
 
 /** @param {string} task @returns {Step} */
-const firewallCheckStep = (task) => unlockedStep('firewall-check', [`${IG}firewall.mjs`, 'check', '--task', task], {
+export const firewallCheckStep = (task) => unlockedStep('firewall-check', [`${IG}firewall.mjs`, 'check', '--task', task], {
   dependsOn: ['firewall-snapshot'], consumes: [`${RAW}/${task}/firewall-before.json`], expect: `firewall: OK, <n> production files unchanged since the snapshot of ${task}`,
 });
 
 /** @param {readonly string[]} variants @returns {Step} */
-const treesStep = (variants) => unlockedStep('trees', [`${IG}lib\\tree.mjs`, 'build', ...variants], {
+export const treesStep = (variants) => unlockedStep('trees', [`${IG}lib\\tree.mjs`, 'build', ...variants], {
   dependsOn: ['prerequisites'], produces: variants.map(treeFile), expect: '<variant> <treeId> <copyDigest> built|reused, one line per variant',
 });
 
 /** @param {string} task @param {string} arm @param {Step[]} rows The row steps of the arm. @returns {Step} */
-const publishStep = (task, arm, rows) => unlockedStep(`publish-${arm}`, [`${IG}arm.mjs`, 'publish', '--task', task, '--arm', arm], {
+export const publishStep = (task, arm, rows) => unlockedStep(`publish-${arm}`, [`${IG}arm.mjs`, 'publish', '--task', task, '--arm', arm], {
   dependsOn: rows.map((s) => s.id),
   consumes: rows.flatMap((s) => s.produces),
   produces: [`${EVIDENCE}/${task}/${arm}/`],
@@ -1532,6 +1533,88 @@ export function writeCompiled(files, { resolve = abs } = {}) {
     writeJson(resolve(path), value);
   }
   return { written: files.map((f) => f.path), refused };
+}
+
+// ---- Written plans (stages 2 to 4 pack, T02a; D-P24-03) ----
+// The plans of the stages 2 to 4 pack are built with T11c's functions and written once by `write-plan`; `compile` is never run
+// again (N-V4-02). T05b adds `V4-P7` and T10 adds `V4-S3P` to `writtenPlan`.
+
+export const WRITE_PLAN_GENERATED_BY = 'manifest.mjs write-plan';
+/** The eight Nightmare controls that stage 2 did not pilot, in the plan's order (plan 4.6). */
+const S2B_CELLS = Object.freeze(['3x29-nightmare', '18x18-nightmare', '18x20-nightmare', '20x20-nightmare', '20x21-nightmare',
+  '32x15-nightmare', '22x22-nightmare', '24x24-nightmare']);
+const PARITY_FR_NONE = `${EVIDENCE}/V4-S2P/parity-fr-none.accepted.json`;
+
+/**
+ * The plan `id` as `write-plan` writes it, with the item manifests it names (file name under `plans/items/` to content).
+ * @param {string} id `V4-S2B` (T02a; T05b adds `V4-P7`, T10 adds `V4-S3P`).
+ * @param {{ priceOf?: PriceOf, rowSOf?: (group: Group) => number, durations?: Record<string, number> }} [o] `rowSOf`: the
+ *   projected seconds of one row of a group, by default `projectedRowS` of the cell's MP12b1 median (`refS`) and the stage-1
+ *   factor (`factor`), as `compile` takes them.
+ * @returns {{ plan: ReturnType<typeof planOf>, itemManifests: Record<string, any> }}
+ */
+export function writtenPlan(id, { priceOf = stepPrice, rowSOf, durations } = {}) {
+  if (id !== 'V4-S2B') {
+    throw new Error(`manifest: unknown written plan ${id}`);
+  }
+  const ratio = factor();
+  const rowS = rowSOf ?? ((/** @type {Group} */ g) => projectedRowS({ refS: refS(g.cell), factor: ratio, rowLimitS: g.rowLimitS }));
+  const prerequisites = /** @type {Prerequisite[]} */ ([{ type: 'accepted', path: PARITY_FR_NONE, current: ['fr-none'] }]);
+  const rows = S2B_CELLS.map((cell) => {
+    const group = /** @type {any} */ ({ task: 'V4-S2B', arm: 'fr-none', shard: `pilot-${cell}`, cell, from: 0, to: 4, rows: 5, rowLimitS: 260 });
+    return rowStep(group, priceOf, rowS(group));
+  });
+  const plan = planOf({
+    task: 'V4-S2B', generatedBy: WRITE_PLAN_GENERATED_BY, runnable: true, blockedBy: [], prerequisites,
+    steps: [gateStep('V4-S2B', prerequisites), firewallSnapshotStep('V4-S2B'), treesStep(['fr-none']), ...rows,
+      publishStep('V4-S2B', 'fr-none', rows), firewallCheckStep('V4-S2B')],
+  });
+  return { plan, itemManifests: {} };
+}
+
+/**
+ * `write-plan --plan <id> --label frozen --source-label <SL>`: writes `plans/<id>.json` and its item manifests once.
+ * @param {string[]} argv
+ * @param {{ plansDir?: string }} [io] `plansDir`: the folder of the plans (the self-test's seam); the item manifests go under `items/`.
+ * @returns {Promise<number>} 0 once the files are written; 1 for a refusal, with nothing written.
+ */
+export async function writePlanCommand(argv, { plansDir = join(IG_DIR, 'plans') } = {}) {
+  const { args } = parseArgs(argv, { values: ['plan', 'label', 'source-label'] });
+  if (args.label !== 'frozen') {
+    return refuseCommand('write-plan', '--label frozen only');
+  }
+  const id = args.plan;
+  if (typeof id !== 'string' || id === '') {
+    return refuseCommand('write-plan', 'needs --plan <id> (one of V4-S2B)');
+  }
+  /** @type {ReturnType<typeof writtenPlan>} */
+  let built;
+  try {
+    built = writtenPlan(id);
+  } catch (e) {
+    return refuseCommand('write-plan', messageOf(e));
+  }
+  const { plan, itemManifests } = built;
+  const planFile = join(plansDir, `${id}.json`);
+  if (existsSync(planFile)) {
+    return refuseCommand('write-plan', `plan exists: a plan is never rewritten (${rel(planFile)})`);
+  }
+  const itemFiles = Object.entries(itemManifests).map(([name, value]) => ({ file: join(plansDir, 'items', name), value }));
+  for (const { file } of itemFiles) {
+    if (existsSync(file)) {
+      return refuseCommand('write-plan', `item manifest exists: ${rel(file)}`);
+    }
+  }
+  writeJson(planFile, plan);
+  for (const { file, value } of itemFiles) {
+    writeJson(file, value);
+  }
+  const locked = plan.steps.filter((s) => s.locked).length;
+  process.stdout.write(`write-plan: wrote ${rel(planFile)} (${plan.steps.length} steps, ${locked} locked; allocation ${plan.allocationMinutes} min, optional ${plan.optionalMinutes} min)\n`);
+  for (const { file } of itemFiles) {
+    process.stdout.write(`write-plan: wrote ${rel(file)}\n`);
+  }
+  return 0;
 }
 
 /** @param {string} reason @returns {1} */
@@ -3746,9 +3829,10 @@ export async function main(argv) {
   const commands = /** @type {Record<string, (argv: string[]) => Promise<number>>} */ ({
     compile: compileCommand, 'check-prerequisites': checkPrerequisitesCommand, activate: (a) => activateCommand(a), close: (a) => closeCommand(a),
     'resolve-comparators': (a) => resolveComparatorsCommand(a), 'verdict-input': (a) => verdictInputCommand(a), price: (a) => priceCommand(a), approval: (a) => approvalCommand(a),
+        'write-plan': (a) => writePlanCommand(a),
   });
   if (command === undefined || !Object.hasOwn(commands, command)) {
-    return refuse(`unknown command ${command ?? ''} (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input, price, approval)`);
+    return refuse(`unknown command ${command ?? ''} (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input, price, approval, write-plan)`);
   }
   try {
     return await commands[command](rest);

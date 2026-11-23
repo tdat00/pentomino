@@ -190,13 +190,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-23 23:32 +07:00 (dispatch, base `83c78c1`); 2026-11-23 23:47 +07:00 (accepted); 15 min. The developer reported 23:32:19-23:35:48 and, after the ruling, 23:44:08-23:44:43 |
+| Waiting for rulings | about 8 min (QUESTION 1 at 23:36, ruling relayed about 23:44) |
+| Agent id, model | `f6899ad0-9d1d-4b7b-add0-cd8c70da46d4`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 37 calls; 2,600,312 input, 20,995 output, 2,446,712 cache-read tokens |
+| AI credits | 83.86 (developer only) |
+| Questions and rulings | QUESTION 1 (case 181 expected the eight-command list; `write-plan` makes nine): ruling R-P24-02 by SA-Opus, option (a), the one assertion replaced, the case name kept; the same ruling corrected the expected dry-run horizons (885 s for five rows, then 762, 640, 481 s: the plan's own guard of 1,725 s, `lib/budget.mjs:85-90`, not the 747 cap); pack amendment `2038cd6` (T02a, S01, check-list §5.4) |
+| Fix rounds | 0 (the ruling round only) |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T02a-orch`: 208 passed, 0 failed (31.9 s); `write-plan --plan V4-S2B` again: refused, exit 1, file unchanged; `check-prerequisites --plan V4-S2B`: pass; dry run at 747: eight rows `go` (horizons 885 x5, 762, 640, 481), `forecast of the plan: 1,356 s counted (allocation 1,380 s, guard 1,725 s)`; `approval --plan V4-S2B`: spentS 10,252.712, requestedAdditionalGuardS 1,694.624, requestedCumulativeRoundMinutes 200; firewall OK (289); `npm run check` OK; G1, G2 empty; G3 the four Scope files |
+| Commit | this task's commit |
+| Issues and named items | for T05b and T10 (already in their scope): adding `V4-P7` and `V4-S3P` to `writtenPlan` also updates the unknown-command text of case 181 and the README paragraph |

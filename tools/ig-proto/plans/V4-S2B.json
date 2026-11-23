@@ -1,0 +1,494 @@
+{
+  "task": "V4-S2B",
+  "generatedBy": "manifest.mjs write-plan",
+  "runnable": true,
+  "blockedBy": [],
+  "prerequisites": [
+    {
+      "type": "accepted",
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.accepted.json",
+      "current": [
+        "fr-none"
+      ]
+    }
+  ],
+  "allocationMinutes": 23,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "prerequisites",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\manifest.mjs",
+        "check-prerequisites",
+        "--plan",
+        "V4-S2B"
+      ],
+      "optional": false,
+      "dependsOn": [],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.accepted.json"
+      ],
+      "produces": [],
+      "expect": "prerequisites: pass",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\firewall.mjs",
+        "snapshot",
+        "--task",
+        "V4-S2B"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "prerequisites"
+      ],
+      "consumes": [],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/firewall-before.json"
+      ],
+      "expect": "firewall: snapshot of V4-S2B",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\lib\\tree.mjs",
+        "build",
+        "fr-none"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "prerequisites"
+      ],
+      "consumes": [],
+      "produces": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
+      ],
+      "expect": "<variant> <treeId> <copyDigest> built|reused, one line per variant",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-none-pilot-3x29-nightmare",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S2B",
+        "--arm",
+        "fr-none",
+        "--shard",
+        "pilot-3x29-nightmare",
+        "--variant",
+        "fr-none",
+        "--workers",
+        "4",
+        "--cases",
+        "3x29-nightmare:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S2B\\fr-none\\pilot-3x29-nightmare\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 36.86169365318468,
+      "minHorizonS": 272,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 6.972338730636936,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-none-pilot-18x18-nightmare",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S2B",
+        "--arm",
+        "fr-none",
+        "--shard",
+        "pilot-18x18-nightmare",
+        "--variant",
+        "fr-none",
+        "--workers",
+        "4",
+        "--cases",
+        "18x18-nightmare:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S2B\\fr-none\\pilot-18x18-nightmare\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 241.3941063615873,
+      "minHorizonS": 272,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 47.87882127231746,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-none-pilot-18x20-nightmare",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S2B",
+        "--arm",
+        "fr-none",
+        "--shard",
+        "pilot-18x20-nightmare",
+        "--variant",
+        "fr-none",
+        "--workers",
+        "4",
+        "--cases",
+        "18x20-nightmare:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S2B\\fr-none\\pilot-18x20-nightmare\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 110.45095653554299,
+      "minHorizonS": 272,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 21.6901913071086,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-none-pilot-20x20-nightmare",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S2B",
+        "--arm",
+        "fr-none",
+        "--shard",
+        "pilot-20x20-nightmare",
+        "--variant",
+        "fr-none",
+        "--workers",
+        "4",
+        "--cases",
+        "20x20-nightmare:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S2B\\fr-none\\pilot-20x20-nightmare\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 136.4309159888525,
+      "minHorizonS": 272,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 26.886183197770496,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-none-pilot-20x21-nightmare",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S2B",
+        "--arm",
+        "fr-none",
+        "--shard",
+        "pilot-20x21-nightmare",
+        "--variant",
+        "fr-none",
+        "--workers",
+        "4",
+        "--cases",
+        "20x21-nightmare:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S2B\\fr-none\\pilot-20x21-nightmare\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 157.63016842423028,
+      "minHorizonS": 272,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 31.126033684846057,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-none-pilot-32x15-nightmare",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S2B",
+        "--arm",
+        "fr-none",
+        "--shard",
+        "pilot-32x15-nightmare",
+        "--variant",
+        "fr-none",
+        "--workers",
+        "4",
+        "--cases",
+        "32x15-nightmare:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S2B\\fr-none\\pilot-32x15-nightmare\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 77.06279750941921,
+      "minHorizonS": 272,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 15.012559501883842,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-none-pilot-22x22-nightmare",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S2B",
+        "--arm",
+        "fr-none",
+        "--shard",
+        "pilot-22x22-nightmare",
+        "--variant",
+        "fr-none",
+        "--workers",
+        "4",
+        "--cases",
+        "22x22-nightmare:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S2B\\fr-none\\pilot-22x22-nightmare\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 113.6776518427884,
+      "minHorizonS": 272,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 22.33553036855768,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-none-pilot-24x24-nightmare",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S2B",
+        "--arm",
+        "fr-none",
+        "--shard",
+        "pilot-24x24-nightmare",
+        "--variant",
+        "fr-none",
+        "--workers",
+        "4",
+        "--cases",
+        "24x24-nightmare:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S2B\\fr-none\\pilot-24x24-nightmare\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 122.19094224768608,
+      "minHorizonS": 272,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 24.038188449537216,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-none/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "publish-fr-none",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "publish",
+        "--task",
+        "V4-S2B",
+        "--arm",
+        "fr-none"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "rows-fr-none-pilot-3x29-nightmare",
+        "rows-fr-none-pilot-18x18-nightmare",
+        "rows-fr-none-pilot-18x20-nightmare",
+        "rows-fr-none-pilot-20x20-nightmare",
+        "rows-fr-none-pilot-20x21-nightmare",
+        "rows-fr-none-pilot-32x15-nightmare",
+        "rows-fr-none-pilot-22x22-nightmare",
+        "rows-fr-none-pilot-24x24-nightmare"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/state.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/"
+      ],
+      "expect": "arm: published fr-none/<shard>: <n> rows, <m> journal lines (one line per shard)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\firewall.mjs",
+        "check",
+        "--task",
+        "V4-S2B"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "firewall-snapshot"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S2B/firewall-before.json"
+      ],
+      "produces": [],
+      "expect": "firewall: OK, <n> production files unchanged since the snapshot of V4-S2B",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    }
+  ]
+}

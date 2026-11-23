@@ -27,7 +27,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 
 - [x] T01a N-V4-19: publish every done shard of an arm (`arm.mjs publish --done-only`) (depends on none)
 - [x] T01b N-V4-20: the self-test's git guard sees `git -C` and calls inside expressions; `--list` for the gates (depends on T01a)
-- [ ] T02a The plan writer (`manifest.mjs write-plan`) and the plan `V4-S2B` (depends on T01b)
+- [x] T02a The plan writer (`manifest.mjs write-plan`) and the plan `V4-S2B` (depends on T01b)
 - [ ] T02b The fitting reader, part 1: the declared grid, the no-regression preview and the call prefixes (pure) (depends on T02a)
 - [ ] T02c The fitting reader, part 2: the commands `preview` and `prefixes` and their records (depends on T02b)
 - [ ] S01 Run `V4-S2B` and read it (orchestrator, then the SAs; approved by the owner, D-S24-26; the approval re-read before the run) (depends on T02c)
@@ -583,7 +583,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 |---|---|---|---|---|---|
 | T01a | 2026-11-23 23:16 | 2026-11-23 23:28 | 12 min | 70.37 | this task's commit |
 | T01b | 2026-11-23 23:28 | 2026-11-23 23:31 | 5 min | 26.09 | this task's commit |
-| T02a | | | | | |
+| T02a | 2026-11-23 23:32 | 2026-11-23 23:47 | 15 min | 83.86 | this task's commit |
 | T02b | | | | | |
 | T02c | | | | | |
 | S01 | | | | | |

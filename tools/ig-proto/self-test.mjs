@@ -6840,7 +6840,7 @@ const itemCases = [
       // The dispatcher: both commands are reachable, and each refusal below happens before any record is read or written.
       const refused = async (/** @type {string[]} */ argv) => captureOutput(() => m.main(argv));
       const unknown = await refused(['nope']);
-      same([unknown.code, unknown.err], [1, 'manifest: unknown command nope (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input, price, approval)\n'], 'an unknown command lists the eight');
+      same([unknown.code, unknown.err], [1, 'manifest: unknown command nope (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input, price, approval, write-plan)\n'], 'an unknown command lists the nine');
       const wrongLabel = await refused(['activate', '--collection', 'initial', '--label', 'selftest']);
       same([wrongLabel.code, wrongLabel.err], [1, 'manifest: --label frozen only\n'], 'main dispatches activate');
       const wrongArgument = await refused(['activate', '--collection', 'initial', '--bogus', 'x', '--label', 'frozen']);
@@ -8132,6 +8132,44 @@ const itemCases = [
         same(listing(), ['pilot-a.runs.json', 'pilot-a.runs.md', 'pilot-b.runs.json', 'pilot-b.runs.md', 'pilot-c.runs.json', 'pilot-c.runs.md'], 'a changed producer created a file');
       } finally {
         rmSync(join(SELFTEST_DIR, 'S24-T01a-dev'), { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'write-plan: V4-S2B',
+    async run() {
+      const m = await import('./manifest.mjs');
+      const { plan, itemManifests } = m.writtenPlan('V4-S2B');
+      const cells = ['3x29', '18x18', '18x20', '20x20', '20x21', '32x15', '22x22', '24x24'].map((c) => `${c}-nightmare`);
+      same([plan.task, plan.generatedBy, plan.runnable], ['V4-S2B', 'manifest.mjs write-plan', true], 'the plan\'s header');
+      same(plan.prerequisites, [{ type: 'accepted', path: 'docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.accepted.json', current: ['fr-none'] }], 'the prerequisite');
+      same(plan.steps.map((s) => s.id), ['prerequisites', 'firewall-snapshot', 'trees', ...cells.map((c) => `rows-fr-none-pilot-${c}`), 'publish-fr-none', 'firewall-check'], 'the steps in order');
+      same(plan.steps[2].node, ['tools\\ig-proto\\lib\\tree.mjs', 'build', 'fr-none'], 'the trees step');
+      for (const cell of cells) {
+        const step = /** @type {any} */ (plan.steps.find((s) => s.id === `rows-fr-none-pilot-${cell}`));
+        same([step.locked, step.repeatUntilDone, step.minHorizonS, step.optional], [true, true, 272, false], `${cell}: the step's flags`);
+        same(step.node.slice(-6), ['--workers', '4', '--cases', `${cell}:0-4`, '--row-limit-s', '260'], `${cell}: the node's tail`);
+        same(step.state, `V4-S2B\\fr-none\\pilot-${cell}\\state.json`, `${cell}: the state`);
+      }
+      same([plan.allocationMinutes, plan.optionalMinutes, Math.round(m.planGuardS(plan) * 1000) / 1000], [23, 0, 1694.624], 'the approved price');
+      same(itemManifests, {}, 'no item manifest');
+      assert(thrownBy(() => m.writtenPlan('V4-XX')) === 'manifest: unknown written plan V4-XX', 'an unknown plan is refused');
+      const dir = fresh(join(SELFTEST_DIR, 'write-plan', 'run'));
+      try {
+        const argv = ['--plan', 'V4-S2B', '--label', 'frozen', '--source-label', 'self-test'];
+        const first = await captureOutput(() => m.writePlanCommand(argv, { plansDir: dir }));
+        same([first.code, first.err], [0, ''], 'the first write succeeds');
+        const file = join(dir, 'V4-S2B.json');
+        same(JSON.parse(readFileSync(file, 'utf8')), JSON.parse(JSON.stringify(plan)), 'the written plan is the built plan');
+        const bytes = readFileSync(file);
+        const second = await captureOutput(() => m.writePlanCommand(argv, { plansDir: dir }));
+        same(second.code, 1, 'the second write is refused');
+        assert(second.err.startsWith('write-plan: plan exists: a plan is never rewritten ('), `the refusal: ${second.err}`);
+        assert(bytes.equals(readFileSync(file)), 'the second write changed the file');
+        const other = await captureOutput(() => m.writePlanCommand(['--plan', 'V4-XX', '--label', 'frozen', '--source-label', 'self-test'], { plansDir: dir }));
+        same([other.code, other.err], [1, 'write-plan: unknown written plan V4-XX\n'], 'an unknown plan');
+      } finally {
+        rmSync(join(SELFTEST_DIR, 'write-plan'), { recursive: true, force: true });
       }
     },
   },
