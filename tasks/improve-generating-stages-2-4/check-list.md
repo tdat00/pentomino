@@ -39,7 +39,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T04 P7: R5 on the live-row lists (`p7-c1r5`) (depends on T03d; skipped or revised when the pack author's ruling on a dropped `p7-c1` says so)
 - [x] T05a P7 C5: `select`, `liveRowOf` and `listRows` on the lists (`p7-c1r5c5`) (depends on T04; the same rule)
 - [x] T05b P7: the full equality runs and the plan `V4-P7` (depends on T05a; with no eligible composite, no plan)
-- [ ] S02 Run `V4-P7` and write the spike report (orchestrator, then the SAs; approved by the owner up to 20 counted minutes, D-S24-28; the approval re-read before the run; with no eligible composite, the report only) (depends on T05b)
+- [x] S02 Run `V4-P7` and write the spike report (orchestrator, then the SAs; approved by the owner up to 20 counted minutes, D-S24-28; the approval re-read before the run; with no eligible composite, the report only) (depends on T05b)
 - [ ] T06a The prior table `prior-s3-v1` and its generator `fit-prior-s3.mjs` (depends on S02)
 - [ ] T06b P5's call budget by uniqueness mode and the per-set prior's level filter (`p5-mode`, `ps-levels`) (depends on T06a)
 - [ ] T07a The live request deadline in the client and the pool (`live`) (depends on T06b)
@@ -574,7 +574,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 |---|---|---|---|
 | N-V4-01 | Browser calibration (IG-P-Q23) | unpriced browser parts | the owner, when he asks |
 | N-V4-04 | Stage 5 and the second validation (`V4-S4X`, `V4-S4XC`) | unpriced | owner approval per item |
-| N-V4-05 (phase 1) | P7's production adoption of a passing composite, with its own equality, fixture, test and memory gates (D-S24-22) | S02's spike report | phase-1 pack after phase 0 |
+| N-V4-05 (phase 1) | P7's production adoption of a passing composite, with its own equality, fixture, test and memory gates (D-S24-22) | S02's spike report (`docs/improve-generating-stages-2-4/s02-spike-report.md`): `p7-c1`, `p7-c1r5`, `p7-c1r5c5` equal on both tiers and slower, ratios 0.7293, 0.7449, 0.8071 | **closed by S02: no composite is a go, so no P7 item for phase 1**; a later kernel proposal is new work with its own approval |
 | N-V4-07 | Phase 2: `gen-v4` in production from the frozen configuration (the budget and deadline tables part of `gen-v4`'s definition; the production `W_screen` from the class verdicts with `freeze.json`'s bounds; `require` keeps the frozen budget until N-V4-15 measures it), with the frozen round's validation repeated on the production code | plan §4.9 | pack after N-V4-06 passes |
 | N-V4-08 to N-V4-11 | Offers, the blind play comparison, the service level, phase 4 | plan v4 §6 | later; owner decisions |
 | N-V4-14 | A tighter bound or relaxation for 257+ cells | `report.md` §1.4 | a new proposal only if wanted (D-S24-18) |
@@ -606,7 +606,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T04 | 2026-11-24 02:21 | 2026-11-24 02:35 | 15 min | 32.64 | this task's commit |
 | T05a | 2026-11-24 02:36 | 2026-11-24 02:49 | 14 min | 31.09 | this task's commit |
 | T05b | 2026-11-24 02:50 | 2026-11-24 04:25 | 96 min | 93.40 | this task's commit |
-| S02 | | | | | |
+| S02 | 2026-11-24 04:25 | 2026-11-24 05:10 | about 47 min (run 14 min) | – (orchestrator run; SA report in the SA agents) | this task's commit |
 | T06a | | | | | |
 | T06b | | | | | |
 | T07a | | | | | |

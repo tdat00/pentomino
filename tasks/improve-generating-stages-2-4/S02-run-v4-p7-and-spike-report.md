@@ -129,11 +129,11 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Approval re-read (line; cap on the account) | |
-| Counted minutes of the run; the round's account after it | |
-| Questions and rulings | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 04:25 +07:00 (pre-checks, base `6666666`); the run 04:26-04:40 (detached, shell `v4-p7-run1`, runner PID 19088, exit 0); the SAs' spike report 04:42-05:12; accepted 2026-11-24 05:10 +07:00 |
+| Waiting for rulings | none (the SAs' spike report, about 30 min, one review round) |
+| Approval re-read (line; cap on the account) | `{"plan":"V4-P7","spentS":11086.156,"assumedEarlierGuardS":0,"roundCountedSBeforeApproval":11086.156,"requestedAdditionalGuardS":1162.1718749999993,"requestedCumulativeRoundMinutes":205}`; guard 1,162.2 s <= 1,200 (the owner's 20 minutes, D-S24-28); cap on the account ceil((11,086.156 + 87.4 + 1,162.172) / 60) = 206 <= 749 |
+| Counted minutes of the run; the round's account after it | 801.167 counted s (13.35 min; time-p7-c1 273.17, time-p7-c1r5 269.628, time-p7-c1r5c5 258.4; each quietS 15, horizonS <= 885, killed false, exit 0); the round's account 11,887.323 s logged + 87.4 s off-log = 11,974.7 s (199.6 of 749 counted minutes) |
+| Questions and rulings | none; go per D-P24-05: `p7-c1` no (ratio 0.7293), `p7-c1r5` no (0.7449), `p7-c1r5c5` no (0.8071), each quick ok, full ok, timing measured, 90 of 90 pairs, none differing; the SAs' joint spike report `docs/improve-generating-stages-2-4/s02-spike-report.md` (SA-Astra's two explanation corrections applied verbatim); N-V4-05 closed: no P7 item for phase 1; the frozen arms keep the reference kernel (D-S24-22) |
+| Gates re-run by the orchestrator | steps 1-3: no runner active; `git status -- core generator` empty; prerequisites pass; dry run 3 `go` (885, 835, 525 s; forecast 930 s); step 4: runner alive, log started; step 5: first invocation quietS 15, horizonS 885; step 6: exit 0, the three `bind-*` steps bound, `report` wrote `V4-P7/p7.json` with three go lines, `firewall: OK, 289`; G1, G2 empty |
+| Commit | this task's commit |
+| Issues and named items | N-V4-05 closed (check-list §6.1) |

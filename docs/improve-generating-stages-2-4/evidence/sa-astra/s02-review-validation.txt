@@ -1,0 +1,236 @@
+SA-Astra S02 review: existing observations, pure validators and arithmetic only; no engine, git or measured run.
+COMMAND: node docs\improve-generating-stages-2-4\evidence\sa-astra\s02-review-checks.mjs --label frozen
+{
+  "composites": [
+    {
+      "candidate": "p7-c1",
+      "equality": {
+        "quick": {
+          "items": 149,
+          "equal": 149,
+          "lists": 277,
+          "reference": 39,
+          "memory": 16,
+          "budgetBreaks": 0,
+          "bound": true
+        },
+        "full": {
+          "items": 713,
+          "equal": 713,
+          "lists": 1040,
+          "reference": 39,
+          "memory": 16,
+          "budgetBreaks": 0,
+          "bound": true
+        }
+      },
+      "ratio": 0.729326458884517,
+      "geo": 0.7285501024012293,
+      "refS": 107.76507700000002,
+      "candS": 147.75972499999997,
+      "capped": 33,
+      "ratedOnlyRatio": 0.755560336391495,
+      "rounds": [
+        0.724765371904511,
+        0.7309725755604882,
+        0.7323124614420599
+      ],
+      "go": false
+    },
+    {
+      "candidate": "p7-c1r5",
+      "equality": {
+        "quick": {
+          "items": 149,
+          "equal": 149,
+          "lists": 277,
+          "reference": 39,
+          "memory": 16,
+          "budgetBreaks": 0,
+          "bound": true
+        },
+        "full": {
+          "items": 713,
+          "equal": 713,
+          "lists": 1040,
+          "reference": 39,
+          "memory": 16,
+          "budgetBreaks": 0,
+          "bound": true
+        }
+      },
+      "ratio": 0.7449059591313169,
+      "geo": 0.7444698369697865,
+      "refS": 107.62916400000003,
+      "candS": 144.48691499999998,
+      "capped": 33,
+      "ratedOnlyRatio": 0.7789082942127835,
+      "rounds": [
+        0.7470345651915173,
+        0.7479165536574258,
+        0.7397875137569561
+      ],
+      "go": false
+    },
+    {
+      "candidate": "p7-c1r5c5",
+      "equality": {
+        "quick": {
+          "items": 149,
+          "equal": 149,
+          "lists": 277,
+          "reference": 39,
+          "memory": 16,
+          "budgetBreaks": 0,
+          "bound": true
+        },
+        "full": {
+          "items": 713,
+          "equal": 713,
+          "lists": 1040,
+          "reference": 39,
+          "memory": 16,
+          "budgetBreaks": 0,
+          "bound": true
+        }
+      },
+      "ratio": 0.8070586538518749,
+      "geo": 0.8125627794559566,
+      "refS": 107.56237799999997,
+      "candS": 133.27702699999998,
+      "capped": 33,
+      "ratedOnlyRatio": 0.8593986790385341,
+      "rounds": [
+        0.8100631695813272,
+        0.8164054427122923,
+        0.7948817854387794
+      ],
+      "go": false
+    }
+  ],
+  "counters": [
+    {
+      "caseId": "10x10-nightmare",
+      "calls": 62512,
+      "pieces": 358126,
+      "staticRows": 49038755,
+      "liveRows": 12906382,
+      "dirtyPieces": 303704,
+      "countChanged": 256261,
+      "r4Kills": 174356,
+      "kills": 19381808,
+      "undoEntries": 20998072,
+      "firstScanDead": 36132373,
+      "sixTimesTrailProxy": 242279280,
+      "proxyRatio": 6.7053243361569415
+    },
+    {
+      "caseId": "12x12-nightmare",
+      "calls": 35435,
+      "pieces": 241291,
+      "staticRows": 54618964,
+      "liveRows": 17899427,
+      "dirtyPieces": 207528,
+      "countChanged": 178716,
+      "r4Kills": 101482,
+      "kills": 26565884,
+      "undoEntries": 27852820,
+      "firstScanDead": 36719537,
+      "sixTimesTrailProxy": 326512224,
+      "proxyRatio": 8.892057217388118
+    },
+    {
+      "caseId": "14x14-nightmare",
+      "calls": 26579,
+      "pieces": 236298,
+      "staticRows": 84369254,
+      "liveRows": 28080304,
+      "dirtyPieces": 201855,
+      "countChanged": 177309,
+      "r4Kills": 89306,
+      "kills": 32479510,
+      "undoEntries": 33532534,
+      "firstScanDead": 56288950,
+      "sixTimesTrailProxy": 396072264,
+      "proxyRatio": 7.036412368679821
+    },
+    {
+      "caseId": "26x26-nightmare",
+      "calls": 773,
+      "pieces": 9440,
+      "staticRows": 11727022,
+      "liveRows": 6844640,
+      "dirtyPieces": 8884,
+      "countChanged": 8218,
+      "r4Kills": 6977,
+      "kills": 6177208,
+      "undoEntries": 6267959,
+      "firstScanDead": 4882382,
+      "sixTimesTrailProxy": 74671002,
+      "proxyRatio": 15.293969623843443
+    },
+    {
+      "caseId": "26x26-hell-1",
+      "calls": 1428,
+      "pieces": 33193,
+      "staticRows": 66033001,
+      "liveRows": 39013802,
+      "dirtyPieces": 29459,
+      "countChanged": 28047,
+      "r4Kills": 40359,
+      "kills": 18466486,
+      "undoEntries": 18572738,
+      "firstScanDead": 27019199,
+      "sixTimesTrailProxy": 222235344,
+      "proxyRatio": 8.225090018397658
+    }
+  ],
+  "profiles": [
+    {
+      "caseId": "14x14-nightmare",
+      "totalMs": 10629.44499999993,
+      "deduceMs": 10099.632999999947,
+      "r4Ms": 1761.0880000000013,
+      "r4Share": 0.17437148458760932,
+      "r4TotalShare": 0.16568014604713724,
+      "selectUndoKillShare": 0.25803373251285633,
+      "selectUndoKillTotalShare": 0.24517234907373056,
+      "diagnosticTotalAmdahlOnly": 1.1985810900485867,
+      "diagnosticAmdahlOnly": 1.2111984764728154
+    },
+    {
+      "caseId": "26x26-nightmare",
+      "totalMs": 3646.2240000000083,
+      "deduceMs": 2324.6550000000007,
+      "r4Ms": 691.245,
+      "r4Share": 0.2973538008865831,
+      "r4TotalShare": 0.18957831444255713,
+      "selectUndoKillShare": 0.3377468914742186,
+      "selectUndoKillTotalShare": 0.21533098350512697,
+      "diagnosticTotalAmdahlOnly": 1.2339255202828845,
+      "diagnosticAmdahlOnly": 1.4231913604055317
+    }
+  ],
+  "referenceSpread": 0.0018844786045921326,
+  "account": {
+    "countedS": 801.167,
+    "countedMinutes": 13.352783333333333,
+    "beforeLoggedS": 11086.156,
+    "afterLoggedS": 11887.323,
+    "offLogS": 87.4,
+    "afterMinutes": 199.57871666666668,
+    "guardS": 1162.1718749999993,
+    "cumulativeCap": 206
+  },
+  "indexedInputs": 64
+}
+COMMAND: npm run check
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+PASS: all 64 reviewed input byte hashes unchanged.
+PASS: new review/evidence formatted as CRLF, UTF-8 without BOM, no trailing whitespace, final newline.
+Conclusion: all no-go decisions and N-V4-05 closure agreed. Two explanation corrections: profile denominator and operation-count proxy/generalization.

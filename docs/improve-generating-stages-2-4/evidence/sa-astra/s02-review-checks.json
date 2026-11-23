@@ -1,0 +1,1685 @@
+{
+  "scope": "Existing records and pure arithmetic/validators only. No engine, tree construction, git or measured run.",
+  "composites": [
+    {
+      "candidate": "p7-c1",
+      "tiers": {
+        "quick": {
+          "items": 149,
+          "equal": 149,
+          "lists": 277,
+          "reference": 39,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            }
+          ],
+          "memoryEntries": 16,
+          "budgetBreaks": 0,
+          "complete": true,
+          "canonicalLists": 30,
+          "memRef": 35,
+          "binding": {
+            "ok": true
+          }
+        },
+        "full": {
+          "items": 713,
+          "equal": 713,
+          "lists": 1040,
+          "reference": 39,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            }
+          ],
+          "memoryEntries": 16,
+          "budgetBreaks": 0,
+          "complete": true,
+          "canonicalLists": 30,
+          "memRef": 35,
+          "binding": {
+            "ok": true
+          }
+        }
+      },
+      "all": {
+        "n": 90,
+        "capped": 33,
+        "refMs": 107765.07700000002,
+        "candMs": 147759.72499999998,
+        "ratio": 0.729326458884517,
+        "geo": 0.7285501024012293,
+        "minRatio": 0.47095039025220997,
+        "maxRatio": 0.9541899473111034
+      },
+      "byCase": {
+        "10x10-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refMs": 14678.675000000003,
+          "candMs": 18102.85,
+          "ratio": 0.8108488442427576,
+          "geo": 0.7958269697340241,
+          "minRatio": 0.7338517870613799,
+          "maxRatio": 0.9418120371535295
+        },
+        "12x12-nightmare": {
+          "n": 18,
+          "capped": 3,
+          "refMs": 19340.685999999998,
+          "candMs": 26449.316,
+          "ratio": 0.7312357718437784,
+          "geo": 0.7534844803440626,
+          "minRatio": 0.6431704332971675,
+          "maxRatio": 0.8919112109381334
+        },
+        "14x14-nightmare": {
+          "n": 18,
+          "capped": 12,
+          "refMs": 29107.107000000007,
+          "candMs": 38879.146,
+          "ratio": 0.7486560275783837,
+          "geo": 0.7640668573703464,
+          "minRatio": 0.6401078037882644,
+          "maxRatio": 0.9541899473111034
+        },
+        "26x26-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refMs": 9753.507,
+          "candMs": 16062.874,
+          "ratio": 0.6072080874194742,
+          "geo": 0.6134184785133805,
+          "minRatio": 0.47095039025220997,
+          "maxRatio": 0.9525634524096536
+        },
+        "26x26-hell-1": {
+          "n": 18,
+          "capped": 18,
+          "refMs": 34885.10199999999,
+          "candMs": 48265.539,
+          "ratio": 0.7227745244904443,
+          "geo": 0.7303246129068626,
+          "minRatio": 0.5827574255345965,
+          "maxRatio": 0.8285067049059518
+        }
+      },
+      "byRound": {
+        "0": {
+          "n": 30,
+          "capped": 11,
+          "refMs": 36057.702,
+          "candMs": 49750.861999999994,
+          "ratio": 0.724765371904511,
+          "geo": 0.717352437704317,
+          "minRatio": 0.4919173341011523,
+          "maxRatio": 0.9418120371535295
+        },
+        "1": {
+          "n": 30,
+          "capped": 11,
+          "refMs": 35862.554000000004,
+          "candMs": 49061.422000000006,
+          "ratio": 0.7309725755604882,
+          "geo": 0.729740340151958,
+          "minRatio": 0.47095039025220997,
+          "maxRatio": 0.8919112109381334
+        },
+        "2": {
+          "n": 30,
+          "capped": 11,
+          "refMs": 35844.820999999996,
+          "candMs": 48947.44099999999,
+          "ratio": 0.7323124614420599,
+          "geo": 0.7387157140286357,
+          "minRatio": 0.524784665880751,
+          "maxRatio": 0.9541899473111034
+        }
+      },
+      "rated": {
+        "n": 57,
+        "capped": 0,
+        "refMs": 42912.95899999998,
+        "candMs": 56796.20400000001,
+        "ratio": 0.755560336391495,
+        "geo": 0.730036994333034,
+        "minRatio": 0.47095039025220997,
+        "maxRatio": 0.9525634524096536
+      },
+      "capped": {
+        "n": 33,
+        "capped": 33,
+        "refMs": 64852.117999999995,
+        "candMs": 90963.52100000001,
+        "ratio": 0.7129464348681048,
+        "geo": 0.7259889640164003,
+        "minRatio": 0.5827574255345965,
+        "maxRatio": 0.9541899473111034
+      },
+      "decision": {
+        "go": false,
+        "reasons": [
+          "ratio 0.729326458884517 below 1.04"
+        ]
+      }
+    },
+    {
+      "candidate": "p7-c1r5",
+      "tiers": {
+        "quick": {
+          "items": 149,
+          "equal": 149,
+          "lists": 277,
+          "reference": 39,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            }
+          ],
+          "memoryEntries": 16,
+          "budgetBreaks": 0,
+          "complete": true,
+          "canonicalLists": 30,
+          "memRef": 35,
+          "binding": {
+            "ok": true
+          }
+        },
+        "full": {
+          "items": 713,
+          "equal": 713,
+          "lists": 1040,
+          "reference": 39,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            }
+          ],
+          "memoryEntries": 16,
+          "budgetBreaks": 0,
+          "complete": true,
+          "canonicalLists": 30,
+          "memRef": 35,
+          "binding": {
+            "ok": true
+          }
+        }
+      },
+      "all": {
+        "n": 90,
+        "capped": 33,
+        "refMs": 107629.16400000003,
+        "candMs": 144486.91499999998,
+        "ratio": 0.7449059591313169,
+        "geo": 0.7444698369697865,
+        "minRatio": 0.4648929146862589,
+        "maxRatio": 0.9823505484429185
+      },
+      "byCase": {
+        "10x10-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refMs": 14664.553,
+          "candMs": 17369.343,
+          "ratio": 0.8442779326771311,
+          "geo": 0.8339511969260127,
+          "minRatio": 0.7746857933864184,
+          "maxRatio": 0.9823505484429185
+        },
+        "12x12-nightmare": {
+          "n": 18,
+          "capped": 3,
+          "refMs": 19343.575999999994,
+          "candMs": 25422.584000000003,
+          "ratio": 0.760881584657169,
+          "geo": 0.7761270041891677,
+          "minRatio": 0.6788695003383517,
+          "maxRatio": 0.9137254310637305
+        },
+        "14x14-nightmare": {
+          "n": 18,
+          "capped": 12,
+          "refMs": 28996.559,
+          "candMs": 37750.191,
+          "ratio": 0.7681168818457105,
+          "geo": 0.7788222094928559,
+          "minRatio": 0.6693883240362734,
+          "maxRatio": 0.917551125840896
+        },
+        "26x26-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refMs": 9985.327,
+          "candMs": 15981.551000000003,
+          "ratio": 0.6248033748414029,
+          "geo": 0.6226702852736061,
+          "minRatio": 0.4648929146862589,
+          "maxRatio": 0.7898480718228306
+        },
+        "26x26-hell-1": {
+          "n": 18,
+          "capped": 18,
+          "refMs": 34639.149000000005,
+          "candMs": 47963.24600000001,
+          "ratio": 0.7222019335388602,
+          "geo": 0.7285605193604253,
+          "minRatio": 0.5901596330944034,
+          "maxRatio": 0.8308484914248992
+        }
+      },
+      "byRound": {
+        "0": {
+          "n": 30,
+          "capped": 11,
+          "refMs": 35976.847,
+          "candMs": 48159.54799999999,
+          "ratio": 0.7470345651915173,
+          "geo": 0.7517702336361755,
+          "minRatio": 0.5275059150250024,
+          "maxRatio": 0.9823505484429185
+        },
+        "1": {
+          "n": 30,
+          "capped": 11,
+          "refMs": 35931.253,
+          "candMs": 48041.794,
+          "ratio": 0.7479165536574258,
+          "geo": 0.7462355002371289,
+          "minRatio": 0.4648929146862589,
+          "maxRatio": 0.917551125840896
+        },
+        "2": {
+          "n": 30,
+          "capped": 11,
+          "refMs": 35721.064000000006,
+          "candMs": 48285.573,
+          "ratio": 0.7397875137569561,
+          "geo": 0.7354959541680229,
+          "minRatio": 0.5090357919642142,
+          "maxRatio": 0.9084597100320697
+        }
+      },
+      "rated": {
+        "n": 57,
+        "capped": 0,
+        "refMs": 43051.73200000001,
+        "candMs": 55271.88799999999,
+        "ratio": 0.7789082942127835,
+        "geo": 0.750116884209568,
+        "minRatio": 0.4648929146862589,
+        "maxRatio": 0.9823505484429185
+      },
+      "capped": {
+        "n": 33,
+        "capped": 33,
+        "refMs": 64577.43199999999,
+        "candMs": 89215.02700000002,
+        "ratio": 0.7238403010291078,
+        "geo": 0.7348157955606058,
+        "minRatio": 0.5901596330944034,
+        "maxRatio": 0.917551125840896
+      },
+      "decision": {
+        "go": false,
+        "reasons": [
+          "ratio 0.7449059591313169 below 1.04"
+        ]
+      }
+    },
+    {
+      "candidate": "p7-c1r5c5",
+      "tiers": {
+        "quick": {
+          "items": 149,
+          "equal": 149,
+          "lists": 277,
+          "reference": 39,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            }
+          ],
+          "memoryEntries": 16,
+          "budgetBreaks": 0,
+          "complete": true,
+          "canonicalLists": 30,
+          "memRef": 35,
+          "binding": {
+            "ok": true
+          }
+        },
+        "full": {
+          "items": 713,
+          "equal": 713,
+          "lists": 1040,
+          "reference": 39,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "expected": "model-too-large",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "expected": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "expected": "reference",
+              "ok": true
+            }
+          ],
+          "memoryEntries": 16,
+          "budgetBreaks": 0,
+          "complete": true,
+          "canonicalLists": 30,
+          "memRef": 35,
+          "binding": {
+            "ok": true
+          }
+        }
+      },
+      "all": {
+        "n": 90,
+        "capped": 33,
+        "refMs": 107562.37799999997,
+        "candMs": 133277.02699999997,
+        "ratio": 0.8070586538518749,
+        "geo": 0.8125627794559566,
+        "minRatio": 0.4810105458793195,
+        "maxRatio": 1.1768631690723974
+      },
+      "byCase": {
+        "10x10-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refMs": 14689.337000000001,
+          "candMs": 14976.655999999999,
+          "ratio": 0.9808155438704076,
+          "geo": 0.9866147579492898,
+          "minRatio": 0.9252037874080942,
+          "maxRatio": 1.1768631690723974
+        },
+        "12x12-nightmare": {
+          "n": 18,
+          "capped": 3,
+          "refMs": 19388.799000000003,
+          "candMs": 22297.842000000004,
+          "ratio": 0.8695370161830009,
+          "geo": 0.8684128624388822,
+          "minRatio": 0.8003627693832477,
+          "maxRatio": 0.9639216435129933
+        },
+        "14x14-nightmare": {
+          "n": 18,
+          "capped": 12,
+          "refMs": 28971.438000000006,
+          "candMs": 34054.630000000005,
+          "ratio": 0.8507341879797256,
+          "geo": 0.8540952633084373,
+          "minRatio": 0.7502059432635916,
+          "maxRatio": 0.9821904858282094
+        },
+        "26x26-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refMs": 9741.907000000001,
+          "candMs": 14975.413999999999,
+          "ratio": 0.6505267233346606,
+          "geo": 0.6485789817307729,
+          "minRatio": 0.4810105458793195,
+          "maxRatio": 0.7885153885440698
+        },
+        "26x26-hell-1": {
+          "n": 18,
+          "capped": 18,
+          "refMs": 34770.897,
+          "candMs": 46972.485,
+          "ratio": 0.7402396743540394,
+          "geo": 0.746348365973893,
+          "minRatio": 0.6075606364146832,
+          "maxRatio": 0.8516140309987181
+        }
+      },
+      "byRound": {
+        "0": {
+          "n": 30,
+          "capped": 11,
+          "refMs": 35775.612,
+          "candMs": 44163.977999999996,
+          "ratio": 0.8100631695813272,
+          "geo": 0.8190766832092408,
+          "minRatio": 0.5223180012122028,
+          "maxRatio": 1.1768631690723974
+        },
+        "1": {
+          "n": 30,
+          "capped": 11,
+          "refMs": 36126.118,
+          "candMs": 44250.217,
+          "ratio": 0.8164054427122923,
+          "geo": 0.8208348850948457,
+          "minRatio": 0.4810105458793195,
+          "maxRatio": 1.0917100477245794
+        },
+        "2": {
+          "n": 30,
+          "capped": 11,
+          "refMs": 35660.648,
+          "candMs": 44862.831999999995,
+          "ratio": 0.7948817854387794,
+          "geo": 0.7979770599570606,
+          "minRatio": 0.5289754833828885,
+          "maxRatio": 1.0370071721691072
+        }
+      },
+      "rated": {
+        "n": 57,
+        "capped": 0,
+        "refMs": 42870.737,
+        "candMs": 49884.574,
+        "ratio": 0.8593986790385341,
+        "geo": 0.8291280554470927,
+        "minRatio": 0.4810105458793195,
+        "maxRatio": 1.1768631690723974
+      },
+      "capped": {
+        "n": 33,
+        "capped": 33,
+        "refMs": 64691.640999999996,
+        "candMs": 83392.453,
+        "ratio": 0.775749347485917,
+        "geo": 0.7847257835297097,
+        "minRatio": 0.6075606364146832,
+        "maxRatio": 0.9676001845695211
+      },
+      "decision": {
+        "go": false,
+        "reasons": [
+          "ratio 0.8070586538518749 below 1.04"
+        ]
+      }
+    }
+  ],
+  "counters": [
+    {
+      "caseId": "10x10-nightmare",
+      "calls": 62512,
+      "pieces": 358126,
+      "staticRows": 49038755,
+      "liveRows": 12906382,
+      "dirtyPieces": 303704,
+      "countChanged": 256261,
+      "r4Kills": 174356,
+      "kills": 19381808,
+      "undoEntries": 20998072,
+      "firstScanDead": 36132373,
+      "sixTimesTrailProxy": 242279280,
+      "proxyRatio": 6.7053243361569415
+    },
+    {
+      "caseId": "12x12-nightmare",
+      "calls": 35435,
+      "pieces": 241291,
+      "staticRows": 54618964,
+      "liveRows": 17899427,
+      "dirtyPieces": 207528,
+      "countChanged": 178716,
+      "r4Kills": 101482,
+      "kills": 26565884,
+      "undoEntries": 27852820,
+      "firstScanDead": 36719537,
+      "sixTimesTrailProxy": 326512224,
+      "proxyRatio": 8.892057217388118
+    },
+    {
+      "caseId": "14x14-nightmare",
+      "calls": 26579,
+      "pieces": 236298,
+      "staticRows": 84369254,
+      "liveRows": 28080304,
+      "dirtyPieces": 201855,
+      "countChanged": 177309,
+      "r4Kills": 89306,
+      "kills": 32479510,
+      "undoEntries": 33532534,
+      "firstScanDead": 56288950,
+      "sixTimesTrailProxy": 396072264,
+      "proxyRatio": 7.036412368679821
+    },
+    {
+      "caseId": "26x26-nightmare",
+      "calls": 773,
+      "pieces": 9440,
+      "staticRows": 11727022,
+      "liveRows": 6844640,
+      "dirtyPieces": 8884,
+      "countChanged": 8218,
+      "r4Kills": 6977,
+      "kills": 6177208,
+      "undoEntries": 6267959,
+      "firstScanDead": 4882382,
+      "sixTimesTrailProxy": 74671002,
+      "proxyRatio": 15.293969623843443
+    },
+    {
+      "caseId": "26x26-hell-1",
+      "calls": 1428,
+      "pieces": 33193,
+      "staticRows": 66033001,
+      "liveRows": 39013802,
+      "dirtyPieces": 29459,
+      "countChanged": 28047,
+      "r4Kills": 40359,
+      "kills": 18466486,
+      "undoEntries": 18572738,
+      "firstScanDead": 27019199,
+      "sixTimesTrailProxy": 222235344,
+      "proxyRatio": 8.225090018397658
+    }
+  ],
+  "profiles": [
+    {
+      "caseId": "14x14-nightmare",
+      "totalMs": 10629.44499999993,
+      "deduceMs": 10099.632999999947,
+      "r4Ms": 1761.0880000000013,
+      "r4Share": 0.17437148458760932,
+      "r4TotalShare": 0.16568014604713724,
+      "selectUndoKillShare": 0.25803373251285633,
+      "selectUndoKillTotalShare": 0.24517234907373056,
+      "diagnosticTotalAmdahlOnly": 1.1985810900485867,
+      "diagnosticAmdahlOnly": 1.2111984764728154
+    },
+    {
+      "caseId": "26x26-nightmare",
+      "totalMs": 3646.2240000000083,
+      "deduceMs": 2324.6550000000007,
+      "r4Ms": 691.245,
+      "r4Share": 0.2973538008865831,
+      "r4TotalShare": 0.18957831444255713,
+      "selectUndoKillShare": 0.3377468914742186,
+      "selectUndoKillTotalShare": 0.21533098350512697,
+      "diagnosticTotalAmdahlOnly": 1.2339255202828845,
+      "diagnosticAmdahlOnly": 1.4231913604055317
+    }
+  ],
+  "referenceSpread": 0.0018844786045921326,
+  "account": {
+    "countedS": 801.167,
+    "countedMinutes": 13.352783333333333,
+    "beforeLoggedS": 11086.156,
+    "afterLoggedS": 11887.323,
+    "offLogS": 87.4,
+    "afterMinutes": 199.57871666666668,
+    "guardS": 1162.1718749999993,
+    "cumulativeCap": 206
+  },
+  "counterLimits": [
+    "r4c undoEntries counts every popped trail entry, including negative column-uncover markers; only row restorations relink lists.",
+    "r4c staticRows/liveRows instrument the first R4 piece-column pass, not its later cleanup or cell-column scans.",
+    "6*(kills+undoEntries)/(staticRows-liveRows) is an explanatory proxy, not the measured number of list updates per skipped R4 row."
+  ],
+  "inputs": [
+    {
+      "path": "tools/ig-proto/data/boards-v1.json",
+      "sha256": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+      "sha256Raw": "9d3aac635db2bbd40ddebc29dc807134e52455e58f6ad2ee9cc15ed9fbfde7b2"
+    },
+    {
+      "path": "tools/ig-proto/data/p7-memory-fixtures.json",
+      "sha256": "d196b2e7b360db1635d2b85a4c86ab57b4ba6bb8085d79097ba453ddb0d763d4",
+      "sha256Raw": "7f525b026de71a7152455a2d18b466f28c5aa0e48432a100d34840cd88d1bd7a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/base/ig-tree.json",
+      "sha256": "75937282c7e8de9c0a087fdea9325b0f326938df04459b9a8fba66a8a343f05a",
+      "sha256Raw": "ad8b48287e09598400ba04e71dde975064301b5cab8f1938d4758b16b100ce8f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/instr/ig-tree.json",
+      "sha256": "92b8794bedea344c8010ac4ca792e1c5849e9d78a1c3f99b6d94d9b8b81cc138",
+      "sha256Raw": "a85f7f9b4ca384e43eb05a6d9319dd06a4d93671b502f4f79ba42e37431aa6aa"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-P7/p7.json",
+      "sha256": "918f6cf80652a5a9cba7ac28468464f81adb216af8106af321f653ee63cbda9d",
+      "sha256Raw": "f880fc15b7243ab565cc26d4685cac151d72c32956baef80c4fa4cfe776d14b3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1/experiment.json",
+      "sha256": "9c350f54ac358c1c8d36cb4d1ead8847550dca995dd7780e08996cfaaea193e8",
+      "sha256Raw": "a00db7fd563bf708dd8d52267f23faea5dcad3714e2a86e2e9c91c49753e9bbc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1/items.jsonl",
+      "sha256": "d03c626d8bc8a3e20b78cda68203b80402d4bbfca67099e136078024dab4dedb",
+      "sha256Raw": "d03c626d8bc8a3e20b78cda68203b80402d4bbfca67099e136078024dab4dedb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1/state.json",
+      "sha256": "2f48e43a771f978908e8bb5f86d113a87e0431e6c9fefd0d322fc51465ac3f13",
+      "sha256Raw": "be95168b3b9a76b59677c4de1a0ad3501252654075d1c7695e523af02f979066"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1-quick/p7.json",
+      "sha256": "33b23e367c418c7f4f632bf80296afa5ea0265eac27b13364370dc7dfa5237f6",
+      "sha256Raw": "6de9318ddeb2719048327fceeffaa62c68c13a3473ffca75077c50418861b89d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1-full/p7.json",
+      "sha256": "8655bb46f995f56e486d34eda28e3aea84b7e2f39b62e6b85a0f02681bbaaa4b",
+      "sha256Raw": "1d69741319ce85dbf8c3c93c53b5ccc7ade43e60dc8844390052f9deca2a6686"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5/experiment.json",
+      "sha256": "8f92d29ac7e0e411132c2520b5b98dd88a8cf8ccca61af203e6fba12efbdede9",
+      "sha256Raw": "8f45b7536fd86512043819c82b17b19c296834f600439a91b55d4525e81a5503"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5/items.jsonl",
+      "sha256": "017e4a11d97dff072b6c48f3606efb580288fcf2bb5b6886d88db08e41b69b47",
+      "sha256Raw": "017e4a11d97dff072b6c48f3606efb580288fcf2bb5b6886d88db08e41b69b47"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5/state.json",
+      "sha256": "240d254c665e5ddad0321a9fe756c60ab37042f02febca5cba55cfb43952de16",
+      "sha256Raw": "e599cc4045af6408d733104659cdbce39866ce57f6251cfe022d31f29c77ce6d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5-quick/p7.json",
+      "sha256": "936d6b327106bc61d603424c484f5f18159a28a473060e05590afd4d0a7893c2",
+      "sha256Raw": "14a5a045a627de478ffb27d7f9289cecb750863339eeb36a36270dc1ca9ca9c3"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5-full/p7.json",
+      "sha256": "b88f51bc5467dfe2ff2d65814801b242d0f70ab254ce12ffbc9647420fcb5c1c",
+      "sha256Raw": "4558a95ef33a3420e25c4969a8483055a0335da65b9d815da0764cba864b9007"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5c5/experiment.json",
+      "sha256": "db27728407b8bbd9f39f7d5a3abe11a1ac25275a85d72473e4a6c3627beaaa47",
+      "sha256Raw": "49ab4b4b0ab7e89ac5612f8586db3c5993c520e50cb52fcf95a89139927ad3a5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5c5/items.jsonl",
+      "sha256": "cf927678a833a5ada8ff6e76b42c53cd8590a41586abfe3e68290aedf19a3b0a",
+      "sha256Raw": "cf927678a833a5ada8ff6e76b42c53cd8590a41586abfe3e68290aedf19a3b0a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5c5/state.json",
+      "sha256": "7c8cbe19f8db83686c6be2e3e715366893f85f53b6af923d2dcd8234a303c303",
+      "sha256Raw": "02d8b1bbe0d6e82fc493851eea48a392bf26be716cba722b78794c1c3d473f20"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5c5-quick/p7.json",
+      "sha256": "eca51d1de851011a76baf7474e17e0df159ffd2221d1ea5e50e5b5000b5500b3",
+      "sha256Raw": "8c8d8d12f548de1606121fc1a0c33d095d66f0db020d5be082246452513a7bc9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5c5-full/p7.json",
+      "sha256": "624fc528379d4f10fd46e46d1811e310371439c0684e9a7f944877e370588286",
+      "sha256Raw": "352d201e555d17e8591ce30822969df2961590a54b0d2579e9dd3f241d38e94c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/p7-c1/ig-tree.json",
+      "sha256": "27219840b4fe14b58299dbc4729b49fb7fdf28789f4692446a7d4af9cafb7484",
+      "sha256Raw": "5720a2f63b52e33e433b54adc197385d3b3f55eedf22452b89b81ca60b81ae1b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1-quick/equal/experiment.json",
+      "sha256": "2c448efe04470028472181ac20069c171fc70360378fe0f8a2becac0058c4f67",
+      "sha256Raw": "52442e7a06f6da8996d90a9d498ad071fb89f27bd7d288f66a6fc6fb7d4a1ad0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1-quick/equal/items.jsonl",
+      "sha256": "50bb7262a43907b75f0260005ad0210dc532a1dfd8408abdc9bbf520a0a704ab",
+      "sha256Raw": "50bb7262a43907b75f0260005ad0210dc532a1dfd8408abdc9bbf520a0a704ab"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1-quick/equal/state.json",
+      "sha256": "23532dd828faeea081971957b36c6f243e7e564ac105751cc3127b90ff14c20a",
+      "sha256Raw": "3a5897548a1c671f433dce94820df91ee945d9b768fa9dc232a757540c216816"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/10x10-nightmare/calls.json",
+      "sha256": "4f20eb7baddc654a37694fe83223004a6727c44e865992dd3dd8580fe5952821",
+      "sha256Raw": "d463206b456770c8d0305e51c39ca43a8d1d2bc5c06fdcecb110c757060b0c67"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/12x12-nightmare/calls.json",
+      "sha256": "d944029dca20f0aad504a6cf5f6f9b9619d7afc264ecf4d601c16a4e0737895d",
+      "sha256Raw": "0163616358fb79dea45f310d753b84292fda2791084d16bd9fe4ab66eab179f9"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/14x14-nightmare/calls.json",
+      "sha256": "0f67c29adb5d65fb0b96f6b0eef822d87b9b7b9e6e83a14b10bf71b115ff4928",
+      "sha256Raw": "ff750728ef4327316a164096dfa58ed7674f2233a7ebfb1024fac5e96df5236d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/15x15b10-nightmare/calls.json",
+      "sha256": "917a423f9415b525cabe7fbc4772fb8389e6a1d8aaa356ad033f18060b3ad4c8",
+      "sha256Raw": "6db3f503f0015dff8c97dfac2b8e17e3ef63d50f5778b60f58a008c0cb9b6369"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-hell-1/calls.json",
+      "sha256": "3119e8bd073fb5f6f09052989c295dee899c4356212bf938f426d138330223a5",
+      "sha256Raw": "05a99645ebd4d08e3f4c7ee8d7a782976f9e293c2f00a12d15aaa54a32be63a0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-master/calls.json",
+      "sha256": "096479f7612f15c9f240d0ac0e1e31b69e4f750be54427db426c8aa376adbc5f",
+      "sha256Raw": "91071b6f20c40de7ac44963f5c256cb5dd6a8e0f091c19d372e196c1a3989444"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-nightmare/calls.json",
+      "sha256": "a1b3acd4ff941fa66d81cd3c17923d9afd9a5b5a2adebf96549adaf1daedbe06",
+      "sha256Raw": "fa871d37e97332df5bca288b88dba4222c6a9665a6089203ee3b8ff01f5e65fb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1-full/equal/experiment.json",
+      "sha256": "19e705d5a2041ff00864f771fdfb11b8958762b4e95aa52d70e458afdce77532",
+      "sha256Raw": "926822b168ad366cefc07afbd6ae56275d39b0f924914cc47c9abfdc09ac2e57"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1-full/equal/items.jsonl",
+      "sha256": "fa9cb33a426f977f0d798747e2fef0a3d43b0ae6269db9803cf52d80e54173e6",
+      "sha256Raw": "fa9cb33a426f977f0d798747e2fef0a3d43b0ae6269db9803cf52d80e54173e6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1-full/equal/state.json",
+      "sha256": "0a8e857aa237aa05ad9d41ba340ca67cf6c950a7bc7bda596a022c24ed8f0eee",
+      "sha256Raw": "926b1ea60acb3e16686461a7dd38eacbfb10124948ab78870804b3423bc7e5db"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/p7-c1r5/ig-tree.json",
+      "sha256": "2a23883dc07ed59a41788604f49a10e5db860a31529b79cea7e63ce674351c83",
+      "sha256Raw": "a577ec65b1e8ef3e4f0918325e282583c3782ebda6cbd8511cf19ab57e3504d3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5-quick/equal/experiment.json",
+      "sha256": "17687e9af9e307a10049d0093df0f8db6c46cd0e00148cbc828da0e99960f10e",
+      "sha256Raw": "185a052aa71b547e0fb22a247dade02662835cb54eff08588ca05d06221bc33f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5-quick/equal/items.jsonl",
+      "sha256": "a7aecb58fceddc5f8dc562c31ee55f1ba98a8fdd4b9b8b42e470fdc7d91b44ed",
+      "sha256Raw": "a7aecb58fceddc5f8dc562c31ee55f1ba98a8fdd4b9b8b42e470fdc7d91b44ed"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5-quick/equal/state.json",
+      "sha256": "481ab4780b7989c7e6128b8c047e3801d85eb989436074519c065525ad75de01",
+      "sha256Raw": "e8938159bdff9cbcd0c74db800d2d5d050edef258f2bc04dd33695cd8eceef9e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5-full/equal/experiment.json",
+      "sha256": "02a67fa4a9c9b2b1ba3ec5c57dbaada09795db2c7019dbd84de3a76a4507c9b6",
+      "sha256Raw": "938afb8792750d26ee4e358bfb96671789889fc36b1e0adc33d69e57f6453c38"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5-full/equal/items.jsonl",
+      "sha256": "23e8bb7695fd570040c7b5ae45ac5c0cb502482cdeb1b7980cfe4d6b9aff893b",
+      "sha256Raw": "23e8bb7695fd570040c7b5ae45ac5c0cb502482cdeb1b7980cfe4d6b9aff893b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5-full/equal/state.json",
+      "sha256": "2e5d45faaf8248bc84aa8505ca3eddeb418a4ab9c5d1e37c6bdd43e97d80ec01",
+      "sha256Raw": "5d8a0ca3475fc2886e3c9b03e9e26526628c8c78f332b4b4b3271332c1f60a8d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/p7-c1r5c5/ig-tree.json",
+      "sha256": "ea62b66658128e46acc3f9ecadf8ce2728fd02f043a80b3f2487b8f7df85066a",
+      "sha256Raw": "beb589df427f90b4633123af279908939e15ae72d0500187174f03428df81a16"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5c5-quick/equal/experiment.json",
+      "sha256": "eb2861ba272b14c6e8fdd75bf328a79e139c1475c14b56b1d99dfcfebae6d70e",
+      "sha256Raw": "f4f08b5e345ed5e074db59a60aa170da4bc3af1381bdc5fa350c5c993496d0b7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5c5-quick/equal/items.jsonl",
+      "sha256": "4deb1c9cf5040f49273fa358cfaab72270aaf3bf05ebdfec9a1bbb56f4bd3642",
+      "sha256Raw": "4deb1c9cf5040f49273fa358cfaab72270aaf3bf05ebdfec9a1bbb56f4bd3642"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5c5-quick/equal/state.json",
+      "sha256": "4a79805300af1740abea54d99be884919ca8188a626fd01b32061d5ceb9a2961",
+      "sha256Raw": "721ff2a4d46597c773b0e95f842c9698893692e95adbb0ee02f18f5d906343be"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5c5-full/equal/experiment.json",
+      "sha256": "db6ef439d04679cc0f44061570600a922f297ccbeaaebae833000c497cc39ffd",
+      "sha256Raw": "d7dc067db3a2ad0496093acc37e8ed9e49542302a855e31ace6b2a81e9f3832a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5c5-full/equal/items.jsonl",
+      "sha256": "1ddf4047b182da3735b56008ee5f5de7c1d6235e62e8c7fb3ab22fd549ce37d1",
+      "sha256Raw": "1ddf4047b182da3735b56008ee5f5de7c1d6235e62e8c7fb3ab22fd549ce37d1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1r5c5-full/equal/state.json",
+      "sha256": "e4f548642b864d84dcf7a74ac114c03a8bea86ef48d9b8e1285329feab6069fb",
+      "sha256Raw": "8fdb53e3fea238f9a8e6936137007da1030e111c59bdf2768cde682874862018"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2K/kernel.json",
+      "sha256": "40a0d351383388bf8ac7c7ca2fe4c57759b4cbd62ffac41f88be380adf7d2de2",
+      "sha256Raw": "2586388afca25b9bd8bd5aef95dda769f6637afcea4720cf51bfeddb747ab4ca"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2K/profile/out/14x14-nightmare/CPU.20261123.120251.15284.0.001.cpuprofile",
+      "sha256": "078e5226038010b0255d2ddc131346fed172c89ca9a29b014f5a0c1d7d8f3c5c",
+      "sha256Raw": "078e5226038010b0255d2ddc131346fed172c89ca9a29b014f5a0c1d7d8f3c5c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2K/profile/out/26x26-nightmare/CPU.20261123.120301.7940.0.001.cpuprofile",
+      "sha256": "4c50e2ee2ca9a9b5b1dae33cdbe0f6526bb6ac272b455d13272cc2ad05e04c6b",
+      "sha256Raw": "4c50e2ee2ca9a9b5b1dae33cdbe0f6526bb6ac272b455d13272cc2ad05e04c6b"
+    },
+    {
+      "path": "tools/ig-proto/plans/V4-P7.json",
+      "sha256": "e343c80269f9d96bac6a36b3dd36f37be04dcb9533df945678e421cc1c9a3056",
+      "sha256Raw": "cb0ab38fd76edda996025c8fd530fe2895f349456abe8eed3f6bab206541f381"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/invocations.jsonl",
+      "sha256": "617fbe0de0d35cd72856e0d967fc7539947d49acc954b905c23d4edebef79d59",
+      "sha256Raw": "617fbe0de0d35cd72856e0d967fc7539947d49acc954b905c23d4edebef79d59"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7/run-1.log",
+      "sha256": "b884ad095746a14274ad82742b9f04332acfbba183209a788973af6c0f5ed0a3",
+      "sha256Raw": "5c709da41031dedc78709545f607e10aeaaa4d1d3c5d5454650ad4d00fcaff3c"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/s02-numbers.json",
+      "sha256": "da7cfe9fe38511ac15b7290f6ad00f6e2d5563e54170be84204c6d9e0f982023",
+      "sha256Raw": "b83e3c65c36f6ee94e51aa3784da628f1a694cb90c0326d3d905a81019f9342d"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/s02-spike-report.md",
+      "sha256": "da3bbe9ae27cbac73d3499186b687c6e83b5f3de6732f6c299994d6bd01f31ed",
+      "sha256Raw": "b6d0b67f698ca9ee6dbd5e0e885e04b24c67538a492fcd3457dc1725107c556d"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S02-run-v4-p7-and-spike-report.md",
+      "sha256": "6210e708a734bbd7f85885e4cbf2c63885f4383bc2f8be37ee51ef80fc3249a0",
+      "sha256Raw": "89a3edcccf50674bc7c895a084ba6b5f32fef05d97e15c7bc90f7e75ff3771a7"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/check-list.md",
+      "sha256": "937712f5fdd513eb1a586e7e8788c7e04dea44f6c005b1719fb3294077f12ca1",
+      "sha256Raw": "a9068724206e910597af74ded26d54961e5b0416af9608e110421a446748975e"
+    },
+    {
+      "path": "tools/ig-proto/p7-probe.mjs",
+      "sha256": "8eaf0baff3d073075d3521519cf4b5ec5ec767d7f010eabde2e6e9a8f8091603",
+      "sha256Raw": "763e11e36594b60f4a6f2a1e8d7f1849742ea8cce480b30db7c0e1bdaf1612b3"
+    },
+    {
+      "path": "tools/ig-proto/lib/lane-worker.mjs",
+      "sha256": "6228dda5413bd89ffc86088a96d21fd394dd9ce9185def924951ef89a58fb061",
+      "sha256Raw": "6b1ff9d08bcdb43492ea3534aeddbb2c2aa9254b4973a1405a8e495a0592163f"
+    },
+    {
+      "path": "tools/ig-proto/lib/p7-core.mjs",
+      "sha256": "894999855c24557c9b5bf77cb9ad8158249fe1a5428c9ac527eb16de10d5bfc2",
+      "sha256Raw": "18214ef9763ccc34d9a8b92b732cbe790376530cfe8f520c3ebb7348f9812f50"
+    },
+    {
+      "path": "tools/ig-proto/variants/r4c.json",
+      "sha256": "879869ccd53a236e7c575d0c3b9327f8d7ae360863c1b427b0979e758ba5a539",
+      "sha256Raw": "ef7707accfe37d1c87235a8f6393e5f741b25da3467687f57af92c0fef6d8bf2"
+    },
+    {
+      "path": "tools/ig-proto/variants/p7-c1.json",
+      "sha256": "8ba3413c4df82b298e3affae7be58053efed47178661af60b9b5b609ef6463f2",
+      "sha256Raw": "f98bd021191bdc7c7be7f856ad731709b5137fb60fdbe648f1866be3c826d6c8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen-source/core/engine/deduce.js",
+      "sha256": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce",
+      "sha256Raw": "46c60975827df4faf9e87358fc3153f6bd07b63b6dee05314b80a74a7112ae62"
+    }
+  ]
+}

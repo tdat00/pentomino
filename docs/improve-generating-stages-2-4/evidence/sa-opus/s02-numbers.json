@@ -1,0 +1,1296 @@
+{
+  "composites": [
+    {
+      "composite": "p7-c1",
+      "equality": {
+        "quick": {
+          "verdict": "equal",
+          "items": 149,
+          "ended": 149,
+          "equal": 149,
+          "notEqual": 0,
+          "errors": 0,
+          "censored": 0,
+          "missing": 0,
+          "problems": 0,
+          "lists": 277,
+          "reference": 39,
+          "complete": true,
+          "budget": 0,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            }
+          ]
+        },
+        "full": {
+          "verdict": "equal",
+          "items": 713,
+          "ended": 713,
+          "equal": 713,
+          "notEqual": 0,
+          "errors": 0,
+          "censored": 0,
+          "missing": 0,
+          "problems": 0,
+          "lists": 1040,
+          "reference": 39,
+          "complete": true,
+          "budget": 0,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            }
+          ]
+        }
+      },
+      "timing": {
+        "verdict": "measured",
+        "items": 90,
+        "ended": 90,
+        "refS": 107.765,
+        "candS": 147.76,
+        "ratio": 0.7293,
+        "geoRatio": 0.7286,
+        "capped": 33,
+        "notSame": 0,
+        "invalid": 0,
+        "missing": 0,
+        "errors": 0,
+        "censored": 0,
+        "problems": 0
+      },
+      "go": {
+        "go": false,
+        "reasons": [
+          "ratio 0.729326458884517 below 1.04"
+        ]
+      },
+      "all": {
+        "n": 90,
+        "capped": 33,
+        "refS": 107.765,
+        "candS": 147.76,
+        "ratio": 0.7293,
+        "geo": 0.7286,
+        "minRatio": 0.471,
+        "maxRatio": 0.9542
+      },
+      "byCase": {
+        "10x10-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refS": 14.679,
+          "candS": 18.103,
+          "ratio": 0.8108,
+          "geo": 0.7958,
+          "minRatio": 0.7339,
+          "maxRatio": 0.9418
+        },
+        "12x12-nightmare": {
+          "n": 18,
+          "capped": 3,
+          "refS": 19.341,
+          "candS": 26.449,
+          "ratio": 0.7312,
+          "geo": 0.7535,
+          "minRatio": 0.6432,
+          "maxRatio": 0.8919
+        },
+        "14x14-nightmare": {
+          "n": 18,
+          "capped": 12,
+          "refS": 29.107,
+          "candS": 38.879,
+          "ratio": 0.7487,
+          "geo": 0.7641,
+          "minRatio": 0.6401,
+          "maxRatio": 0.9542
+        },
+        "26x26-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refS": 9.754,
+          "candS": 16.063,
+          "ratio": 0.6072,
+          "geo": 0.6134,
+          "minRatio": 0.471,
+          "maxRatio": 0.9526
+        },
+        "26x26-hell-1": {
+          "n": 18,
+          "capped": 18,
+          "refS": 34.885,
+          "candS": 48.266,
+          "ratio": 0.7228,
+          "geo": 0.7303,
+          "minRatio": 0.5828,
+          "maxRatio": 0.8285
+        }
+      },
+      "byRound": {
+        "0": {
+          "n": 30,
+          "capped": 11,
+          "refS": 36.058,
+          "candS": 49.751,
+          "ratio": 0.7248,
+          "geo": 0.7174,
+          "minRatio": 0.4919,
+          "maxRatio": 0.9418
+        },
+        "1": {
+          "n": 30,
+          "capped": 11,
+          "refS": 35.863,
+          "candS": 49.061,
+          "ratio": 0.731,
+          "geo": 0.7297,
+          "minRatio": 0.471,
+          "maxRatio": 0.8919
+        },
+        "2": {
+          "n": 30,
+          "capped": 11,
+          "refS": 35.845,
+          "candS": 48.947,
+          "ratio": 0.7323,
+          "geo": 0.7387,
+          "minRatio": 0.5248,
+          "maxRatio": 0.9542
+        }
+      },
+      "cappedPairs": {
+        "n": 33,
+        "capped": 33,
+        "refS": 64.852,
+        "candS": 90.964,
+        "ratio": 0.7129,
+        "geo": 0.726,
+        "minRatio": 0.5828,
+        "maxRatio": 0.9542
+      },
+      "ratedPairs": {
+        "n": 57,
+        "capped": 0,
+        "refS": 42.913,
+        "candS": 56.796,
+        "ratio": 0.7556,
+        "geo": 0.73,
+        "minRatio": 0.471,
+        "maxRatio": 0.9526
+      },
+      "otherCapped": 0,
+      "sameAll": true
+    },
+    {
+      "composite": "p7-c1r5",
+      "equality": {
+        "quick": {
+          "verdict": "equal",
+          "items": 149,
+          "ended": 149,
+          "equal": 149,
+          "notEqual": 0,
+          "errors": 0,
+          "censored": 0,
+          "missing": 0,
+          "problems": 0,
+          "lists": 277,
+          "reference": 39,
+          "complete": true,
+          "budget": 0,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            }
+          ]
+        },
+        "full": {
+          "verdict": "equal",
+          "items": 713,
+          "ended": 713,
+          "equal": 713,
+          "notEqual": 0,
+          "errors": 0,
+          "censored": 0,
+          "missing": 0,
+          "problems": 0,
+          "lists": 1040,
+          "reference": 39,
+          "complete": true,
+          "budget": 0,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            }
+          ]
+        }
+      },
+      "timing": {
+        "verdict": "measured",
+        "items": 90,
+        "ended": 90,
+        "refS": 107.629,
+        "candS": 144.487,
+        "ratio": 0.7449,
+        "geoRatio": 0.7445,
+        "capped": 33,
+        "notSame": 0,
+        "invalid": 0,
+        "missing": 0,
+        "errors": 0,
+        "censored": 0,
+        "problems": 0
+      },
+      "go": {
+        "go": false,
+        "reasons": [
+          "ratio 0.7449059591313169 below 1.04"
+        ]
+      },
+      "all": {
+        "n": 90,
+        "capped": 33,
+        "refS": 107.629,
+        "candS": 144.487,
+        "ratio": 0.7449,
+        "geo": 0.7445,
+        "minRatio": 0.4649,
+        "maxRatio": 0.9824
+      },
+      "byCase": {
+        "10x10-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refS": 14.665,
+          "candS": 17.369,
+          "ratio": 0.8443,
+          "geo": 0.834,
+          "minRatio": 0.7747,
+          "maxRatio": 0.9824
+        },
+        "12x12-nightmare": {
+          "n": 18,
+          "capped": 3,
+          "refS": 19.344,
+          "candS": 25.423,
+          "ratio": 0.7609,
+          "geo": 0.7761,
+          "minRatio": 0.6789,
+          "maxRatio": 0.9137
+        },
+        "14x14-nightmare": {
+          "n": 18,
+          "capped": 12,
+          "refS": 28.997,
+          "candS": 37.75,
+          "ratio": 0.7681,
+          "geo": 0.7788,
+          "minRatio": 0.6694,
+          "maxRatio": 0.9176
+        },
+        "26x26-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refS": 9.985,
+          "candS": 15.982,
+          "ratio": 0.6248,
+          "geo": 0.6227,
+          "minRatio": 0.4649,
+          "maxRatio": 0.7898
+        },
+        "26x26-hell-1": {
+          "n": 18,
+          "capped": 18,
+          "refS": 34.639,
+          "candS": 47.963,
+          "ratio": 0.7222,
+          "geo": 0.7286,
+          "minRatio": 0.5902,
+          "maxRatio": 0.8308
+        }
+      },
+      "byRound": {
+        "0": {
+          "n": 30,
+          "capped": 11,
+          "refS": 35.977,
+          "candS": 48.16,
+          "ratio": 0.747,
+          "geo": 0.7518,
+          "minRatio": 0.5275,
+          "maxRatio": 0.9824
+        },
+        "1": {
+          "n": 30,
+          "capped": 11,
+          "refS": 35.931,
+          "candS": 48.042,
+          "ratio": 0.7479,
+          "geo": 0.7462,
+          "minRatio": 0.4649,
+          "maxRatio": 0.9176
+        },
+        "2": {
+          "n": 30,
+          "capped": 11,
+          "refS": 35.721,
+          "candS": 48.286,
+          "ratio": 0.7398,
+          "geo": 0.7355,
+          "minRatio": 0.509,
+          "maxRatio": 0.9085
+        }
+      },
+      "cappedPairs": {
+        "n": 33,
+        "capped": 33,
+        "refS": 64.577,
+        "candS": 89.215,
+        "ratio": 0.7238,
+        "geo": 0.7348,
+        "minRatio": 0.5902,
+        "maxRatio": 0.9176
+      },
+      "ratedPairs": {
+        "n": 57,
+        "capped": 0,
+        "refS": 43.052,
+        "candS": 55.272,
+        "ratio": 0.7789,
+        "geo": 0.7501,
+        "minRatio": 0.4649,
+        "maxRatio": 0.9824
+      },
+      "otherCapped": 0,
+      "sameAll": true
+    },
+    {
+      "composite": "p7-c1r5c5",
+      "equality": {
+        "quick": {
+          "verdict": "equal",
+          "items": 149,
+          "ended": 149,
+          "equal": 149,
+          "notEqual": 0,
+          "errors": 0,
+          "censored": 0,
+          "missing": 0,
+          "problems": 0,
+          "lists": 277,
+          "reference": 39,
+          "complete": true,
+          "budget": 0,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            }
+          ]
+        },
+        "full": {
+          "verdict": "equal",
+          "items": 713,
+          "ended": 713,
+          "equal": 713,
+          "notEqual": 0,
+          "errors": 0,
+          "censored": 0,
+          "missing": 0,
+          "problems": 0,
+          "lists": 1040,
+          "reference": 39,
+          "complete": true,
+          "budget": 0,
+          "memory": [
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-lists",
+              "refBytes": 33072156,
+              "listBytes": 80940,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-near-reference",
+              "refBytes": 33107689,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-above",
+              "refBytes": 33630537,
+              "listBytes": null,
+              "representation": null,
+              "ok": true
+            },
+            {
+              "fixture": "mem-small",
+              "refBytes": 41543,
+              "listBytes": 48960,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 1218816,
+              "representation": "lists",
+              "ok": true
+            },
+            {
+              "fixture": "mem-mid",
+              "refBytes": 857735,
+              "listBytes": 0,
+              "representation": "reference",
+              "ok": true
+            }
+          ]
+        }
+      },
+      "timing": {
+        "verdict": "measured",
+        "items": 90,
+        "ended": 90,
+        "refS": 107.562,
+        "candS": 133.277,
+        "ratio": 0.8071,
+        "geoRatio": 0.8126,
+        "capped": 33,
+        "notSame": 0,
+        "invalid": 0,
+        "missing": 0,
+        "errors": 0,
+        "censored": 0,
+        "problems": 0
+      },
+      "go": {
+        "go": false,
+        "reasons": [
+          "ratio 0.8070586538518749 below 1.04"
+        ]
+      },
+      "all": {
+        "n": 90,
+        "capped": 33,
+        "refS": 107.562,
+        "candS": 133.277,
+        "ratio": 0.8071,
+        "geo": 0.8126,
+        "minRatio": 0.481,
+        "maxRatio": 1.1769
+      },
+      "byCase": {
+        "10x10-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refS": 14.689,
+          "candS": 14.977,
+          "ratio": 0.9808,
+          "geo": 0.9866,
+          "minRatio": 0.9252,
+          "maxRatio": 1.1769
+        },
+        "12x12-nightmare": {
+          "n": 18,
+          "capped": 3,
+          "refS": 19.389,
+          "candS": 22.298,
+          "ratio": 0.8695,
+          "geo": 0.8684,
+          "minRatio": 0.8004,
+          "maxRatio": 0.9639
+        },
+        "14x14-nightmare": {
+          "n": 18,
+          "capped": 12,
+          "refS": 28.971,
+          "candS": 34.055,
+          "ratio": 0.8507,
+          "geo": 0.8541,
+          "minRatio": 0.7502,
+          "maxRatio": 0.9822
+        },
+        "26x26-nightmare": {
+          "n": 18,
+          "capped": 0,
+          "refS": 9.742,
+          "candS": 14.975,
+          "ratio": 0.6505,
+          "geo": 0.6486,
+          "minRatio": 0.481,
+          "maxRatio": 0.7885
+        },
+        "26x26-hell-1": {
+          "n": 18,
+          "capped": 18,
+          "refS": 34.771,
+          "candS": 46.972,
+          "ratio": 0.7402,
+          "geo": 0.7463,
+          "minRatio": 0.6076,
+          "maxRatio": 0.8516
+        }
+      },
+      "byRound": {
+        "0": {
+          "n": 30,
+          "capped": 11,
+          "refS": 35.776,
+          "candS": 44.164,
+          "ratio": 0.8101,
+          "geo": 0.8191,
+          "minRatio": 0.5223,
+          "maxRatio": 1.1769
+        },
+        "1": {
+          "n": 30,
+          "capped": 11,
+          "refS": 36.126,
+          "candS": 44.25,
+          "ratio": 0.8164,
+          "geo": 0.8208,
+          "minRatio": 0.481,
+          "maxRatio": 1.0917
+        },
+        "2": {
+          "n": 30,
+          "capped": 11,
+          "refS": 35.661,
+          "candS": 44.863,
+          "ratio": 0.7949,
+          "geo": 0.798,
+          "minRatio": 0.529,
+          "maxRatio": 1.037
+        }
+      },
+      "cappedPairs": {
+        "n": 33,
+        "capped": 33,
+        "refS": 64.692,
+        "candS": 83.392,
+        "ratio": 0.7757,
+        "geo": 0.7847,
+        "minRatio": 0.6076,
+        "maxRatio": 0.9676
+      },
+      "ratedPairs": {
+        "n": 57,
+        "capped": 0,
+        "refS": 42.871,
+        "candS": 49.885,
+        "ratio": 0.8594,
+        "geo": 0.8291,
+        "minRatio": 0.481,
+        "maxRatio": 1.1769
+      },
+      "otherCapped": 0,
+      "sameAll": true
+    }
+  ],
+  "invocations": [
+    {
+      "step": "time-p7-c1",
+      "countedSeconds": 273.17,
+      "nodeSeconds": 257.921,
+      "quietS": 15,
+      "horizonS": 885,
+      "killed": false,
+      "exit": 0,
+      "done": true
+    },
+    {
+      "step": "time-p7-c1r5",
+      "countedSeconds": 269.628,
+      "nodeSeconds": 254.521,
+      "quietS": 15,
+      "horizonS": 871,
+      "killed": false,
+      "exit": 0,
+      "done": true
+    },
+    {
+      "step": "time-p7-c1r5c5",
+      "countedSeconds": 258.369,
+      "nodeSeconds": 243.247,
+      "quietS": 15,
+      "horizonS": 602,
+      "killed": false,
+      "exit": 0,
+      "done": true
+    }
+  ],
+  "counters": [
+    {
+      "caseId": "10x10-nightmare",
+      "staticM": 49.04,
+      "liveM": 12.91,
+      "liveShare": 0.263,
+      "deadM": 36.13,
+      "killsM": 19.38,
+      "undoM": 21,
+      "updatesM": 242.28,
+      "updatesPerDead": 6.7
+    },
+    {
+      "caseId": "12x12-nightmare",
+      "staticM": 54.62,
+      "liveM": 17.9,
+      "liveShare": 0.328,
+      "deadM": 36.72,
+      "killsM": 26.57,
+      "undoM": 27.85,
+      "updatesM": 326.51,
+      "updatesPerDead": 8.9
+    },
+    {
+      "caseId": "14x14-nightmare",
+      "staticM": 84.37,
+      "liveM": 28.08,
+      "liveShare": 0.333,
+      "deadM": 56.29,
+      "killsM": 32.48,
+      "undoM": 33.53,
+      "updatesM": 396.07,
+      "updatesPerDead": 7
+    },
+    {
+      "caseId": "26x26-nightmare",
+      "staticM": 11.73,
+      "liveM": 6.84,
+      "liveShare": 0.584,
+      "deadM": 4.88,
+      "killsM": 6.18,
+      "undoM": 6.27,
+      "updatesM": 74.67,
+      "updatesPerDead": 15.3
+    },
+    {
+      "caseId": "26x26-hell-1",
+      "staticM": 66.03,
+      "liveM": 39.01,
+      "liveShare": 0.591,
+      "deadM": 27.02,
+      "killsM": 18.47,
+      "undoM": 18.57,
+      "updatesM": 222.24,
+      "updatesPerDead": 8.2
+    }
+  ]
+}
