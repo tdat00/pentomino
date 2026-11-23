@@ -1,0 +1,30 @@
+{
+  "format": "ig-p7-memory-fixtures",
+  "version": 1,
+  "source": "docs/improve-generating-stages-2-4/evidence/sa-opus/bt-p7-memory.mjs on the frozen engine 3fc65f4",
+  "limit": 33554432,
+  "workspaceBytes": 167772160,
+  "limits": { "work": 20000000, "census": 20000000 },
+  "fixtures": [
+    { "id": "mem-small", "width": 10, "height": 6, "a": 1, "b": 5, "pieces": 12, "rows": 672, "nonzeros": 4032, "columns": 72, "arenaBytes": 126772, "refBytes": 41543, "listBytes": 48960, "canonical": "lists" },
+    { "id": "mem-mid", "width": 20, "height": 12, "a": 1, "b": 5, "pieces": 48, "rows": 16896, "nonzeros": 101376, "columns": 288, "arenaBytes": 3106996, "refBytes": 857735, "listBytes": 1218816, "canonical": "lists" },
+    { "id": "mem-near-lists", "width": 34, "height": 119, "a": 34, "b": 119, "pieces": 1, "rows": 1, "nonzeros": 4047, "columns": 4047, "arenaBytes": 323827, "refBytes": 33072156, "listBytes": 80940, "canonical": "lists" },
+    { "id": "mem-near-reference", "width": 32, "height": 126, "a": 16, "b": 126, "pieces": 2, "rows": 34, "nonzeros": 68578, "columns": 4034, "arenaBytes": 2130514, "refBytes": 33107689, "listBytes": 855208, "canonical": "reference" },
+    { "id": "mem-above", "width": 32, "height": 127, "a": 16, "b": 127, "pieces": 2, "rows": 34, "nonzeros": 69122, "columns": 4066, "arenaBytes": 2147410, "refBytes": 33630537, "listBytes": 861992, "canonical": "model-too-large" }
+  ],
+  "sequence": [
+    { "fixture": "mem-small", "memoryBytes": 33554432, "expect": "lists" },
+    { "fixture": "mem-mid", "memoryBytes": 33554432, "expect": "lists" },
+    { "fixture": "mem-small", "memoryBytes": 33554432, "expect": "lists" },
+    { "fixture": "mem-mid", "memoryBytes": 2076550, "expect": "reference" },
+    { "fixture": "mem-small", "memoryBytes": 33554432, "expect": "lists" },
+    { "fixture": "mem-near-reference", "memoryBytes": 33554432, "expect": "reference" },
+    { "fixture": "mem-small", "memoryBytes": 33554432, "expect": "lists" },
+    { "fixture": "mem-above", "memoryBytes": 33554432, "expect": "model-too-large" },
+    { "fixture": "mem-small", "memoryBytes": 33554432, "expect": "lists" }
+  ],
+  "capacity": [
+    { "fixture": "mem-mid", "memoryBytes": 33554432, "capacityBytes": 5183547, "expect": "lists" },
+    { "fixture": "mem-mid", "memoryBytes": 33554432, "capacityBytes": 5183546, "expect": "reference" }
+  ]
+}

@@ -19,7 +19,7 @@ import { harnessInfo, sha256, sourceDigest, writeJson } from './records.mjs';
 import { ensureTree } from './tree.mjs';
 
 /** Lanes per group of one kind; any other kind, the test kinds included, has 1. */
-export const ITEM_LANES = Object.freeze({ 'v4-select': 2, 'v4-generate': 1, 'v4-replay': 2, 'v4-kernel': 1 });
+export const ITEM_LANES = Object.freeze({ 'v4-select': 2, 'v4-generate': 1, 'v4-replay': 2, 'v4-kernel': 1, 'p7-equal': 2, 'p7-time': 1 });
 
 /**
  * @typedef {{ id: string, kind: string, variant: string, payload: Record<string, unknown> }} Item

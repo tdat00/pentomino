@@ -391,13 +391,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 01:09 +07:00 (dispatch, base `f3fe6a6`); 2026-11-24 01:35 +07:00 (accepted); 26 min. The developer reported 01:09:48-01:19:00 and, in the fix round, 01:30:11-01:32:16 |
+| Waiting for rulings | about 10 min (the pack author's review of the open details and the Hell 1 finding) |
+| Agent id, model | `218e44b2-996b-46a3-ab06-2e785b88d4e0`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 61 calls; 8,131,413 input, 60,652 output, 7,788,941 cache-read tokens |
+| AI credits | 224.15 (developer only) |
+| Questions and rulings | no QUESTION; the developer's smoke check found `p7-time` on `26x26-hell-1` subset 0 ending `a rating threw` (`IncompleteRatingError` on both trees): ruling R-P24-06 by SA-Opus, a fix round (a capped rating on both trees is a timed pair, `capped` reported; a new `--v4` timing case; T03b amended); the six open details accepted; pack amendment `1ad38c0` |
+| Fix rounds | 1 (R-P24-06) |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T03a-orch2`: 217 passed, 0 failed (36.2 s); the locked selection block (`--v4`, `S24-T03a-orch2`): `p7: equality items of base against base` PASS (17.3 s, 11 items), `p7: timing items of base against base` PASS (6.2 s; capped none, none, both), `IG ... exit=0 seconds=23.711 quiet=15`, `cases: 2 passed, as required`; `check-edits --all` exit 0; `firewall check --task S24-T03a`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the eight Scope files |
+| Commit | this task's commit |
+| Issues and named items | the `capped: 'one'` and `error` branches of `p7-time` and the `differing`, `representation`, `listBytes`, `mem-ref`, `mem-fast` paths are exercised only by the candidates (T03d and later); future smoke checks are committed cases (R-P24-06) |

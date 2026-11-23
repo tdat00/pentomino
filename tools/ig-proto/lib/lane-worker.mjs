@@ -13,6 +13,7 @@ import { rateRecord, recordedCall, startCountFor, windowSubsets } from './calls.
 import { loadEngine } from './engine.mjs';
 import { itemLedger } from './ledger.mjs';
 import { preparePackPath, writePackFile } from './packs.mjs';
+import { fixtureInput, limitsFor, memoryManifest, outcomeOf, workInputs } from './p7-core.mjs';
 import { firstCarvedSet, setInfo } from './sets.mjs';
 
 const port = /** @type {import('node:worker_threads').MessagePort} */ (parentPort);
@@ -353,6 +354,267 @@ async function kernelItem(p) {
   return { outcome: 'ok', g: subset.g, idx: subset.idx, same, r4: mine.ins?.r4 ?? null, ms: round3(performance.now() - t0) };
 }
 
+/** @type {Map<string, Promise<any>>} */
+const inputEngines = new Map();
+
+/**
+ * @param {string} root The input-construction tree's root.
+ * @returns {Promise<any>} Its engine, loaded once per root (carving and window subsets need no workspace).
+ */
+function inputEngine(root) {
+  let made = inputEngines.get(root);
+  if (made === undefined) {
+    made = loadEngine(root);
+    inputEngines.set(root, made);
+  }
+  return made;
+}
+
+/**
+ * The kernel input of a P7 item, constructed by the input-construction engine, never by this thread's or the reference's
+ * (rule `kernel-window-v1`, as `kernelItem`).
+ * @param {any} p `{ boardRows, levelId, seedText, subsetIndex, inputRoot }`
+ * @returns {Promise<{ input: { boardRows: string[], pieces: any[], clues: any[] } } | { failure: any }>}
+ */
+async function kernelInput(p) {
+  const { boardRows, levelId, seedText, subsetIndex } = p;
+  const maker = await inputEngine(p.inputRoot);
+  const carved = firstCarvedSet(maker, { boardRows, levelId, seedText });
+  if (!carved.ok) {
+    return { failure: { outcome: 'no-set', reason: carved.reason } };
+  }
+  const subsets = windowSubsets(maker, {
+    set: carved.set, seedText, offsets: [1, 2, 3], perCount: 2, startCount: startCountFor(maker, levelId, carved.K),
+  });
+  const subset = subsets[subsetIndex];
+  if (subset === undefined) {
+    return { failure: { outcome: 'no-subset' } };
+  }
+  return { input: { boardRows, pieces: carved.set.pieces, clues: subset.clues } };
+}
+
+/**
+ * A P7 equality item (stages 2 to 4 pack, T03a): the complete `DeductionResult`, or the error, of the reference tree at
+ * `otherRoot` and of this thread's tree on one input, under each setting of the item, and whether the two outcomes are
+ * deeply equal. Sources: `kernel` (input from the input-construction tree), `pm4` (input in the payload), `memory` (one
+ * fixture of the manifest), `memory-sequence` and `memory-capacity`.
+ * @param {any} p `{ source, otherRoot, ... }`
+ * @returns {Promise<any>}
+ */
+async function p7EqualItem(p) {
+  const { other, wsOther } = await otherKit(p.otherRoot);
+  const mainBytes = engine.workspace.MAIN_WORKSPACE_BYTES;
+  const build = (/** @type {any} */ t, /** @type {any} */ w, /** @type {any} */ input) => t.tiling.buildModel(t.board.boardFromRows(input.boardRows), input.pieces, input.clues, w);
+  const run = (/** @type {any} */ t, /** @type {any} */ w, /** @type {any} */ input, /** @type {any} */ limits, /** @type {Record<string, unknown>} */ diagnostics) => {
+    const d = { ...diagnostics };
+    const outcome = outcomeOf(() => t.deduce.measureDeduction(build(t, w, input), limits, d));
+    return { outcome, representation: d.igRepresentation ?? null, listBytes: d.igListBytes ?? null, wsBytes: w.bytes(), capacityBytes: w.capacityBytes };
+  };
+  /** @type {string[]} */
+  const compared = [];
+  /** @type {string[]} */
+  const skipped = [];
+  /** @type {string[]} */
+  const inapplicable = [];
+  /** @type {any[]} */
+  const differing = [];
+  /** @type {any[]} */
+  const steps = [];
+  /**
+   * Compares the two runs of one step and records it.
+   * @param {string} label
+   * @param {any} limits
+   * @param {{ outcome: any }} reference
+   * @param {ReturnType<typeof run>} candidate
+   */
+  const record = (label, limits, reference, candidate) => {
+    const same = isDeepStrictEqual(reference.outcome, candidate.outcome);
+    compared.push(label);
+    if (!same && differing.length < 3) {
+      differing.push({ setting: label, reference: reference.outcome, candidate: candidate.outcome });
+    }
+    steps.push({
+      setting: label,
+      same,
+      representation: candidate.representation,
+      listBytes: candidate.listBytes,
+      wsBytes: candidate.wsBytes,
+      capacityBytes: candidate.capacityBytes,
+      memoryBytes: limits.memoryBytes,
+      referenceError: 'error' in reference.outcome ? reference.outcome.error : null,
+      candidateError: 'error' in candidate.outcome ? candidate.outcome.error : null,
+    });
+  };
+  const finish = (/** @type {number | null} */ refBytes, /** @type {number} */ extraBytes) => ({
+    outcome: 'ok',
+    same: steps.every((s) => s.same),
+    compared,
+    skipped,
+    inapplicable,
+    differing,
+    refBytes,
+    extraBytes,
+    steps,
+  });
+
+  if (p.source === 'memory-sequence' || p.source === 'memory-capacity') {
+    const manifest = memoryManifest();
+    const base = { ...engine.policy.DEDUCE, ...manifest.limits };
+    const inputOf = (/** @type {string} */ id) => fixtureInput(/** @type {any} */ (manifest.fixtures.find((f) => f.id === id)));
+    if (p.source === 'memory-sequence') {
+      const wsRef = other.workspace.createWorkspace(mainBytes);
+      const wsCand = engine.workspace.createWorkspace(mainBytes);
+      for (const [i, step] of manifest.sequence.entries()) {
+        const input = inputOf(step.fixture);
+        const limits = { ...base, memoryBytes: step.memoryBytes };
+        record(`seq-${i}`, limits, run(other, wsRef, input, limits, {}), run(engine, wsCand, input, limits, {}));
+      }
+    } else {
+      for (const [i, entry] of manifest.capacity.entries()) {
+        const input = inputOf(entry.fixture);
+        const limits = { ...base, memoryBytes: entry.memoryBytes };
+        record(`cap-${i}`, limits, run(other, other.workspace.createWorkspace(entry.capacityBytes), input, limits, {}),
+          run(engine, engine.workspace.createWorkspace(entry.capacityBytes), input, limits, {}));
+      }
+    }
+    return finish(null, 0);
+  }
+
+  /** @type {any} */
+  let input;
+  /** @type {any} */
+  let base;
+  /** @type {number | null} */
+  let refBytes = null;
+  /** @type {{ outcome: any } | null} */
+  let refCanonical = null;
+  /** @type {{ refWork: number, refCensusWork: number } | null} */
+  let work = null;
+  const fresh = p.source === 'memory';
+  if (fresh) {
+    const f = memoryManifest().fixtures.find((x) => x.id === p.fixture);
+    if (f === undefined) {
+      return { outcome: 'error', reason: `fixture ${p.fixture} is not in the manifest` };
+    }
+    input = fixtureInput(f);
+    base = { ...engine.policy.DEDUCE, ...memoryManifest().limits };
+    const w = other.workspace.createWorkspace(mainBytes);
+    const model = build(other, w, input);
+    if (w.bytes() !== f.arenaBytes) {
+      return { outcome: 'error', reason: `fixture ${f.id}: arenaBytes ${w.bytes()}, the manifest says ${f.arenaBytes}` };
+    }
+    const probe = outcomeOf(() => other.deduce.measureDeduction(model, { ...base, memoryBytes: 0 }));
+    const seen = 'error' in probe && probe.error.code === 'model-too-large' && typeof probe.error.details?.bytes === 'number' ? probe.error.details.bytes : null;
+    if (seen !== f.refBytes) {
+      return { outcome: 'error', reason: `fixture ${f.id}: refBytes ${seen}, the manifest says ${f.refBytes}` };
+    }
+    refBytes = seen;
+  } else if (p.source === 'kernel' || p.source === 'pm4') {
+    if (p.source === 'kernel') {
+      const made = await kernelInput(p);
+      if ('failure' in made) {
+        return made.failure;
+      }
+      input = made.input;
+    } else {
+      input = { boardRows: p.boardRows, pieces: p.pieces, clues: p.clues };
+    }
+    base = engine.policy.DEDUCE;
+    refCanonical = run(other, wsOther, input, base, {});
+    if ('result' in refCanonical.outcome) {
+      work = workInputs(refCanonical.outcome.result);
+    }
+    const probe = outcomeOf(() => other.deduce.measureDeduction(build(other, wsOther, input), { ...base, memoryBytes: 0 }));
+    if ('error' in probe && probe.error.code === 'model-too-large' && typeof probe.error.details?.bytes === 'number') {
+      refBytes = probe.error.details.bytes;
+    }
+  } else {
+    throw new Error(`unknown p7-equal source ${p.source}`);
+  }
+  const listBytes = outcomeOf(() => engine.deduce.igListBytes?.(build(engine, fresh ? engine.workspace.createWorkspace(mainBytes) : ws, input)) ?? 0);
+  const extraBytes = 'result' in listBytes ? listBytes.result : 0;
+  for (const setting of p.settings) {
+    const workSetting = ['work-half', 'work-minus1', 'work-ref', 'census-half'].includes(setting);
+    const memorySetting = ['mem-below', 'mem-ref', 'mem-fast'].includes(setting);
+    if ((workSetting && work === null) || (memorySetting && refBytes === null)) {
+      inapplicable.push(setting);
+      continue;
+    }
+    const lim = limitsFor(setting, { base, refWork: work?.refWork, refCensusWork: work?.refCensusWork, refBytes, extraBytes });
+    if (lim === null) {
+      skipped.push(setting);
+      continue;
+    }
+    const reference = setting === 'canonical' && refCanonical !== null
+      ? refCanonical
+      : run(other, fresh ? other.workspace.createWorkspace(mainBytes) : wsOther, input, lim.limits, lim.diagnostics);
+    const candidate = run(engine, fresh ? engine.workspace.createWorkspace(mainBytes) : ws, input, lim.limits, lim.diagnostics);
+    record(setting, lim.limits, reference, candidate);
+  }
+  return finish(refBytes, extraBytes);
+}
+
+/**
+ * A P7 timing item (stages 2 to 4 pack, T03a): the rating of one kernel input in the reference tree and in this thread's
+ * tree, each timed around `rate` alone; the order alternates with the round (even: reference first, odd: candidate first).
+ * The input is constructed before any timing. A rating that threw `IncompleteRatingError` (a capped deduction path) is a timed
+ * rating; any other thrown error is an item error.
+ * @param {any} p `{ boardRows, levelId, seedText, subsetIndex, round, otherRoot, inputRoot }`
+ * @returns {Promise<any>}
+ */
+async function p7TimeItem(p) {
+  const { other, wsOther } = await otherKit(p.otherRoot);
+  const made = await kernelInput(p);
+  if ('failure' in made) {
+    return made.failure;
+  }
+  const { boardRows, pieces, clues } = made.input;
+  const rateOf = (/** @type {any} */ t, /** @type {any} */ w, /** @type {any} */ board) => {
+    let ms = 0;
+    /** @type {any} */
+    let counters = null;
+    const outcome = outcomeOf(() => {
+      const t0 = performance.now();
+      try {
+        return t.difficulty.rate(board, pieces, clues, w);
+      } catch (error) {
+        counters = /** @type {any} */ (error)?.counters ?? null;
+        throw error;
+      } finally {
+        ms = performance.now() - t0;
+      }
+    });
+    return { outcome, ms, counters };
+  };
+  const refBoard = other.board.boardFromRows(boardRows);
+  const candBoard = engine.board.boardFromRows(boardRows);
+  /** @type {ReturnType<typeof rateOf>} */
+  let reference;
+  /** @type {ReturnType<typeof rateOf>} */
+  let candidate;
+  if (p.round % 2 === 0) {
+    reference = rateOf(other, wsOther, refBoard);
+    candidate = rateOf(engine, ws, candBoard);
+  } else {
+    candidate = rateOf(engine, ws, candBoard);
+    reference = rateOf(other, wsOther, refBoard);
+  }
+  /** @param {ReturnType<typeof rateOf>} r @returns {boolean} A result, or a capped deduction path (RES-04). */
+  const timed = (r) => 'result' in r.outcome || r.outcome.error?.name === 'IncompleteRatingError';
+  /** @param {ReturnType<typeof rateOf>} r @returns {boolean} */
+  const cappedOf = (r) => !('result' in r.outcome);
+  if (timed(reference) && timed(candidate)) {
+    return {
+      outcome: 'ok',
+      refMs: round3(reference.ms),
+      candMs: round3(candidate.ms),
+      same: isDeepStrictEqual(reference.outcome, candidate.outcome) && isDeepStrictEqual(reference.counters, candidate.counters),
+      capped: cappedOf(reference) && cappedOf(candidate) ? 'both' : cappedOf(reference) || cappedOf(candidate) ? 'one' : 'none',
+    };
+  }
+  return { outcome: 'error', reason: 'a rating threw', reference: reference.outcome, candidate: candidate.outcome };
+}
+
 /**
  * @param {string} kind
  * @param {any} p
@@ -398,6 +660,12 @@ async function handle(kind, p, post, postSet) {
   }
   if (kind === 'v4-kernel') {
     return kernelItem(p);
+  }
+  if (kind === 'p7-equal') {
+    return p7EqualItem(p);
+  }
+  if (kind === 'p7-time') {
+    return p7TimeItem(p);
   }
   if (workerData.testKinds === true && kind === 'test-ok') {
     return { outcome: 'ok', echo: p.echo };

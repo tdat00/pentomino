@@ -32,7 +32,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T02c The fitting reader, part 2: the commands `preview` and `prefixes` and their records (depends on T02b)
 - [x] S01 Run `V4-S2B` and read it (orchestrator, then the SAs; approved by the owner, D-S24-26; the approval re-read before the run) (depends on T02c)
 - [x] T02d The fitting reader indexes the publication metadata it reads (`fit-read.mjs prefixes`; the S01 reading's W3, ruling R-P24-05) (depends on S01)
-- [ ] T03a P7: the equality and timing items and their memory fixtures (`p7-probe.mjs`, part 1) (depends on S01)
+- [x] T03a P7: the equality and timing items and their memory fixtures (`p7-probe.mjs`, part 1) (depends on S01)
 - [ ] T03b P7: the experiment declaration, the log and corpus checks and the verdicts (`p7-probe.mjs`, part 2) (depends on T03a)
 - [ ] T03c P7: the equality bindings, the go rule and the probe's commands (`p7-probe.mjs`, part 3) (depends on T03b)
 - [ ] T03d P7 C1: ordered live-row lists for R4 (`p7-c1`) (depends on T03c)
@@ -596,7 +596,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T02c | 2026-11-23 23:57 | 2026-11-24 00:13 | 16 min | 112.29 | this task's commit |
 | S01 | 2026-11-24 00:13 | 2026-11-24 01:05 | about 57 min (run 14 min) | – (orchestrator run; SA reading in the SA agents) | this task's commit |
 | T02d | 2026-11-24 01:05 | 2026-11-24 01:09 | 5 min | 28.98 | this task's commit |
-| T03a | | | | | |
+| T03a | 2026-11-24 01:09 | 2026-11-24 01:35 | 26 min | 224.15 | this task's commit |
 | T03b | | | | | |
 | T03c | | | | | |
 | T03d | | | | | |

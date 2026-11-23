@@ -8545,6 +8545,80 @@ const itemCases = [
       }
     },
   },
+  {
+    name: 'p7: settings, work inputs and limits',
+    async run() {
+      const { limitsFor, settingsOf, workInputs } = await import('./p7-probe.mjs');
+      same(settingsOf('quick'), ['canonical', 'tie1', 'undo', 'work-half', 'mem-ref', 'mem-fast'], 'the quick settings');
+      same(settingsOf('full'), ['canonical', 'tie1', 'undo', 'work-half', 'work-minus1', 'work-ref', 'census-half', 'mem-below', 'mem-ref', 'mem-fast'], 'the full settings');
+      same(thrownBy(() => settingsOf('x')), 'p7-probe: unknown tier x', 'an unknown tier');
+      same(workInputs({ search: { work: 107 }, census: { work: 100 } }), { refWork: 7, refCensusWork: 100 }, 'the work inputs with a census');
+      same(workInputs({ search: { work: 9 }, census: null }), { refWork: 9, refCensusWork: 0 }, 'the work inputs without a census');
+      const base = { lookaheadWidth: 2, nodes: 100, solutions: 2, work: 1000, census: 50, memoryBytes: 4096 };
+      const inputs = { base, refWork: 7, refCensusWork: 100, refBytes: 300, extraBytes: 40 };
+      const at = (/** @type {string} */ setting, /** @type {any} */ over = {}) => /** @type {any} */ (limitsFor(setting, { ...inputs, ...over }));
+      same(at('work-half').limits, { ...base, work: 3 }, 'work-half is half of the main work, not of 107');
+      same(at('work-minus1').limits, { ...base, work: 6 }, 'work-minus1');
+      same(at('work-ref').limits, { ...base, work: 7 }, 'work-ref');
+      same(at('census-half').limits, { ...base, census: 50 }, 'census-half');
+      same(at('mem-below').limits, { ...base, memoryBytes: 299 }, 'mem-below');
+      same(at('mem-ref').limits, { ...base, memoryBytes: 339 }, 'mem-ref');
+      same(at('mem-fast').limits, { ...base, memoryBytes: 340 }, 'mem-fast');
+      assert(at('canonical').limits === base && at('fixture').limits === base, 'canonical and fixture keep the base object');
+      same(at('canonical').diagnostics, {}, 'canonical has no diagnostics');
+      same(at('tie1'), { limits: base, diagnostics: { tieOrder: 1 } }, 'tie1');
+      same(at('undo'), { limits: base, diagnostics: { verifyUndo: true } }, 'undo');
+      assert(at('mem-ref', { extraBytes: 0 }) === null && at('mem-fast', { extraBytes: 0 }) === null, 'a memory setting without extra bytes does not apply');
+      assert(at('work-half', { refWork: 1 }) === null && at('census-half', { refCensusWork: 1 }) === null && at('work-minus1', { refWork: 0 }) === null, 'a work setting below its minimum does not apply');
+      same(at('screen:500').limits, { ...base, work: 500 }, 'screen:500');
+      same(thrownBy(() => at('screen:-1')), 'p7-probe: bad screen setting screen:-1', 'screen:-1');
+      same(thrownBy(() => at('screen:1e3')), 'p7-probe: bad screen setting screen:1e3', 'screen:1e3');
+      same(thrownBy(() => at('wat')), 'p7-probe: unknown setting wat', 'an unknown setting');
+      same([...new Map([[95000000, ['fixed']], [7, ['mainWork-1', 'tail-mid']]]).keys()].map((W) => `screen:${W}`), ['screen:95000000', 'screen:7'],
+        'the screen settings come from the map keys');
+    },
+  },
+  {
+    name: 'p7: outcomes, fixtures and declarations',
+    async run() {
+      assert(SOURCE_KIND === 'frozen', 'the case must run with --label frozen');
+      const { equalDeclarations, fixtureInput, memoryManifest, outcomeOf, runtimeItems, timeDeclarations } = await import('./p7-probe.mjs');
+      same(outcomeOf(() => ({ a: [1, 2] })), { result: { a: [1, 2] } }, 'a result');
+      same(outcomeOf(() => {
+        const e = /** @type {any} */ (new RangeError('m'));
+        e.code = 'c';
+        e.details = { b: 1 };
+        throw e;
+      }), { error: { name: 'RangeError', code: 'c', message: 'm', details: { b: 1 } } }, 'an error');
+      same(outcomeOf(() => {
+        throw 'text';
+      }), { error: { name: 'string', code: null, message: 'text', details: null } }, 'a thrown string');
+      const manifest = memoryManifest();
+      same([manifest.fixtures.length, manifest.sequence.length, manifest.capacity.length], [5, 9, 2], 'the manifest entries');
+      const f = /** @type {any} */ (manifest.fixtures.find((x) => x.id === 'mem-near-reference'));
+      const input = fixtureInput(f);
+      assert(input.boardRows.length === 126 && input.boardRows.every((r) => r === '#'.repeat(32)), 'the board of mem-near-reference');
+      assert(input.pieces.length === 2 && input.pieces.every((x) => x.cells.length === 2016) && input.pieces[1].id === 'r1', 'the pieces of mem-near-reference');
+      same(input.clues, [], 'a fixture has no clue');
+      const treeBase = 'tests/artifacts/ig-proto/tree-frozen/base';
+      const treeInstr = 'tests/artifacts/ig-proto/tree-frozen/instr';
+      same(runtimeItems([
+        { id: 'x', kind: 'p7-equal', variant: 'base', payload: { source: 'pm4', otherTree: treeBase } },
+        { id: 'y', kind: 'p7-equal', variant: 'base', payload: { source: 'kernel', otherTree: treeBase, inputTree: treeInstr } },
+      ]).map((i) => i.payload), [
+        { source: 'pm4', otherRoot: abs(treeBase) },
+        { source: 'kernel', otherRoot: abs(treeBase), inputRoot: abs(treeInstr) },
+      ], 'the runtime payloads');
+      const quick = await equalDeclarations('base', 'quick');
+      const full = await equalDeclarations('base', 'full');
+      const time = await timeDeclarations('base');
+      same([quick.length, full.length, time.length], [149, 713, 90], 'the declared item counts');
+      same(quick.map((i) => i.id).filter((id, k, all) => all.indexOf(id) !== k), [], 'the quick ids are distinct');
+      same([quick[0].id, quick.at(-1)?.id, time[0].id, time.at(-1)?.id],
+        ['equal:base:kernel:10x10-nightmare:0', 'equal:base:memory:capacity', 'time:base:10x10-nightmare:0:0', 'time:base:26x26-hell-1:5:2'], 'the first and last ids');
+      assert(full.filter((i) => i.payload.source === 'pm4').flatMap((i) => i.payload.settings).filter((s) => s.startsWith('screen:')).length === 123, 'the screen settings of the first profiles');
+    },
+  },
 ];
 
 /**
@@ -10671,6 +10745,119 @@ const v4Cases = [
       const failed = await widthDispatch({ workerFile, workerData: { treeRoot: base.tree.root, items: broken, rounds: 1 }, width: 2, cutAtS: elapsedS() + 100 });
       assert(failed.status === 'error' && /** @type {any} */ (failed.result).message.startsWith('worker '), `the broken corpus: ${JSON.stringify(failed).slice(0, 400)}`);
       process.stdout.write(`NOTE width 10x10-nightmare, two workers, one round: median ${result.medianMs} ms, p90 ${result.p90Ms} ms; error path: ${/** @type {any} */ (failed.result).message}\n`);
+    },
+  },
+  {
+    name: 'p7: equality items of base against base',
+    async run() {
+      // The real path of the P7 equality items (locked: they deduce): the reference tree against itself on kernel inputs built by
+      // `instr`, a PM4 profile with screen settings, the memory fixtures, their sequence and capacity items, and a construction error.
+      assert(SOURCE_KIND === 'frozen', 'the case must run with --label frozen');
+      const { equalDeclarations, runtimeItems } = await import('./p7-probe.mjs');
+      const quick = await equalDeclarations('base', 'quick');
+      const full = await equalDeclarations('base', 'full');
+      const declared = (/** @type {any[]} */ list, /** @type {string} */ id) => {
+        const item = list.find((i) => i.id === id);
+        assert(item !== undefined, `no declared item ${id}`);
+        return item;
+      };
+      const kernel = ['equal:base:kernel:10x10-nightmare:0', 'equal:base:kernel:26x26-hell-1:0']
+        .map((id) => ({ ...declared(quick, id), payload: { ...declared(quick, id).payload, settings: ['canonical', 'tie1', 'work-half'] } }));
+      const pm4 = full.find((i) => i.id.startsWith('equal:base:pm4:10x10-nightmare:'));
+      assert(pm4 !== undefined && pm4.id.endsWith(':0'), 'no PM4 item of 10x10-nightmare at order 0');
+      const memory = quick.filter((i) => i.payload.source === 'memory' || i.payload.source === 'memory-sequence' || i.payload.source === 'memory-capacity');
+      assert(memory.length === 7, `${memory.length} memory items`);
+      const bad = {
+        id: 'equal:base:pm4:bad-clue',
+        kind: 'p7-equal',
+        variant: 'base',
+        payload: {
+          source: 'pm4',
+          boardRows: pm4.payload.boardRows,
+          pieces: pm4.payload.pieces,
+          clues: [{ ...pm4.payload.clues[0], piece: 'no-such-piece' }],
+          levelId: pm4.payload.levelId,
+          settings: ['canonical', 'work-half', 'mem-ref'],
+          otherTree: pm4.payload.otherTree,
+        },
+      };
+      const items = [...kernel, pm4, ...memory, bad];
+      const task = 'S24-T03a-dev';
+      fresh(artifactDir('selftest', task));
+      try {
+        const out = await runItems({ task, step: 'equal', label: 'selftest', horizonS: elapsedS() + 285, items: runtimeItems(items) });
+        same(out, { exitCode: 0, done: true, progress: items.length, refused: null }, `the run: ${JSON.stringify(out)}`);
+        const ends = new Map(readItemLog(join(artifactDir('selftest', task, 'equal'), 'items.jsonl')).filter((l) => l.type === 'item-end').map((l) => [l.item, l]));
+        const resultOf = (/** @type {string} */ id) => {
+          const end = ends.get(id);
+          assert(end !== undefined && end.status === 'completed', `${id}: ${JSON.stringify(end).slice(0, 400)}`);
+          return end.result;
+        };
+        for (const item of items) {
+          const r = resultOf(item.id);
+          assert(r.outcome === 'ok' && r.same === true, `${item.id}: ${JSON.stringify(r).slice(0, 600)}`);
+        }
+        for (const id of ['equal:base:kernel:10x10-nightmare:0', 'equal:base:kernel:26x26-hell-1:0']) {
+          const r = resultOf(id);
+          same([r.compared, r.skipped, r.inapplicable], [['canonical', 'tie1', 'work-half'], [], []], `${id}: ${JSON.stringify([r.compared, r.skipped, r.inapplicable])}`);
+        }
+        const screens = resultOf(pm4.id).compared.filter((/** @type {string} */ s) => s.startsWith('screen:'));
+        assert(screens.length >= 2, `the PM4 item compared ${screens.length} screen settings`);
+        same([resultOf('equal:base:memory:mem-near-reference').refBytes, resultOf('equal:base:memory:mem-above').refBytes], [33107689, 33630537], 'the reference bytes of the near-limit fixtures');
+        const fixtureStep = resultOf('equal:base:memory:mem-above').steps.find((/** @type {any} */ s) => s.setting === 'fixture');
+        const tooLarge = {
+          name: 'ModelError',
+          code: 'model-too-large',
+          message: 'deduction buffers need 33630537 bytes, the limit is 33554432',
+          details: { bytes: 33630537, limit: 33554432 },
+        };
+        same(fixtureStep.referenceError, tooLarge, 'the reference error of mem-above');
+        same(fixtureStep.candidateError, tooLarge, 'the candidate error of mem-above');
+        for (const item of memory) {
+          const r = resultOf(item.id);
+          assert(r.steps.every((/** @type {any} */ s) => s.representation === null), `${item.id}: a step has a representation`);
+        }
+        same([resultOf('equal:base:memory:sequence').steps.length, resultOf('equal:base:memory:capacity').steps.length], [9, 2], 'the sequence and capacity steps');
+        const broken = resultOf(bad.id);
+        same([broken.compared, broken.inapplicable], [['canonical'], ['work-half', 'mem-ref']], 'the construction-error item');
+        same([broken.steps[0].referenceError?.code, broken.steps[0].candidateError?.code], ['invalid-clue', 'invalid-clue'], 'the construction error on both trees');
+        process.stdout.write(`NOTE p7 equality items: ${items.length} items, ms ${JSON.stringify(items.map((i) => [i.id.replace('equal:base:', ''), ends.get(i.id)?.ms]))}\n`);
+      } finally {
+        rmSync(artifactDir('selftest', task), { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'p7: timing items of base against base',
+    async run() {
+      // The real path of the P7 timing items (locked: they rate): the reference tree against itself, two 10x10 Nightmare inputs of
+      // rounds 0 and 1 (both orders) and a 26x26 Hell 1 input whose deduction path is capped in both trees (a timed pair, R-P24-06).
+      assert(SOURCE_KIND === 'frozen', 'the case must run with --label frozen');
+      const { runtimeItems, timeDeclarations } = await import('./p7-probe.mjs');
+      const all = await timeDeclarations('base');
+      const items = ['time:base:10x10-nightmare:0:0', 'time:base:10x10-nightmare:0:1', 'time:base:26x26-hell-1:0:0'].map((id) => {
+        const item = all.find((i) => i.id === id);
+        assert(item !== undefined, `no declared item ${id}`);
+        return item;
+      });
+      const task = 'S24-T03a-dev-time';
+      fresh(artifactDir('selftest', task));
+      try {
+        const out = await runItems({ task, step: 'time', label: 'selftest', horizonS: elapsedS() + 285, items: runtimeItems(items) });
+        same(out, { exitCode: 0, done: true, progress: items.length, refused: null }, `the run: ${JSON.stringify(out)}`);
+        const ends = new Map(readItemLog(join(artifactDir('selftest', task, 'time'), 'items.jsonl')).filter((l) => l.type === 'item-end').map((l) => [l.item, l]));
+        const expected = ['none', 'none', 'both'];
+        for (const [k, item] of items.entries()) {
+          const end = ends.get(item.id);
+          assert(end !== undefined && end.status === 'completed', `${item.id}: ${JSON.stringify(end).slice(0, 400)}`);
+          const r = end.result;
+          assert(r.outcome === 'ok' && r.same === true && r.capped === expected[k], `${item.id}: ${JSON.stringify(r).slice(0, 600)}`);
+          assert(Number.isFinite(r.refMs) && r.refMs > 0 && Number.isFinite(r.candMs) && r.candMs > 0, `${item.id}: the times ${r.refMs} and ${r.candMs}`);
+        }
+        process.stdout.write(`NOTE p7 timing items: ${JSON.stringify(items.map((i) => [i.id.replace('time:base:', ''), ends.get(i.id)?.result.refMs, ends.get(i.id)?.result.candMs, ends.get(i.id)?.result.capped]))}\n`);
+      } finally {
+        rmSync(artifactDir('selftest', task), { recursive: true, force: true });
+      }
     },
   },
 ];

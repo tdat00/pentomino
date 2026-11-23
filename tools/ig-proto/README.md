@@ -2647,6 +2647,66 @@ node tools\ig-proto\fit-read.mjs prefixes --task <T> --arm <A> --budget <level>=
   `fit-read: command refusals` (T02c, the commands on private fixtures under `tests/artifacts/ig-proto/selftest/`; `io` carries the private
   folders and `mp12b1` the report seam).
 
+## P7's spike (stages 2 to 4 pack, T03a to T05b)
+
+P7 may make the rating kernel faster only if every result stays identical: the complete `DeductionResult` (its work units, node counts,
+caps, tie order, undo paths) and the memory-limit outcome. `p7-probe.mjs` declares the corpora and the two worker kinds that compare a
+candidate tree with the reference tree `base` (`P7_REFERENCE`) and time them in pairs; its pure helpers (`MEMORY_MANIFEST`,
+`MEMORY_SETTINGS`, `memoryManifest`, `fixtureInput`, `workInputs`, `limitsFor`, `outcomeOf`) are in `lib/p7-core.mjs`, so that a lane worker
+imports no label-reading module. T03a builds the item declarations and the two item kinds; T03b adds the experiment declaration, its checks
+and the verdicts, T03c the bindings, the go rule and the commands.
+
+- **The corpora and the tiers** (`P7_CORPUS_VERSION` `p7-corpus-v1`; `equalDeclarations(candidate, tier)`, repository paths only): T10a's
+  kernel corpus (the five `P7_KERNEL_CASES`, six window subsets each: 30 items), PM4's profiles (`tests/artifacts/ig-proto/frozen/IGP-02/main/<cell>/calls.json`,
+  read-only; the seven `P7_PM4_CELLS`, each set with pieces: the first four profiles per set in `quick`, 112 items, all of them in `full`, 676 items;
+  in `full` the first profile of a set also carries one `screen:<W>` setting per key of `screenValues`, 123 in 28 sets) and the memory fixtures
+  (five fixture items, the sequence item and the capacity item: 7 items). `quick` has 149 items, `full` 713. `timeDeclarations(candidate)` has
+  `P7_ROUNDS` (3) rounds of the 30 kernel inputs: 90 `p7-time` items. `runtimeItems` is the one conversion of a declaration to runtime items
+  (the tree paths become `otherRoot` and `inputRoot`).
+- **The input constructor of the kernel inputs**: the tree `instr` (`P7_INPUT_CONSTRUCTOR`), the rule `kernel-window-v1` (`P7_INPUT_RULE`:
+  `firstCarvedSet` with the seed `ig-v4/kernel/<case>`, then `windowSubsets` with offsets 1 to 3, two per offset, subset index 0 to 5) and the
+  catalogue `data/boards-v1.json` (`P7_CATALOGUE`). The same board, pieces and clues go to `base` and to the candidate, and the construction is
+  outside every timed interval. `base` cannot build the Hell 1 inputs (`lib/sets.mjs` returns `not-offered` for a null piece-count range,
+  and the frozen level-7 area interval is infinite), whereas `instr`'s diagnostic offers carve them; a construction failure (`no-set`,
+  `no-subset`) is a probe defect, never evidence against a candidate.
+- **The settings** (`settingsOf(tier)`; `limitsFor`): `canonical` (the tree's `DEDUCE`), `tie1` (`tieOrder` 1), `undo` (`verifyUndo`),
+  `work-half`, `work-minus1`, `work-ref` (the main work of the reference's canonical run, which is `search.work` less the census's work),
+  `census-half`, `mem-below` (the reference slot bytes less one), `mem-ref` and `mem-fast` (the reference bytes plus the candidate's extra list
+  bytes, less one and exactly), `screen:<W>` (a PM4 screening limit) and `fixture` (a memory fixture at the canonical limit). A setting that
+  needs a reference value the canonical outcome did not give is `inapplicable`; a setting whose limit does not exist for the item is `skipped`.
+- **The memory fixture manifest** (`data/p7-memory-fixtures.json`, computed on the frozen engine by
+  `docs/improve-generating-stages-2-4/evidence/sa-opus/bt-p7-memory.mjs`): fully active boards tiled by equal rectangles, no clue, at the canonical
+  limit of 33,554,432 bytes:
+
+  | Fixture | Rows | Nonzeros | Columns | Arena bytes | Reference slot bytes | At 32 MiB |
+  |---|---:|---:|---:|---:|---:|---|
+  | `mem-small` | 672 | 4,032 | 72 | 126,772 | 41,543 | lists |
+  | `mem-mid` | 16,896 | 101,376 | 288 | 3,106,996 | 857,735 | lists |
+  | `mem-near-lists` | 1 | 4,047 | 4,047 | 323,827 | 33,072,156 | lists |
+  | `mem-near-reference` | 34 | 68,578 | 4,034 | 2,130,514 | 33,107,689 | reference (the slots fit, the lists do not) |
+  | `mem-above` | 34 | 69,122 | 4,066 | 2,147,410 | 33,630,537 | `model-too-large` |
+
+  No valid product input reaches 32 MiB (a 676-cell model stays under about 27 MB of slots), so the near-limit models are synthetic, as the
+  precheck's formula allows; their limits are the canonical `DEDUCE` with `work` and `census` bounded to 20,000,000 each. The manifest also holds
+  the nine-step `sequence` (one fresh main workspace per tree: growth, a smaller model after growth, a reference-only call, the near-limit
+  fallback, the rejected model) and two `capacity` entries (a workspace of 5,183,547 bytes, which holds the arena, the slots and the lists, and one of
+  5,183,546).
+- **The equality rule**: an item's two outcomes (`outcomeOf`: the structured clone of the result, or the error's name, `code`, message and
+  details) are equal when `isDeepStrictEqual` holds, an error included; `model-too-large` is decided on the reference slot table exactly as today,
+  and a model-construction error is compared, never skipped.
+- **The item kinds** (`lib/lane-worker.mjs`; reserves 120 s and 90 s in `lib/lanes.mjs`, lanes 2 and 1 in `lib/items.mjs`): `p7-equal` runs the
+  reference (`otherRoot`) and this thread's tree on one input under each setting and records `same`, `compared`, `skipped`, `inapplicable`, the
+  first three `differing` settings, `refBytes`, `extraBytes` and a `steps` row per compared step (the candidate's `representation`, `listBytes`,
+  workspace bytes and capacity, the step's `memoryBytes`, both errors or null). Its sources are `kernel`, `pm4`, `memory`, `memory-sequence` (steps
+  `seq-<i>`) and `memory-capacity` (steps `cap-<i>`); a `memory` item first requires the arena and the reference slot bytes of the manifest and ends
+  `error` on a mismatch. `p7-time` rates one kernel input in each tree, each timed around `difficulty.rate` alone, the order alternating with the
+  round (even: reference first), and records `refMs`, `candMs`, `same` and `capped`. A rating that throws `IncompleteRatingError` (a capped deduction
+  path, which the generator charges and goes on from) is a timed rating: a capped rating on both trees is a timed pair (`capped: 'both'`, `same`
+  true when the errors' `counters` are equal too), on one tree only `same: false`; any other thrown error is an `error` item.
+- **Runs**: the equality runs are locked verification under the task ids `V4-P7E-<candidate>-<tier>`; the timing run is `V4-P7` (S02).
+- **Self-test**: `--items` (unlocked): `p7: settings, work inputs and limits`, `p7: outcomes, fixtures and declarations`; `--v4` (locked): `p7: equality
+  items of base against base`, `p7: timing items of base against base`.
+
 ## Phase-1 bench of P6 (V4-T14)
 
 Not a run plan (`run-task.ps1` does not run it): the production bench of the old version (main `3fc65f4`) and the new one (the commit
