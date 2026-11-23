@@ -38,7 +38,8 @@ eight Nightmare controls that stage 2 did not pilot, on the arm `fr-none`, reps 
   command `write-plan` in `commands` and in the refusal text; the usage comment at the top of the file (the command
   list) gains the `write-plan` line.
 - Create: `tools/ig-proto/plans/V4-S2B.json` (written by the command, never by hand).
-- Change: `tools/ig-proto/self-test.mjs`: one case appended to `itemCases` (`--items`).
+- Change: `tools/ig-proto/self-test.mjs`: one case appended to `itemCases` (`--items`), and one assertion of the existing
+  case `activate: the inputs are checked`, whose unknown-command text gains `write-plan` (step 4; ruling R-P24-02).
 - Change: `tools/ig-proto/README.md`: a new subsection `### Written plans (stages 2 to 4 pack)` after the section
   `### The manifest for the owner (V4-T11g)` (line 2530).
 - Do not change: every other file. Guards: G1, G2, G3; G3 lists only `tools/ig-proto/manifest.mjs`,
@@ -95,7 +96,16 @@ eight Nightmare controls that stage 2 did not pilot, on the arm `fr-none`, reps 
    (`<n>` all steps, `<k>` the locked ones, `<a>` `plan.allocationMinutes`, `<o>` `plan.optionalMinutes`), then one line
    `write-plan: wrote <rel path>` per item manifest; return 0.
 4. In `main`, add `'write-plan': (a) => writePlanCommand(a)` to `commands` and `write-plan` to the list of the refusal
-   text `unknown command ...`.
+   text `unknown command ...`, at its end: `unknown command <command> (compile, check-prerequisites, activate, close,
+   resolve-comparators, verdict-input, price, approval, write-plan)`. The existing case `activate: the inputs are
+   checked` of `self-test.mjs` checks that text (the assertion labelled `an unknown command lists the eight`, line 6843
+   at `83c78c1`): replace that one line by
+
+   ```js
+         same([unknown.code, unknown.err], [1, 'manifest: unknown command nope (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input, price, approval, write-plan)\n'], 'an unknown command lists the nine');
+   ```
+
+   and change nothing else in that case; its name, by which the gates select it, stays (ruling R-P24-02).
 5. Run (unlocked) `node tools\ig-proto\manifest.mjs write-plan --plan V4-S2B --label frozen --source-label "frozen 3fc65f4"`.
    Expected: `write-plan: wrote tools/ig-proto/plans/V4-S2B.json (13 steps, 8 locked; allocation 23 min, optional 0 min)`.
    A second run prints `write-plan: plan exists: a plan is never rewritten (tools/ig-proto/plans/V4-S2B.json)` on stderr
@@ -108,6 +118,7 @@ eight Nightmare controls that stage 2 did not pilot, on the arm `fr-none`, reps 
 | `tools/ig-proto/self-test.mjs` (`--items`) | `write-plan: V4-S2B` | `writtenPlan('V4-S2B')` (the default `rowSOf`, reading MP12b1's reports and the stage-1 factor of this machine) | `plan.task` `V4-S2B`; `generatedBy` `manifest.mjs write-plan`; `runnable` true; `prerequisites` deep-equal `[{ type: 'accepted', path: 'docs/improve-generating/evidence/frozen/V4-S2P/parity-fr-none.accepted.json', current: ['fr-none'] }]`; step ids in order `prerequisites, firewall-snapshot, trees, rows-fr-none-pilot-3x29-nightmare, rows-fr-none-pilot-18x18-nightmare, rows-fr-none-pilot-18x20-nightmare, rows-fr-none-pilot-20x20-nightmare, rows-fr-none-pilot-20x21-nightmare, rows-fr-none-pilot-32x15-nightmare, rows-fr-none-pilot-22x22-nightmare, rows-fr-none-pilot-24x24-nightmare, publish-fr-none, firewall-check`; the `trees` node `['tools\\ig-proto\\lib\\tree.mjs', 'build', 'fr-none']`; every row step `locked` true, `repeatUntilDone` true, `minHorizonS` 272, `optional` false, its node ending `'--workers', '4', '--cases', '<cell>:0-4', '--row-limit-s', '260'` and its state `V4-S2B\\fr-none\\pilot-<cell>\\state.json`; `allocationMinutes` 23, `optionalMinutes` 0; `Math.round(planGuardS(plan) * 1000) / 1000` = 1694.624; `itemManifests` `{}` |
 | same case | (refusals) | `writtenPlan('V4-XX')` | throws `manifest: unknown written plan V4-XX` |
 | same case | (command, scratch folder) | `writePlanCommand(['--plan', 'V4-S2B', '--label', 'frozen', '--source-label', 'self-test'], { plansDir: <fresh folder under tests/artifacts/ig-proto/selftest/write-plan> })` twice | the first returns 0 and writes `<folder>/V4-S2B.json` whose parse deep-equals `writtenPlan('V4-S2B').plan`; the second returns 1 and leaves the file's bytes unchanged |
+| same file (`--items`), existing case | `activate: the inputs are checked` (its assertion `an unknown command lists the nine`, step 4) | `m.main(['nope'])` | exit 1; stderr `manifest: unknown command nope (compile, check-prerequisites, activate, close, resolve-comparators, verdict-input, price, approval, write-plan)\n` |
 
 ## Documentation
 
@@ -128,7 +139,7 @@ allocation 23 min, guard 28.24 min)." T05b and T10 add their plans to this parag
 | `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task S24-T02a --horizon-s 285` | repository root (unlocked) | every case `PASS`; `self-test: <n> passed, 0 failed` | 5 min |
 | `node tools\ig-proto\manifest.mjs write-plan --plan V4-S2B --label frozen --source-label "frozen 3fc65f4"` | repository root | as step 5 | 1 min |
 | `node tools\ig-proto\manifest.mjs check-prerequisites --plan V4-S2B --label frozen --source-label "frozen 3fc65f4"` | repository root | `prerequisites: pass` | 2 min |
-| `pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\V4-S2B.json -Label frozen -SourceLabel 'frozen 3fc65f4' -DryRun -ApprovedRoundMinutes 747` | repository root | five `[dry run] <id>: unlocked` lines; eight `[dry run] rows-fr-none-pilot-<cell>: go, horizon 885 s, ...` lines | 2 min |
+| `pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\V4-S2B.json -Label frozen -SourceLabel 'frozen 3fc65f4' -DryRun -ApprovedRoundMinutes 747` | repository root | five `[dry run] <id>: unlocked` lines; eight `[dry run] rows-fr-none-pilot-<cell>: go, horizon <h> s, allowance <a> s, forecast so far <f> s` lines, `<h>` 885 for `3x29`, `18x18`, `18x20`, `20x20` and `20x21`, then 762 (`32x15`), 640 (`22x22`) and 481 (`24x24`); the last line `[dry run] forecast of the plan: 1,356 s counted (allocation 1,380 s, guard 1,725 s)`. The dry run adds each locked step's forecast (`projectS` + 45 s) to the plan's counted total, so the later horizons are set by the plan's own guard (1.25 x 23 min = 1,725 s; `lib/budget.mjs:85-90`: `min(885, 1,725 - forecast - 55)`), not by the round's 747 (ruling R-P24-02) | 2 min |
 | `node tools\ig-proto\manifest.mjs approval --plan V4-S2B --label frozen --source-label "frozen 3fc65f4"` | repository root | one JSON line with `requestedAdditionalGuardS` 1694.6240407041143 (to the printed precision) | 1 min |
 | `node tools\ig-proto\firewall.mjs check --task S24-T02a --label frozen` | repository root, last | `firewall: OK, <n> production files unchanged since the snapshot of S24-T02a` | 1 min |
 | `npm run check` | repository root | `check-conventions: OK`, `check-site: OK` | 2 min |

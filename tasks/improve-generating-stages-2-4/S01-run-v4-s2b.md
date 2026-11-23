@@ -47,8 +47,18 @@ no-screen arm `fr-none` (reps 0 to 4, fitting seeds) so that a control at risk i
    line and the cap in the Execution log and in the next progress report.
 3. **Dry run.** `pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\V4-S2B.json -Label frozen
    -SourceLabel 'frozen 3fc65f4' -DryRun -ApprovedRoundMinutes 747`. Expected: five `[dry run] <id>: unlocked` lines and
-   eight `[dry run] rows-fr-none-pilot-<cell>: go, horizon 885 s, allowance <a> s, forecast so far <f> s` lines; any
-   `stop` is reported, the run is not started.
+   eight `[dry run] rows-fr-none-pilot-<cell>: go, horizon <h> s, allowance <a> s, forecast so far <f> s` lines, `<h>`
+   885 for `3x29`, `18x18`, `18x20`, `20x20` and `20x21`, then 762 (`32x15`), 640 (`22x22`) and 481 (`24x24`), and the
+   line `[dry run] forecast of the plan: 1,356 s counted (allocation 1,380 s, guard 1,725 s)` (T02a's figures, before
+   any invocation of `V4-S2B`); any `stop` is reported, the run is not started. Ruling R-P24-02: the dry run adds each
+   locked step's forecast (`projectS` + 45 s) to the plan's counted total, so its later horizons are set by the plan's
+   own guard, `min(885, 1.25 x 23 x 60 - forecast - 55)` (`lib/budget.mjs:85-90`), not by the round's 747. The run
+   itself computes each horizon from the counted seconds actually logged (`run-task.ps1:107`), and `arm.mjs run`
+   starts a row only when its 260-s limit and 10 s fit in what is left of the horizon (`arm.mjs:177`): a row is never
+   cut by a horizon, and a row that does not fit waits for the step's next invocation. The plan stops (exit 4, `STOP
+   (budget)` or no progress, the recorded rows kept) only when its counted total nears 1,398 s (1,725 - 55 - 272) while
+   rows remain: about 23.3 counted minutes against the timing proxy's 16 to 20 and the formal 22.59; that stop is
+   handled as step 6 says and its continuation needs the owner's minutes.
 4. **Start detached.** `New-Item -ItemType Directory -Force tests\artifacts\ig-proto\frozen\V4-S2B | Out-Null`, then with
    the orchestrator's `powershell` tool in `mode: "async", detach: true`:
    `pwsh -NoProfile -File tools\ig-proto\run-task.ps1 -Plan tools\ig-proto\plans\V4-S2B.json -Label frozen -SourceLabel
