@@ -1,0 +1,138 @@
+{
+  "limit": 33554432,
+  "band": 524288,
+  "mainWorkspace": 167772160,
+  "searched": 501,
+  "fixtures": [
+    {
+      "id": "mem-small",
+      "W": 10,
+      "H": 6,
+      "a": 1,
+      "b": 5,
+      "K": 12,
+      "rows": 672,
+      "nonzeros": 4032,
+      "columns": 72,
+      "arenaBytes": 126772,
+      "refBytes": 41543,
+      "listBytes": 48960,
+      "error": {
+        "name": "ModelError",
+        "code": "model-too-large",
+        "details": {
+          "bytes": 41543,
+          "limit": 0
+        }
+      },
+      "formulaMatches": true,
+      "refMinusLimit": -33512889,
+      "arenaPlusRefWithinMain": true,
+      "canonical": "lists"
+    },
+    {
+      "id": "mem-mid",
+      "W": 20,
+      "H": 12,
+      "a": 1,
+      "b": 5,
+      "K": 48,
+      "rows": 16896,
+      "nonzeros": 101376,
+      "columns": 288,
+      "arenaBytes": 3106996,
+      "refBytes": 857735,
+      "listBytes": 1218816,
+      "error": {
+        "name": "ModelError",
+        "code": "model-too-large",
+        "details": {
+          "bytes": 857735,
+          "limit": 0
+        }
+      },
+      "formulaMatches": true,
+      "refMinusLimit": -32696697,
+      "arenaPlusRefWithinMain": true,
+      "canonical": "lists"
+    },
+    {
+      "id": "mem-near-lists",
+      "W": 34,
+      "H": 119,
+      "a": 34,
+      "b": 119,
+      "K": 1,
+      "rows": 1,
+      "nonzeros": 4047,
+      "columns": 4047,
+      "arenaBytes": 323827,
+      "refBytes": 33072156,
+      "listBytes": 80940,
+      "error": {
+        "name": "ModelError",
+        "code": "model-too-large",
+        "details": {
+          "bytes": 33072156,
+          "limit": 0
+        }
+      },
+      "formulaMatches": true,
+      "refMinusLimit": -482276,
+      "arenaPlusRefWithinMain": true,
+      "canonical": "lists"
+    },
+    {
+      "id": "mem-near-reference",
+      "W": 32,
+      "H": 126,
+      "a": 16,
+      "b": 126,
+      "K": 2,
+      "rows": 34,
+      "nonzeros": 68578,
+      "columns": 4034,
+      "arenaBytes": 2130514,
+      "refBytes": 33107689,
+      "listBytes": 855208,
+      "error": {
+        "name": "ModelError",
+        "code": "model-too-large",
+        "details": {
+          "bytes": 33107689,
+          "limit": 0
+        }
+      },
+      "formulaMatches": true,
+      "refMinusLimit": -446743,
+      "arenaPlusRefWithinMain": true,
+      "canonical": "reference"
+    },
+    {
+      "id": "mem-above",
+      "W": 32,
+      "H": 127,
+      "a": 16,
+      "b": 127,
+      "K": 2,
+      "rows": 34,
+      "nonzeros": 69122,
+      "columns": 4066,
+      "arenaBytes": 2147410,
+      "refBytes": 33630537,
+      "listBytes": 861992,
+      "error": {
+        "name": "ModelError",
+        "code": "model-too-large",
+        "details": {
+          "bytes": 33630537,
+          "limit": 0
+        }
+      },
+      "formulaMatches": true,
+      "refMinusLimit": 76105,
+      "arenaPlusRefWithinMain": true,
+      "canonical": "model-too-large"
+    }
+  ]
+}

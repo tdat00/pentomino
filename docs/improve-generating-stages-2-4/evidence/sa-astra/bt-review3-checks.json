@@ -1,0 +1,419 @@
+{
+  "index": {
+    "tasks": 35,
+    "totalHours": 68,
+    "maximumHours": 3,
+    "brokenLinks": [],
+    "badDependencies": []
+  },
+  "staleReferences": [],
+  "anchors": [
+    {
+      "id": "fr-frozen",
+      "edits": 90,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-live-test",
+      "edits": 91,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-none",
+      "edits": 90,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-none-live-test",
+      "edits": 91,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-none-uncapped",
+      "edits": 90,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-nowindow-test",
+      "edits": 92,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-uncapped",
+      "edits": 90,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "live",
+      "edits": 76,
+      "pending": [],
+      "failures": [],
+      "parsed": 14
+    },
+    {
+      "id": "live-test",
+      "edits": 77,
+      "pending": [],
+      "failures": [],
+      "parsed": 14
+    },
+    {
+      "id": "p5-mode",
+      "edits": 42,
+      "pending": [],
+      "failures": [],
+      "parsed": 11
+    },
+    {
+      "id": "p7-c1",
+      "edits": 9,
+      "pending": [],
+      "failures": [],
+      "parsed": 3
+    },
+    {
+      "id": "p7-c1r5",
+      "edits": 10,
+      "pending": [],
+      "failures": [],
+      "parsed": 3
+    },
+    {
+      "id": "p7-c1r5c5",
+      "edits": 13,
+      "pending": [],
+      "failures": [],
+      "parsed": 3
+    },
+    {
+      "id": "ps-levels",
+      "edits": 49,
+      "pending": [],
+      "failures": [],
+      "parsed": 14
+    }
+  ],
+  "bound": {
+    "state": "resolved",
+    "at": 119000,
+    "cancels": 1,
+    "sameSnapshot": true,
+    "unchangedAfter125000": true
+  },
+  "bindingSpecification": {
+    "listed": [
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/10x10-nightmare/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/12x12-nightmare/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/14x14-nightmare/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/15x15b10-nightmare/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-hell-1/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-master/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-nightmare/calls.json",
+      "tools/ig-proto/data/p7-memory-fixtures.json",
+      "tools/ig-proto/data/boards-v1.json"
+    ],
+    "passesSpecifiedNonemptyRequiredPathAndHashChecks": true,
+    "absentCanonicalRunFiles": [
+      "tests/artifacts/ig-proto/frozen/V4-P7E-p7-x-quick/equal/experiment.json",
+      "tests/artifacts/ig-proto/frozen/V4-P7E-p7-x-quick/equal/state.json",
+      "tests/artifacts/ig-proto/frozen/V4-P7E-p7-x-quick/equal/items.jsonl"
+    ]
+  },
+  "rawIdentitySpecification": {
+    "missingBothProducerIdentities": [],
+    "duplicateShardDeclaration": [],
+    "duplicateRowIdentity": []
+  },
+  "specificationWitnessesOnly": true,
+  "inputConstructor": {
+    "instrDeclared": true,
+    "usesMaker": true,
+    "hellVerification": true
+  },
+  "format": [
+    {
+      "path": "tasks/improve-generating-stages-2-4/S01-run-v4-s2b.md",
+      "sha256": "aa4f428e7c7a0515b211e579b6ba778ba1fc577726841a5cb1830160e168abfb",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S02-run-v4-p7-and-spike-report.md",
+      "sha256": "89a3edcccf50674bc7c895a084ba6b5f32fef05d97e15c7bc90f7e75ff3771a7",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S03-run-v4-s3p.md",
+      "sha256": "d91320f1d6e5f19446731be998fd71dbb96ed807e9857e820a675e55ae851729",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S04-run-v4-live.md",
+      "sha256": "8a48cd99f75456d98e251e8bfe7506df7a5f052165b69e9bdb709d596c4ce49b",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S05-activation.md",
+      "sha256": "3b43c63a4ab6917a4401ad4b9a1f860cbadf2852213719ce2cbac5787bc37333",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S06-run-v4-s4.md",
+      "sha256": "b3c3cbf984cabe32d650e66d9df22b6aec05bc693d99868d7865a403face8298",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S07-run-v4-s4c.md",
+      "sha256": "9884fa5f1efa2eb96684985805be55677c1ccaafc3b85e663e31038cd863f7ff",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T01a-publish-done-shards.md",
+      "sha256": "ace5fcf31d070ea9b1d2bf92cb6ff38fd637b6356a81c784c1a61190ebef0e0f",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T01b-git-guard.md",
+      "sha256": "c53d2c42ac12d0bbdbb381b0bb2f9a6d3eed3e70c093ef473acce6d6d425ae25",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T02a-plan-writer-and-v4-s2b.md",
+      "sha256": "c5001d7814f3994b5a7e147c90d94a900cfd4a0b334a48241cac85cced540ab6",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T02b-fit-reader-core.md",
+      "sha256": "b77f18176085af316ae47d0572bee72a09ab3e2ddbbf10d4ee41a9e0c1693946",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T02c-fit-reader-commands.md",
+      "sha256": "c09185b2cf34b1c60d9d386dbf1702a0dc3d502807860eac88fa3b50eeb09c22",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03a-p7-probe-items.md",
+      "sha256": "344f91fa27cbb59270dd7902078fc564217b8a8f7d8bb47f9798506a3d07b2c7",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03b-p7-probe-declaration-and-verdicts.md",
+      "sha256": "343e65e323ab4137979219071c3744ae77cedac2951488c40b9cdbfbbb3c8939",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03c-p7-probe-bindings-and-commands.md",
+      "sha256": "411aaa06fdf2e7a368932ec846b1282a3eeda7c77b14068774b8a3c95150a918",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03d-p7-c1-live-row-lists.md",
+      "sha256": "153677315143600ed6febd857d1f68e1a21c04c3e12ce266c53deaf825ec600c",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T04-p7-r5-on-lists.md",
+      "sha256": "24002078a360617464be332f4c29915072dc7ddbbc56a6f69bbced5d56345e2f",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T05a-p7-c5-select-on-lists.md",
+      "sha256": "ac2eb70838d4a96bbaed98f0436926d31d625a306b5a6082d840c90b36ce6778",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T05b-p7-full-equality-and-v4-p7.md",
+      "sha256": "d99ea028e72f185ba1190965d16f752e7a35499422a2411e357c4af042607992",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T06a-prior-s3-v1.md",
+      "sha256": "ce0a634a1f17534d39117c8278b837e00ea329bfd5569c9f803900aedb3f5a39",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T06b-budget-by-mode-and-per-set-levels.md",
+      "sha256": "dd82c74485b31c979e1ee5728a5ac1e963abf3e964bc90108d015a2a13431d54",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T07a-live-deadline-client-and-pool.md",
+      "sha256": "d9f066a1ef0f1a63b22ee36f8ee0c3b3358904e2e42f800261c93b1a1b178720",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T07b-live-deadline-host-bound.md",
+      "sha256": "4231d8387f454f3b1549c4a9f9d97921900d7bc6f3d71d128e8c1ada69a2c655",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T07c-live-deadline-scripted-cases.md",
+      "sha256": "7ccb3a2516cc31a5cf9ffae8b3af85743ae3683b53504681549fcf444d6a8af9",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T08a-frozen-variants.md",
+      "sha256": "fbdcce84f04bd8d7b366234515cb27e0a17d298d9a782723370693ca2ee214ee",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T08b-freeze-checks.md",
+      "sha256": "7ddfcf4f97d694e27e1d90c89d4910c837ceb2ee21b43da9ee075d2516b38b2a",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T08c-frozen-real-calls.md",
+      "sha256": "61f74de12993c7be7e49cfd057c267b9783851b19d7a0746562b21b1491ca14d",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09a-live-deadline-checks.md",
+      "sha256": "273871e9eecb5de451fccce48ea900159fe610ced99e2963517db7c513f237af",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09b-live-deadline-receipt.md",
+      "sha256": "59f0d655efaf5d8655a23e6e00c0d618e98c13727336bfebe92f6a1a6575c182",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09c-accept-live-deadline.md",
+      "sha256": "cb1c65be5e83777f3d0cce2c77aeb95a624549b76a22632d962debc83ba627c3",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T10-plan-v4-s3p.md",
+      "sha256": "f48845f58a3984ac168bfdced1093e66faf6af47ed61cb4118339bed71f0e593",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T11-sa-reading-of-the-fit-runs.md",
+      "sha256": "fa88f1960851b6009d432c686636064d8ef018c52194b481a18e6b1cb7d96b4c",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T12a-fit-index.md",
+      "sha256": "c32ea69932c5f1e398500c89ca4248c2601fac3054b496f7e466d9c3ad1e5083",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T12b-freeze-record.md",
+      "sha256": "9ad735f926fe36c536b0a9e4249146e176d1557299d334e242688b2684f98b69",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T16-stage4-report-and-phase0.md",
+      "sha256": "b5a09d3a9e5a416cc6c80c656aa7a992d8fc64f4aff6c21f04a76c244d0ece58",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/check-list.md",
+      "sha256": "22ce5651316c9eba4acd3fc25eafb645f6298ee0c27ba26951875ff83460629d",
+      "ok": true
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/review-2-response.md",
+      "sha256": "235c3ae3d8f886bae9cc52ee24d3aab5f29998d0fefdfabb89f0c724df7f3a05",
+      "ok": true
+    }
+  ],
+  "codeInputs": [
+    {
+      "path": "tools/ig-proto/arm.mjs",
+      "sha256": "1ab0c33261d480082316985387e10ae33a5bba9fc8913c6cdc6d4f07b1f58161"
+    },
+    {
+      "path": "tools/ig-proto/manifest.mjs",
+      "sha256": "0fd0f4dce70e14ca08959d75ff6995b2d57019bc9fb55993ab51c78da6171116"
+    },
+    {
+      "path": "tools/ig-proto/v4-check.mjs",
+      "sha256": "9eb7b3ab2998b6e2fccfd2a550809e343abdfc1323da3b02bb3f67b8fd03ca1b"
+    },
+    {
+      "path": "tools/ig-proto/verdicts.mjs",
+      "sha256": "e4a37c5a3acd5202c89e3c47d643fb343e2bcaf5667053466408d19a3e1ed195"
+    },
+    {
+      "path": "tools/ig-proto/lib/tree.mjs",
+      "sha256": "a437fc3a34c799de5999add50e63f440b4859a5ab6f03c60e59c2016295aa892"
+    },
+    {
+      "path": "tools/ig-proto/lib/paths.mjs",
+      "sha256": "5222e5d3a8612db37eab79c2f93cfa86ca57c12c5037331a7f598953b79f5ceb"
+    },
+    {
+      "path": "tools/ig-proto/lib/records.mjs",
+      "sha256": "8add192e55594f09fd8d8b26221801a937c462a385c2cd797682fa54daeaf111"
+    },
+    {
+      "path": "tools/ig-proto/lib/items.mjs",
+      "sha256": "80a0ed9fbc0233da81ad99859a2b821c8628e73d8ccfa88751ee755eb595f174"
+    },
+    {
+      "path": "tools/ig-proto/lib/sets.mjs",
+      "sha256": "95a8f359e8fa4eef9fe58388f332d9186d6656fd1bc0cfd6d52de128231b818c"
+    },
+    {
+      "path": "tools/ig-proto/lib/fake-pool.mjs",
+      "sha256": "dba0fb255a01ea17cdc6f2a4f7ddfe0876c91007844cb7dee89427f47c276a82"
+    },
+    {
+      "path": "tools/ig-proto/lib/lane-worker.mjs",
+      "sha256": "fb5c895e6c0dd16c2585a30e124d44b1e508fd0194947ec7ef844d4c42075ad0"
+    },
+    {
+      "path": "tools/ig-proto/variants/log.json",
+      "sha256": "3239ba6c1f4ff2d274a150d526a8b1ef059d6f4af0402feb069931d3967d7852"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen-source/core/browser/generation-client.js",
+      "sha256": "eed76d3d611d7e1dd9b320f0006aa2e2494bd8a4f78f4b496ed7967295c2ca60"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen-source/core/engine/deduce.js",
+      "sha256": "46c60975827df4faf9e87358fc3153f6bd07b63b6dee05314b80a74a7112ae62"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen-source/core/engine/pack.js",
+      "sha256": "2b1c3dce89f8d588e5fae10814b61cce86189a2345addf3da52d152605a208bf"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/bt-bound.mjs",
+      "sha256": "22c3b79aa16713e9bfd8f2129a201da7e91fa54e95e159e7396bd97634e38f02"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/bt-live.mjs",
+      "sha256": "eabe09bbdf48d766543f6b3bb5d5f5f5557ca8112d976a4b5a644b0d403782ad"
+    }
+  ],
+  "noEngineExecution": true
+}

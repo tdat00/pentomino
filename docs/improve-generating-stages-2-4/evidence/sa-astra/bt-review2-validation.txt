@@ -1,0 +1,283 @@
+Task-pack review 2, base 57ef5cf
+No git command, tree build, engine/search/rating/generation/replay or timed run.
+Command: node --experimental-vm-modules docs\improve-generating-stages-2-4\evidence\sa-astra\bt-review2-checks.mjs --label frozen
+Exit: 0
+{
+  "index": {
+    "tasks": 34,
+    "ids": [
+      "T01a",
+      "T01b",
+      "T02a",
+      "T02b",
+      "T02c",
+      "S01",
+      "T03a",
+      "T03b",
+      "T03c",
+      "T04",
+      "T05a",
+      "T05b",
+      "S02",
+      "T06a",
+      "T06b",
+      "T07a",
+      "T07b",
+      "T07c",
+      "T08a",
+      "T08b",
+      "T08c",
+      "T09a",
+      "T09b",
+      "T09c",
+      "T10",
+      "S03",
+      "T11",
+      "T12a",
+      "T12b",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "T16"
+    ],
+    "totalHours": 64.5,
+    "maximumTaskHours": 3,
+    "brokenLinks": []
+  },
+  "variants": [
+    [
+      "fr-frozen",
+      85
+    ],
+    [
+      "fr-frozen-live-test",
+      86
+    ],
+    [
+      "fr-frozen-none",
+      85
+    ],
+    [
+      "fr-frozen-none-live-test",
+      86
+    ],
+    [
+      "fr-frozen-none-uncapped",
+      85
+    ],
+    [
+      "fr-frozen-nowindow-test",
+      87
+    ],
+    [
+      "fr-frozen-uncapped",
+      85
+    ],
+    [
+      "live",
+      71
+    ],
+    [
+      "live-test",
+      72
+    ],
+    [
+      "p5-mode",
+      42
+    ],
+    [
+      "p7-c1",
+      9
+    ],
+    [
+      "p7-c1r5",
+      10
+    ],
+    [
+      "p7-c1r5c5",
+      13
+    ],
+    [
+      "ps-levels",
+      49
+    ]
+  ],
+  "gitGuardPass": true,
+  "memory": [
+    {
+      "id": "mem-small",
+      "rows": 672,
+      "nonzeros": 4032,
+      "columns": 72,
+      "refBytes": 41543,
+      "arenaBytes": 126772,
+      "listBytes": 48960,
+      "belowLimit": 33512889
+    },
+    {
+      "id": "mem-mid",
+      "rows": 16896,
+      "nonzeros": 101376,
+      "columns": 288,
+      "refBytes": 857735,
+      "arenaBytes": 3106996,
+      "listBytes": 1218816,
+      "belowLimit": 32696697
+    },
+    {
+      "id": "mem-near-lists",
+      "rows": 1,
+      "nonzeros": 4047,
+      "columns": 4047,
+      "refBytes": 33072156,
+      "arenaBytes": 323827,
+      "listBytes": 80940,
+      "belowLimit": 482276
+    },
+    {
+      "id": "mem-near-reference",
+      "rows": 34,
+      "nonzeros": 68578,
+      "columns": 4034,
+      "refBytes": 33107689,
+      "arenaBytes": 2130514,
+      "listBytes": 855208,
+      "belowLimit": 446743
+    },
+    {
+      "id": "mem-above",
+      "rows": 34,
+      "nonzeros": 69122,
+      "columns": 4066,
+      "refBytes": 33630537,
+      "arenaBytes": 2147410,
+      "listBytes": 861992,
+      "belowLimit": -76105
+    }
+  ],
+  "listStorage": {
+    "capacity5499FallsBack": true,
+    "capacity5500UsesLists": true,
+    "hasWeakMapCache": false
+  },
+  "batchBound": {
+    "at120000": "pending",
+    "cancels": 1,
+    "response": {
+      "at": 125000,
+      "value": {
+        "status": "partial",
+        "reason": "time-limit",
+        "accepted": [
+          {
+            "id": "p"
+          }
+        ],
+        "made": {
+          "p": {
+            "kind": "candidate"
+          }
+        },
+        "pack": {
+          "synthetic": true
+        }
+      }
+    }
+  },
+  "reserveBeforeHostBound": {
+    "at": 118999,
+    "state": "resolved",
+    "result": {
+      "status": "failed",
+      "reason": "reserve-cut",
+      "failures": {}
+    }
+  },
+  "prefixWrongSeed": {
+    "rowKey": "14x14-nightmare~0",
+    "expected": "landscape/14x14-nightmare/0",
+    "actual": "landscape/14x14-nightmare/20",
+    "ingestStatus": "valid"
+  },
+  "p7Log": {
+    "oldIdentityMatchesAllLogHashes": true,
+    "producerInDeclaration": "new",
+    "producerInState": "old",
+    "resumePlan": {
+      "refuse": "out-of-order log entry for n0"
+    }
+  },
+  "splitImports": {
+    "freezeCreationImportsReadRepoFile": false,
+    "fitTaskAddsReadRepoFileImport": false,
+    "fitTaskAddsSha256TextImport": false
+  },
+  "kernelInput": {
+    "candidateParents": [
+      "base"
+    ],
+    "sourceGuard": true,
+    "existingBaseTestRejectsHell": true,
+    "corpusIncludesHell": true,
+    "expectedNoSetKernelItems": 6,
+    "basis": "Source trace only: base offer guard -> carveSet not-offered -> firstCarvedSet no-carve; no engine executed."
+  },
+  "prices": {
+    "s2b": {
+      "allocationMinutes": 23,
+      "guardMinutes": 28.24373401173524
+    },
+    "s3p": {
+      "allocationMinutes": 139,
+      "guardMinutes": 173.6099475635921
+    },
+    "p7": {
+      "allocationMinutes": 16,
+      "guardMinutes": 19.369531249999987
+    }
+  },
+  "liveProducerFixture": {
+    "firstProblem": "b",
+    "prescribedFirstReason": "runs file b differs from its raw shard",
+    "tableExpects": "the runs files name 2 producers"
+  },
+  "repaired": [
+    {
+      "path": "tasks/improve-generating-stages-2-4/check-list.md",
+      "sha256": "571fab642f581ed04e2b6f15593f89c01dbccbf994a9ad39da406f0ce6feac0c",
+      "validFormat": true,
+      "lines": 603
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S03-run-v4-s3p.md",
+      "sha256": "d91320f1d6e5f19446731be998fd71dbb96ed807e9857e820a675e55ae851729",
+      "validFormat": true,
+      "lines": 153
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T06a-prior-s3-v1.md",
+      "sha256": "ce0a634a1f17534d39117c8278b837e00ea329bfd5569c9f803900aedb3f5a39",
+      "validFormat": true,
+      "lines": 176
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09c-accept-live-deadline.md",
+      "sha256": "6f8d42358e297347e8c3af44011e0acc98e05dd87db27358a65a6c491670f692",
+      "validFormat": true,
+      "lines": 186
+    }
+  ]
+}
+(node:24008) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+Command: npm run check
+Exit: 0
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+Final validation: 4 new files format PASS; 9 findings (4 P1, 4 P2, 1 P3); 36 revised pack inputs and principal harness source hashes unchanged; npm run check PASS.
