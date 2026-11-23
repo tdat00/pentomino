@@ -40,7 +40,12 @@ requires the receipt's evidence index to hold every mandatory input.
 - Change: `tools/ig-proto/v4-check.mjs`: the import of `./live-deadline.mjs`; `LIVE_DEADLINE_FIELDS` added to the
   `./lib/proof.mjs` import; the exported `liveExpectation` and `liveRequiredEvidence`; `accept(argv, io = {})` (lines
   1571-1610 at the base) and `main(argv, io = {})` (line 1848), which passes `io` to the subcommand.
-- Change: `tools/ig-proto/self-test.mjs`: two cases appended to `itemCases`.
+- Change: `tools/ig-proto/self-test.mjs`: two cases appended to `itemCases`; `runCheck(args, io = {})` passes `io` to
+  `main`; in the existing case `accept: a binding is never rewritten` (`self-test.mjs:2837-2840` at the base), whose
+  example of an unknown kind was `live-deadline`, the receipt becomes `w.write({ kind: 'deadline-projection' })` (the
+  post-hoc projection's kind, which never satisfies the live deadline, D-V4-18) and the expected refusal `v4-check: accept
+  knows the kinds stage1, parity, p0-identity, live-deadline\n` (step 4's text); the case's name and its other
+  assertions are unchanged (ruling R-P24-15).
 - Change: `tools/ig-proto/README.md`: the subsection of T09a gains the acceptance; the `accept` usage line names the
   kind.
 - Guards: G1, G2, G3 (the three files).
