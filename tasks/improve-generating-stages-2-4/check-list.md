@@ -30,7 +30,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T02a The plan writer (`manifest.mjs write-plan`) and the plan `V4-S2B` (depends on T01b)
 - [x] T02b The fitting reader, part 1: the declared grid, the no-regression preview and the call prefixes (pure) (depends on T02a)
 - [x] T02c The fitting reader, part 2: the commands `preview` and `prefixes` and their records (depends on T02b)
-- [ ] S01 Run `V4-S2B` and read it (orchestrator, then the SAs; approved by the owner, D-S24-26; the approval re-read before the run) (depends on T02c)
+- [x] S01 Run `V4-S2B` and read it (orchestrator, then the SAs; approved by the owner, D-S24-26; the approval re-read before the run) (depends on T02c)
 - [ ] T02d The fitting reader indexes the publication metadata it reads (`fit-read.mjs prefixes`; the S01 reading's W3, ruling R-P24-05) (depends on S01)
 - [ ] T03a P7: the equality and timing items and their memory fixtures (`p7-probe.mjs`, part 1) (depends on S01)
 - [ ] T03b P7: the experiment declaration, the log and corpus checks and the verdicts (`p7-probe.mjs`, part 2) (depends on T03a)
@@ -593,7 +593,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T02a | 2026-11-23 23:32 | 2026-11-23 23:47 | 15 min | 83.86 | this task's commit |
 | T02b | 2026-11-23 23:47 | 2026-11-23 23:57 | 11 min | 53.20 | this task's commit |
 | T02c | 2026-11-23 23:57 | 2026-11-24 00:13 | 16 min | 112.29 | this task's commit |
-| S01 | | | | | |
+| S01 | 2026-11-24 00:13 | 2026-11-24 01:05 | about 57 min (run 14 min) | – (orchestrator run; SA reading in the SA agents) | this task's commit |
 | T02d | | | | | |
 | T03a | | | | | |
 | T03b | | | | | |

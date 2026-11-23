@@ -1,0 +1,29 @@
+SA-Astra final S01 reading sign-off: corrections and task-pack amendment checked; no engine or git command.
+COMMAND: node docs\improve-generating-stages-2-4\evidence\sa-astra\s01-final-checks.mjs
+file:///Q:/git/pentomino/docs/improve-generating-stages-2-4/evidence/sa-astra/s01-final-checks.mjs:23
+    throw new Error(message);
+          ^
+
+Error: Not 36 indexed tasks
+    at check (file:///Q:/git/pentomino/docs/improve-generating-stages-2-4/evidence/sa-astra/s01-final-checks.mjs:23:11)
+    at file:///Q:/git/pentomino/docs/improve-generating-stages-2-4/evidence/sa-astra/s01-final-checks.mjs:37:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)
+
+Node.js v26.13.0
+Recheck: corrected reviewer index selector to count completed [x] tasks as well as pending [ ] tasks; no pack change.
+COMMAND: node docs\improve-generating-stages-2-4\evidence\sa-astra\s01-final-checks.mjs
+PASS: 371 original review input byte hashes unchanged; only reading and S06 amended.
+PASS: eight supplemental metadata hashes; supplement preserved unchanged.
+PASS: 36 task files, 69 hours, all at most 3 hours; links and declared dependencies valid.
+PASS: T02d literal anchors, T11 dependency, T12a supplement and S06 warning; all amended text formatted.
+CLERICAL: synchronize the T11 index suffix to (depends on S03, S01, T02d); the task header and ruling already contain the dependency.
+COMMAND: npm run check
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+S01 joint sign-off: accept. One non-blocking index synchronization: T11 depends on S03, S01, T02d.

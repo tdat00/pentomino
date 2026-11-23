@@ -164,11 +164,11 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Approval re-read (line; cap on the account) | |
-| Counted minutes of the run; the round's account after it | |
-| Questions and rulings | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 00:13 +07:00 (pre-checks, base `dd38457`); the run 00:14-00:28 (detached, shell `v4-s2b-run1`, runner PID 444, exit 0); the SAs' reading 00:30-01:08; accepted 2026-11-24 01:05 +07:00 |
+| Waiting for rulings | none (the SAs' reading of step 8, about 38 min, two review rounds) |
+| Approval re-read (line; cap on the account) | `{"plan":"V4-S2B","spentS":10252.712,"assumedEarlierGuardS":0,"roundCountedSBeforeApproval":10252.712,"requestedAdditionalGuardS":1694.6240407041143,"requestedCumulativeRoundMinutes":200}`; cap on the account ceil((10,252.712 + 87.4 + 1,694.624) / 60) = 201 <= 749 (approved, D-S24-26) |
+| Counted minutes of the run; the round's account after it | 833.444 counted s (13.89 min; 8 invocations, each quietS 15, horizonS 885, killed false, exit 0); the round's account 11,086.156 s logged + 87.4 s off-log = 11,173.6 s (186.2 of 749 counted minutes) |
+| Questions and rulings | none for the owner; the SAs' joint decisions under the owner's delegation in `docs/improve-generating-stages-2-4/s01-reading.md`: W1 32x15 Nightmare (lower 0.813, geo 0.991) (a) no change; W2 26x26 Nightmare (stage 2, lower 0.881) (a) no change; W3 the prefixes record's inputs omit the eight `.runs.md` (a) no configuration change, fixed by T02d (R-P24-05, N-P24-02); S06 STOP 2 names the 32x15 and 26x26 risk |
+| Gates re-run by the orchestrator | steps 1-3: no runner active; `git status -- core generator` empty; prerequisites pass; dry run 8 `go` (885 x5, 762, 640, 481; forecast 1,356 s); step 4: runner alive, log started; step 5: first invocation quietS 15, horizonS 885; step 6: exit 0, `publish-fr-none` 8 published (5 rows each), `firewall: OK, 289`; step 7: `fit-read preview` (8 cells, 0 problems, 0 unexpected), `fit-read prefixes --budget nightmare=10000000000` (40 rows, 0 missing, 0 identity problems, 0 incomplete, 0 affected, 0 potentially affected, 0 ambiguous, 0 bound firings); G1, G2 empty |
+| Commit | this task's commit |
+| Issues and named items | N-P24-02 (T02c's `prefixes` does not bind the `.runs.md` it reads; T02d) |

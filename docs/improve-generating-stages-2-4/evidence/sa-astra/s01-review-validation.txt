@@ -1,0 +1,195 @@
+SA-Astra S01 review: computations on existing records only; no engine, git or measured run.
+COMMAND: node docs\improve-generating-stages-2-4\evidence\sa-astra\s01-review-checks.mjs --label frozen
+{
+  "declared": 40,
+  "inputs": 373,
+  "recordInputs": {
+    "preview": 17,
+    "prefixes": 334
+  },
+  "account": {
+    "countedS": 833.4440000000001,
+    "countedMinutes": 13.890733333333335,
+    "beforeLoggedS": 10252.712,
+    "offLogS": 87.4,
+    "afterLoggedS": 11086.155999999999,
+    "afterMinutes": 186.2259333333333
+  },
+  "cells": [
+    {
+      "cell": "3x29-nightmare",
+      "todayTen": 5,
+      "afterTen": 5,
+      "geo": 1.177,
+      "lower": 0.979,
+      "logSd": 0.348,
+      "neededGeoAt20": 0.994,
+      "calls": 104,
+      "endedCalls": 78,
+      "terminatedCalls": 26,
+      "openPrimitiveCalls": 26,
+      "largestCallG": 2.93,
+      "boundFirings": 0,
+      "maxSetS": 0.9,
+      "maxResponseS": 9.8
+    },
+    {
+      "cell": "18x18-nightmare",
+      "todayTen": 5,
+      "afterTen": 5,
+      "geo": 1.779,
+      "lower": 1.272,
+      "logSd": 0.631,
+      "neededGeoAt20": 1.078,
+      "calls": 123,
+      "endedCalls": 102,
+      "terminatedCalls": 21,
+      "openPrimitiveCalls": 21,
+      "largestCallG": 6.65,
+      "boundFirings": 0,
+      "maxSetS": 19.7,
+      "maxResponseS": 35
+    },
+    {
+      "cell": "18x20-nightmare",
+      "todayTen": 5,
+      "afterTen": 5,
+      "geo": 1.382,
+      "lower": 0.979,
+      "logSd": 0.68,
+      "neededGeoAt20": 1.094,
+      "calls": 105,
+      "endedCalls": 81,
+      "terminatedCalls": 24,
+      "openPrimitiveCalls": 24,
+      "largestCallG": 3.56,
+      "boundFirings": 0,
+      "maxSetS": 4.5,
+      "maxResponseS": 15
+    },
+    {
+      "cell": "20x20-nightmare",
+      "todayTen": 4,
+      "afterTen": 5,
+      "geo": 1.46,
+      "lower": 1.082,
+      "logSd": 0.612,
+      "neededGeoAt20": 1.073,
+      "calls": 111,
+      "endedCalls": 88,
+      "terminatedCalls": 23,
+      "openPrimitiveCalls": 23,
+      "largestCallG": 6.21,
+      "boundFirings": 0,
+      "maxSetS": 19.5,
+      "maxResponseS": 38.7
+    },
+    {
+      "cell": "20x21-nightmare",
+      "todayTen": 5,
+      "afterTen": 5,
+      "geo": 2.052,
+      "lower": 1.538,
+      "logSd": 0.548,
+      "neededGeoAt20": 1.053,
+      "calls": 112,
+      "endedCalls": 91,
+      "terminatedCalls": 21,
+      "openPrimitiveCalls": 21,
+      "largestCallG": 4.4,
+      "boundFirings": 0,
+      "maxSetS": 3.4,
+      "maxResponseS": 25.9
+    },
+    {
+      "cell": "32x15-nightmare",
+      "todayTen": 5,
+      "afterTen": 5,
+      "geo": 0.991,
+      "lower": 0.813,
+      "logSd": 0.407,
+      "neededGeoAt20": 1.011,
+      "calls": 104,
+      "endedCalls": 82,
+      "terminatedCalls": 22,
+      "openPrimitiveCalls": 22,
+      "largestCallG": 5.94,
+      "boundFirings": 0,
+      "maxSetS": 8,
+      "maxResponseS": 27.8
+    },
+    {
+      "cell": "22x22-nightmare",
+      "todayTen": 5,
+      "afterTen": 5,
+      "geo": 1.575,
+      "lower": 1.381,
+      "logSd": 0.264,
+      "neededGeoAt20": 0.971,
+      "calls": 100,
+      "endedCalls": 77,
+      "terminatedCalls": 23,
+      "openPrimitiveCalls": 23,
+      "largestCallG": 2.45,
+      "boundFirings": 0,
+      "maxSetS": 4.6,
+      "maxResponseS": 18.1
+    },
+    {
+      "cell": "24x24-nightmare",
+      "todayTen": 5,
+      "afterTen": 5,
+      "geo": 1.535,
+      "lower": 1.307,
+      "logSd": 0.369,
+      "neededGeoAt20": 1,
+      "calls": 104,
+      "endedCalls": 81,
+      "terminatedCalls": 23,
+      "openPrimitiveCalls": 23,
+      "largestCallG": 3.46,
+      "boundFirings": 0,
+      "maxSetS": 4.7,
+      "maxResponseS": 32.5
+    }
+  ],
+  "stage2": {
+    "cell": "26x26-nightmare",
+    "ratios": [
+      0.5456640054431051,
+      1.707488023232726,
+      1.4180747942587364,
+      1.325292977752707,
+      1.0149298095967076
+    ],
+    "geo": 1.1218789597205931,
+    "lower": 0.881012525826164,
+    "logSd": 0.44401640665305436,
+    "neededGeoAt20": 1.0221244461479153
+  },
+  "numericWarnings": [
+    "32x15-nightmare"
+  ],
+  "unindexedPublicationMd": [
+    "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-3x29-nightmare.runs.md",
+    "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-18x18-nightmare.runs.md",
+    "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-18x20-nightmare.runs.md",
+    "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-20x20-nightmare.runs.md",
+    "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-20x21-nightmare.runs.md",
+    "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-32x15-nightmare.runs.md",
+    "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-22x22-nightmare.runs.md",
+    "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-24x24-nightmare.runs.md"
+  ]
+}
+COMMAND: npm run check
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+PASS: 373 reviewed input byte hashes unchanged.
+PASS: 863 calls = 680 ended + 183 confirmed-termination calls with open primitives.
+PASS: supplementary publicationInputs binds eight omitted .runs.md files.
+PASS: review and evidence are CRLF, UTF-8 without BOM, no trailing whitespace, final newline.
+Ruling: numbers, W1/W2 no-change and S06 sentence agreed; two wording/provenance corrections in s01-reading-review.md.

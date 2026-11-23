@@ -1,0 +1,2293 @@
+{
+  "meta": {
+    "format": "ig-proto-fit-read-prefixes",
+    "version": 1,
+    "task": "V4-S2B",
+    "label": "frozen",
+    "labelText": "frozen (3fc65f4)",
+    "createdAt": "2026-11-23T17:29:12.132Z",
+    "source": {
+      "label": "frozen 3fc65f4",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": false,
+      "kind": "frozen",
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "equalsFrozenSource": true,
+      "firewall": "471ca7e6897dae9b8d42fd34700bfc4358f1e200cb6a690dcc1f34f205efdd89"
+    },
+    "harness": {
+      "harnessHash": "e5e6f3fd060a03d5e4e6c7cbdeb17fde8cd302bcede0f20164cdc18ef2b69bea",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "84a198615646925fb64eb00d0ed23238b827e497a130f3f2dbe31f3f18803d66",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/fake-pool.mjs": "132bd8accf1453b82d1f38a7869c9642c9fc8ac5c645a03b7250c8c2f672813a",
+        "tools/ig-proto/lib/items.mjs": "c1111fa042b4c5dfd2c58585e49da9acf9518eff095e066137b0efb3e2d7bf53",
+        "tools/ig-proto/lib/lane-worker.mjs": "0f04190fc96b6bbb6a990aa6a081419ddceff50fcce9a765c556c8240b48aefe",
+        "tools/ig-proto/lib/lanes.mjs": "bf96264243059b5f667e88442e0492dd938002f7dcd5e8505cd9563de8a9b500",
+        "tools/ig-proto/lib/ledger.mjs": "53c2760b88d9f0a83bf1442f61119fbafadcb7225e8ead6e3faadf78baeb777b",
+        "tools/ig-proto/lib/packs.mjs": "ce449eecb938202e487b9e99c6c153bb897480e38ba475b87f070e26f22559d4",
+        "tools/ig-proto/lib/paths.mjs": "c0e9a057708264a2c6d83f197b18dfaffa327774b93b14fa9af797d08fdf7637",
+        "tools/ig-proto/lib/proof.mjs": "db22a68a3aac1d14f08db9abec1e1f3d114f938ee0c69b9b0beda738fa0a778a",
+        "tools/ig-proto/lib/records.mjs": "80b56021f1ae45189b3b811784c0fefb1bfac1d457cfbd12bc379bb7d3612f9a",
+        "tools/ig-proto/lib/sets.mjs": "23671cfa598ee767f405d18a1d2f8c1f95f9ca0356cbbbcd677b5fbd82050954",
+        "tools/ig-proto/lib/tree.mjs": "c35e4f5509687f2f84f5c008d834b1d70eea141718bbd869dba05155251f3675",
+        "tools/ig-proto/lib/width-worker-test.mjs": "82bff97154cdb13eb08ac5f12ea3cea5bf611deb77c932ebb4e92cb18873276f",
+        "tools/ig-proto/lib/width-worker.mjs": "fbc6c9291267c760d8b16fdea36e4b44364e95b686ed2d2b3cefe20ca2106270",
+        "tools/ig-proto/arm.mjs": "051de0ec22363dc133c483bcbe9ba0b8502cb4a3daade01fee37400d0dba4300",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "fa372834239566783c8faeb866b908701067af1d8b7bffca7736130c57f01983",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/fit-read.mjs": "d6b814a3ce8ae65b4399f818df305e6cca05f725f22bda2a88e868dd7c963f3d",
+        "tools/ig-proto/identity.mjs": "6a6e554c592e9178a930329625e7fe08a854add6a3668c7f0ff95cccc830df9d",
+        "tools/ig-proto/kernel-probe.mjs": "e8507e3d1cc2873012df429bb908b1545e90ce36c47b3bc70eaf3fa66684d474",
+        "tools/ig-proto/linkage.mjs": "3c0e4acb2ef9b10e49c8a4d57445f0b7c0176c467aa8a86a175a92afbc1ca47a",
+        "tools/ig-proto/manifest.mjs": "c1df0a96f2fa4517682db5c72e03ffa952cbecaeaa96a270ef1352717879a9b6",
+        "tools/ig-proto/pm1-inventory.mjs": "25a4f82515a20ea41804f7958da4c12aa1779c5f530ea2a2c041663a5e0e05de",
+        "tools/ig-proto/pm1.mjs": "eb5448500ed81ab97ebb92aad040bbaec781d3224587ce60ec9248a59e644177",
+        "tools/ig-proto/pm2-worker.mjs": "4e126db9770ebc7a056643541ce8fed3b82030cccc30b226ef5c343508269215",
+        "tools/ig-proto/pm2.mjs": "4e308b6f85cc2f2d9b1de3c48c929b96c3781c16341e0e558e84b58be8495d92",
+        "tools/ig-proto/pm4.mjs": "9a7cc13d8a98eb104b6c0a534c7eb7ddbbae7972da52b4bbd1cf25090b83bf63",
+        "tools/ig-proto/receipt.mjs": "16b74bb4dfc81f781e288cf111795a2da0d812faed1addc70e55f411698e4506",
+        "tools/ig-proto/run-task.ps1": "999ca9f639ab393651744f149723b7ec850df695418820907d9daecd38f12611",
+        "tools/ig-proto/self-test.mjs": "20ba28842746847bdf2ec25610072431c81fdc45ed3a5383cf2fcfb5fe309425",
+        "tools/ig-proto/snapshot.mjs": "45c1624e0ec8af04069d1ee5b9a3a6fa0a74e989148de80b7df8fffc4209792a",
+        "tools/ig-proto/summary.mjs": "ab5ed7c65f358c6c43d46c89de9554e5bf93badd538611ba6890c6235fa7b5e9",
+        "tools/ig-proto/v4-check.mjs": "16184834d4e680fb8a013df2e77c3dc1e8fa8433b659e3b8b46e27344a46c811",
+        "tools/ig-proto/verdicts.mjs": "6eb4c7c5f2e93e96192800040585a89c6805192f8bf50db87ed1f2b8a326f43a",
+        "tools/ig-proto/verify.mjs": "ea594451955ca2e954e37da38eb53f01a0dddffc1bc2697ae6b27d050ecb5d73",
+        "tools/ig-proto/width-probe.mjs": "5e7fc422a795a758a81ac4a3d968ac0699345844e5430f80f62a28dd920658dc",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/frozen-round-v1.json": "be7428d10b91cdf37a9893d373660a23e2c0deea66427a15db0deafe823b6a4b",
+        "tools/ig-proto/data/git-guard-cases.json": "6280530a5d7635305f68610c3c25d745bd633249f775ad8361f374723854fe5d",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133",
+        "tools/ig-proto/data/verdict-manifest.example.json": "ffff98ba065c024f9e99f9416cdef046e04243279f3e8d951d749e9cc76aa32d",
+        "tools/ig-proto/data/verdict-manifest.schema.md": "416d4da2749f5f158fae8cfd25929671c7fd7a6e5ff3647f8bef7a0a804eafbf"
+      }
+    },
+    "trees": {},
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 8,
+      "nodeSeconds": 712.502,
+      "countedSeconds": 833.444,
+      "lockWaitSeconds": 120.942
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\V4-S2B.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "arm": "fr-none",
+  "budgets": {
+    "nightmare": 10000000000
+  },
+  "bound": null,
+  "rows": [
+    {
+      "rowKey": "3x29-nightmare~0",
+      "cell": "3x29-nightmare",
+      "rep": 0,
+      "shard": "pilot-3x29-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 31
+      },
+      "maxSpent": 2926637245,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "3x29-nightmare~1",
+      "cell": "3x29-nightmare",
+      "rep": 1,
+      "shard": "pilot-3x29-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 692180967,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "3x29-nightmare~2",
+      "cell": "3x29-nightmare",
+      "rep": 2,
+      "shard": "pilot-3x29-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 17
+      },
+      "maxSpent": 319051264,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "3x29-nightmare~3",
+      "cell": "3x29-nightmare",
+      "rep": 3,
+      "shard": "pilot-3x29-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 18
+      },
+      "maxSpent": 514998475,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "3x29-nightmare~4",
+      "cell": "3x29-nightmare",
+      "rep": 4,
+      "shard": "pilot-3x29-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 18
+      },
+      "maxSpent": 712487670,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "18x18-nightmare~0",
+      "cell": "18x18-nightmare",
+      "rep": 0,
+      "shard": "pilot-18x18-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 21
+      },
+      "maxSpent": 4088964375,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "18x18-nightmare~1",
+      "cell": "18x18-nightmare",
+      "rep": 1,
+      "shard": "pilot-18x18-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 34
+      },
+      "maxSpent": 4056196313,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "18x18-nightmare~2",
+      "cell": "18x18-nightmare",
+      "rep": 2,
+      "shard": "pilot-18x18-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 30
+      },
+      "maxSpent": 6654823809,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "18x18-nightmare~3",
+      "cell": "18x18-nightmare",
+      "rep": 3,
+      "shard": "pilot-18x18-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 22
+      },
+      "maxSpent": 2817807957,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "18x18-nightmare~4",
+      "cell": "18x18-nightmare",
+      "rep": 4,
+      "shard": "pilot-18x18-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 16
+      },
+      "maxSpent": 5337188125,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "18x20-nightmare~0",
+      "cell": "18x20-nightmare",
+      "rep": 0,
+      "shard": "pilot-18x20-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 1669454372,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "18x20-nightmare~1",
+      "cell": "18x20-nightmare",
+      "rep": 1,
+      "shard": "pilot-18x20-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 22
+      },
+      "maxSpent": 706541811,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "18x20-nightmare~2",
+      "cell": "18x20-nightmare",
+      "rep": 2,
+      "shard": "pilot-18x20-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 3042327338,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "18x20-nightmare~3",
+      "cell": "18x20-nightmare",
+      "rep": 3,
+      "shard": "pilot-18x20-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 27
+      },
+      "maxSpent": 3557799440,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "18x20-nightmare~4",
+      "cell": "18x20-nightmare",
+      "rep": 4,
+      "shard": "pilot-18x20-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 16
+      },
+      "maxSpent": 1999315337,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "20x20-nightmare~0",
+      "cell": "20x20-nightmare",
+      "rep": 0,
+      "shard": "pilot-20x20-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 26
+      },
+      "maxSpent": 3708175897,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "20x20-nightmare~1",
+      "cell": "20x20-nightmare",
+      "rep": 1,
+      "shard": "pilot-20x20-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 6212772298,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "20x20-nightmare~2",
+      "cell": "20x20-nightmare",
+      "rep": 2,
+      "shard": "pilot-20x20-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 21
+      },
+      "maxSpent": 1105083963,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "20x20-nightmare~3",
+      "cell": "20x20-nightmare",
+      "rep": 3,
+      "shard": "pilot-20x20-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 19
+      },
+      "maxSpent": 1532019291,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "20x20-nightmare~4",
+      "cell": "20x20-nightmare",
+      "rep": 4,
+      "shard": "pilot-20x20-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 25
+      },
+      "maxSpent": 2834436191,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "20x21-nightmare~0",
+      "cell": "20x21-nightmare",
+      "rep": 0,
+      "shard": "pilot-20x21-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 2750727914,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "20x21-nightmare~1",
+      "cell": "20x21-nightmare",
+      "rep": 1,
+      "shard": "pilot-20x21-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 18
+      },
+      "maxSpent": 1265083081,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "20x21-nightmare~2",
+      "cell": "20x21-nightmare",
+      "rep": 2,
+      "shard": "pilot-20x21-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 21
+      },
+      "maxSpent": 3881388647,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "20x21-nightmare~3",
+      "cell": "20x21-nightmare",
+      "rep": 3,
+      "shard": "pilot-20x21-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 22
+      },
+      "maxSpent": 4399921641,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "20x21-nightmare~4",
+      "cell": "20x21-nightmare",
+      "rep": 4,
+      "shard": "pilot-20x21-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 31
+      },
+      "maxSpent": 4224440594,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "32x15-nightmare~0",
+      "cell": "32x15-nightmare",
+      "rep": 0,
+      "shard": "pilot-32x15-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 21
+      },
+      "maxSpent": 2480655831,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "32x15-nightmare~1",
+      "cell": "32x15-nightmare",
+      "rep": 1,
+      "shard": "pilot-32x15-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 26
+      },
+      "maxSpent": 5941260071,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "32x15-nightmare~2",
+      "cell": "32x15-nightmare",
+      "rep": 2,
+      "shard": "pilot-32x15-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 18
+      },
+      "maxSpent": 2391926420,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "32x15-nightmare~3",
+      "cell": "32x15-nightmare",
+      "rep": 3,
+      "shard": "pilot-32x15-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 19
+      },
+      "maxSpent": 1095567520,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "32x15-nightmare~4",
+      "cell": "32x15-nightmare",
+      "rep": 4,
+      "shard": "pilot-32x15-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 1919071149,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "22x22-nightmare~0",
+      "cell": "22x22-nightmare",
+      "rep": 0,
+      "shard": "pilot-22x22-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 23
+      },
+      "maxSpent": 2388446947,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "22x22-nightmare~1",
+      "cell": "22x22-nightmare",
+      "rep": 1,
+      "shard": "pilot-22x22-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 1998423558,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "22x22-nightmare~2",
+      "cell": "22x22-nightmare",
+      "rep": 2,
+      "shard": "pilot-22x22-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 19
+      },
+      "maxSpent": 1940367402,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "22x22-nightmare~3",
+      "cell": "22x22-nightmare",
+      "rep": 3,
+      "shard": "pilot-22x22-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 22
+      },
+      "maxSpent": 1701708517,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "22x22-nightmare~4",
+      "cell": "22x22-nightmare",
+      "rep": 4,
+      "shard": "pilot-22x22-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 16
+      },
+      "maxSpent": 2445348717,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "24x24-nightmare~0",
+      "cell": "24x24-nightmare",
+      "rep": 0,
+      "shard": "pilot-24x24-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 26
+      },
+      "maxSpent": 3457354945,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "24x24-nightmare~1",
+      "cell": "24x24-nightmare",
+      "rep": 1,
+      "shard": "pilot-24x24-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 18
+      },
+      "maxSpent": 2064998756,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "24x24-nightmare~2",
+      "cell": "24x24-nightmare",
+      "rep": 2,
+      "shard": "pilot-24x24-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 16
+      },
+      "maxSpent": 1619416311,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "24x24-nightmare~3",
+      "cell": "24x24-nightmare",
+      "rep": 3,
+      "shard": "pilot-24x24-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 19
+      },
+      "maxSpent": 2970189566,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    },
+    {
+      "rowKey": "24x24-nightmare~4",
+      "cell": "24x24-nightmare",
+      "rep": 4,
+      "shard": "pilot-24x24-nightmare",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 25
+      },
+      "maxSpent": 3373459160,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": null
+    }
+  ],
+  "summary": {
+    "declared": 40,
+    "present": 40,
+    "missing": [],
+    "unexpected": [],
+    "identityRows": 0,
+    "incompleteRows": 0,
+    "unreadableRows": 0,
+    "ambiguousRows": 0,
+    "affectedCalls": 0,
+    "potentiallyAffectedCalls": 0,
+    "ambiguousCalls": 0,
+    "boundFirings": 0
+  },
+  "inputs": [
+    {
+      "path": "tools/ig-proto/plans/V4-S2B.json",
+      "sha256": "ee7cc7b2d9cd981f1990de9ebb6ee4f87f4a12fe0e5245bcae765517f9738506"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-18x18-nightmare.runs.json",
+      "sha256": "affbb516f0fa5bcb63479107159b591c3178e04f69f5110bf9ce63017dbe95d4"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-18x20-nightmare.runs.json",
+      "sha256": "c1e3563a5fc4181ab7807d44a01169a816ceaa8ff8968d7fd542f69527a40fd0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-20x20-nightmare.runs.json",
+      "sha256": "f1225cbef92c24510879e056f2d1ed1bb9791c618c137c569a92b24bf270f2aa"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-20x21-nightmare.runs.json",
+      "sha256": "713a92e98766870990e5a241f4f8d176c199db32f180e8bbe0b3757c3a2353b0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-22x22-nightmare.runs.json",
+      "sha256": "c32c485048981da427422848ed6b52053bbd2d09e4d2554dc1af816569d6eff6"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-24x24-nightmare.runs.json",
+      "sha256": "b82a8e7187c668c9605015fc9e78fb422e8ea46a03e6d857660cbaa9f3f673f7"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-32x15-nightmare.runs.json",
+      "sha256": "f635f48ab8dbf545cb92233c336cc156563fb45c51bb124bfa7f5c75c514ea4f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2B/fr-none/pilot-3x29-nightmare.runs.json",
+      "sha256": "23fe799b831152d081e170c26796a4036d6f32fb68f692c1e29331f23f298185"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/state.json",
+      "sha256": "ac2706b486ffcd410cbb962cee3383ca7f1144bb3ae186ed51f93dd68e6dfc1b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/shard.json",
+      "sha256": "a1b8a47d4dc26762a21bc2d2f591462b26a62b66ecc3b3a31a08cf951c8fecf8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~0.row.jsonl",
+      "sha256": "ef3ddd0f6c059a22d90e2e9ab152f03ea3d2babdafb2c56df0ef7ee3de5a37cd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~0.18568.1.jsonl",
+      "sha256": "651b880af9a0fcf4050bf6ef480b0fc5d7ba47c1b84fdccf99bd59aa6201f3ef"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~0.18568.2.jsonl",
+      "sha256": "2e25f077756ce75148d2d1d3be2a14700d0ec0dccbd7a56c2fb2a49bf26a01fb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~0.18568.3.jsonl",
+      "sha256": "a409869cedc5eab588da581e38968b551a0fbae57475e0c84d07679218191306"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~0.18568.4.jsonl",
+      "sha256": "014501c03fae2a7bfc5076ccf2078dfc505494bc9fd142aaa0c77dc759ab15c5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~0.18568.5.jsonl",
+      "sha256": "76a86ecc02371872bc035570652c837148206b49dab89ea782e2453751852a30"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~0.18568.6.jsonl",
+      "sha256": "bfbd02063ca976c3850693d6e8361d36323a4836d28999fc5c941b9cac05d2f6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~0.link.jsonl",
+      "sha256": "fb8fce760088958da6cf05e6caffc5a5c8f250d4c5eba8d30efc2fe0cbc2a15a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~1.row.jsonl",
+      "sha256": "b5554d09726e66a74ef405d661118b54b0e16c94bf2c29995e433db2d9c09b4a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~1.300.1.jsonl",
+      "sha256": "cd258782a0fe2ce9cc65143ac632b6efb46678f2025b06551151527c5b9121ce"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~1.300.2.jsonl",
+      "sha256": "80aa38f8285e5c97554c72a1ecd0e2dbe2c4816cd0ef806539121b0fd8c3f7f1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~1.300.3.jsonl",
+      "sha256": "cbda9fef87d6ed3f3a728ee9fee78c98186db6b621bd433f07a18def34bdf242"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~1.300.4.jsonl",
+      "sha256": "e64ea4d188f472f33102a827c332e1f03132bb90f9e8a22c0a8572b8e64c3e6a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~1.300.5.jsonl",
+      "sha256": "01e138452f1c280834fcd4d2321147ccdfa6d848812c42df87a272960b1c8b1e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~1.300.6.jsonl",
+      "sha256": "b06bb77cb52f46dc35330afe341ae093dead16166efe513532890b3f710bd954"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~1.300.7.jsonl",
+      "sha256": "2770aa492dff254f6a777cab254717e709697a8a6a28ae0cc2486764aca4c347"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~1.link.jsonl",
+      "sha256": "ad884ed5d3e3430502222e1689c109cd41b36e50ac585a35287aea0685ff345e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~2.row.jsonl",
+      "sha256": "97e186db07dae6f70147e5b941d2d4b70d549d30941e92e427edc507ca431deb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~2.23612.1.jsonl",
+      "sha256": "93cc2b236021c9dcd48f46a93e24bf584e83ddd11a419e6914f4aaffb94dd13d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~2.23612.2.jsonl",
+      "sha256": "5e8cbebeb109d364aabec93e1644d84671d9567b76e1f034de46c90a658100f7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~2.23612.3.jsonl",
+      "sha256": "c9960b2cc827b3aee30119d885e5995c1002bc82d351dbee7a66ac9af42327ab"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~2.23612.4.jsonl",
+      "sha256": "33c2cb865d04fa5a27242bf920b1c5311132559d6d1832fa8b69a6b0d92a2400"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~2.23612.5.jsonl",
+      "sha256": "e1466c7523e500bf8baf28d3a78f7781a45ac5da1e7a560e45db3b1ae1ed80c0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~2.23612.6.jsonl",
+      "sha256": "b55235dfa43dd24ccbd3bbec9659718a852e9be392ded031d92a3fd62f8e0c0e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~2.link.jsonl",
+      "sha256": "e6f3a9519c5b9a75222ce19988de778e0926613015a793033e5d959b6c80ee52"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~3.row.jsonl",
+      "sha256": "3b6608adcaa36e85e7cd743eb0cb5f21c78f5c192fd788be76ba920c8f06c31e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~3.12228.1.jsonl",
+      "sha256": "d9696879510898fbd4bdea9fb46d334cfc4efd258d9b1d5611683c84c8977914"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~3.12228.2.jsonl",
+      "sha256": "19d8a383c6182a5f70731f7444346fba6a8fd70a2d52a9e8b0062ec8dac9e3b3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~3.12228.4.jsonl",
+      "sha256": "c180babc7ebdd63b9859953c0b6c5ccf9acd3d667daf101f2eb3ebe18ae16fda"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~3.12228.5.jsonl",
+      "sha256": "ba6863f87a046476ea207634872a0c7a84c4dda8a0432eb89750460ff70bcee3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~3.12228.6.jsonl",
+      "sha256": "8a45b5e1cbb5c2abc3e4b69539dec44ad68dde4e2dfbc2cbfebaee3884e2f949"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~3.12228.7.jsonl",
+      "sha256": "afe3235a12d915865393216a72212942aa4128b7050389e0cab9e2b3469ca1cd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~3.link.jsonl",
+      "sha256": "58cd36c211dd0e7266a55b4718d1cb6aba239d2557ff368f8897ec64a83563ed"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~4.row.jsonl",
+      "sha256": "c7f5b5dbd190ebb9ffcbb6a3d03eb0496f0737dea2ea6761901c04f61773b61b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~4.19160.1.jsonl",
+      "sha256": "6ebc980d911135239847c6401eb8cbaf125dad941ee197b89e19bfe1ed6bce53"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~4.19160.2.jsonl",
+      "sha256": "51769ec2a0dd74c0e768cb77d55850d0c3784befe2ba24eed354114a25a5cbd7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~4.19160.3.jsonl",
+      "sha256": "53ed62396e84fd04530b61d1eee08fb5ad203bdb5adcf30779649aa889f65b6d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~4.19160.4.jsonl",
+      "sha256": "cae289e6c4b12e8af293884cdb50d6285e048afe95809961dc3a996aee69b6f4"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~4.19160.5.jsonl",
+      "sha256": "e62c38091a2a7396f9b32505fe5c7a7906498f4d18478ecf4aacb201d988792a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~4.19160.6.jsonl",
+      "sha256": "aa2c711dfd4c6f4fd8c2b4da043f6748510eea6fadf58845a09f1bda5b672b6e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~4.19160.7.jsonl",
+      "sha256": "c6813404c8c1b769dddd2e6bd38a6d0676169336725f462326e937b499b8177d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-3x29-nightmare/logs/3x29-nightmare~4.link.jsonl",
+      "sha256": "912ee5c5c437974f655fd1a369a6c2048b42e5f583f364c747cb2b2fc9abfbcd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/state.json",
+      "sha256": "dd9853311d77b712603e418ace8f9a82abf53debb62628caf9b9a7ca7b571ad2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/shard.json",
+      "sha256": "42b2f21f85f9197648d481713eaae9dcb118aa53f2fac7ccba44c44b5efd9d21"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~0.row.jsonl",
+      "sha256": "a50ca7303c38339ef24c7605ca14996de2624bb8b07435aab1f318836fff8c00"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~0.10764.1.jsonl",
+      "sha256": "2a8aff5a42d6e194ed0d250a90e2024d0430189dc29bf6eadb612ef42c764e60"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~0.10764.2.jsonl",
+      "sha256": "1d8cd3c509a58261c74e5c714f3b72c1b21f5c363866aca83e5a7b481a261f4f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~0.10764.3.jsonl",
+      "sha256": "07d70f4f0941a69b13c45d12ffb5c360273273f066e2059c808de105eb6f115c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~0.10764.4.jsonl",
+      "sha256": "6a19d51aa9174b07d16c19b435e8d064e797c9562ca259bf77f29db856f06153"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~0.10764.5.jsonl",
+      "sha256": "4fd94b2f6fe261dee5a693faecba461bc53da70b08bb3fad7028b5a1d94d80da"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~0.10764.6.jsonl",
+      "sha256": "46bcf932485b949b257ed48f2d8a3d91f4ee57e632f65033bbe143991cf772dc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~0.link.jsonl",
+      "sha256": "3e41c1bf9d3163b5b871d24e6694e2a7a5187943b5d79b50826b2578a2024939"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~1.row.jsonl",
+      "sha256": "0a86ced86f15e20115a5f0a5caff31e52e9f16b02a89845792d5c7069185b42b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~1.4404.1.jsonl",
+      "sha256": "dac3a5427da77c1286b284954df90b9fa0fe0d9c63b3371a410e332bcbfa093d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~1.4404.2.jsonl",
+      "sha256": "d0aef794a33e189c4179837880e1601bc0d4e3a35096ccb20df6b17772d1d32c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~1.4404.3.jsonl",
+      "sha256": "30fffe566f8d26f9a5e4265c86e88cfa83fa961092b11439f24169a585c71396"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~1.4404.4.jsonl",
+      "sha256": "d79791132a5fed32bd1ae1449013ccbb007ef7a520b728ba56d9f852e7c553e4"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~1.link.jsonl",
+      "sha256": "9f7d612ab15f06425a524f0500f600c4ec06267d6369da026c09b6e419266972"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~2.row.jsonl",
+      "sha256": "0390d7aac4b278556ede8e79684fc63aebc31dac4db0f3c9292f617d5e0f0409"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~2.25324.1.jsonl",
+      "sha256": "3405c658b6ce74d1095ef8f169a5584f2a614984bd0109142bbcd20ed0dbcca6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~2.25324.2.jsonl",
+      "sha256": "cd3eb11154a1d53c6ec45db547480a0661a4c53a3212f9f8c452a2374f51f6d8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~2.25324.3.jsonl",
+      "sha256": "d3c5c4d0ad1ef9d0fbc6ee1d94299ad40b61117b26a7cba704d16ac0bb5d92f6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~2.25324.4.jsonl",
+      "sha256": "de345d0b66b7830a4dd2167bb8d18b8675ac3624527d2fb087c26831745232d5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~2.link.jsonl",
+      "sha256": "26c555116e2b0d493908f7f7db2e9c6689182dd2921548c5533fb11fbb0c6918"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~3.row.jsonl",
+      "sha256": "305a4f641671bfe253597c488d3402fff2301f23d333875e5acda375a68227f7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~3.25240.1.jsonl",
+      "sha256": "5fd2cc93425ec97e96d83d7eef1a6049e5396a361410089e1118d64601d990f5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~3.25240.2.jsonl",
+      "sha256": "1fb00a9802184409069c53493397bc04a64d27c58c7c3faf945a1baff9271073"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~3.25240.3.jsonl",
+      "sha256": "dd216a4c2bdc46d6ba1a5115452ada94af61826221a42cc8ece12319ae8f089c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~3.25240.4.jsonl",
+      "sha256": "123e1341f2e417e799634f2f992598e948dee7da4296d35e7f1c37aadccbc71a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~3.25240.5.jsonl",
+      "sha256": "37e9d677928aad81749c9e5d9c67167f647fefe8616da92def14d03380a1364b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~3.25240.6.jsonl",
+      "sha256": "c028de70fbd26080e193cacfdbbd43058d255d0a83d119e63b956bb254a48236"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~3.link.jsonl",
+      "sha256": "07aef395addf2c34055fc7a82bd6a91fb3163778123a124cc1743654307f190f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~4.row.jsonl",
+      "sha256": "6fda874c0a8d11aac8b5135774dac6c86bb1304282d615a48e35d128f5afd4fa"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~4.16112.1.jsonl",
+      "sha256": "bc00f4d1737db7971c5c598faa4c4cdf76ea94a7e191cbf7717c1cd6df04636c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~4.16112.2.jsonl",
+      "sha256": "493fcfc79a40a8bdafb9f75759f11e64b625a2b9d35c0f5c976a2f02b41356d1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~4.16112.3.jsonl",
+      "sha256": "54055ea065445f97b0243999bf593a307fa49ee4bd3aba154fcb287e174bda09"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~4.16112.4.jsonl",
+      "sha256": "222e95ecea53a801c1b63bf544ba191e1e708f339bcf2160425e78866bfabe8e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~4.16112.5.jsonl",
+      "sha256": "df8fcd6dfbabcb60f81501cf7725bbcdf119fcd9ff59fc1ce28d142d2466eaac"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~4.16112.6.jsonl",
+      "sha256": "6ff854024cb5a0936da8cbb7b3926858f894fe0fc5dee9180df84c0c2b40c7b8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x18-nightmare/logs/18x18-nightmare~4.link.jsonl",
+      "sha256": "340ff7d431ac051a5f92c45cd4d04008c4b64affc7ddf747d2796d88e75cc5a1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/state.json",
+      "sha256": "de6a79b1ca248774ebe2ac17448a4b6be3239984dbb8153bde326b32c20d960e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/shard.json",
+      "sha256": "9bd7387b1becc449ef50e5b2326b11d36699406e4f5ad41c9ae1b5ed34b14ef9"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~0.row.jsonl",
+      "sha256": "8e9cc7a81b2fd758cbfb95bb54cc0b5fbdbcdd81a1f6652fff609f4811bfb5ad"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~0.20624.1.jsonl",
+      "sha256": "1ea19c538f3f6e70d2cf79e642b710684d9ac2dec4147adf33d6c4ab1892855f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~0.20624.2.jsonl",
+      "sha256": "cdeacabb97a074e4c23d47f531bb637f7cc37647b88decbb0949593102e0236d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~0.20624.3.jsonl",
+      "sha256": "0ebdf663a2345410fe0c21569cf71d01f93cd5d3a0c3e5bfc07448b1c10ed5e2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~0.20624.4.jsonl",
+      "sha256": "4185530e7129f6cade1e273392c232bf2c7a62601c9590dbc03689b823506ba1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~0.20624.5.jsonl",
+      "sha256": "9fda4cc44ece66c7ea41f3025c2bfa16ee762c11a6d59b65a6dfe1aa1624d37c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~0.20624.6.jsonl",
+      "sha256": "7dfcc1677622a13dd30c34666bd8b8c74527697fdb40d799ff8e5fba3dda9cd3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~0.link.jsonl",
+      "sha256": "3ad035315096b0ae24b2514b960be98acbaf4c572a2b37d3fae0fc89a4b72bba"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~1.row.jsonl",
+      "sha256": "906acf1b7c294db4130dade25b0f8e04e947a8263bff9cb35984033cbad1f3c5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~1.23820.1.jsonl",
+      "sha256": "0c3b19ae36c8b6cb74dc48fe8afe9ae431ea1433dc717f421808def0f64095b3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~1.23820.2.jsonl",
+      "sha256": "75d4a55bc32fb364c6c4c92f0386ad707fc70eeb9ad0f854b8e4562842ce7d21"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~1.23820.3.jsonl",
+      "sha256": "a08fce51d763b7ba9332e2910cecccc914f2b884ccd05fb43e7b0e15c5a3b3ea"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~1.23820.4.jsonl",
+      "sha256": "2c5e74025846fa8192983ac2f10d1e20d540616ee294037a0ea2ad4470b80de8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~1.23820.5.jsonl",
+      "sha256": "32626d27b7e09325a25f600fe277977ad314fd8e06172eb5966cc89cd5856b57"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~1.23820.6.jsonl",
+      "sha256": "e4973d2ea588e89bb6f5fa752df86efd330c791b1c4b95daf7172574b130564a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~1.link.jsonl",
+      "sha256": "89bcc9f9b11e671b2e11f21905f2dcfe07ae6b2ee8a7529c59a7e69deabef352"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~2.row.jsonl",
+      "sha256": "eaa3c6e30a5ae912c722febd1ba93f3be0cbfdfd3f9765d3b215c0d31fac35f7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~2.9468.1.jsonl",
+      "sha256": "75c781fb26897f1d2c0592f9dc852b4e9ce1c427f8dcd9f984955f5e5b35ba71"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~2.9468.2.jsonl",
+      "sha256": "1c6d93b1a8bbf9b56c180af197c02f6a7c5e029841ad6d2193ea6f6fb6aa24ce"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~2.9468.3.jsonl",
+      "sha256": "502e5cb9f1fbdd6b13a41cec434c2bfe6b82485d3cab6a64c3df0263fe76c397"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~2.9468.4.jsonl",
+      "sha256": "da2d9767261e1f4fd3344c308566241aa86020de7e807c531bf00352ebe4fc80"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~2.9468.5.jsonl",
+      "sha256": "72f46975664e26846102957c180ccba6ec7baef78ea7ebe985d48ca397c8bf75"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~2.9468.6.jsonl",
+      "sha256": "399b9f3729b8fbd7cd5e31fa22a619b88367878849afe8b1a42bd7a1ce1567bb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~2.link.jsonl",
+      "sha256": "a8ae014b0cdc9f2ecbeb4e347b6d61f3e9946d427af4298c3ea1c4d7e42678b6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~3.row.jsonl",
+      "sha256": "c8a3d9cadc779ff8fb7f122fcea1fae2d51183616b06f6586367a24576e932b2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~3.24464.1.jsonl",
+      "sha256": "a09acaba816c03de13d15f8e11fffeb696fb8e911dc5584d7b71ae11bbb63558"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~3.24464.2.jsonl",
+      "sha256": "177e0a296530ef70694d4fecd81fd5d0f3a3900906964082a2ce30d5ce7a04d3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~3.24464.3.jsonl",
+      "sha256": "0edf055527356a67f1d3295d736a72619c14b435fb46ea79847acff5c4e3c4c5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~3.24464.4.jsonl",
+      "sha256": "6f5290fd2de13bd5a7eff2df3e26d7a967bb99361eff353ef9179a444d92ce6f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~3.24464.5.jsonl",
+      "sha256": "a65469e638d428f6766bc3830b399b7a01e5ab01dcdec81d37b8d25a0ccfca1b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~3.24464.6.jsonl",
+      "sha256": "38a75563b013f62add228ee3b009a20a02c49ae993a8d4e0cbad87ca6b191e16"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~3.24464.7.jsonl",
+      "sha256": "007849d28646d6453622bc939406eae64457a4106d4530f8a3e73d0b063bf0df"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~3.link.jsonl",
+      "sha256": "1463d508359c60ec1f8f37e0eacdc1ebc28bec4579f9961381c4ba8263317645"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~4.row.jsonl",
+      "sha256": "3b23be2c64b29491e1fabd521fbc7a4ef1822dfd3e74b98d3c4f888dac2e5ab9"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~4.17392.1.jsonl",
+      "sha256": "f3237edfc272ae37510eb2902c65ba6edfdc5022de9c1ad14706ee3bec596124"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~4.17392.2.jsonl",
+      "sha256": "1e5347edf35b5658b58b10429c031b2cdae167b019e9a49f73f808ac088fe279"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~4.17392.3.jsonl",
+      "sha256": "6a0d50fc58405cfec8e3e8f169db1e5405d79a9ee801a6e471c355f59f9f760f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~4.17392.4.jsonl",
+      "sha256": "f9631628aed41f238dbcf04b21c3869474215a8fb95b2df7dc584d1eca1c70af"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-18x20-nightmare/logs/18x20-nightmare~4.link.jsonl",
+      "sha256": "0d456903279878c4eca42bc47dd7249be647c7d69d30df596f3fa4677f73c84e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/state.json",
+      "sha256": "a0b23944af9726cb7be1a584965265f8d8b6a29d93a2159283c48e991d59ca84"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/shard.json",
+      "sha256": "898b8213085aa17d80f8a79be6350e1e477ae4cdf6890ad696e2cac69aa236a8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~0.row.jsonl",
+      "sha256": "b1b694cd27a85c32f4c505fbeaadf9ab985b6830cc19d1814abd0fd98e8653cd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~0.19492.1.jsonl",
+      "sha256": "eea0f24d5d9e6528c5fb49fcc25b546298a4e2b3377bc690d94f12611ab556b4"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~0.19492.2.jsonl",
+      "sha256": "e308e3d36305cfd1e799fefd1458bc8eadd0f830c7578be8f94305fc7e747e0f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~0.19492.3.jsonl",
+      "sha256": "3850e77bdaaf05a36b56124cc9cdc568d430efa0c37fc41bd60355946337e8a5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~0.19492.4.jsonl",
+      "sha256": "5718eeaf4c7e3d83e8ff1b6df996db7ef34aa376046c1c6660d7cf865b303b98"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~0.link.jsonl",
+      "sha256": "6bb92b51acda8cc256ef789ede0356615f92a049c4f13005d099e23f42e6885c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~1.row.jsonl",
+      "sha256": "715dd091bfbfe5a78ab09c8795d854cfd93dcc1cd3760b60fe7c5cbf4cfcb665"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~1.8164.1.jsonl",
+      "sha256": "afc211803bc14705e999adfaa7c80796618c9c3a20afda50eaac45864a144468"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~1.8164.2.jsonl",
+      "sha256": "b208cd29762534bb7b5fc07379540e9fdb8e835602ab67c45d9c566623708711"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~1.8164.3.jsonl",
+      "sha256": "72fa946719f94e6a014919d603405d98185727f18a58f0309980511a01d77775"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~1.8164.4.jsonl",
+      "sha256": "26de20986f54a72cdd53ce39d6d099503c1872312e383b71ad36034beadab597"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~1.8164.5.jsonl",
+      "sha256": "165488a7956fe1692107c11a2f3ded9ada8761b812fd4718fa9a125ad5ceba77"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~1.link.jsonl",
+      "sha256": "3216f25790bce8c63783c99dee409e7b96b6b239515f97b6c5c88b5717bc3f86"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~2.row.jsonl",
+      "sha256": "28c9a3335234512468b452469c5aeb76960b48e32ea9b68ef2c1c66ed55c5e80"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~2.23976.1.jsonl",
+      "sha256": "2c2550d6b32c894ce4a457edb165495ad8415ca8456494375a3501b8560879ac"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~2.23976.2.jsonl",
+      "sha256": "5735a4ba26ea5f556a45a71eceb85e30cb8e9aa7fe6aa0a4b4c04bfe23d63da2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~2.23976.3.jsonl",
+      "sha256": "bb3414b2bb423c00cee23e4fb391d6683841575cb308dcc2bcfe0eaaf079daf4"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~2.23976.4.jsonl",
+      "sha256": "d8948309d9ead54084ba003122fa4e76cbdaa19f91f21356c741a3a03e6dbddf"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~2.23976.5.jsonl",
+      "sha256": "a8bec5e85721953344f967b726af88d5696432be2dc0a7ca7d88e2e0554e08e8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~2.23976.6.jsonl",
+      "sha256": "ebdb8ac3daae3fdf542f8715a89fb3f5c956d826fa03b66efe25987193b6de69"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~2.23976.7.jsonl",
+      "sha256": "905fe48b52036681db3cfcd7cd5005c037bd219f7f4a3c39bae41652442b3d3f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~2.link.jsonl",
+      "sha256": "bf2c0c55256807f86ebe35acc6f48831127ce524061c2b52af6d6b8072857cc1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~3.row.jsonl",
+      "sha256": "ee0bacc7d3f5efd9274e32e5f0e9921d7d42652dc529b41e40c9e60a0bd03c0d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~3.5904.1.jsonl",
+      "sha256": "454ca1026c6c4efba71a24bfc47bf08da0d3ae85ecbcfc99252495529b3d9310"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~3.5904.2.jsonl",
+      "sha256": "50df65007c82016e50ab1327f375a082b5c2351a37ffe94c4825109e3a1092e5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~3.5904.3.jsonl",
+      "sha256": "c653bcd77f4ff06ec4e17f40fbd4d7b8e0d99f40d27553ecfaecad112c3ce67a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~3.5904.4.jsonl",
+      "sha256": "cbe295bfe1bc8325ba2877a2c1f4a98d1e8fa88481c6263b6988f74a52f91b13"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~3.5904.5.jsonl",
+      "sha256": "35fcd0376c936b9b08f55efdd4a42563cb12bbd6e7c278d17c1ace4cf098ef04"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~3.5904.6.jsonl",
+      "sha256": "e674b58a69d612a895042bb10463b9e0530aef1b104545fd948c66f49d0091f8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~3.link.jsonl",
+      "sha256": "55c2474a536246b83b0fbcac52550d0fc3c740ffc427e03a4ce83700e178ce8f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~4.row.jsonl",
+      "sha256": "d1e0faefa6493aacdeb5e16092f3e0ecdd25a88f239e429f24eabe63efb3ad49"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~4.17940.1.jsonl",
+      "sha256": "521dd582875a9763113bcfed540d9f0f4b3f695fc43551069be739d6b7faaa67"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~4.17940.2.jsonl",
+      "sha256": "1eb10f5055cd50369abc7c3c128ca5ebcef880c313d02cb0f44081d56c55c79c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~4.17940.3.jsonl",
+      "sha256": "b504234b25729933558e5600e0b5eba1e248376261174b03f1d2cd9d0db3080c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~4.17940.4.jsonl",
+      "sha256": "3f8ac92f57167adacf28dffa648e12c894eedf64462dfeaaefaad7ee208d7615"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~4.17940.5.jsonl",
+      "sha256": "2e80d3f543c6126947ff70ac463c50b945410d29d2c77295265b233226c70d8c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~4.17940.6.jsonl",
+      "sha256": "18f913357beab994f6274953ed16f872051ac25a3de1325ebce24159f639c68b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x20-nightmare/logs/20x20-nightmare~4.link.jsonl",
+      "sha256": "76bc9fca49e9f057e07a3eaa642d6cfd081eb7c9dbb985643ea47c383fd73a23"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/state.json",
+      "sha256": "d9d75d5f45181584f96e6793f8855150a1508004e69932982e0b239bce684e34"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/shard.json",
+      "sha256": "c0103a1365c43570db7266ffab836d7db7f45325938dde2125852e3aba59a2de"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~0.row.jsonl",
+      "sha256": "7bcbeb4ea28506abe2cbed777a316f605ddf3a31eaa316ce294973fab8f0a351"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~0.16244.1.jsonl",
+      "sha256": "a70cd4af56a90107e03571540a0e56eecf66937c7d25e0e09369bb9abefbb17e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~0.16244.2.jsonl",
+      "sha256": "ba15b1882c67a4baeb3f67ce264da5bf7deaaa57c122295330b2091306501b79"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~0.16244.3.jsonl",
+      "sha256": "4eafa97c7360a0a0739eb2feae9c8dfda5169faa3aebcd0a58a8c97c6ade29f1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~0.16244.4.jsonl",
+      "sha256": "f058774f73f8599a4721c4f0948624565f1f17a32353e20e1d561e938fb8ae59"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~0.16244.5.jsonl",
+      "sha256": "70e988f824504c4f35552c499387c3fb6f48a9ce106cdfe384a44674d7103ae0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~0.link.jsonl",
+      "sha256": "9ca9a9644cb888caa73dee0c133a7b5db2956c10c806329fcd0a57298e42e1b1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~1.row.jsonl",
+      "sha256": "904640b89b3c8c42a052ac10f52f8f80de94fe417d7318dd5ce42c1b082d2884"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~1.5472.1.jsonl",
+      "sha256": "9854309883ee28719276d31fecd8cc20a7b4e968c7c095059413766f68513213"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~1.5472.2.jsonl",
+      "sha256": "4ec6d72471efcb180d2964355d86ce9e9e866ecb1503d20a4f189eec159af37d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~1.5472.3.jsonl",
+      "sha256": "ade4c0b561478aadb194b85c7d2f6aac3e9f202fb895e8840f64a4ca8b61e894"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~1.5472.4.jsonl",
+      "sha256": "156a29534ce0fdc34d3e7531204d7cb1df130078f5dff78c73e9efd0e96c307b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~1.5472.5.jsonl",
+      "sha256": "e4e804a745c628f4a257a8045611a8cd6fc0a3ab07f91549ca6043c57187fc60"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~1.link.jsonl",
+      "sha256": "a054bad6c5cbe4b90d2990be98900bdfa327c74fa7551ee4ed37240d237cfdda"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~2.row.jsonl",
+      "sha256": "b757324bb83ab082bfb3ea3c0420b7903499225aa74f090ea3c573952d797450"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~2.25372.1.jsonl",
+      "sha256": "a0e808a0710413fd033799583e07827daa16558688f64bb962d48b6971db5dd8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~2.25372.2.jsonl",
+      "sha256": "0f4155111b0c9113f33e772c167797246253e017fb903597a47c176523db2363"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~2.25372.3.jsonl",
+      "sha256": "0de93d830a9c8c9feffbfa6d5c2e06b7a306207b98394ccdc96cc018d5ee1b67"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~2.25372.4.jsonl",
+      "sha256": "193c1b8d18d9566ab9506a47605b889fbc5d799c28193796d2696c50d5faa7c8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~2.25372.5.jsonl",
+      "sha256": "e52b87dd258789d959bd3dc4434882607cd0c5bf560eca6ce2a33d95f1522b82"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~2.25372.6.jsonl",
+      "sha256": "d60f23a4c0f1678bf04cc6b9d523757495fb899a5b5758aea0b577ea5ca98e46"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~2.25372.7.jsonl",
+      "sha256": "ac2d05e9bfc1322ac61cf03d7e7395976ffe541186a2bcc9ac134a29be7a7f09"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~2.link.jsonl",
+      "sha256": "d7ae1fad6539cd92b755f1b5883745d9a40f99ed42a946043fe48fa0641b98fa"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~3.row.jsonl",
+      "sha256": "5fd11ecd4ce12fd08393a9f3b7a6b99850160afdb00f0da4eb07978f750b1baf"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~3.6884.1.jsonl",
+      "sha256": "968cd7f857a67c6d8bd593cbf91ebd54c2fb4b2b1291dfde153ea3053009d386"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~3.6884.2.jsonl",
+      "sha256": "aaa1823a6c417e5cb1f315ec0ead62f4eb0d3fe7e530edecf141627501dc79bb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~3.6884.3.jsonl",
+      "sha256": "79c301c80a96341bb2d6610839643e61b548ce4ee6a7b26e33bdd51b51b01bdf"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~3.6884.4.jsonl",
+      "sha256": "5c5eb8a98fec8f18a1971dadf91b3c3845da6f4fba8b99f11bfb6b998d6588e3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~3.6884.5.jsonl",
+      "sha256": "a5e5f7af48f6d9b8366fc5b6760b001552d8e4302d473c3bfa184d93be65429a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~3.link.jsonl",
+      "sha256": "6e13e2b308e526fb02d71577b8b85ee5068e5fd5385eb43e5e2e70a10fda09fe"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~4.row.jsonl",
+      "sha256": "64a0926f46001afb672cb582970b43d1df2f1b876c677ef90a1093be5ef3e6b9"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~4.21508.1.jsonl",
+      "sha256": "6ce3cbae8a635dbd017bda71500332654e835eda93bdd124882219f01d107965"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~4.21508.2.jsonl",
+      "sha256": "ade2738f04c1a1bc52f3b27b1cbfc45aeda005c97f4f044608ed0af5c99220cb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~4.21508.3.jsonl",
+      "sha256": "28cf073c5e17847085628e0d209d20e2dac0fe27d7b6649ccf0c9537b916f146"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~4.21508.4.jsonl",
+      "sha256": "fd1944c730ef060b9aabaf75be404f6ae61d9447f87da23a859fb64d35541ea2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~4.21508.5.jsonl",
+      "sha256": "40eb0e33e42166735ea4a47739a67e621b25d19d7c75762b120ff90c109b4894"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~4.21508.6.jsonl",
+      "sha256": "6b33fb2496e26ad1dc3f513b3c5b4371a8fb30344cdc10cf3707d7be49990f85"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~4.21508.7.jsonl",
+      "sha256": "df8ea0e4d82a765db0caaa8f76278592c4adaf05dbc44be164773d68ca3e733a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-20x21-nightmare/logs/20x21-nightmare~4.link.jsonl",
+      "sha256": "47327be196bc4fc83e249b4128d18bd089c0454e7c46f0e955ec3ce79065275d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/state.json",
+      "sha256": "725cedfe4bd73ec83ee8930dc04c1c2b513682a38ff6fc706ee64a3a8fd531e0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/shard.json",
+      "sha256": "e1da324092d1bdb81226901aee4b0c0c3eb1c926f7c076036d283e8553ee960d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~0.row.jsonl",
+      "sha256": "da686dae3d9a7267994ed0a0051382c0421104ba34356f12681783616d5e7a76"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~0.8116.1.jsonl",
+      "sha256": "c0a31ee4d65d4b5c4de5178f23fcb4e1b53e15dc96085643a3553ac932122301"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~0.8116.2.jsonl",
+      "sha256": "59a112ad6d3d5c23b3c3d4bf5a9e96a8c643c7b5deaf39a7dcc5942400eb7d14"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~0.8116.3.jsonl",
+      "sha256": "b3c3766e91f88946da3afe89dbfa681a584b23c40e05c6b5eb903d7fe2df1fd9"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~0.8116.4.jsonl",
+      "sha256": "f6f97831fa5ab8a1473be81b9d72539d1200dfcb7aa6129230093fd244b09691"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~0.link.jsonl",
+      "sha256": "8c9231d926e05380668049b7a87a2ea04e648e90fb1315ea01ba0568725b205b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~1.row.jsonl",
+      "sha256": "2df6dcea7882bb11c2388e419c73fb55011960f9c002fa39f76e747e3bcb6114"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~1.22300.1.jsonl",
+      "sha256": "65c9747d4a0f62d17c459f5a6b0be82e8a99be626a9e138f17264b0e8d667ed7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~1.22300.2.jsonl",
+      "sha256": "23cbf9c3ba146dd0db4f73bbf36cd4ce22e84bd88899ae1ee291a35a7e81ef96"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~1.22300.3.jsonl",
+      "sha256": "f45c9dac3b021caa5e2d527682c20fbddff990f2d02cc18b34762973c4d65cf6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~1.22300.4.jsonl",
+      "sha256": "4dab8800d9f8e59a79fdddaeb0bfeb4de35901235434dbdbc42c38793f7a7a4e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~1.22300.5.jsonl",
+      "sha256": "673f4d031249b09ddba43e8612c90314d5ead9603d84eef20924f4a9abfd22eb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~1.22300.6.jsonl",
+      "sha256": "28b34bb725eb9f4f3d478ca1dd22f1e352e51a4ca5c82579e7bf3c3d53c5c44d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~1.link.jsonl",
+      "sha256": "11ec107b0b1f46162ea2bc35b9453bb59aa06431dfd718abf40f855bf843bf7d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~2.row.jsonl",
+      "sha256": "fd87226eeff8b85a43096a6bc1369fab0732672e4c583b07eb16f59fcdf3c910"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~2.21552.1.jsonl",
+      "sha256": "eafcb0c6663a2c4ae28eee711b3254f26d346ffe01eadda89938a953d1f7ad04"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~2.21552.2.jsonl",
+      "sha256": "3944c412caf7085241c6fc662190449eebcb58f7729731b1f82c9fb91e18e448"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~2.21552.3.jsonl",
+      "sha256": "dffb5844cae87e782e63ba699dcd37f820f0b348b3d92f5ccef3df30040b6d27"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~2.21552.4.jsonl",
+      "sha256": "0f9da6e8b47fa3ddd2146c982055c852f50937b401da5bb7b1fd6755a5b07b75"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~2.21552.5.jsonl",
+      "sha256": "73413c0dc360a54e8822f03268ea53c1a7e2631e1ef8fc50955a46fe736078ff"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~2.link.jsonl",
+      "sha256": "413288e5f0daab1b4b66527b071ca45d419c29f732448cafe25ead1b0d503f32"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~3.row.jsonl",
+      "sha256": "0be3906fd200ae86da0fa82afdc7fe42816b79827c7f150f7f4b5b66e68e892a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~3.16180.1.jsonl",
+      "sha256": "afc9479f2732b4ad5ae0311ac00fbf3098813044bf7bc8bee26db094179c101d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~3.16180.2.jsonl",
+      "sha256": "965d8c041c654362e53deee29cb495a1b58d9112165846db4de90a26956f2905"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~3.16180.3.jsonl",
+      "sha256": "9c73d132cd89c559b02b871376d17c095e79e88f666adf96794f665cd2e0b63a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~3.16180.4.jsonl",
+      "sha256": "0fcbe8d6fb9a878846b8b9d6f6b1bd55e46b8c6016acd4e1ca91d69928c7d3a0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~3.16180.5.jsonl",
+      "sha256": "814e783b700f1e4509e5a1a066c1b05bd150a624b02415e8d71e6b8542c0dd73"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~3.16180.6.jsonl",
+      "sha256": "eabe6d3445d6f2ee8a57bffde0ed9213d811b3890bc3d13d978b748a11c64e54"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~3.link.jsonl",
+      "sha256": "129b1272d1f6fa86b04c8be29b5d823cf7bdc97be271273e4d0a7c71b14d49c1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~4.row.jsonl",
+      "sha256": "2824f1d8ab505ebb251e9728ea1d682e7d2997d79b2b6373559ec4b706762322"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~4.23244.1.jsonl",
+      "sha256": "6e4114a2797227e33ec4f6a68f83300c9c5a1b9b5646ba903abd6d77aef4d3fc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~4.23244.2.jsonl",
+      "sha256": "6b8c3b3be710fc96e24d1fa1026e995790f8889a1d49610a493382e0a8f1c617"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~4.23244.3.jsonl",
+      "sha256": "b38e344756ab45de33eee2896820d6bce7d65ebe18996221bfc29b2c1a931939"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~4.23244.4.jsonl",
+      "sha256": "90c195b0cc9948e7120f0d33b2129a19065ca11f0655da78ec69219c5c74521e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~4.23244.5.jsonl",
+      "sha256": "53ecea5607473560ced6d2e639fdbe5ac5e6138a36537a39e1dfee95f2779b61"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~4.23244.6.jsonl",
+      "sha256": "02968152f9dfe338982948136f7e7c904cb6ed28ec258d6f4775af3d2247642c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~4.23244.7.jsonl",
+      "sha256": "1dc44ab7781c0e2184ecbd7ac90fc6b629fcf4c173eb8f7e9034cbe186afd717"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-32x15-nightmare/logs/32x15-nightmare~4.link.jsonl",
+      "sha256": "b3f499ecfa85eab20188f0c42d20d4ea2ecfa7217341cb1a4a6faf116671b64b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/state.json",
+      "sha256": "973fa67db4b3f3b85305e08bc2cc12cd9d728860f03f86b727cbb52a8d537a60"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/shard.json",
+      "sha256": "fce4f2e7ea57fa5f0d010624764b67a96ddb30c22f1978fe9e50aace5b6e2a49"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~0.row.jsonl",
+      "sha256": "5095c505c3ca78f6e6727d2fd14da02ce020c0a311493855959f413b97d64a62"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~0.23104.1.jsonl",
+      "sha256": "227fa06bbe0201524e8990d30dd0037a7521eb11b83424cf6e800ba274a0bc7c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~0.23104.2.jsonl",
+      "sha256": "2feec36706530b3f9d84034ebe4ae7ea7e89eae92fa1bd2e7ddde3403d8d583f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~0.23104.3.jsonl",
+      "sha256": "4c6cda6fb282af114994c043bc7723ab337b5d13a2764ae8ea32e086650020fb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~0.23104.4.jsonl",
+      "sha256": "4a9b234eda97ffffc6b937f6f9001536f0df523b3a4d915d80fe2178c12b9a39"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~0.23104.5.jsonl",
+      "sha256": "9af5a2232656f6eb7be8d621ee70981e63b1e44ba5231e920fe609bf7803e96e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~0.link.jsonl",
+      "sha256": "1d8054f04d19d211fe1685799fbe45e712377f1ed27ff2d5f2bd2c5e7d6ce101"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~1.row.jsonl",
+      "sha256": "ccb18fcbd2ec771a2abb06da23ad571a120b9e3ceb1bf7a854417a1dd9bb6d7a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~1.14912.1.jsonl",
+      "sha256": "83970e3857ab841cf5f19ca24fae96ebe46bccdbc296bd94690f0f91fdf30920"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~1.14912.2.jsonl",
+      "sha256": "ae47f103f3a05b1fb031fcf977a70b6ab8a91670f88c8ce71a7084f975bbb3eb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~1.14912.3.jsonl",
+      "sha256": "96273b2c5bcab1a071fdb1c13c72bbda520321226605fc35e91653df8b74f6c0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~1.14912.4.jsonl",
+      "sha256": "2531aa3486d8662f00fa251062754c1e87f267c63a60bc40cb595dd2dc14bc7a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~1.14912.5.jsonl",
+      "sha256": "ebf8f3ac4d9e7a0330da6b520cc83646492993e733caa3a7e33c8a86be57d26f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~1.link.jsonl",
+      "sha256": "5bd9a3fa5637deca2a7915199c811177e54796d48bae2e70304f208646872e86"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~2.row.jsonl",
+      "sha256": "e1f844dae962ec66c8a7805f30a09cd6ba327e099f514821935f57bf63018b27"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~2.8352.1.jsonl",
+      "sha256": "4dc3a1ccb3ea2786bb074a5692cb7c3ae64ea5235d0a80f2bf261da38718b1b5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~2.8352.2.jsonl",
+      "sha256": "61793584c4325c869ca7572506a05d1c95ea70b5917703dfca20451f7855a5fc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~2.8352.3.jsonl",
+      "sha256": "3cd128b581b520ce09d75f508ec74f83d9cd1053415edfdd4f0fe2c2308df047"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~2.8352.4.jsonl",
+      "sha256": "35e29690cd8d1e3be1d9b03cc790ce0ddaaae4592623a77d4b9ed0edc9547a5a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~2.8352.5.jsonl",
+      "sha256": "946bdbb41503ca5c4fffeda573b0f16723da36520119948ffb8597c7e94015ae"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~2.link.jsonl",
+      "sha256": "8a739d52c5edadda8be98cc227d3f46371f0a81c6419af418437ce81a7995e3c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~3.row.jsonl",
+      "sha256": "cc5b34262095d64a1446117879751379ae95b4b87889534d5b65847426e10d87"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~3.23460.1.jsonl",
+      "sha256": "d3a34997202998b126fe1a27b46707c925440a23f0a1f4335ed0ba28e537d38f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~3.23460.2.jsonl",
+      "sha256": "fd713191dc72f3fc8c27e7a09be7f61ba8726b71cd5292f34b60d9a3045a29de"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~3.23460.3.jsonl",
+      "sha256": "f82fad80034152bbcec7e4673f23bd518fad815208533495454a7be5b6c65e5e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~3.23460.4.jsonl",
+      "sha256": "da03de04f35dcd3cfbde4d8ddfcc4f4c5a69408517bd870ef4d4bd7dbf60c210"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~3.23460.5.jsonl",
+      "sha256": "dd5817157874a94dc2cc9cd4b050074bdb89898e6ee74c6fbe37052ba4e736dd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~3.23460.6.jsonl",
+      "sha256": "d84cc440323008f48c5ee8e4feba440ff60d3b5426d6a7975097ebcd2ec50d49"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~3.23460.7.jsonl",
+      "sha256": "636ca07122182fc5636705ac06d95a95d64feb4626a294af342e111d4ee03820"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~3.link.jsonl",
+      "sha256": "e4c432fe2d6b9191b7d99c8ec516eeb7038073a8fcdc89e923ecfb9a5af78b80"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~4.row.jsonl",
+      "sha256": "459376ce0b6e0239c424b3e67ad6ac2dff928a82e5054c3464712312d19f96f7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~4.13752.1.jsonl",
+      "sha256": "4d508226c9c41ea66d13efcddcb8cdd35c4ea65d1eb2afe73e815686c7ee7c2a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~4.13752.2.jsonl",
+      "sha256": "72005d50dc8a5359e3dadbdc39b9d90e7c571a4039db8fe33e94ea41d27d975d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~4.13752.3.jsonl",
+      "sha256": "a84d396fa6f74404904e8284ba545d90954963ad8588f89e3228b88a51d604ed"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~4.13752.4.jsonl",
+      "sha256": "e8eb16a7cd56a464ec2a667f341d1bc89b78fd2f949361a92fc462647cb50849"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~4.13752.5.jsonl",
+      "sha256": "896db473b17e166b637f8354fe6063d06c1880c53c944875a5e98599e17dc14f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~4.13752.6.jsonl",
+      "sha256": "a9dba3a60c8bcd27c8ac5496eec935e1b7ac894593c2750602d33cadc1d1b3bc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~4.13752.7.jsonl",
+      "sha256": "e739dd6357d9894ea29f60bfa0199f4d3ffa636db3094f1afd4b2487592f197b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-22x22-nightmare/logs/22x22-nightmare~4.link.jsonl",
+      "sha256": "623bad1de5e061f9faec7699d6b78ed83b81adfb3556627ed63dc8095bd5ba9d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/state.json",
+      "sha256": "84f81548d4c827edbdfa9489f6ee5fbba70405e162b2f874f88f2fa5e6a2d594"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/shard.json",
+      "sha256": "6480caf3befc9aa081904459053c3a4ec5d78743697faa33bd9aa33d0ab07c07"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~0.row.jsonl",
+      "sha256": "dc1c09025f2ca1e0195c67d5e451fba7b5964b837126272dc51a29b937866828"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~0.8672.1.jsonl",
+      "sha256": "5b9abcb9586edcac92717d087aebb125dfc885250d9aa837cdeb05aa95efcbcd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~0.8672.2.jsonl",
+      "sha256": "25bef8e7a6cbf3c372ef8dc604808caf0d9e600993021a101fe8be85bf3adc7d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~0.8672.3.jsonl",
+      "sha256": "5395132537d870042445a0cf9e92cdf7e6b237922611b23b2427e1cb71a5df4c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~0.8672.4.jsonl",
+      "sha256": "fb3219458109479a2a8b95de54f7e4e8cb66578d8b268c32216a4912b2ceaa01"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~0.8672.5.jsonl",
+      "sha256": "05376a7e133542e5b79c26918e1480fb43db82dd422f544315214f99aa91697e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~0.link.jsonl",
+      "sha256": "e416186ad5195b26ca8e136f3a68e5691b3f02684672d669f76c304066e30027"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~1.row.jsonl",
+      "sha256": "328e063fe06a2512b53878a8a1b040eded6aebb3b28a8f25b5c4674da084a6e8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~1.14592.1.jsonl",
+      "sha256": "98b14556995a8e40cb27e7d1865c0b365f133ba8e01234ab45e54aacbffe52b1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~1.14592.2.jsonl",
+      "sha256": "c5e80cdefb0de2cd3718a019dc27073afe44cc8714f028fe1035bea47638fbcb"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~1.14592.3.jsonl",
+      "sha256": "89fa5e837686459f82f0bdbc28fd7e1b1b36f95276e566bd74605c3f4ec0186f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~1.14592.4.jsonl",
+      "sha256": "b17b3e7794be844eca5a24284c07b6698109a08953011f8aaf48f59b0d4119f8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~1.14592.5.jsonl",
+      "sha256": "41b7dd4862b52c91fd4db007f69ce4a05ac344dc4e4035a0aea8801dff8dd846"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~1.14592.6.jsonl",
+      "sha256": "e57928941a639e4743fb1ad56afd9d519d8a5bece8f09ec86a77f3d4a88643d7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~1.14592.7.jsonl",
+      "sha256": "e03dcd0d56a7a487190a5098f15e01a0582fb17bafe031f6c55e894f5e0c567f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~1.link.jsonl",
+      "sha256": "c26193ff35375fd935cf012a94a377122875f8ad997155669181b52383d56e88"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~2.row.jsonl",
+      "sha256": "c0ee6fd9bd760c3bbba5905ea78b2b170b438a2ff53dbbcec3f6284b571e8113"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~2.8384.1.jsonl",
+      "sha256": "3b61486385b65f0e10fa9cacf11a5cdf1bcd1d45d6e35bc70985baac31ef80e8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~2.8384.2.jsonl",
+      "sha256": "e14b4c509b147507f46b683a904ad586074041a7d48ca8bbe95b01793d87f893"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~2.8384.3.jsonl",
+      "sha256": "bb19f9c03d87090013f450c2167e71ecfe228c3799d78bb9a7a89c15737ee7ce"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~2.8384.4.jsonl",
+      "sha256": "fb5cb902c4af24473c0daed495bb77bba455dbcf41a801ffc6ba2ae99a7d2c4b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~2.8384.5.jsonl",
+      "sha256": "db5325a16ab3a193659b3e965d76dade3467417f24d22642c003d0f5f0b462da"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~2.8384.6.jsonl",
+      "sha256": "fbd6f815b67c0490947855b1e54cbced274f5ee9a6592ab445bb80f0582adb7b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~2.link.jsonl",
+      "sha256": "4e4eb66e5ea56e6de32af2c579408ed828ef7b72139e443e63141407235788b7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~3.row.jsonl",
+      "sha256": "badb1437f24e0d4632b290758e7a44edc98fa59e77907e4c7b91378945ce6307"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~3.13260.1.jsonl",
+      "sha256": "344b3b6e4a465aa4e20cf46ea1aaed41666362d9a00f92bf37a6d46851694766"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~3.13260.2.jsonl",
+      "sha256": "4a84a6ae3f24123f72941bfebc13246fe85ef1361055ab9e244c25e3962ed78e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~3.13260.3.jsonl",
+      "sha256": "c107756ca9f9d4498cab2ebcb2dcba9d7d46e725be4e1380d463381965f943c5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~3.13260.4.jsonl",
+      "sha256": "37b937867e3c749d4add0da6c431e32f48a132dc7bf860da82d6b1a8f1a4e8ee"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~3.13260.5.jsonl",
+      "sha256": "0237b5bf7b6f7e7b45208d620d7c6f72074099d2e4b88ec1dbdb8446e61e87c6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~3.link.jsonl",
+      "sha256": "85669fa336adbce25a35bec6fb726815251e6b43e57045ae305b78aaae8c88ff"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~4.row.jsonl",
+      "sha256": "ad4884d220c8527d3aba6d7deff19d4f4a638cad502a74a40509e1054c8f8ae9"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~4.15372.1.jsonl",
+      "sha256": "cf1a53649fc798f072eabc1ab58cd9581bbd8284400d17cbeeb480014f1f0548"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~4.15372.2.jsonl",
+      "sha256": "bbfc4d444c666e32131fa2e2c789001eeab0eec13e5fdf6e428e8143ba5eafe0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~4.15372.3.jsonl",
+      "sha256": "00c60bb5d9a1e39743a5e7447dd0ff4e24025dcc9041907460697042d3e8333c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~4.15372.4.jsonl",
+      "sha256": "54fd4e1109881fad77cd18a832e978d18bdc7fcdd5f4256d7f65577e9a73af8a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~4.15372.5.jsonl",
+      "sha256": "dae7b6c46559fae068f327545b4f5ba9d883c9c8ef653c5dc1eafd7bb02f4070"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2B/fr-none/pilot-24x24-nightmare/logs/24x24-nightmare~4.link.jsonl",
+      "sha256": "da45e735fe3847ef7efdba567c570f4c2585b71f6208849f944279cad21d6d07"
+    }
+  ]
+}
