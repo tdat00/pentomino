@@ -1,0 +1,208 @@
+{
+  "format": "ig-v4-proof",
+  "version": 1,
+  "kind": "parity",
+  "verdict": "pass",
+  "source": {
+    "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+    "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b"
+  },
+  "harnessHash": "8833366cfc3c49f457dc9eda1c32e318ec99e3c502ed91fcc3daaa822ae05533",
+  "arms": [
+    {
+      "id": "fr-c4",
+      "treeId": "0b2f68f25996e641a213d2291bcf4caa3e8d328b7cbc12036e7de13081a3241f",
+      "paramsHash": "cdb42195c99e22b989155d5c56cad7419592e7758405d66cbf1a9e5ddc0dbfda"
+    }
+  ],
+  "coverage": {
+    "expected": [
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+      "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+      "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+      "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:absent",
+      "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:charge",
+      "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:record",
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1"
+    ],
+    "observed": [
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+      "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+      "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+      "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:absent",
+      "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:charge",
+      "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:record",
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1"
+    ],
+    "missing": [],
+    "censored": []
+  },
+  "evidence": [
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-c4/items.jsonl",
+      "sha256": "81c1b73c5d6313e668c3d426932a30f829e6629ecf9d27a656498b540c806390"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-c4/state.json",
+      "sha256": "9cc1b091f409336af8f6598c5096cf4ee9cf2085c63be0eaa768a006130a7c49"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S2P.parity-fr-c4.json",
+      "sha256": "2179a5d8c8882f6d4a7076017a302ae586e5fe1736a9108060edc530b2129d09"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/inputs/parity-fr-c4/fr-c4.ig-tree.json",
+      "sha256": "be0ff4a26345caabf35fa370fdf17be58a303f65f1404fc3124d512e0266f82e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/inputs/parity-fr-c4/harness.json",
+      "sha256": "e0492b4fa92f9832d60025898c23908ad2f1c554f4d303b79763a811ac463912"
+    }
+  ],
+  "blocks": {
+    "parity": "pass",
+    "replay": "pass"
+  },
+  "details": {
+    "parity": {
+      "verdict": "pass",
+      "reasons": [],
+      "rows": [
+        {
+          "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+          "status": "completed",
+          "detail": "ok, total work 3174858721"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+          "status": "completed",
+          "detail": "ok, total work 3174858721"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+          "status": "completed",
+          "detail": "ok, total work 3174858721"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+          "status": "completed",
+          "detail": "ok, total work 20253774745"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+          "status": "completed",
+          "detail": "ok, total work 20253774745"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+          "status": "completed",
+          "detail": "ok, total work 20253774745"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:absent",
+          "status": "completed",
+          "detail": "ok, total work 1148088666"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:charge",
+          "status": "completed",
+          "detail": "ok, total work 1148088666"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:record",
+          "status": "completed",
+          "detail": "ok, total work null"
+        }
+      ]
+    },
+    "replay": {
+      "verdict": "pass",
+      "reasons": [],
+      "rows": [
+        {
+          "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+          "status": "completed",
+          "detail": "ok, total work 3174858721"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+          "status": "completed",
+          "detail": "ok, total work 3174858721"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+          "status": "completed",
+          "detail": "ok, total work 3174858721"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+          "status": "completed",
+          "detail": "ok, total work 20253774745"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+          "status": "completed",
+          "detail": "ok, total work 20253774745"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+          "status": "completed",
+          "detail": "ok, total work 20253774745"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:absent",
+          "status": "completed",
+          "detail": "ok, total work 1148088666"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:charge",
+          "status": "completed",
+          "detail": "ok, total work 1148088666"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:14x14-master:ig-v4/parity/14x14-master:record",
+          "status": "completed",
+          "detail": "ok, total work null"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+          "status": "completed",
+          "detail": "ok, 2 puzzles"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+          "status": "completed",
+          "detail": "calibration matched"
+        },
+        {
+          "item": "parity-fr-c4:fr-c4:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+          "status": "completed",
+          "detail": "candidate matched"
+        }
+      ]
+    }
+  },
+  "identities": {
+    "now": {
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "treeIds": {
+        "fr-c4": "0b2f68f25996e641a213d2291bcf4caa3e8d328b7cbc12036e7de13081a3241f"
+      },
+      "harnessHash": "8833366cfc3c49f457dc9eda1c32e318ec99e3c502ed91fcc3daaa822ae05533",
+      "manifestHash": "5375c27cb10f1b678bf02637f39606b49b698855af903bdcc74f81c9e18f1981"
+    },
+    "baseline": null
+  },
+  "reasons": []
+}

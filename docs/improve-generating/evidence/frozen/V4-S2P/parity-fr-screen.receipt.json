@@ -1,0 +1,208 @@
+{
+  "format": "ig-v4-proof",
+  "version": 1,
+  "kind": "parity",
+  "verdict": "pass",
+  "source": {
+    "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+    "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b"
+  },
+  "harnessHash": "8833366cfc3c49f457dc9eda1c32e318ec99e3c502ed91fcc3daaa822ae05533",
+  "arms": [
+    {
+      "id": "fr-screen",
+      "treeId": "a3c423601195affb21589e46eae1d4cd0a49ab486d618b5d7b3d1402f7d09a67",
+      "paramsHash": "5bce672a38fc16647b23e833395e30917ffc68114892b53659fbb600e175f869"
+    }
+  ],
+  "coverage": {
+    "expected": [
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+      "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+      "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+      "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:absent",
+      "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:charge",
+      "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:record",
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1"
+    ],
+    "observed": [
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+      "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+      "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+      "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:absent",
+      "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:charge",
+      "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:record",
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+      "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1"
+    ],
+    "missing": [],
+    "censored": []
+  },
+  "evidence": [
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-screen/items.jsonl",
+      "sha256": "a77494cd7d2df561944e6d7b92b7e92b98ba2069bd11274270fe5fb96a2b6251"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2P/parity-fr-screen/state.json",
+      "sha256": "d4361dc12d788adda8adad61827886c6b017e9d2d85595b4f203e50413466e03"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S2P.parity-fr-screen.json",
+      "sha256": "3f308568c9091f88205fd55afe49e1a38ba2c99e8a1bc9e5406e0891b318c95a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/inputs/parity-fr-screen/fr-screen.ig-tree.json",
+      "sha256": "7eadb387079323e1c385efb3f99378b9d4de9a79c7a9ca20044cd865b3b3552b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/inputs/parity-fr-screen/harness.json",
+      "sha256": "e0492b4fa92f9832d60025898c23908ad2f1c554f4d303b79763a811ac463912"
+    }
+  ],
+  "blocks": {
+    "parity": "pass",
+    "replay": "pass"
+  },
+  "details": {
+    "parity": {
+      "verdict": "pass",
+      "reasons": [],
+      "rows": [
+        {
+          "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+          "status": "completed",
+          "detail": "ok, total work 4038718747"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+          "status": "completed",
+          "detail": "ok, total work 4038718747"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+          "status": "completed",
+          "detail": "ok, total work 4038718747"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+          "status": "completed",
+          "detail": "ok, total work 19023287126"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+          "status": "completed",
+          "detail": "ok, total work 19023287126"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+          "status": "completed",
+          "detail": "ok, total work 19023287126"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:absent",
+          "status": "completed",
+          "detail": "ok, total work 1148088666"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:charge",
+          "status": "completed",
+          "detail": "ok, total work 1148088666"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:record",
+          "status": "completed",
+          "detail": "ok, total work null"
+        }
+      ]
+    },
+    "replay": {
+      "verdict": "pass",
+      "reasons": [],
+      "rows": [
+        {
+          "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+          "status": "completed",
+          "detail": "ok, total work 4038718747"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+          "status": "completed",
+          "detail": "ok, total work 4038718747"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+          "status": "completed",
+          "detail": "ok, total work 4038718747"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+          "status": "completed",
+          "detail": "ok, total work 19023287126"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+          "status": "completed",
+          "detail": "ok, total work 19023287126"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+          "status": "completed",
+          "detail": "ok, total work 19023287126"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:absent",
+          "status": "completed",
+          "detail": "ok, total work 1148088666"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:charge",
+          "status": "completed",
+          "detail": "ok, total work 1148088666"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:14x14-master:ig-v4/parity/14x14-master:record",
+          "status": "completed",
+          "detail": "ok, total work null"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+          "status": "completed",
+          "detail": "ok, 2 puzzles"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+          "status": "completed",
+          "detail": "calibration matched"
+        },
+        {
+          "item": "parity-fr-screen:fr-screen:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+          "status": "completed",
+          "detail": "candidate matched"
+        }
+      ]
+    }
+  },
+  "identities": {
+    "now": {
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "treeIds": {
+        "fr-screen": "a3c423601195affb21589e46eae1d4cd0a49ab486d618b5d7b3d1402f7d09a67"
+      },
+      "harnessHash": "8833366cfc3c49f457dc9eda1c32e318ec99e3c502ed91fcc3daaa822ae05533",
+      "manifestHash": "49806ba2b01b18c9f8dbac16399f156644ca4c5c008d71dc10a5efddc6a0c6a7"
+    },
+    "baseline": null
+  },
+  "reasons": []
+}
