@@ -1,0 +1,35 @@
+{
+  "format": "ig-proto-tree",
+  "version": 1,
+  "variant": "base",
+  "chain": [
+    "base"
+  ],
+  "treeId": "963c625a51af4aeb9132f41142f166c66cc4b02d4f912ee17764bea4f9c622d4",
+  "worktree": {
+    "sourceLabel": "unlabelled",
+    "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+    "versions": {
+      "algo": "gen-v3",
+      "policy": "mixed-v3",
+      "rng": "xoshiro128ss-v1",
+      "model": "difficulty-v3",
+      "app": "1.0.0"
+    },
+    "kind": "frozen"
+  },
+  "copyDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+  "edits": [
+    {
+      "id": "meta-1",
+      "file": "tools/calibrate.mjs",
+      "before": "02834bacaae2eb263481e5a429a359af771f51224584a2551a103e87d356849d",
+      "after": "26e3ca5e04f88b64784aa45351b1b11d314bb60e2fba34f6404199b3185ab768"
+    }
+  ],
+  "files": {},
+  "params": {
+    "variant": "base"
+  },
+  "builtAt": "2026-11-16T21:36:42.831Z"
+}

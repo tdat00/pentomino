@@ -1,0 +1,703 @@
+{
+  "format": "ig-proto-tree",
+  "version": 1,
+  "variant": "v4",
+  "chain": [
+    "base",
+    "instr",
+    "log",
+    "v4"
+  ],
+  "treeId": "138aac46a56af95dfc5685d90d237454cb237d20d0e2aecee3eb6b9139eb19a6",
+  "worktree": {
+    "sourceLabel": "frozen 3fc65f4",
+    "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+    "versions": {
+      "algo": "gen-v3",
+      "policy": "mixed-v3",
+      "rng": "xoshiro128ss-v1",
+      "model": "difficulty-v3",
+      "app": "1.0.0"
+    },
+    "kind": "frozen"
+  },
+  "copyDigest": "65f0e783c8a709b306fdc4f1625559ac6ff0f0015f3f3815d2c75bc273978ddb",
+  "edits": [
+    {
+      "id": "meta-1",
+      "file": "tools/calibrate.mjs",
+      "before": "02834bacaae2eb263481e5a429a359af771f51224584a2551a103e87d356849d",
+      "after": "26e3ca5e04f88b64784aa45351b1b11d314bb60e2fba34f6404199b3185ab768"
+    },
+    {
+      "id": "instr-1",
+      "file": "core/engine/deduce.js",
+      "before": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce",
+      "after": "36db5c792810cb148f6447fa1c88ec5e94f596c0a82622766bbd7f7bb06206f4"
+    },
+    {
+      "id": "instr-2",
+      "file": "core/engine/deduce.js",
+      "before": "36db5c792810cb148f6447fa1c88ec5e94f596c0a82622766bbd7f7bb06206f4",
+      "after": "1ef459bdebcb04b72f4ee5e716cc0ef943a77a2ec4fb6b8be5aed050736c9a00"
+    },
+    {
+      "id": "instr-3",
+      "file": "core/engine/deduce.js",
+      "before": "1ef459bdebcb04b72f4ee5e716cc0ef943a77a2ec4fb6b8be5aed050736c9a00",
+      "after": "71faf52d9b7a10d7db99670801fc3fc5867f98280893cb54f3598fd64659756c"
+    },
+    {
+      "id": "instr-4",
+      "file": "core/engine/deduce.js",
+      "before": "71faf52d9b7a10d7db99670801fc3fc5867f98280893cb54f3598fd64659756c",
+      "after": "cf43148bcac4a7af61c54128e58a0bb459bd5b440a184149ec09330c7ace613c"
+    },
+    {
+      "id": "instr-5",
+      "file": "core/engine/deduce.js",
+      "before": "cf43148bcac4a7af61c54128e58a0bb459bd5b440a184149ec09330c7ace613c",
+      "after": "6e911694e7201de34f5598d7c27c24a238fcceef82a665e02b1c0de1e1f277da"
+    },
+    {
+      "id": "instr-6",
+      "file": "core/engine/deduce.js",
+      "before": "6e911694e7201de34f5598d7c27c24a238fcceef82a665e02b1c0de1e1f277da",
+      "after": "6f54f91fcf926ad7b9bf38c3c7a4d37840c2187ffef3078f7bb172467850bacd"
+    },
+    {
+      "id": "instr-7",
+      "file": "tools/bench/runner.js",
+      "before": "9f720febad848803be5504cafdc7c981b98fa01d670c98943b62273d7635097f",
+      "after": "204715ebde60c9084dbdcee9deb836917be592bff225da0f36f65dd5a88811f6"
+    },
+    {
+      "id": "diag-1",
+      "file": "core/engine/policy.js",
+      "before": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10",
+      "after": "ff355728f46b575a3cf131da83418926c90fdd3c7cc21fc8edc0ea2313bdfd3b"
+    },
+    {
+      "id": "diag-2",
+      "file": "core/engine/policy.js",
+      "before": "ff355728f46b575a3cf131da83418926c90fdd3c7cc21fc8edc0ea2313bdfd3b",
+      "after": "ba31e36b897e6c03ac77503093cc35f7785b12de624e6d6af485af8a623cffe6"
+    },
+    {
+      "id": "log-1",
+      "file": "core/engine/clues.js",
+      "before": "7aefcbeafd9630c28a8d57872e3e87a78c236bd5e3dba7994e3318ae206d394e",
+      "after": "aaa9ba4fdcc9aa86d598ef9368c7cc69f095eb3dad9758675b55a89daf9bdb2d"
+    },
+    {
+      "id": "log-2",
+      "file": "core/engine/clues.js",
+      "before": "aaa9ba4fdcc9aa86d598ef9368c7cc69f095eb3dad9758675b55a89daf9bdb2d",
+      "after": "ce7a120d85fb070df2ad9b616c44a703cea03c3c4d3ba20cdfb2531fa2df5040"
+    },
+    {
+      "id": "log-3",
+      "file": "core/engine/clues.js",
+      "before": "ce7a120d85fb070df2ad9b616c44a703cea03c3c4d3ba20cdfb2531fa2df5040",
+      "after": "1e4556c80bcadc450e850b6767aa51a02ecd08e8f6817077d2c74b60cf28f6e3"
+    },
+    {
+      "id": "log-4",
+      "file": "core/engine/clues.js",
+      "before": "1e4556c80bcadc450e850b6767aa51a02ecd08e8f6817077d2c74b60cf28f6e3",
+      "after": "728c50ffadaf7735f2e7fca88599f97ebf562678bc0c5caf1536299b7db485ed"
+    },
+    {
+      "id": "log-5",
+      "file": "core/engine/generate.js",
+      "before": "20afef3b322705084604435062105ea9d9e25978b94a82cea40880a90f0d6208",
+      "after": "a136f063b220687fc3227fe8249c633a74dd9db1db96dd6ccb379705f1f88918"
+    },
+    {
+      "id": "log-6",
+      "file": "core/engine/generate.js",
+      "before": "a136f063b220687fc3227fe8249c633a74dd9db1db96dd6ccb379705f1f88918",
+      "after": "32c72f962b092aae27ae24cb06b3c85f6a625ecd618edc25ed2f2336be628350"
+    },
+    {
+      "id": "log-7",
+      "file": "core/engine/generate.js",
+      "before": "32c72f962b092aae27ae24cb06b3c85f6a625ecd618edc25ed2f2336be628350",
+      "after": "8f808846b875feb27452f318ddb50f8c77c5550a18dd6e2c899c487ebe54e074"
+    },
+    {
+      "id": "log-8",
+      "file": "tools/calibrate.mjs",
+      "before": "26e3ca5e04f88b64784aa45351b1b11d314bb60e2fba34f6404199b3185ab768",
+      "after": "1613d257fce9fe32ec5e750f5b097365784d2078d3a9609d8184222a200960f1"
+    },
+    {
+      "id": "v4-1",
+      "file": "core/engine/clues.js",
+      "before": "728c50ffadaf7735f2e7fca88599f97ebf562678bc0c5caf1536299b7db485ed",
+      "after": "56f8b6da27bc40cda5827c1bedc9c6c4e6e98f12b2a9cb8d060981d8463f66bd"
+    },
+    {
+      "id": "v4-2",
+      "file": "core/engine/clues.js",
+      "before": "56f8b6da27bc40cda5827c1bedc9c6c4e6e98f12b2a9cb8d060981d8463f66bd",
+      "after": "97457d3e79158ce0f22053ce6fede92f1aa955eb397fc723379ebe73334cb70c"
+    },
+    {
+      "id": "v4-3",
+      "file": "core/engine/difficulty.js",
+      "before": "da528b1733de2074abc3b6ccdbbb877ff193655fcb1544ef39ecdb0050dd047e",
+      "after": "856c3c8924c861dd4419792f5c12f1a56fa78297a6e4e62224cf5a837c70d57a"
+    },
+    {
+      "id": "v4-4",
+      "file": "core/engine/clues.js",
+      "before": "97457d3e79158ce0f22053ce6fede92f1aa955eb397fc723379ebe73334cb70c",
+      "after": "90973b9598604e29ff1f5dacb862f37d67925b99d8d05ecaade26cb95c1c1dfd"
+    },
+    {
+      "id": "pv-1",
+      "file": "core/engine/version.js",
+      "before": "bee5adecec5e908403aa8db3a2ab9c8c0455694eb3498a00468fd53a2fe19e9d",
+      "after": "bcf0f6a07957a20fcbbb32045fa9587624b773facc9f52fa91e5c041c4e19964"
+    },
+    {
+      "id": "pv-2",
+      "file": "core/engine/version.js",
+      "before": "bcf0f6a07957a20fcbbb32045fa9587624b773facc9f52fa91e5c041c4e19964",
+      "after": "df2223b4cdfdadeae96d136db3be0c354f12dede45d4ba3d2bc7deb72b68099c"
+    },
+    {
+      "id": "pv-3",
+      "file": "core/engine/generate.js",
+      "before": "8f808846b875feb27452f318ddb50f8c77c5550a18dd6e2c899c487ebe54e074",
+      "after": "37fe8c5c32498a2c157c97c152529c153d55df0be21ede610fb56e4ac698f90a"
+    },
+    {
+      "id": "pv-4",
+      "file": "core/engine/generate.js",
+      "before": "37fe8c5c32498a2c157c97c152529c153d55df0be21ede610fb56e4ac698f90a",
+      "after": "ae92565836967fd9642b00ac8d20f3cbe1d7a4eed757914de0a3c564e901b177"
+    },
+    {
+      "id": "pv-5",
+      "file": "core/engine/generate.js",
+      "before": "ae92565836967fd9642b00ac8d20f3cbe1d7a4eed757914de0a3c564e901b177",
+      "after": "d838e257d96146baa360f4de0ceda4b84dd119e11450fb132e26094cc6d2066b"
+    },
+    {
+      "id": "pv-6",
+      "file": "core/engine/generate.js",
+      "before": "d838e257d96146baa360f4de0ceda4b84dd119e11450fb132e26094cc6d2066b",
+      "after": "4318094824ef5fbd705fe8bbcb6f60c89baba33b79e5c9b0e04fcb1b2e282449"
+    },
+    {
+      "id": "pv-7",
+      "file": "core/engine/pack.js",
+      "before": "e7ac93a03fad7d484bead4ecf4bd84591ea01f5672c8dad37cdfa76467dbc336",
+      "after": "4cef42fd00f864ee1a5df0aa3d72c5a34b52ae16935c202ddd27f2cab2b947ce"
+    },
+    {
+      "id": "pv-8",
+      "file": "core/engine/pack.js",
+      "before": "4cef42fd00f864ee1a5df0aa3d72c5a34b52ae16935c202ddd27f2cab2b947ce",
+      "after": "7adf4e1e15eff9e98c56f4a9dad3d4d1b5b06601eac9419f589ed51d13ab34b3"
+    },
+    {
+      "id": "pv-9",
+      "file": "core/engine/pack.js",
+      "before": "7adf4e1e15eff9e98c56f4a9dad3d4d1b5b06601eac9419f589ed51d13ab34b3",
+      "after": "2b1d6c96a5b4445a974f54e097a893e246d09253ae32c61fd1fbfafdd8cde51a"
+    },
+    {
+      "id": "pv-10",
+      "file": "core/engine/pack.js",
+      "before": "2b1d6c96a5b4445a974f54e097a893e246d09253ae32c61fd1fbfafdd8cde51a",
+      "after": "d53a24dce952bf20d94c1dd2710140fd943cdb829cf47f3ab5297ed80bb4d8f3"
+    },
+    {
+      "id": "pv-11",
+      "file": "core/engine/pack.js",
+      "before": "d53a24dce952bf20d94c1dd2710140fd943cdb829cf47f3ab5297ed80bb4d8f3",
+      "after": "3be66091d24075f675b536f15bdfbcb1826f7d3480308228fd72163a87e32647"
+    },
+    {
+      "id": "pv-12",
+      "file": "core/engine/pack.js",
+      "before": "3be66091d24075f675b536f15bdfbcb1826f7d3480308228fd72163a87e32647",
+      "after": "399cb0b33a2a73fdeb9807b7a0952641bca66e39288396f9d65d3a1d897b66bf"
+    },
+    {
+      "id": "pv-13",
+      "file": "core/engine/pack.js",
+      "before": "399cb0b33a2a73fdeb9807b7a0952641bca66e39288396f9d65d3a1d897b66bf",
+      "after": "61548ff0570f51f0233b72e74a76c318dfb99f3994e287419e729c82a1145c95"
+    },
+    {
+      "id": "pv-14",
+      "file": "core/engine/pack.js",
+      "before": "61548ff0570f51f0233b72e74a76c318dfb99f3994e287419e729c82a1145c95",
+      "after": "08379232098c85a554d0aa783fc4f7e939688e9ae79577394a4e616694a2644a"
+    },
+    {
+      "id": "pv-15",
+      "file": "core/engine/pack.js",
+      "before": "08379232098c85a554d0aa783fc4f7e939688e9ae79577394a4e616694a2644a",
+      "after": "7301c55babd82224ed0bb9fa66611ba6491370650145ef259ebd872d92f5437c"
+    },
+    {
+      "id": "pv-16",
+      "file": "core/engine/replay.js",
+      "before": "cf09ed0d8585022ec19dfb76777955126ecb162937969aad5911f56ef44899ea",
+      "after": "d6673076843f183d3646dfa88bffa9cc68d4da4c3ba73f7cc117a77891d61d47"
+    },
+    {
+      "id": "pv-17",
+      "file": "core/engine/replay.js",
+      "before": "d6673076843f183d3646dfa88bffa9cc68d4da4c3ba73f7cc117a77891d61d47",
+      "after": "d37af07c695b9b36ee0ce206740c9d9cb3059dbf70860fb85aad5aaef0fbd62c"
+    },
+    {
+      "id": "meta-2",
+      "file": "tools/bench/report.js",
+      "before": "13f4d316cfdc2515f457f2aa7c313d02f989a3a3d15fdbf10e667c8bc091630c",
+      "after": "167a772a31af040ef26cb4672c8f5a3ae607dfbc4ced40d5a4dde5ae51d0c7f2"
+    }
+  ],
+  "files": {
+    "core/engine/ig-log.js": "14fca4e392d13af967bfbc62024be77d2ddddba299108221935c316edb65762d",
+    "core/engine/ig-params.js": "02fcc2e50069c96bb1206c63ad2d8987c11b456ba87895597e4eed87e5052813",
+    "core/engine/ig-select-v4.js": "157a0e580a0d8d26dfd54e7dc68701b1e30e590557f80f264eb96225e6d39917"
+  },
+  "params": {
+    "variant": "v4",
+    "diagnosticOffers": true,
+    "logAccepted": true,
+    "p6": false,
+    "U0": 8,
+    "rerateMax": 4,
+    "W": {
+      "default": 190000000
+    },
+    "priorTable": "prior-v1",
+    "screenTable": "w190",
+    "prior": {
+      "easy@100": {
+        "caseId": "10x10-easy",
+        "share": 0.5,
+        "n": 100
+      },
+      "easy@144": {
+        "caseId": "12x12-easy",
+        "share": 0.555556,
+        "n": 100
+      },
+      "easy@196": {
+        "caseId": "14x14-easy",
+        "share": 0.545455,
+        "n": 100
+      },
+      "easy@215": {
+        "caseId": "15x15b10-easy",
+        "share": 0.545455,
+        "n": 100
+      },
+      "easy@60": {
+        "caseId": "6x10-easy",
+        "share": 0.5,
+        "n": 100
+      },
+      "easy@87": {
+        "caseId": "3x29-easy",
+        "share": 0.5,
+        "n": 100
+      },
+      "expert@100": {
+        "caseId": "10x10-expert",
+        "share": 0.307692,
+        "n": 100
+      },
+      "expert@144": {
+        "caseId": "12x12-expert",
+        "share": 0.333333,
+        "n": 100
+      },
+      "expert@196": {
+        "caseId": "14x14-expert",
+        "share": 0.294118,
+        "n": 100
+      },
+      "expert@215": {
+        "caseId": "15x15b10-expert",
+        "share": 0.294118,
+        "n": 100
+      },
+      "expert@256": {
+        "caseId": "16x16-expert",
+        "share": 0.263889,
+        "n": 100
+      },
+      "expert@300": {
+        "caseId": "15x20-expert",
+        "share": 0.277778,
+        "n": 100
+      },
+      "expert@324": {
+        "caseId": "18x18-expert",
+        "share": 0.25,
+        "n": 100
+      },
+      "expert@360": {
+        "caseId": "18x20-expert",
+        "share": 0.263158,
+        "n": 100
+      },
+      "expert@400": {
+        "caseId": "20x20-expert",
+        "share": 0.25,
+        "n": 100
+      },
+      "expert@420": {
+        "caseId": "20x21-expert",
+        "share": 0.25,
+        "n": 100
+      },
+      "expert@480": {
+        "caseId": "32x15-expert",
+        "share": 0.227273,
+        "n": 100
+      },
+      "expert@484": {
+        "caseId": "22x22-expert",
+        "share": 0.25,
+        "n": 100
+      },
+      "expert@576": {
+        "caseId": "24x24-expert",
+        "share": 0.238095,
+        "n": 100
+      },
+      "expert@60": {
+        "caseId": "6x10-expert",
+        "share": 0.333333,
+        "n": 100
+      },
+      "expert@676": {
+        "caseId": "26x26-expert",
+        "share": 0.26087,
+        "n": 100
+      },
+      "expert@87": {
+        "caseId": "3x29-expert",
+        "share": 0.285714,
+        "n": 100
+      },
+      "hard@100": {
+        "caseId": "10x10-hard",
+        "share": 0.363636,
+        "n": 100
+      },
+      "hard@144": {
+        "caseId": "12x12-hard",
+        "share": 0.384615,
+        "n": 100
+      },
+      "hard@196": {
+        "caseId": "14x14-hard",
+        "share": 0.357143,
+        "n": 100
+      },
+      "hard@215": {
+        "caseId": "15x15b10-hard",
+        "share": 0.357143,
+        "n": 100
+      },
+      "hard@256": {
+        "caseId": "16x16-hard",
+        "share": 0.357143,
+        "n": 100
+      },
+      "hard@300": {
+        "caseId": "15x20-hard",
+        "share": 0.352941,
+        "n": 100
+      },
+      "hard@324": {
+        "caseId": "18x18-hard",
+        "share": 0.363971,
+        "n": 100
+      },
+      "hard@360": {
+        "caseId": "18x20-hard",
+        "share": 0.352941,
+        "n": 100
+      },
+      "hard@400": {
+        "caseId": "20x20-hard",
+        "share": 0.375,
+        "n": 100
+      },
+      "hard@420": {
+        "caseId": "20x21-hard",
+        "share": 0.352941,
+        "n": 100
+      },
+      "hard@480": {
+        "caseId": "32x15-hard",
+        "share": 0.368421,
+        "n": 100
+      },
+      "hard@484": {
+        "caseId": "22x22-hard",
+        "share": 0.352941,
+        "n": 100
+      },
+      "hard@576": {
+        "caseId": "24x24-hard",
+        "share": 0.35,
+        "n": 100
+      },
+      "hard@60": {
+        "caseId": "6x10-hard",
+        "share": 0.4,
+        "n": 100
+      },
+      "hard@676": {
+        "caseId": "26x26-hard",
+        "share": 0.380952,
+        "n": 100
+      },
+      "hard@87": {
+        "caseId": "3x29-hard",
+        "share": 0.363636,
+        "n": 100
+      },
+      "hell-1@196": {
+        "caseId": "14x14-hell-1",
+        "share": 0.265179,
+        "n": 2
+      },
+      "hell-1@576": {
+        "caseId": "24x24-hell-1",
+        "share": 0.141026,
+        "n": 4
+      },
+      "hell-1@676": {
+        "caseId": "26x26-hell-1",
+        "share": 0.128205,
+        "n": 50
+      },
+      "master@100": {
+        "caseId": "10x10-master",
+        "share": 0.25,
+        "n": 100
+      },
+      "master@144": {
+        "caseId": "12x12-master",
+        "share": 0.25,
+        "n": 100
+      },
+      "master@196": {
+        "caseId": "14x14-master",
+        "share": 0.222222,
+        "n": 100
+      },
+      "master@215": {
+        "caseId": "15x15b10-master",
+        "share": 0.222222,
+        "n": 100
+      },
+      "master@256": {
+        "caseId": "16x16-master",
+        "share": 0.2,
+        "n": 100
+      },
+      "master@300": {
+        "caseId": "15x20-master",
+        "share": 0.210526,
+        "n": 100
+      },
+      "master@324": {
+        "caseId": "18x18-master",
+        "share": 0.2,
+        "n": 100
+      },
+      "master@360": {
+        "caseId": "18x20-master",
+        "share": 0.2,
+        "n": 100
+      },
+      "master@400": {
+        "caseId": "20x20-master",
+        "share": 0.181818,
+        "n": 100
+      },
+      "master@420": {
+        "caseId": "20x21-master",
+        "share": 0.181818,
+        "n": 100
+      },
+      "master@480": {
+        "caseId": "32x15-master",
+        "share": 0.181818,
+        "n": 100
+      },
+      "master@484": {
+        "caseId": "22x22-master",
+        "share": 0.208333,
+        "n": 100
+      },
+      "master@576": {
+        "caseId": "24x24-master",
+        "share": 0.192308,
+        "n": 100
+      },
+      "master@60": {
+        "caseId": "6x10-master",
+        "share": 0.230769,
+        "n": 100
+      },
+      "master@676": {
+        "caseId": "26x26-master",
+        "share": 0.192308,
+        "n": 100
+      },
+      "master@87": {
+        "caseId": "3x29-master",
+        "share": 0.214286,
+        "n": 100
+      },
+      "nightmare@100": {
+        "caseId": "10x10-nightmare",
+        "share": 0.2,
+        "n": 100
+      },
+      "nightmare@144": {
+        "caseId": "12x12-nightmare",
+        "share": 0.210526,
+        "n": 97
+      },
+      "nightmare@196": {
+        "caseId": "14x14-nightmare",
+        "share": 0.190476,
+        "n": 57
+      },
+      "nightmare@215": {
+        "caseId": "15x15b10-nightmare",
+        "share": 0.181818,
+        "n": 74
+      },
+      "nightmare@256": {
+        "caseId": "16x16-nightmare",
+        "share": 0.173913,
+        "n": 92
+      },
+      "nightmare@300": {
+        "caseId": "15x20-nightmare",
+        "share": 0.192308,
+        "n": 93
+      },
+      "nightmare@324": {
+        "caseId": "18x18-nightmare",
+        "share": 0.16,
+        "n": 100
+      },
+      "nightmare@360": {
+        "caseId": "18x20-nightmare",
+        "share": 0.16,
+        "n": 100
+      },
+      "nightmare@400": {
+        "caseId": "20x20-nightmare",
+        "share": 0.16313,
+        "n": 100
+      },
+      "nightmare@420": {
+        "caseId": "20x21-nightmare",
+        "share": 0.153846,
+        "n": 100
+      },
+      "nightmare@480": {
+        "caseId": "32x15-nightmare",
+        "share": 0.142857,
+        "n": 100
+      },
+      "nightmare@484": {
+        "caseId": "22x22-nightmare",
+        "share": 0.145503,
+        "n": 100
+      },
+      "nightmare@576": {
+        "caseId": "24x24-nightmare",
+        "share": 0.133333,
+        "n": 100
+      },
+      "nightmare@676": {
+        "caseId": "26x26-nightmare",
+        "share": 0.133333,
+        "n": 100
+      },
+      "nightmare@87": {
+        "caseId": "3x29-nightmare",
+        "share": 0.166667,
+        "n": 100
+      },
+      "normal@100": {
+        "caseId": "10x10-normal",
+        "share": 0.444444,
+        "n": 100
+      },
+      "normal@144": {
+        "caseId": "12x12-normal",
+        "share": 0.454545,
+        "n": 100
+      },
+      "normal@196": {
+        "caseId": "14x14-normal",
+        "share": 0.454545,
+        "n": 100
+      },
+      "normal@215": {
+        "caseId": "15x15b10-normal",
+        "share": 0.416667,
+        "n": 100
+      },
+      "normal@256": {
+        "caseId": "16x16-normal",
+        "share": 0.461538,
+        "n": 100
+      },
+      "normal@300": {
+        "caseId": "15x20-normal",
+        "share": 0.307692,
+        "n": 100
+      },
+      "normal@324": {
+        "caseId": "18x18-normal",
+        "share": 0.357143,
+        "n": 100
+      },
+      "normal@60": {
+        "caseId": "6x10-normal",
+        "share": 0.444444,
+        "n": 100
+      },
+      "normal@87": {
+        "caseId": "3x29-normal",
+        "share": 0.5,
+        "n": 100
+      },
+      "very-easy@60": {
+        "caseId": "6x10-very-easy",
+        "share": 0.714286,
+        "n": 95
+      },
+      "very-easy@87": {
+        "caseId": "3x29-very-easy",
+        "share": 0.714286,
+        "n": 98
+      }
+    }
+  },
+  "builtAt": "2026-11-17T07:09:32.765Z"
+}

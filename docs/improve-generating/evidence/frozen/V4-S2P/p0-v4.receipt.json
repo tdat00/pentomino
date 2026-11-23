@@ -1,0 +1,348 @@
+{
+  "format": "ig-v4-proof",
+  "version": 1,
+  "kind": "p0-identity",
+  "verdict": "pass",
+  "source": {
+    "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+    "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b"
+  },
+  "harnessHash": "8833366cfc3c49f457dc9eda1c32e318ec99e3c502ed91fcc3daaa822ae05533",
+  "arms": [
+    {
+      "id": "base",
+      "treeId": "963c625a51af4aeb9132f41142f166c66cc4b02d4f912ee17764bea4f9c622d4",
+      "paramsHash": "5deeee15ee938f3f5f689a10dcf11137d9963ae23f24ec543967fbc6d34c7de3"
+    },
+    {
+      "id": "v4",
+      "treeId": "138aac46a56af95dfc5685d90d237454cb237d20d0e2aecee3eb6b9139eb19a6",
+      "paramsHash": "a7e53fac6614298bb4514a69035ed499891cf231c8ad77c5c7c77c4e7d60071d"
+    },
+    {
+      "id": "v4-w095",
+      "treeId": "c59eb7206603cc6ba7160eae9af15c1e3c2ada5fd5fd7e0d97fe33c912231751",
+      "paramsHash": "64d84efd736ff8622647618e080374f38a16be4d694a0fbe1d6378401dc383fe"
+    },
+    {
+      "id": "v4-w380",
+      "treeId": "6ff7a2d65dbdeaa532df565d985826623c48220001db122fe2f16557d3a12c23",
+      "paramsHash": "a39396f115b4d82569ee2d9c72814cb76a9299548431b52d9bbe4922e4f17907"
+    },
+    {
+      "id": "v4-w760",
+      "treeId": "55ee22bc12c07e7ce58f63b11b945f6ab085fcbb69fe18531244f2c28b33119f",
+      "paramsHash": "b2f76f0a5eff84320234562776fa576003226920abeef6e20d448400a6ebfc0d"
+    }
+  ],
+  "coverage": {
+    "expected": [
+      "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:absent",
+      "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:charge",
+      "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:record",
+      "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+      "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:absent",
+      "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:charge",
+      "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:record",
+      "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+      "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+      "p0-v4:base:14x14-master:ig-v4/parity/14x14-master:absent",
+      "p0-v4:base:14x14-master:ig-v4/parity/14x14-master:record",
+      "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+      "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+      "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:record"
+    ],
+    "observed": [
+      "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:absent",
+      "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:charge",
+      "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:record",
+      "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+      "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:absent",
+      "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:charge",
+      "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:record",
+      "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+      "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+      "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+      "p0-v4:base:14x14-master:ig-v4/parity/14x14-master:absent",
+      "p0-v4:base:14x14-master:ig-v4/parity/14x14-master:record",
+      "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+      "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+      "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+      "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+      "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:record"
+    ],
+    "missing": [],
+    "censored": []
+  },
+  "evidence": [
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2P/p0-v4/items.jsonl",
+      "sha256": "f32d10b0cfc3cea826854e8737ceb1662bcda5912495060bb709f29188801567"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S2P/p0-v4/state.json",
+      "sha256": "854edf339b1a733e9557aa7126433e076ccbc8470aec1e6884918707675e416c"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S2P.p0-v4.json",
+      "sha256": "f5b659d6147e344e0ddd29bf564d7735b97cdb1d7ec56f367b91314992ddf11a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/inputs/p0-v4/base.ig-tree.json",
+      "sha256": "75937282c7e8de9c0a087fdea9325b0f326938df04459b9a8fba66a8a343f05a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/inputs/p0-v4/v4.ig-tree.json",
+      "sha256": "0b079697df2e235d954f2b225e3095ec888f9c43310bdfbef309bb26dceca230"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/inputs/p0-v4/v4-w095.ig-tree.json",
+      "sha256": "3e773cb82f500bf7a02a1c6f179616312111ed4c8db5aac0f764f539a7a7d5c4"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/inputs/p0-v4/v4-w380.ig-tree.json",
+      "sha256": "f219032b65757ff0c84bb92fc30e4d9c744227e9d64860be935aea7d1c3de876"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/inputs/p0-v4/v4-w760.ig-tree.json",
+      "sha256": "453698856e1de2c43646fc1881210f4f7c5d43d578add74f4caa306043380695"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/inputs/p0-v4/harness.json",
+      "sha256": "e0492b4fa92f9832d60025898c23908ad2f1c554f4d303b79763a811ac463912"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json",
+      "sha256": "6f5fa5f46959498b98d2b097ef8c4996c39f4e48255c3d7f60175ba9157d7886"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-T04/parity/items.jsonl",
+      "sha256": "d21d59f459aac8817295209b38d1ee78fdad3fecf0275dc647d076cfefb8dfbe"
+    }
+  ],
+  "blocks": {
+    "parity": "pass",
+    "baseline": "pass"
+  },
+  "details": {
+    "parity": {
+      "verdict": "pass",
+      "reasons": [],
+      "rows": [
+        {
+          "item": "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:absent",
+          "status": "completed",
+          "detail": "ok, total work 1148088666"
+        },
+        {
+          "item": "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:charge",
+          "status": "completed",
+          "detail": "ok, total work 1148088666"
+        },
+        {
+          "item": "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:record",
+          "status": "completed",
+          "detail": "ok, total work null"
+        },
+        {
+          "item": "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+          "status": "completed",
+          "detail": "ok, total work 4038718747"
+        },
+        {
+          "item": "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+          "status": "completed",
+          "detail": "ok, total work 4038718747"
+        },
+        {
+          "item": "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+          "status": "completed",
+          "detail": "ok, total work 4038718747"
+        },
+        {
+          "item": "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:absent",
+          "status": "completed",
+          "detail": "ok, total work 12032500397"
+        },
+        {
+          "item": "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:charge",
+          "status": "completed",
+          "detail": "ok, total work 12032500397"
+        },
+        {
+          "item": "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:record",
+          "status": "completed",
+          "detail": "ok, total work 12032500397"
+        },
+        {
+          "item": "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+          "status": "completed",
+          "detail": "ok, total work 14823027328"
+        },
+        {
+          "item": "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+          "status": "completed",
+          "detail": "ok, total work 14823027328"
+        },
+        {
+          "item": "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+          "status": "completed",
+          "detail": "ok, total work 14823027328"
+        },
+        {
+          "item": "p0-v4:base:14x14-master:ig-v4/parity/14x14-master:absent",
+          "status": "completed",
+          "detail": "ok"
+        },
+        {
+          "item": "p0-v4:base:14x14-master:ig-v4/parity/14x14-master:record",
+          "status": "completed",
+          "detail": "ok"
+        },
+        {
+          "item": "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+          "status": "completed",
+          "detail": "ok, total work 10273954138"
+        },
+        {
+          "item": "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+          "status": "completed",
+          "detail": "ok, total work 10273954138"
+        },
+        {
+          "item": "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+          "status": "completed",
+          "detail": "ok, total work 10273954138"
+        },
+        {
+          "item": "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+          "status": "completed",
+          "detail": "ok, total work 1986828331"
+        },
+        {
+          "item": "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+          "status": "completed",
+          "detail": "ok, total work 1986828331"
+        },
+        {
+          "item": "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+          "status": "completed",
+          "detail": "ok, total work 1986828331"
+        },
+        {
+          "item": "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+          "status": "completed",
+          "detail": "ok, total work 7106774359"
+        },
+        {
+          "item": "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+          "status": "completed",
+          "detail": "ok, total work 7106774359"
+        },
+        {
+          "item": "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+          "status": "completed",
+          "detail": "ok, total work 7106774359"
+        }
+      ]
+    },
+    "baseline": {
+      "verdict": "pass",
+      "reasons": [],
+      "rows": [
+        {
+          "key": "v4|14x14-master|ig-v4/parity/14x14-master|absent",
+          "now": "ce842ad3324ac7021ceec48745ae686744a26fa483e2bd73013d137b9dc40b02",
+          "baseline": "ce842ad3324ac7021ceec48745ae686744a26fa483e2bd73013d137b9dc40b02",
+          "equal": true
+        },
+        {
+          "key": "v4|12x12-nightmare|ig-v4/parity/12x12-nightmare|absent",
+          "now": "5953c52586db815cb97ef2f5012734dafcb4852a160b9aa2c147699f3c493a79",
+          "baseline": "5953c52586db815cb97ef2f5012734dafcb4852a160b9aa2c147699f3c493a79",
+          "equal": true
+        },
+        {
+          "key": "v4|26x26-nightmare|ig-v4/parity/26x26-nightmare|absent",
+          "now": "f1b2159c3005885c99bc55100a29bd3768d68c516ff6dcb0b9aa8608cb5fe3b0",
+          "baseline": "f1b2159c3005885c99bc55100a29bd3768d68c516ff6dcb0b9aa8608cb5fe3b0",
+          "equal": true
+        },
+        {
+          "key": "v4|26x26-hell-1|ig-v4/parity/26x26-hell-1|absent",
+          "now": "f1b2159c3005885c99bc55100a29bd3768d68c516ff6dcb0b9aa8608cb5fe3b0",
+          "baseline": "f1b2159c3005885c99bc55100a29bd3768d68c516ff6dcb0b9aa8608cb5fe3b0",
+          "equal": true
+        },
+        {
+          "key": "base|14x14-master|ig-v4/parity/14x14-master|absent",
+          "now": "ce842ad3324ac7021ceec48745ae686744a26fa483e2bd73013d137b9dc40b02",
+          "baseline": "ce842ad3324ac7021ceec48745ae686744a26fa483e2bd73013d137b9dc40b02",
+          "equal": true
+        },
+        {
+          "key": "v4-w760|12x12-nightmare|ig-v4/parity/12x12-nightmare|absent",
+          "now": "5953c52586db815cb97ef2f5012734dafcb4852a160b9aa2c147699f3c493a79",
+          "baseline": "5953c52586db815cb97ef2f5012734dafcb4852a160b9aa2c147699f3c493a79",
+          "equal": true
+        },
+        {
+          "key": "v4-w095|12x12-nightmare|ig-v4/parity/12x12-nightmare|absent",
+          "now": "eb3bc769a8a35dff81c0ac77c5a2c25657e87b770a06a8171112f1593417c32c",
+          "baseline": "eb3bc769a8a35dff81c0ac77c5a2c25657e87b770a06a8171112f1593417c32c",
+          "equal": true
+        },
+        {
+          "key": "v4-w380|12x12-nightmare|ig-v4/parity/12x12-nightmare|absent",
+          "now": "5953c52586db815cb97ef2f5012734dafcb4852a160b9aa2c147699f3c493a79",
+          "baseline": "5953c52586db815cb97ef2f5012734dafcb4852a160b9aa2c147699f3c493a79",
+          "equal": true
+        }
+      ]
+    }
+  },
+  "identities": {
+    "now": {
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "treeIds": {
+        "base": "963c625a51af4aeb9132f41142f166c66cc4b02d4f912ee17764bea4f9c622d4",
+        "v4": "138aac46a56af95dfc5685d90d237454cb237d20d0e2aecee3eb6b9139eb19a6",
+        "v4-w095": "c59eb7206603cc6ba7160eae9af15c1e3c2ada5fd5fd7e0d97fe33c912231751",
+        "v4-w380": "6ff7a2d65dbdeaa532df565d985826623c48220001db122fe2f16557d3a12c23",
+        "v4-w760": "55ee22bc12c07e7ce58f63b11b945f6ab085fcbb69fe18531244f2c28b33119f"
+      },
+      "harnessHash": "8833366cfc3c49f457dc9eda1c32e318ec99e3c502ed91fcc3daaa822ae05533",
+      "manifestHash": "ed568e67d67db318a688e4cfbb79893b14215949b113990e287887ddd3118481"
+    },
+    "baseline": {
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "treeIds": {
+        "base": "963c625a51af4aeb9132f41142f166c66cc4b02d4f912ee17764bea4f9c622d4",
+        "v4": "006431d622ca9cc9074f706e00fe9c9586174f39353ca1065cc462b5f2f558ad",
+        "v4-w095": "eddc38396354488e88404a5cf21b399cf4c99b8f1ad978698be0212d4f2de158",
+        "v4-w380": "3f7d8fd7feda87ceaf62e5e7b581e6c21794d174376431342d67e4e163f8a324",
+        "v4-w760": "33073bad63262f9d143e0ede3f66d50335cad4b213b0b3d13d157d19ba78b1dd"
+      },
+      "harnessHash": "136d4c6cde25e95e60cf5bf7899b05aead9ce4518286128e5d302dcd42d94b67",
+      "manifestHash": "e5e50ea8a42af73347d3aca948c2ee055df7b54a03e0537a12da5235300ab6fb"
+    }
+  },
+  "reasons": []
+}
