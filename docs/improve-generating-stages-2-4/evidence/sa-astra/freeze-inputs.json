@@ -1,0 +1,1467 @@
+{
+  "status": "Analysis proposal, not frozen or approved",
+  "classes": [
+    {
+      "id": "n-small",
+      "level": "nightmare",
+      "minArea": 1,
+      "maxArea": 144,
+      "W": null,
+      "cells": [
+        "3x29-nightmare",
+        "10x10-nightmare",
+        "12x12-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "n-mid-low",
+      "level": "nightmare",
+      "minArea": 196,
+      "maxArea": 215,
+      "W": 190000000,
+      "cells": [
+        "14x14-nightmare",
+        "15x15b10-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "n-mid-high",
+      "level": "nightmare",
+      "minArea": 216,
+      "maxArea": 324,
+      "W": null,
+      "cells": [
+        "16x16-nightmare",
+        "15x20-nightmare",
+        "18x18-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "n-large",
+      "level": "nightmare",
+      "minArea": 360,
+      "maxArea": null,
+      "W": null,
+      "cells": [
+        "18x20-nightmare",
+        "20x20-nightmare",
+        "20x21-nightmare",
+        "32x15-nightmare",
+        "22x22-nightmare",
+        "24x24-nightmare",
+        "26x26-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "hell-1",
+      "level": "hell-1",
+      "minArea": 1,
+      "maxArea": null,
+      "W": null,
+      "cells": [
+        "26x26-hell-1",
+        "20x20-hell-1",
+        "24x24-hell-1",
+        "14x14-hell-1"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    }
+  ],
+  "runtimeUnlistedAreas": "Nightmare 145..195 and 325..359 use canonical 760 M; every absent/invalid class fails closed.",
+  "split": [
+    {
+      "id": "n-mid-low",
+      "measuredCells": [
+        "14x14-nightmare",
+        "15x15b10-nightmare"
+      ],
+      "unmeasuredCells": [],
+      "work": {
+        "screen": {
+          "lo": 96830921661,
+          "hi": 192515882155,
+          "accepted": 100,
+          "loRatio": 968309216.61,
+          "hiRatio": 1925158821.55,
+          "completedRatio": 968309216.61,
+          "complete": true,
+          "rows": 10,
+          "terminatedCalls": 52
+        },
+        "noScreen": {
+          "lo": 263497942059,
+          "hi": 393634669337,
+          "accepted": 100,
+          "loRatio": 2634979420.59,
+          "hiRatio": 3936346693.37,
+          "completedRatio": 2634979420.59,
+          "complete": true,
+          "rows": 10,
+          "terminatedCalls": 52
+        },
+        "verdict": "pass"
+      },
+      "faster": {
+        "geoMean": 2.536513899197127,
+        "lower": 2.406151964166613,
+        "cellGeoMeans": {
+          "14x14-nightmare": 2.601069472036843,
+          "15x15b10-nightmare": 2.473560521927144
+        },
+        "pass": true
+      },
+      "clue": {
+        "n": 10,
+        "medianDiff": 0,
+        "moved2": 0,
+        "pass": true
+      },
+      "widths": {
+        "screen": 956849604.9399999,
+        "noScreen": 1301367272.7799997
+      }
+    },
+    {
+      "id": "n-mid-high",
+      "measuredCells": [
+        "16x16-nightmare",
+        "15x20-nightmare"
+      ],
+      "unmeasuredCells": [
+        "18x18-nightmare"
+      ],
+      "work": {
+        "screen": {
+          "lo": 93011802587,
+          "hi": 347030326631,
+          "accepted": 100,
+          "loRatio": 930118025.87,
+          "hiRatio": 3470303266.31,
+          "completedRatio": 930118025.87,
+          "complete": true,
+          "rows": 10,
+          "terminatedCalls": 50
+        },
+        "noScreen": {
+          "lo": 183849033650,
+          "hi": 480531898442,
+          "accepted": 100,
+          "loRatio": 1838490336.5,
+          "hiRatio": 4805318984.42,
+          "completedRatio": 1838490336.5,
+          "complete": true,
+          "rows": 10,
+          "terminatedCalls": 51
+        },
+        "verdict": "unknown"
+      },
+      "faster": {
+        "geoMean": 1.922749976099182,
+        "lower": 1.7462226787059059,
+        "cellGeoMeans": {
+          "15x20-nightmare": 1.6514901361245806,
+          "16x16-nightmare": 2.238564669398984
+        },
+        "pass": true
+      },
+      "clue": {
+        "n": 10,
+        "medianDiff": 0.5,
+        "moved2": 0,
+        "pass": true
+      },
+      "widths": {
+        "screen": 2540185240.44,
+        "noScreen": 2966828647.92
+      }
+    }
+  ],
+  "perSetPooled": {
+    "geoMean": 1.0937336889930038,
+    "lower": 1.0075116113620652,
+    "cellGeoMeans": {
+      "20x20-hell-1": 1.10675429596676,
+      "26x26-hell-1": 1.0808662652565597
+    },
+    "pass": false
+  },
+  "perSetStages": [
+    {
+      "cell": "20x20-hell-1",
+      "base": {
+        "calls": 82,
+        "locateProfiles": 454,
+        "locateMs": 409214.09299999976,
+        "profileMs": 621686.9010000001,
+        "meanLocateProfiles": 5.536585365853658
+      },
+      "perSet": {
+        "calls": 93,
+        "locateProfiles": 241,
+        "locateMs": 252274.7610000001,
+        "profileMs": 559563.5719999999,
+        "meanLocateProfiles": 2.5913978494623655
+      }
+    },
+    {
+      "cell": "26x26-hell-1",
+      "base": {
+        "calls": 72,
+        "locateProfiles": 217,
+        "locateMs": 341123.2590000001,
+        "profileMs": 489068.33700000023,
+        "meanLocateProfiles": 3.013888888888889
+      },
+      "perSet": {
+        "calls": 90,
+        "locateProfiles": 157,
+        "locateMs": 209735.137,
+        "profileMs": 446299.6370000001,
+        "meanLocateProfiles": 1.7444444444444445
+      }
+    }
+  ],
+  "nightmarePrior": {
+    "nightmare@100": {
+      "caseId": "10x10-nightmare",
+      "share": 0.2,
+      "n": 100
+    },
+    "nightmare@144": {
+      "caseId": "12x12-nightmare",
+      "share": 0.210526,
+      "n": 97
+    },
+    "nightmare@196": {
+      "caseId": "14x14-nightmare",
+      "share": 0.190476,
+      "n": 57
+    },
+    "nightmare@215": {
+      "caseId": "15x15b10-nightmare",
+      "share": 0.181818,
+      "n": 74
+    },
+    "nightmare@256": {
+      "caseId": "16x16-nightmare",
+      "share": 0.173913,
+      "n": 92
+    },
+    "nightmare@300": {
+      "caseId": "15x20-nightmare",
+      "share": 0.192308,
+      "n": 93
+    },
+    "nightmare@324": {
+      "caseId": "18x18-nightmare",
+      "share": 0.16,
+      "n": 100
+    },
+    "nightmare@360": {
+      "caseId": "18x20-nightmare",
+      "share": 0.16,
+      "n": 100
+    },
+    "nightmare@400": {
+      "caseId": "20x20-nightmare",
+      "share": 0.16313,
+      "n": 100
+    },
+    "nightmare@420": {
+      "caseId": "20x21-nightmare",
+      "share": 0.153846,
+      "n": 100
+    },
+    "nightmare@480": {
+      "caseId": "32x15-nightmare",
+      "share": 0.142857,
+      "n": 100
+    },
+    "nightmare@484": {
+      "caseId": "22x22-nightmare",
+      "share": 0.145503,
+      "n": 100
+    },
+    "nightmare@576": {
+      "caseId": "24x24-nightmare",
+      "share": 0.133333,
+      "n": 100
+    },
+    "nightmare@676": {
+      "caseId": "26x26-nightmare",
+      "share": 0.133333,
+      "n": 100
+    },
+    "nightmare@87": {
+      "caseId": "3x29-nightmare",
+      "share": 0.166667,
+      "n": 100
+    }
+  },
+  "hellFit": [
+    {
+      "key": "hell-1@196",
+      "oldShare": 0.265179,
+      "proposedShare": 0.382353,
+      "source": "median of per-request accepted clue shares in fr-base V4-S2, equal seed weight",
+      "pilotShares": [
+        {
+          "seed": "landscape/14x14-hell-1/0",
+          "medianShare": 0.375,
+          "K": 32,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/14x14-hell-1/1",
+          "medianShare": 0.38235294117647056,
+          "K": 34,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/14x14-hell-1/2",
+          "medianShare": 0.4,
+          "K": 35,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/14x14-hell-1/3",
+          "medianShare": 0.359375,
+          "K": 32,
+          "accepted": 2
+        },
+        {
+          "seed": "landscape/14x14-hell-1/4",
+          "medianShare": 0.40625,
+          "K": 32,
+          "accepted": 10
+        }
+      ],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/14x14-hell-1/fs/0",
+          "medianFamilyShare": 0.40625
+        },
+        {
+          "seed": "ig-pm1/14x14-hell-1/fs/1",
+          "medianFamilyShare": 0.35294117647058826
+        },
+        {
+          "seed": "ig-pm1/14x14-hell-1/fs/2",
+          "medianFamilyShare": 0.375
+        },
+        {
+          "seed": "ig-pm1/14x14-hell-1/fs/3",
+          "medianFamilyShare": 0.4117647058823529
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:1",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:2",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:3",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:4",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:5",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:6",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:7",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:8"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@215",
+      "oldShare": null,
+      "proposedShare": 0.404412,
+      "source": "median across PM1 seeds of the median across orders of the eligible in-band clue shares",
+      "pilotShares": [],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/15x15b10-hell-1/0",
+          "medianFamilyShare": 0.40441176470588236
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:1",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:2",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:3",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:4"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@256",
+      "oldShare": null,
+      "proposedShare": 0.358108,
+      "source": "median across PM1 seeds of the median across orders of the eligible in-band clue shares",
+      "pilotShares": [],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/16x16-hell-1/1",
+          "medianFamilyShare": 0.3581081081081081
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:5",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:6",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:7",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:8"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@300",
+      "oldShare": null,
+      "proposedShare": 0.443429,
+      "source": "median across PM1 seeds of the median across orders of the eligible in-band clue shares",
+      "pilotShares": [],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/15x20-hell-1/0",
+          "medianFamilyShare": 0.4125
+        },
+        {
+          "seed": "ig-pm1/15x20-hell-1/1",
+          "medianFamilyShare": 0.47435897435897434
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:9",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:10",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:11",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:12"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@324",
+      "oldShare": null,
+      "proposedShare": 0.347222,
+      "source": "median across PM1 seeds of the median across orders of the eligible in-band clue shares",
+      "pilotShares": [],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/18x18-hell-1/0",
+          "medianFamilyShare": 0.3333333333333333
+        },
+        {
+          "seed": "ig-pm1/18x18-hell-1/1",
+          "medianFamilyShare": 0.3611111111111111
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:13",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:14",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:15",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:16"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@360",
+      "oldShare": null,
+      "proposedShare": 0.331514,
+      "source": "median across PM1 seeds of the median across orders of the eligible in-band clue shares",
+      "pilotShares": [],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/18x20-hell-1/0",
+          "medianFamilyShare": 0.30405405405405406
+        },
+        {
+          "seed": "ig-pm1/18x20-hell-1/1",
+          "medianFamilyShare": 0.358974358974359
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:17",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:18",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:19",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:20"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@400",
+      "oldShare": null,
+      "proposedShare": 0.342105,
+      "source": "median of per-request accepted clue shares in fr-base V4-S2, equal seed weight",
+      "pilotShares": [
+        {
+          "seed": "landscape/20x20-hell-1/0",
+          "medianShare": 0.38095238095238093,
+          "K": 42,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/20x20-hell-1/1",
+          "medianShare": 0.34210526315789475,
+          "K": 38,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/20x20-hell-1/2",
+          "medianShare": 0.2948717948717949,
+          "K": 39,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/20x20-hell-1/3",
+          "medianShare": 0.32894736842105265,
+          "K": 38,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/20x20-hell-1/4",
+          "medianShare": 0.3684210526315789,
+          "K": 38,
+          "accepted": 10
+        }
+      ],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/20x20-hell-1/0",
+          "medianFamilyShare": 0.34375
+        },
+        {
+          "seed": "ig-pm1/20x20-hell-1/1",
+          "medianFamilyShare": 0.4207317073170732
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:21",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:22",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:23",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:24"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@420",
+      "oldShare": null,
+      "proposedShare": 0.390244,
+      "source": "median across PM1 seeds of the median across orders of the eligible in-band clue shares",
+      "pilotShares": [],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/20x21-hell-1/1",
+          "medianFamilyShare": 0.3902439024390244
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:25",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:26",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:27",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:28"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@480",
+      "oldShare": null,
+      "proposedShare": 0.297161,
+      "source": "median across PM1 seeds of the median across orders of the eligible in-band clue shares",
+      "pilotShares": [],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/32x15-hell-1/0",
+          "medianFamilyShare": 0.3205128205128205
+        },
+        {
+          "seed": "ig-pm1/32x15-hell-1/1",
+          "medianFamilyShare": 0.27380952380952384
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:29",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:30",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:31",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:32"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@484",
+      "oldShare": null,
+      "proposedShare": 0.2875,
+      "source": "median across PM1 seeds of the median across orders of the eligible in-band clue shares",
+      "pilotShares": [],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/22x22-hell-1/0",
+          "medianFamilyShare": 0.30000000000000004
+        },
+        {
+          "seed": "ig-pm1/22x22-hell-1/1",
+          "medianFamilyShare": 0.275
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:33",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:34",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:35",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl:36"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@576",
+      "oldShare": 0.141026,
+      "proposedShare": 0.217949,
+      "source": "median of per-request accepted clue shares in fr-base V4-S2, equal seed weight",
+      "pilotShares": [
+        {
+          "seed": "landscape/24x24-hell-1/0",
+          "medianShare": 0.23076923076923078,
+          "K": 39,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/24x24-hell-1/1",
+          "medianShare": 0.25,
+          "K": 42,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/24x24-hell-1/2",
+          "medianShare": 0.21250000000000002,
+          "K": 40,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/24x24-hell-1/3",
+          "medianShare": 0.21794871794871795,
+          "K": 39,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/24x24-hell-1/4",
+          "medianShare": 0.1951219512195122,
+          "K": 41,
+          "accepted": 10
+        }
+      ],
+      "pm1Shares": [
+        {
+          "seed": "ig-pm1/24x24-hell-1/fs/0",
+          "medianFamilyShare": 0.2857142857142857
+        },
+        {
+          "seed": "ig-pm1/24x24-hell-1/fs/2",
+          "medianFamilyShare": 0.1794871794871795
+        },
+        {
+          "seed": "ig-pm1/24x24-hell-1/fs/3",
+          "medianFamilyShare": 0.24404761904761907
+        }
+      ],
+      "familyEvidence": [
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:9",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:10",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:11",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:12",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:13",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:14",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:15",
+        "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl:16"
+      ],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    },
+    {
+      "key": "hell-1@676",
+      "oldShare": 0.128205,
+      "proposedShare": 0.2,
+      "source": "median of per-request accepted clue shares in fr-base V4-S2, equal seed weight",
+      "pilotShares": [
+        {
+          "seed": "landscape/26x26-hell-1/0",
+          "medianShare": 0.15476190476190477,
+          "K": 42,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/26x26-hell-1/1",
+          "medianShare": 0.20731707317073172,
+          "K": 41,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/26x26-hell-1/2",
+          "medianShare": 0.1923076923076923,
+          "K": 39,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/26x26-hell-1/3",
+          "medianShare": 0.2,
+          "K": 40,
+          "accepted": 10
+        },
+        {
+          "seed": "landscape/26x26-hell-1/4",
+          "medianShare": 0.2,
+          "K": 40,
+          "accepted": 10
+        }
+      ],
+      "pm1Shares": [],
+      "familyEvidence": [],
+      "caveat": "Fitted start, not a measured improvement. No counterfactual timing is credited; check the composite on fitting seeds before freezing."
+    }
+  ],
+  "excludedPM1AndHellPilotSeeds": [
+    "ig-pm1/14x14-hell-1/fs/0",
+    "ig-pm1/14x14-hell-1/fs/1",
+    "ig-pm1/14x14-hell-1/fs/2",
+    "ig-pm1/14x14-hell-1/fs/3",
+    "ig-pm1/15x15b10-hell-1/0",
+    "ig-pm1/15x15b10-hell-1/1",
+    "ig-pm1/15x20-hell-1/0",
+    "ig-pm1/15x20-hell-1/1",
+    "ig-pm1/16x16-hell-1/0",
+    "ig-pm1/16x16-hell-1/1",
+    "ig-pm1/18x18-hell-1/0",
+    "ig-pm1/18x18-hell-1/1",
+    "ig-pm1/18x20-hell-1/0",
+    "ig-pm1/18x20-hell-1/1",
+    "ig-pm1/20x20-hell-1/0",
+    "ig-pm1/20x20-hell-1/1",
+    "ig-pm1/20x21-hell-1/0",
+    "ig-pm1/20x21-hell-1/1",
+    "ig-pm1/22x22-hell-1/0",
+    "ig-pm1/22x22-hell-1/1",
+    "ig-pm1/24x24-hell-1/fs/0",
+    "ig-pm1/24x24-hell-1/fs/1",
+    "ig-pm1/24x24-hell-1/fs/2",
+    "ig-pm1/24x24-hell-1/fs/3",
+    "ig-pm1/32x15-hell-1/0",
+    "ig-pm1/32x15-hell-1/1",
+    "landscape/14x14-hell-1/0",
+    "landscape/14x14-hell-1/1",
+    "landscape/14x14-hell-1/2",
+    "landscape/14x14-hell-1/3",
+    "landscape/14x14-hell-1/4",
+    "landscape/20x20-hell-1/0",
+    "landscape/20x20-hell-1/1",
+    "landscape/20x20-hell-1/2",
+    "landscape/20x20-hell-1/3",
+    "landscape/20x20-hell-1/4",
+    "landscape/24x24-hell-1/0",
+    "landscape/24x24-hell-1/1",
+    "landscape/24x24-hell-1/2",
+    "landscape/24x24-hell-1/3",
+    "landscape/24x24-hell-1/4",
+    "landscape/26x26-hell-1/0",
+    "landscape/26x26-hell-1/1",
+    "landscape/26x26-hell-1/2",
+    "landscape/26x26-hell-1/3",
+    "landscape/26x26-hell-1/4"
+  ],
+  "budgetProposal": {
+    "id": "budget-s3-v1-candidate",
+    "any": [
+      {
+        "level": "nightmare",
+        "minArea": 1,
+        "maxArea": null,
+        "units": 8000000000
+      },
+      {
+        "level": "hell-1",
+        "minArea": 1,
+        "maxArea": 215,
+        "units": 32000000000
+      },
+      {
+        "level": "hell-1",
+        "minArea": 216,
+        "maxArea": null,
+        "units": 16000000000
+      }
+    ],
+    "require": [
+      {
+        "level": "nightmare",
+        "units": 32000000000
+      },
+      {
+        "level": "hell-1",
+        "units": 32000000000
+      }
+    ],
+    "requireAuthority": "Owner decision still required (N-V4-21); then accepted parity/replay before stage 4.",
+    "noWindowBound": 4,
+    "budgetStopsCountAsNoWindow": false
+  },
+  "prefixChecks": [
+    {
+      "cell": "12x12-nightmare",
+      "useArm": "fr-none",
+      "successfulCalls": 70,
+      "budget": 8000000000,
+      "maxFullWork": 3733824088,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    },
+    {
+      "cell": "14x14-hell-1",
+      "useArm": "fr-base",
+      "successfulCalls": 68,
+      "budget": 32000000000,
+      "maxFullWork": 26167589073,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    },
+    {
+      "cell": "14x14-nightmare",
+      "useArm": "fr-none",
+      "successfulCalls": 78,
+      "budget": 8000000000,
+      "maxFullWork": 5762524637,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    },
+    {
+      "cell": "20x20-hell-1",
+      "useArm": "fr-base",
+      "successfulCalls": 75,
+      "budget": 16000000000,
+      "maxFullWork": 13763587813,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    },
+    {
+      "cell": "24x24-hell-1",
+      "useArm": "fr-base",
+      "successfulCalls": 70,
+      "budget": 16000000000,
+      "maxFullWork": 6509926971,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    },
+    {
+      "cell": "26x26-hell-1",
+      "useArm": "fr-base",
+      "successfulCalls": 64,
+      "budget": 16000000000,
+      "maxFullWork": 7703435456,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    },
+    {
+      "cell": "26x26-nightmare",
+      "useArm": "fr-none",
+      "successfulCalls": 74,
+      "budget": 8000000000,
+      "maxFullWork": 4007293764,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    },
+    {
+      "cell": "10x10-nightmare",
+      "useArm": "fr-none",
+      "successfulCalls": 88,
+      "budget": 8000000000,
+      "maxFullWork": 6610196040,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    },
+    {
+      "cell": "15x15b10-nightmare",
+      "useArm": "fr-none",
+      "successfulCalls": 81,
+      "budget": 8000000000,
+      "maxFullWork": 6209605480,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    },
+    {
+      "cell": "15x20-nightmare",
+      "useArm": "fr-none",
+      "successfulCalls": 85,
+      "budget": 8000000000,
+      "maxFullWork": 3505345404,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    },
+    {
+      "cell": "16x16-nightmare",
+      "useArm": "fr-none",
+      "successfulCalls": 79,
+      "budget": 8000000000,
+      "maxFullWork": 5433293593,
+      "successfulCallsWithNextPrimitiveBlocked": 0,
+      "warning": "Only these completed traces are known, not new-prior calls, interrupted calls or validation seeds."
+    }
+  ],
+  "requireEvidence": {
+    "fr-base": {
+      "setCalls": 1,
+      "endedCalls": 2,
+      "setEnds": [
+        {
+          "result": "ok",
+          "spent": 5816758768,
+          "budgetStop": null,
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\logs\\parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.20844.4.jsonl:35"
+        }
+      ],
+      "outcomes": [
+        {
+          "item": "parity-fr-base:fr-base:12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+          "result": {
+            "outcome": "ok",
+            "batchStatus": "complete",
+            "reason": null,
+            "puzzles": 2,
+            "made": [
+              "calibration",
+              "candidate"
+            ],
+            "calibrationWindow": null,
+            "madeRecords": [
+              {
+                "schema": 1,
+                "kind": "calibration"
+              },
+              {
+                "schema": 1,
+                "kind": "candidate",
+                "batchSeed": "ig-v4/replay/12x12-nightmare#1",
+                "targetLevel": "nightmare",
+                "uniqueness": "require",
+                "slot": 2,
+                "attempt": 0,
+                "start": "witness",
+                "skips": {
+                  "subsets": [],
+                  "repairs": []
+                },
+                "igPrior": null,
+                "versions": {
+                  "algo": "gen-v4-proto:fr-base",
+                  "policy": "mixed-v3",
+                  "rng": "xoshiro128ss-v1",
+                  "seedScheme": "seed-sha256-v1",
+                  "ratingModel": "difficulty-v3",
+                  "priorTable": "prior-v1",
+                  "screenTable": "tab-default"
+                }
+              }
+            ],
+            "packSha256": "b447728d2130216737bcefb5602de658dec267fd2035af8f613d6930b10fbd03"
+          },
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\items.jsonl:20"
+        },
+        {
+          "item": "parity-fr-base:fr-base:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+          "result": {
+            "outcome": "ok",
+            "kind": "calibration",
+            "status": "matched",
+            "reason": null,
+            "stages": {
+              "set": "replayed",
+              "candidate": "calibration",
+              "final": "compared"
+            },
+            "work": 5816758806,
+            "steps": 39,
+            "bytes": 93144,
+            "detailStep": 36,
+            "packSha256": "b447728d2130216737bcefb5602de658dec267fd2035af8f613d6930b10fbd03",
+            "ms": 19147.603
+          },
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\items.jsonl:23"
+        },
+        {
+          "item": "parity-fr-base:fr-base:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+          "result": {
+            "outcome": "ok",
+            "kind": "candidate",
+            "status": "matched",
+            "reason": null,
+            "stages": {
+              "set": "replayed",
+              "candidate": "replayed",
+              "final": "compared"
+            },
+            "work": 12646225540,
+            "steps": 51,
+            "bytes": 129476,
+            "detailStep": 48,
+            "packSha256": "b447728d2130216737bcefb5602de658dec267fd2035af8f613d6930b10fbd03",
+            "ms": 41615.7
+          },
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\items.jsonl:24"
+        }
+      ]
+    },
+    "fr-p5": {
+      "setCalls": 16,
+      "endedCalls": 15,
+      "setEnds": [
+        {
+          "result": "not-in-band",
+          "spent": 2038336712,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2038336712,
+            "overshoot": 38336712
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:15"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2019296705,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2019296705,
+            "overshoot": 19296705
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:46"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2691503689,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2691503689,
+            "overshoot": 691503689
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:69"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2538328068,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2538328068,
+            "overshoot": 538328068
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:92"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2179332478,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2179332478,
+            "overshoot": 179332478
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:125"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2371864741,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2371864741,
+            "overshoot": 371864741
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:150"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2011141717,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2011141717,
+            "overshoot": 11141717
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:191"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2391175486,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2391175486,
+            "overshoot": 391175486
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:202"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2553856215,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2553856215,
+            "overshoot": 553856215
+          },
+          "noWindow": "window",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:215"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2695981227,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2695981227,
+            "overshoot": 695981227
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:228"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2235325101,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2235325101,
+            "overshoot": 235325101
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:255"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2677031778,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2677031778,
+            "overshoot": 677031778
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:285"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2352999669,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2352999669,
+            "overshoot": 352999669
+          },
+          "noWindow": "window",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:300"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2078510311,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2078510311,
+            "overshoot": 78510311
+          },
+          "noWindow": "hit",
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:315"
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2580665099,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2580665099,
+            "overshoot": 580665099
+          },
+          "noWindow": null,
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl:327"
+        }
+      ],
+      "outcomes": [
+        {
+          "item": "parity-fr-p5:fr-p5:12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+          "result": {
+            "outcome": "no-set",
+            "setStatus": "failed",
+            "reason": "time-limit"
+          },
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\items.jsonl:20"
+        },
+        {
+          "item": "parity-fr-p5:fr-p5:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+          "result": {
+            "outcome": "no-record",
+            "reason": "no pack"
+          },
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\items.jsonl:23"
+        },
+        {
+          "item": "parity-fr-p5:fr-p5:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+          "result": {
+            "outcome": "no-record",
+            "reason": "no pack"
+          },
+          "evidence": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\items.jsonl:24"
+        }
+      ]
+    }
+  },
+  "deadlineProposal": {
+    "reserveMeaning": "fraction reserved for batch",
+    "reserve": 0.6,
+    "setCapMs": 46000,
+    "generationStopMs": 115000,
+    "responseBoundMs": 120000,
+    "evidence": "stage2-computed.json projections, no set cut at 0.6 on 165 rows; one ten-puzzle completion lost by the absolute stop on 14x14 Hell 1",
+    "notYetProved": "Live enforcement, cancellations, prefix assembly, and the post-fit composite."
+  },
+  "prices": {
+    "note": "Pure price projections only, using T11g arithmetic and immutable universe prices. No plan, activation or allowance is created.",
+    "T11g": {
+      "s4": {
+        "rowsOrItems": 1168,
+        "lockedSteps": 84,
+        "countedMinutes": 1185.486485133807,
+        "guardMinutes": 1481.858106417258,
+        "ceilingMinutes": 18396,
+        "projectedCompleted": 968,
+        "projectedCensored": 200,
+        "invocations": 137
+      },
+      "s4c": {
+        "rows": 380,
+        "countedMinutes": 585.617103595435,
+        "guardMinutes": 732.0213794942938,
+        "ceilingMinutes": 5985,
+        "invocations": 51
+      }
+    },
+    "optionalFixedNoScreen": {
+      "rowsOmitted": 340,
+      "projectedSavingMinutes": 390.6075340533199,
+      "guardSavingMinutes": 488.25941756665,
+      "cells": [
+        "12x12-nightmare:20-39",
+        "16x16-nightmare:20-39",
+        "15x20-nightmare:20-39",
+        "26x26-hell-1:20-39",
+        "20x20-hell-1:20-39",
+        "3x29-nightmare:20-39",
+        "10x10-nightmare:20-39",
+        "18x18-nightmare:20-39",
+        "18x20-nightmare:20-39",
+        "20x20-nightmare:20-39",
+        "20x21-nightmare:20-39",
+        "32x15-nightmare:20-39",
+        "22x22-nightmare:20-39",
+        "24x24-nightmare:20-39",
+        "26x26-nightmare:20-39",
+        "24x24-hell-1:20-39",
+        "14x14-hell-1:20-39"
+      ],
+      "condition": "N-V4-18 reviewed end-to-end implementation and authorized activation; do not edit the priced universe now."
+    },
+    "fittingPilot": {
+      "cells": [
+        "14x14-nightmare",
+        "14x14-hell-1",
+        "20x20-hell-1",
+        "24x24-hell-1",
+        "26x26-hell-1"
+      ],
+      "seeds": "landscape/<cell>/0..4, fitting only",
+      "arms": [
+        "fr-fit-s3",
+        "fr-fit-s3-uncapped"
+      ],
+      "requestRows": 50,
+      "parityItems": 24,
+      "countedMinutes": 204.5034700968193,
+      "guardMinutes": 255.62933762102415,
+      "ceilingMinutes": 1165.5,
+      "invocations": 20,
+      "accountMinimumMinutesNow": 428,
+      "purpose": "Check new prior/per-set/budget composite and lost completions before committing the freeze; no live deadline yet."
+    },
+    "standaloneReplayProof": {
+      "items": 12,
+      "countedMinutes": 17.8,
+      "guardMinutes": 22.25
+    },
+    "spike": {
+      "candidatesAtMost": 3,
+      "pairItemsPerCandidate": 90,
+      "cases": [
+        "10x10-nightmare",
+        "12x12-nightmare",
+        "14x14-nightmare",
+        "26x26-nightmare",
+        "26x26-hell-1"
+      ],
+      "repeats": 3,
+      "reserveS": 90,
+      "perCandidateProjectedMinutes": 5.16520833333333,
+      "perCandidateGuardMinutes": 6.456510416666663,
+      "totalProjectedMinutes": 15.49562499999999,
+      "totalGuardMinutes": 19.369531249999987,
+      "requestedAdditionalMinutes": 20,
+      "ceilingMinutes": 4252.5,
+      "assumption": "Each new reference/candidate pair costs no more than 1.25 times the corresponding measured r4c/instr item. A projection, not a speed result or allocation."
+    }
+  },
+  "inputs": [
+    {
+      "path": "docs\\improve-generating-stages-2-4\\evidence\\sa-astra\\stage2-computed.json",
+      "sha256Lf": "379e7c8793c3d130e3c8cabc5fba5682994b59e25bbcbf60ee20b6c376cb8b65"
+    },
+    {
+      "path": "docs\\improve-generating-stages-2-4\\evidence\\sa-astra\\rows-computed.json",
+      "sha256Lf": "ab911184885ced042d3300d495c0b8d098810cf104ef21dca16dbc6b89bdbe15"
+    },
+    {
+      "path": "docs\\improve-generating-stages-2-4\\evidence\\sa-astra\\calls-computed.json",
+      "sha256Lf": "99d3b383c2a0c199f33a524aeb94332660690e6217a7c7a8372d2b2e554d067d"
+    },
+    {
+      "path": "tools\\ig-proto\\data\\prior-v1.json",
+      "sha256Lf": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-12x12-nightmare.runs.json",
+      "sha256Lf": "c019e11f983149fa4afb77a9091451f43fa3b49e6b3bcae15a3b0e71aa2f7e60"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-14x14-hell-1.runs.json",
+      "sha256Lf": "ed9d720b0785f9f1dd64a7f6af9a291c3c31f91c5b46e5d4bf8972e46b85a170"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-14x14-nightmare.runs.json",
+      "sha256Lf": "c070207570487392c182dfb86ea0b5900e1349647ef41418fe27585fb65d340a"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-20x20-hell-1.runs.json",
+      "sha256Lf": "3ef75f9d4e1a2f10c9deddec557584964f78d41e74ee7580cd3fe74afb80820d"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-24x24-hell-1.runs.json",
+      "sha256Lf": "7964e80141a36c297901c7833f07861e8a922b669cefa783d4cb31c1ab3f69a9"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-26x26-hell-1.runs.json",
+      "sha256Lf": "71a999419127abede6546851393df813faafb7cd5be6a54d7be3a8194abc0c0f"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-base\\pilot-26x26-nightmare.runs.json",
+      "sha256Lf": "edd374165fca891120f99923c6abcd8eae06128b21c147d7b0ae3966c89856aa"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-10x10-nightmare.runs.json",
+      "sha256Lf": "d880064b11f80760b61d40b73794a10e2187ecaf6b255642b489f9995c87b46e"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-12x12-nightmare.runs.json",
+      "sha256Lf": "06f54fb22449c024f357dca9b4a45ff322cc1af43db8567f4a8514d80d1138bc"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-14x14-nightmare.runs.json",
+      "sha256Lf": "cd1dfe516edcc3362716ebcc90fc67f9618fc6cc22bec30bb56aee5c8f9c55ba"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-15x15b10-nightmare.runs.json",
+      "sha256Lf": "bf7aada90cc717e60c50b039c3f630c726171bb775a28047481b9ef9705d1098"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-15x20-nightmare.runs.json",
+      "sha256Lf": "18750f53ef601e87546cc1b3cb51495eee80421085ca5e4bc38e3d7328bf9709"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-16x16-nightmare.runs.json",
+      "sha256Lf": "3eb6bd806744749437e32e56666ed175bc7d64fdbf197ef38f071f84245143e2"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-26x26-hell-1.runs.json",
+      "sha256Lf": "97b4cd29985c1c35d7b69c17e49d2861f481c2dffe21fd34ad55a8b1ec8ffe41"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-screen\\pilot-26x26-nightmare.runs.json",
+      "sha256Lf": "e5bad56a51861440bd42d9799966cae0fd4c1ad845de88ad0d9179421c22d3db"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-10x10-nightmare.runs.json",
+      "sha256Lf": "703c66ec2d2304e88e880c536e70ecd96c23aa1c6622bfab29e218e3a04d466a"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-12x12-nightmare.runs.json",
+      "sha256Lf": "491a9d068f951ecb913b25b72402e01f396a2097f4e53d9ecb9ede4c9ab13128"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-14x14-nightmare.runs.json",
+      "sha256Lf": "43fefa4f4ea0ab9babeb55e7c23fad34b3a0bdc04889cfd84221b98c31ac4688"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-15x15b10-nightmare.runs.json",
+      "sha256Lf": "c77c09360bceab13f55bb355712698e79e3185c1bb283c7ea19e10c3b3e5a9d3"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-15x20-nightmare.runs.json",
+      "sha256Lf": "c63d49f57c155d3f8c8dff9cbd1e72cb101246fc2e086f5393e492914b99dfc7"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-16x16-nightmare.runs.json",
+      "sha256Lf": "84da7f976c5cc1aa5f0b7b1af4c0f76198289ded4e0b291e30807521b44389ab"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-26x26-hell-1.runs.json",
+      "sha256Lf": "61e6ab442e2a925eaf308a7234982686942309e91b7397fa11d214b921831cf5"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2\\fr-none\\pilot-26x26-nightmare.runs.json",
+      "sha256Lf": "82c78037ce42bd5a639fa53bf38aec508e8465ee8d46759835cc0b9272295842"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-windows.jsonl",
+      "sha256Lf": "469fb5094a7d366b191ae457d4d48d555a4288403f1623ff5c8a46adaabad552"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\provisional\\IGP-05\\families-failed-sets.jsonl",
+      "sha256Lf": "01e0e8286c9d2ac5b89c4166a460f75855db4b89365eb05dec7eabf62f1cb666"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\items.jsonl",
+      "sha256Lf": "5038496e5b25b02f85acea446a261594a9487c2441bfa3145b40834c5d84e825"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\logs\\parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.20844.4.jsonl",
+      "sha256Lf": "d740fe5ecd271635554a394114303c14a9eb3922a5baa1ba16ca698b9744a98c"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-base\\logs\\parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.link.jsonl",
+      "sha256Lf": "a6d019914a90adf77fe654021db810535b4c43279a041fb0433ca5611a187142"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\items.jsonl",
+      "sha256Lf": "33b6b038fdcd174c23c9563cfb8edc2c0a741b422a0857f1baeae77574d01f93"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.13000.4.jsonl",
+      "sha256Lf": "b126ef45f4199845cd4f7526b1cf6f5b0071f2616c4c266d306ea64c2dbb02ee"
+    },
+    {
+      "path": "tests\\artifacts\\ig-proto\\frozen\\V4-S2P\\parity-fr-p5\\logs\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen\\parity-fr-p5_fr-p5_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen.link.jsonl",
+      "sha256Lf": "8a8600cf38637177a519be6c337a48a9dbed50b2222b7548f6b76e7a6d56ed82"
+    },
+    {
+      "path": "tools\\ig-proto\\plans\\V4-S4.universe.json",
+      "sha256Lf": "6d42d654aef15f086931135478800719220ad4849a351b0634c3fc3eb9ac76b3"
+    },
+    {
+      "path": "tools\\ig-proto\\data\\frozen-round-v1.json",
+      "sha256Lf": "be7428d10b91cdf37a9893d373660a23e2c0deea66427a15db0deafe823b6a4b"
+    },
+    {
+      "path": "tools\\ig-proto\\plans\\V4-S2.json",
+      "sha256Lf": "e835c231aaa5e8f7ee4da05b009ffb0a8ed17c0a3adb249ca02e7f72e01aa9f3"
+    },
+    {
+      "path": "docs\\improve-generating\\evidence\\frozen\\V4-S2K\\kernel.json",
+      "sha256Lf": "40a0d351383388bf8ac7c7ca2fe4c57759b4cbd62ffac41f88be380adf7d2de2"
+    }
+  ]
+}

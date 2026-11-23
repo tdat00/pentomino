@@ -1,0 +1,81 @@
+{
+ "n-mid 196-324 piloted (14x14, 15x15b10, 16x16, 15x20)": {
+  "cells": [
+   "14x14-nightmare",
+   "15x15b10-nightmare",
+   "16x16-nightmare",
+   "15x20-nightmare"
+  ],
+  "pass": 0,
+  "unknown": 1,
+  "worse": 0,
+  "faster": 1
+ },
+ "n-mid-a 196-256 (14x14, 15x15b10, 16x16)": {
+  "cells": [
+   "14x14-nightmare",
+   "15x15b10-nightmare",
+   "16x16-nightmare"
+  ],
+  "pass": 1,
+  "unknown": 0,
+  "worse": 0,
+  "faster": 1
+ },
+ "n-mid-b 196-215 (14x14, 15x15b10)": {
+  "cells": [
+   "14x14-nightmare",
+   "15x15b10-nightmare"
+  ],
+  "pass": 1,
+  "unknown": 0,
+  "worse": 0,
+  "faster": 1
+ },
+ "16x16 alone": {
+  "cells": [
+   "16x16-nightmare"
+  ],
+  "pass": 0,
+  "unknown": 1,
+  "worse": 0,
+  "faster": 1
+ },
+ "15x20 alone": {
+  "cells": [
+   "15x20-nightmare"
+  ],
+  "pass": 0,
+  "unknown": 1,
+  "worse": 0,
+  "faster": 1
+ },
+ "n-large (26x26 only piloted)": {
+  "cells": [
+   "26x26-nightmare"
+  ],
+  "pass": 0,
+  "unknown": 1,
+  "worse": 0,
+  "faster": 1
+ },
+ "n-small (10x10, 12x12)": {
+  "cells": [
+   "10x10-nightmare",
+   "12x12-nightmare"
+  ],
+  "pass": 0.038,
+  "unknown": 0.962,
+  "worse": 0,
+  "faster": 0
+ },
+ "hell-1 (26x26 only piloted, 380 M)": {
+  "cells": [
+   "26x26-hell-1"
+  ],
+  "pass": 0,
+  "unknown": 1,
+  "worse": 0,
+  "faster": 0.11225
+ }
+}
