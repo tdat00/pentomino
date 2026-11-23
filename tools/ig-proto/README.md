@@ -1672,6 +1672,29 @@ and differ only in parameters (`variants/fr-frozen.json`, `fr-frozen-none.json`,
 - **Self-test.** One case of the `--v4` group (through the lock helper): `fr: the four frozen variants and their differences` (the chain, the parameters
   above, the differences, the uncapped twins, each algo id), which prints a `NOTE` line with the four tree ids and parameter hashes.
 
+**The test variants and the real-call cases (T08c).** Three test-only variants (`-test`, never an arm, a plan step or a binding's `current` id; 91, 91 and
+92 edits):
+
+- `fr-frozen-live-test` and `fr-frozen-none-live-test` extend the arm they name and `w8` (eight workers), and list the fixture level `hard` beside
+  `nightmare` and `hell-1` in `liveDeadline` (the other fields as the freeze's, id `deadline-test`), for the live scripted cases.
+- `fr-frozen-nowindow-test` extends `fr-frozen` and, with its parameter `testNoWindow: 'below'`, makes the set stage's calibration call rate every probe at the
+  synthetic score 30, below every gen-v4 band, so that a real worker returns `no-window-below`.
+
+The cases of the `--v4` group (through the lock helper) on the frozen trees:
+
+- `fz: the frozen budget by mode and level (real calls, synthetic ratings)`: a real call whose probes all rate 5e10 below the band stops at `budgetStop`
+  `{ limit, spent: 5e10, overshoot }` with the arm's limit (1e10, 3.2e10, 4e10 by mode and level; none on the uncapped twins).
+- `fz: a require budget end returns no unfinished final on fr-frozen`: V4-T07a's `BEGIN_CALL_2` with a budget ending before the first count returns
+  `not-in-band` in every observer mode, with the same charge log and no `selected` or `repair` event.
+- `fz: the per-set prior on Hell 1 only (payloads)`: every Hell 1 candidate payload carries `igPrior`, no Nightmare payload does.
+- `fz: the no-window bound through a real worker`: four real worker threads and `maxSetAttempts` 4 end `failed`, `no-window-below` with four failures.
+- `fz: the live deadline on the frozen trees`: `igLiveOf` gives `{ origin, setCutAt }` on Nightmare and Hell 1 of the two arms, `null` on the uncapped twins
+  and on `hard`.
+- `fz: W reaches real calls in every frozen class`: one real `selectClues` call per class (`n-small`, `n-mid`, `n-upper`, `n-large`, `hell-1`) on each screen
+  arm, `W` read from the journal's `start` line.
+- The seven `live fr-frozen-live-test: ...` and seven `live fr-frozen-none-live-test: ...` cases: T07c's `liveCases` and T07b's `hostBoundCase` on each
+  bounded twin's test variant.
+
 ### The freeze checks (T08b)
 
 `freeze.mjs` holds the freeze of plan 4.1 and 4.2 as constants (`FREEZE_CLASSES`, `FREEZE_BOUNDS`, `FREEZE_TABLES`, `FREEZE_VALUES`, `FROZEN_VARIANTS`;

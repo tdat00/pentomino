@@ -390,13 +390,13 @@ seconds); each AC row with its evidence; the questions and rulings; the deviatio
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 05:55 +07:00 (dispatch, base `daa9755`); 2026-11-24 06:02 +07:00 (accepted); the developer reported 05:55:08-05:58:50 |
+| Waiting for rulings | none |
+| Agent id, model | `f9ecd896-7694-4728-9fa8-88a8717e8bd3`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 24 calls; 1,656,421 input, 15,943 output, 1,561,702 cache-read tokens |
+| AI credits | 55.24 (developer only) |
+| Questions and rulings | none; every pinned expectation held on the first run; the real-worker case ended `no-window-below` after 4 attempts (no stop point fired); no behaviour deviation (part 2's names built by a loop, equal to the task's literal array; README wording) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `build` of the three test twins: reused (`fr-frozen-live-test` b81a0540..., `fr-frozen-none-live-test` 8acfdbeb..., `fr-frozen-nowindow-test` 55d747ea...); `check-edits --all`: 91, 91, 92 for the twins and 90 for each of the four arms; the locked selection block in two parts (`--v4`, `S24-T08c-orch-1` and `-2`): 14 and 14 PASS, `IG ... seconds=29.032` and `49.634`, quiet 15, `cases: 14 passed, as required` each; `freeze.mjs check`: pass (6 checks, the four tree ids unchanged); P-0 binding pass; `firewall check --task S24-T08c`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the five Scope files |
+| Commit | this task's commit |
+| Issues and named items | none |

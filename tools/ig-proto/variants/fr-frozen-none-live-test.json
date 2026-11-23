@@ -1,0 +1,10 @@
+{
+  "id": "fr-frozen-none-live-test",
+  "extends": ["fr-frozen-none", "w8"],
+  "description": "Test only (stages 2 to 4 pack T08c): fr-frozen-none with the live deadline also on the fixture level 'hard' and the eight-worker pool limit of w8, for the live scripted cases; never an arm, a plan step or a binding's current id.",
+  "edits": [],
+  "files": [],
+  "params": {
+    "liveDeadline": { "id": "deadline-test", "levels": ["hard", "nightmare", "hell-1"], "reserve": 0.6, "setStageCapMs": 46000, "generationStopMs": 115000, "responseBoundMs": 120000, "hostMarginMs": 1000 }
+  }
+}

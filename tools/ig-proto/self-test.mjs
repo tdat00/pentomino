@@ -12077,6 +12077,156 @@ const v4Cases = [
       process.stdout.write(`NOTE fr frozen trees (tree id, parameter hash): ${notes.join('; ')}\n`);
     },
   },
+  {
+    name: 'fz: the frozen budget by mode and level (real calls, synthetic ratings)',
+    async run() {
+      const spec = { prior: null, screen: () => synthetic(30, { work: 50000000000 }) };
+      for (const [variant, uniqueness, id, limit] of /** @type {[string, 'any' | 'require', string, number | null][]} */ ([
+        ['fr-frozen', 'any', 'nightmare', 10000000000],
+        ['fr-frozen', 'require', 'nightmare', 32000000000],
+        ['fr-frozen', 'any', 'hell-1', 40000000000],
+        ['fr-frozen', 'require', 'hell-1', 40000000000],
+        ['fr-frozen-none', 'require', 'nightmare', 32000000000],
+        ['fr-frozen-uncapped', 'any', 'nightmare', null],
+        ['fr-frozen-none-uncapped', 'require', 'hell-1', null],
+      ])) {
+        const r = await v4Call('fz-budget', { ...spec, variant, uniqueness, extra: { target: { ...BAND, id } } });
+        const stop = r.end?.locate?.budgetStop;
+        if (limit === null) {
+          assert(stop === undefined, `${variant} ${uniqueness} ${id}: a budget stop ${JSON.stringify(stop)}`);
+        } else {
+          same(stop, { limit, spent: 50000000000, overshoot: 50000000000 - limit }, `${variant} ${uniqueness} ${id}: ${JSON.stringify(stop)}`);
+        }
+      }
+    },
+  },
+  {
+    name: 'fz: a require budget end returns no unfinished final on fr-frozen',
+    async run() {
+      const name = 'fz-endmodes';
+      const spec = { ...BEGIN_CALL_2, variant: 'fr-frozen' };
+      const U = await v4Call(name, { ...spec, extra: { charge: true, igChargeKinds: [] } });
+      const f = /** @type {string[]} */ (U.kinds).indexOf('count');
+      assert(f > 0, `the first count of the unbudgeted call is at index ${f}`);
+      const B = prefix(U.chargeLog)[f];
+      /** @type {any[]} */
+      const events = [];
+      const A = await v4Call(name, { ...spec, extra: { igBudget: B } });
+      const Bm = await v4Call(name, { ...spec, extra: { igBudget: B, charge: true, igChargeKinds: [] } });
+      const C = await v4Call(name, { ...spec, extra: { igBudget: B, charge: true, igChargeKinds: [], record: (/** @type {any} */ ev) => events.push(ev) } });
+      same(A.result, { ok: false, reason: 'not-in-band' }, `no observer: ${JSON.stringify(A.result)}`);
+      same(Bm.result, A.result, `charge only: ${JSON.stringify(Bm.result)}`);
+      same(C.result, A.result, `charge and record: ${JSON.stringify(C.result)}`);
+      same(Bm.chargeLog, U.chargeLog.slice(0, f), 'charge only: the charge log is not the units before the first count');
+      assert(!events.some((ev) => ev.kind === 'selected' || ev.kind === 'repair'), 'a selected or repair event after the budget end');
+    },
+  },
+  {
+    name: 'fz: the per-set prior on Hell 1 only (payloads)',
+    async run() {
+      const tree = await engine('fr-frozen');
+      const { createPool } = await browserModule(tree, 'worker-pool');
+      const { createGenerationClient } = await browserModule(tree, 'generation-client');
+      const { set, calibration } = await setFixture('fr-frozen');
+      const payloads = async (/** @type {string} */ levelId) => {
+        const h = harness(createPool, { size: 4 });
+        const client = createGenerationClient(h.pool, { clock: h.clock, createdAt: () => '2026-01-01T00:00:00.000Z' });
+        const cal = { ...calibration, rating: { ...calibration.rating, level: levelId }, igWindow: { wc: 5 } };
+        const r = track(client.generateBatch({
+          set, rotation: 0, targetLevelId: levelId, quantity: 10, setSeed: 'fixture-set-0', batchIndex: 1, uniqueness: 'any',
+          seenLayouts: [], seenClues: [], calibration: cal,
+        }));
+        await settle();
+        const out = h.tasks.filter((t) => t.kind === 'puzzleCandidate').map((t) => t.payload);
+        client.cancel();
+        await settle();
+        await settle();
+        assert(r.state === 'resolved', `${levelId}: the batch is ${r.state} after its cancel`);
+        h.pool.close();
+        return out;
+      };
+      const hell = await payloads('hell-1');
+      const nightmare = await payloads('nightmare');
+      assert(hell.length > 0 && hell.every((p) => p.igPrior === 5), `hell-1 payloads: ${JSON.stringify(hell.map((p) => p.igPrior))}`);
+      assert(nightmare.length > 0 && nightmare.every((p) => !('igPrior' in p)), `nightmare payloads: ${JSON.stringify(nightmare.map((p) => p.igPrior))}`);
+    },
+  },
+  {
+    name: 'fz: the no-window bound through a real worker',
+    async run() {
+      const tree = await engine('fr-frozen-nowindow-test');
+      const { createPool } = await browserModule(tree, 'worker-pool');
+      const { createGenerationClient } = await browserModule(tree, 'generation-client');
+      const { nodeWorkerFactory } = await import(pathToFileURL(join(tree.tree.root, 'tools', 'node-worker.mjs')).href);
+      const pool = createPool({ size: 4, workerFactory: nodeWorkerFactory() });
+      try {
+        const client = createGenerationClient(pool, { createdAt: () => '2026-01-01T00:00:00.000Z', maxSetAttempts: 4 });
+        const r = await client.generateSet({
+          boardRows: Array.from({ length: 10 }, () => '#'.repeat(10)), rotation: 0, levelId: 'nightmare',
+          seedText: 'ig-selftest/nowindow', uniqueness: 'any', maxActive: 676,
+        });
+        same([r.status, r.reason, r.failures], ['failed', 'no-window-below', { 'no-window-below': 4 }], `the request: ${JSON.stringify(r)}`);
+      } finally {
+        pool.close();
+      }
+    },
+  },
+  {
+    name: 'fz: the live deadline on the frozen trees',
+    async run() {
+      const clock = { now: () => 5000 };
+      for (const [variant, listed] of /** @type {[string, boolean][]} */ ([
+        ['fr-frozen', true], ['fr-frozen-none', true], ['fr-frozen-uncapped', false], ['fr-frozen-none-uncapped', false],
+      ])) {
+        const { igLiveOf } = await browserModule(await engine(variant), 'generation-client');
+        for (const levelId of ['nightmare', 'hell-1']) {
+          same(igLiveOf({ igOrigin: 1000 }, levelId, clock), listed ? { origin: 1000, setCutAt: 47000 } : null, `${variant} ${levelId}`);
+        }
+        assert(igLiveOf({ igOrigin: 1000 }, 'hard', clock) === null, `${variant}: the legacy level hard has a deadline`);
+      }
+    },
+  },
+  {
+    name: 'fz: W reaches real calls in every frozen class',
+    async run() {
+      const CELLS = ['10x10-nightmare', '14x14-nightmare', '15x20-nightmare', '26x26-nightmare', '26x26-hell-1'];
+      for (const variant of ['fr-frozen', 'fr-frozen-none']) {
+        const { e, ws } = await engine(variant);
+        const D = e.policy.DEDUCE.work;
+        const expected = variant === 'fr-frozen' ? [D, 190000000, 190000000, 190000000, D] : [D, D, D, D, D];
+        /** @type {number[]} */
+        const seen = [];
+        for (const cell of CELLS) {
+          const { boardRows, levelId } = caseBoard(cell);
+          const seedText = `landscape/${cell}/0`;
+          const carved = firstCarvedSet(e, { boardRows, levelId, seedText });
+          assert(carved.ok, `${variant} ${cell}: no carved input (${carved.ok ? '' : carved.reason}): a failed fixture`);
+          const dir = fresh(join(SELFTEST_DIR, 'logs', `fz-w-${variant}-${cell}`));
+          process.env.IG_LOG_DIR = dir;
+          process.env.IG_ROW = `selftest~fz-w-${cell}`;
+          try {
+            e.clues.selectClues({
+              board: carved.board, pieces: carved.set.pieces, layout: carved.set.witness, target: e.levels.level(levelId),
+              rng: e.rng.createRng(e.rng.normalizeSeedText(seedText), 'selftest/fz-w'), uniqueness: 'any',
+              excludeClueKeys: new Set(), ws, igScreen: () => synthetic(30), igCanonical: () => synthetic(30), igPrior: null, igStage: 'set',
+            });
+          } finally {
+            delete process.env.IG_LOG_DIR;
+            delete process.env.IG_ROW;
+          }
+          const starts = readJournal(dir).filter((l) => l.t === 'start');
+          assert(starts.length === 1, `${variant} ${cell}: ${starts.length} start lines, expected one`);
+          same(starts[0].level, levelId, `${variant} ${cell}: the call's level`);
+          seen.push(starts[0].W);
+        }
+        same(seen, expected, `${variant}: W of n-small, n-mid, n-upper, n-large and hell-1`);
+      }
+    },
+  },
+  ...liveCases('fr-frozen-live-test'),
+  hostBoundCase('fr-frozen-live-test'),
+  ...liveCases('fr-frozen-none-live-test'),
+  hostBoundCase('fr-frozen-none-live-test'),
 ];
 
 /** @param {string} text @returns {string} The text without the worktree's absolute root (records refuse it). */
