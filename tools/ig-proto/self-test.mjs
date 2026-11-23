@@ -11227,6 +11227,86 @@ const v4Cases = [
       }
     },
   },
+  {
+    name: 'p7: C1 memory rule (p7-c1)',
+    async run() {
+      // The memory rule of the P7 C1 lists (locked: the memory items deduce): the decision function on its boundaries, then the
+      // seven memory items of the quick tier on `p7-c1` against `base`, whose steps must show the representation the manifest expects.
+      assert(SOURCE_KIND === 'frozen', 'the case must run with --label frozen');
+      const { igListArrays } = await treeModule(await engine('p7-c1'), 'deduce');
+      const fake = (/** @type {number} */ b, /** @type {number} */ cap) => ({ bytes: () => b, capacityBytes: cap });
+      const lengths = (/** @type {any} */ a) => (a === null ? null : [a.next.length, a.prev.length, a.pos.length]);
+      same(lengths(igListArrays(1000, Infinity, fake(5000, 5499), 35, 10)), null, 'the retained bytes and the lists exceed the capacity by one');
+      same(lengths(igListArrays(1000, Infinity, fake(5000, 5500), 35, 10)), [45, 45, 35], 'the retained bytes and the lists fill the capacity');
+      same(lengths(igListArrays(1000, 1499, fake(0, Infinity), 35, 10)), null, 'the slots and the lists exceed the memory limit by one');
+      same(lengths(igListArrays(1000, 1500, fake(0, Infinity), 35, 10)), [45, 45, 35], 'the slots and the lists fill the memory limit');
+      same(igListArrays(0, Infinity, fake(0, Infinity), 2 ** 53, 0), null, 'a failed allocation gives no lists');
+      const { equalDeclarations, memoryManifest, runtimeItems } = await import('./p7-probe.mjs');
+      const quick = await equalDeclarations('p7-c1', 'quick');
+      const memory = quick.filter((i) => ['memory', 'memory-sequence', 'memory-capacity'].includes(i.payload.source));
+      assert(memory.length === 7, `${memory.length} memory items`);
+      const manifest = memoryManifest();
+      const task = 'S24-T03d-dev';
+      fresh(artifactDir('selftest', task));
+      try {
+        const out = await runItems({ task, step: 'equal', label: 'selftest', horizonS: elapsedS() + 285, items: runtimeItems(memory) });
+        same(out, { exitCode: 0, done: true, progress: memory.length, refused: null }, `the run: ${JSON.stringify(out)}`);
+        const ends = new Map(readItemLog(join(artifactDir('selftest', task, 'equal'), 'items.jsonl')).filter((l) => l.type === 'item-end').map((l) => [l.item, l]));
+        const resultOf = (/** @type {string} */ id) => {
+          const end = ends.get(id);
+          assert(end !== undefined && end.status === 'completed', `${id}: ${JSON.stringify(end).slice(0, 400)}`);
+          assert(end.result.outcome === 'ok' && end.result.same === true, `${id}: ${JSON.stringify(end.result).slice(0, 600)}`);
+          return end.result;
+        };
+        const expectedFixture = {
+          'mem-small': ['lists', 48960],
+          'mem-mid': ['lists', 1218816],
+          'mem-near-lists': ['lists', 80940],
+          'mem-near-reference': ['reference', 0],
+          'mem-above': [null, null],
+        };
+        for (const [fixture, [representation, listBytes]] of Object.entries(expectedFixture)) {
+          const step = resultOf(`equal:p7-c1:memory:${fixture}`).steps.find((/** @type {any} */ s) => s.setting === 'fixture');
+          assert(step !== undefined, `${fixture}: no fixture step`);
+          same([step.representation, step.listBytes], [representation, listBytes], `${fixture}: ${JSON.stringify([step.representation, step.listBytes])}`);
+          if (fixture === 'mem-above') {
+            assert(step.referenceError?.code === 'model-too-large', `${fixture}: the reference error ${JSON.stringify(step.referenceError)}`);
+            same(step.candidateError, step.referenceError, `${fixture}: the candidate error`);
+          }
+        }
+        const sequence = resultOf('equal:p7-c1:memory:sequence').steps;
+        const capacity = resultOf('equal:p7-c1:memory:capacity').steps;
+        same(sequence.map((/** @type {any} */ s) => s.representation), ['lists', 'lists', 'lists', 'reference', 'lists', 'reference', 'lists', null, 'lists'], 'the sequence representations');
+        same(capacity.map((/** @type {any} */ s) => s.representation), ['lists', 'reference'], 'the capacity representations');
+        const refBytesOf = (/** @type {string} */ fixture) => manifest.fixtures.find((f) => f.id === fixture)?.refBytes;
+        /** @type {[string, any, number | undefined][]} */
+        const checked = [];
+        for (const fixture of ['mem-small', 'mem-mid', 'mem-near-lists']) {
+          const result = resultOf(`equal:p7-c1:memory:${fixture}`);
+          checked.push([fixture, result.steps.find((/** @type {any} */ s) => s.setting === 'fixture'), result.refBytes]);
+        }
+        for (const [i, step] of sequence.entries()) {
+          checked.push([`seq-${i}`, step, refBytesOf(manifest.sequence[i].fixture)]);
+        }
+        for (const [i, step] of capacity.entries()) {
+          checked.push([`cap-${i}`, step, refBytesOf(manifest.capacity[i].fixture)]);
+        }
+        let lists = 0;
+        for (const [label, step, refBytes] of checked) {
+          if (step.representation !== 'lists') {
+            continue;
+          }
+          lists += 1;
+          assert(typeof refBytes === 'number' && refBytes + step.listBytes <= step.memoryBytes, `${label}: ${refBytes} + ${step.listBytes} > ${step.memoryBytes}`);
+          assert(step.wsBytes + step.listBytes <= step.capacityBytes, `${label}: ${step.wsBytes} + ${step.listBytes} > ${step.capacityBytes}`);
+        }
+        assert(lists >= 8, `${lists} list steps checked`);
+        process.stdout.write(`NOTE p7-c1 memory rule: ${lists} list steps within both budgets; sequence ${JSON.stringify(sequence.map((/** @type {any} */ s) => s.representation))}\n`);
+      } finally {
+        rmSync(artifactDir('selftest', task), { recursive: true, force: true });
+      }
+    },
+  },
 ];
 
 /** @param {string} text @returns {string} The text without the worktree's absolute root (records refuse it). */

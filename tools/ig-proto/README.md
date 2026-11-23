@@ -2758,9 +2758,14 @@ and the verdicts, T03c the bindings, the go rule and the commands.
     `report` refuses a task without a run (`report needs a run: <task> has none (...)`: no `experiment.json`, `state.json` or `items.jsonl` of the equality
     run, or no `time-<candidate>` run of any declared candidate) before any tree is looked up, and writes nothing.
 - **Runs**: the equality runs are locked verification under the task ids `V4-P7E-<candidate>-<tier>`; the timing run is `V4-P7` (S02).
+- **`p7-c1` (T03d)**: R4 on ordered live-row lists (a circular doubly linked list per column over the positions of `colRows`, sentinel `NZ + c`),
+  unlinked in `kill` and relinked in `undo`, charging the reference's units; the lists are local to one deduction call, decided after the reference
+  slots exist, and used only while the reference slots plus them stay within `limits.memoryBytes` and the arena's bytes plus them within its capacity
+  (`igListArrays`; `igListBytes(model) = 4 (3 NZ + 2 C)`); each call reports `igRepresentation` and `igListBytes` in its diagnostics object;
+  `verifyUndo` also checks the lists.
 - **Self-test**: `--items` (unlocked): `p7: settings, work inputs and limits`, `p7: outcomes, fixtures and declarations`, `p7: the experiment declaration`,
   `p7: equality verdict`, `p7: timing verdict`, `p7: bindings and go`; `--v4` (locked): `p7: equality
-  items of base against base`, `p7: timing items of base against base`.
+  items of base against base`, `p7: timing items of base against base`, `p7: C1 memory rule (p7-c1)`.
 
 ## Phase-1 bench of P6 (V4-T14)
 

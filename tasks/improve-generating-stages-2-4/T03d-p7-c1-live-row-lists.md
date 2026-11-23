@@ -447,13 +447,13 @@ items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 02:02 +07:00 (dispatch, base `49a2be4`); 2026-11-24 02:21 +07:00 (accepted); 19 min. The developer reported 02:02:09-02:16:40 |
+| Waiting for rulings | about 4 min (the pack author's review) |
+| Agent id, model | `bf6aa1cc-d147-4936-988b-d08102015edd`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 35 calls; 3,317,207 input, 26,068 output, 3,218,564 cache-read tokens |
+| AI credits | 82.91 (developer only) |
+| Questions and rulings | no QUESTION; outcome 1 (complete equality); the open test details accepted as delivered, ruling R-P24-09 |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `check-edits --all`: `ok p7-c1: 9 edits match`; `build p7-c1`: tree `9249b2f5...` reused; the locked selection block (`--v4`, `S24-T03d-orch`): `p7: C1 memory rule (p7-c1)` PASS (4.3 s; 10 list steps within both budgets), `cases: 1 passed, as required`; `V4-P7E-p7-c1-quick/p7.json`: `equal.verdict` equal, coverage complete, 149 items, 149 ended, 149 equal, 0 problems (the developer's quick equality run: 4 locked invocations, 182.7 + 181.2 + 153.4 + 102.0 s, locked verification without allocation); `check-binding` of P-0: pass; `firewall check --task S24-T03d`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the Scope files |
+| Commit | this task's commit |
+| Issues and named items | none; T04 and T05a build on `p7-c1` |
