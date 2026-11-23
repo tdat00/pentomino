@@ -188,13 +188,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-23 23:47 +07:00 (dispatch, base `ce85819`); 2026-11-23 23:57 +07:00 (accepted); 11 min. The developer reported 23:47:20-23:50:24 |
+| Waiting for rulings | about 4 min (the pack author's review of the developer's open details) |
+| Agent id, model | `0392a3de-977d-47ff-9028-1b99c7d2ad42`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 21 calls; 1,536,024 input, 21,123 output, 1,466,376 cache-read tokens |
+| AI credits | 53.20 (developer only) |
+| Questions and rulings | no QUESTION; the developer's five open details (late firewall snapshot, `fitScope` refusals, `invalid start line <index>`, `boundFirings` on `set` calls only, `declaredRowProblem` on a non-object) accepted by SA-Opus as ruling R-P24-03, which also amends T02c (each row problem listed once); pack amendment committed before this task's commit |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T02b-orch`: 212 passed, 0 failed (31.7 s; cases 209-212 PASS); `firewall check --task S24-T02b`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 `M self-test.mjs`, `?? fit-read.mjs` |
+| Commit | this task's commit |
+| Issues and named items | later tasks take the firewall snapshot first (R-P24-03); `fitScope` refuses a single-rep `--cases` entry that `arm.mjs` accepts (no plan of this pack uses one) |

@@ -8173,6 +8173,122 @@ const itemCases = [
       }
     },
   },
+  {
+    name: 'fit-read: the declared grid',
+    async run() {
+      const { fitScope } = await import('./fit-read.mjs');
+      const step = (/** @type {string} */ arm, /** @type {string} */ shard, /** @type {string} */ cases) => ({
+        node: ['tools\\ig-proto\\arm.mjs', 'run', '--task', 'V4-XX', '--arm', arm, '--shard', shard, '--cases', cases],
+      });
+      const plan = { task: 'V4-XX', steps: [step('a', 'pilot-x', 'x:0-4'), step('b', 'pilot-y', 'y:0-4')] };
+      same(fitScope(plan, 'a'), [0, 1, 2, 3, 4].map((r) => ({ rowKey: `x~${r}`, caseId: 'x', rep: r, seed: `landscape/x/${r}`, shard: 'pilot-x' })), 'the grid of arm a');
+      same(thrownBy(() => fitScope(plan, 'z')), 'fit-read: the plan V4-XX has no rows of z', 'an absent arm');
+      same(thrownBy(() => fitScope({ task: 'V4-XX', steps: [step('a', 'pilot-x', 'x:0-4'), step('a', 'pilot-x2', 'x:0-4')] }, 'a')), 'fit-read: x~0 is declared twice', 'a duplicate declaration');
+      same(thrownBy(() => fitScope({ task: 'V4-XX', steps: [step('a', 'pilot-x', 'x:0-5')] }, 'a')), 'fit-read: rep 5 of x is not a fitting rep (0-4)', 'a rep above 4');
+      same(thrownBy(() => fitScope({ task: 'V4-XX', steps: [step('a', 'pilot-x', 'x')] }, 'a')), 'fit-read: bad --cases entry x', 'a bad --cases entry');
+    },
+  },
+  {
+    name: 'fit-read: preview of a cell',
+    async run() {
+      const { previewCell, fitScope } = await import('./fit-read.mjs');
+      const { noRegression } = await import('./verdicts.mjs');
+      const declared = fitScope({
+        task: 'V4-XX',
+        steps: [{ node: ['tools\\ig-proto\\arm.mjs', 'run', '--task', 'V4-XX', '--arm', 'a', '--shard', 'pilot-x', '--cases', 'x:0-4'] }],
+      }, 'a');
+      const after = [10000, 10000, 30000, 80000, 50000];
+      const before = [10000, 20000, 30000, 40000, 50000];
+      const reps = [0, 1, 2, 3, 4];
+      const build = async () => ({
+        published: await Promise.all(reps.map(async (r) => ({
+          rowKey: `x~${r}`, caseId: 'x', rep: r, seed: `landscape/x/${r}`, localRep: 0,
+          run: await matrixRun('x', r, 10, { tenthReadyMs: after[r], responseMs: after[r] }),
+        }))),
+        today: await Promise.all(reps.map((r) => matrixRun('x', r, 10, { tenthReadyMs: before[r], responseMs: before[r] }))),
+      });
+      const base = await build();
+      const clean = previewCell('x', declared, base.published, base.today);
+      same(clean.ratios, [1, 2, 1, 0.5, 1], `the ratios: ${JSON.stringify(clean.ratios)}`);
+      assert(clean.geo !== null && near(clean.geo, 1), `the geometric mean: ${clean.geo}`);
+      same([clean.todayTen, clean.afterTen, clean.problems], [5, 5, []], 'the ten counts and the problems');
+      const expected = noRegression([1, 2, 1, 0.5, 1], reps, { resamples: 10000, resampleSeed: 20261116 });
+      same([clean.lower, clean.pass], [expected.lower, expected.pass], 'the lower bound and the verdict');
+      /** @type {[string, number, string, (kit: any) => void][]} */
+      const variants = [
+        ['a duplicate row', 3, 'rep 3: 2 published rows', (kit) => kit.published.push(structuredClone(kit.published[3]))],
+        ['an agreeing row and run of another seed', 2, 'rep 2: wrong declared identity (seed "landscape/x/9", declared "landscape/x/2")', (kit) => {
+          kit.published[2].seed = 'landscape/x/9';
+          kit.published[2].run.seed = 'landscape/x/9';
+        }],
+        ['a row of another rep', 0, 'rep 0: wrong declared identity (rep 5, declared 0)', (kit) => { kit.published[0].rep = 5; }],
+        ['a censored run', 1, 'rep 1: after censored: measurementValid is false', (kit) => { kit.published[1].run.measurementValid = false; }],
+        ['a missing row', 4, 'rep 4: no published row', (kit) => kit.published.splice(4, 1)],
+        ['an MP12b1 run of another seed', 0, 'rep 0: MP12b1 seed landscape/y/0', (kit) => { kit.today[0].seed = 'landscape/y/0'; }],
+        ['an incorrect run', 1, 'rep 1: after incorrect: ', (kit) => {
+          kit.published[1].run.errors = [{ phase: 'validation', code: 'invalid-puzzle', message: 'x' }];
+        }],
+      ];
+      for (const [label, rep, problem, edit] of variants) {
+        const kit = await build();
+        edit(kit);
+        const got = previewCell('x', declared, kit.published, kit.today);
+        assert(got.problems.length === 1 && got.problems[0].startsWith(problem), `${label}: ${JSON.stringify(got.problems)}`);
+        same([got.ratios[rep], got.lower, got.pass], [null, null, null], `${label}: the rep's ratio, the lower bound and the verdict`);
+      }
+    },
+  },
+  {
+    name: 'fit-read: call prefixes',
+    async run() {
+      const { callPrefixes } = await import('./fit-read.mjs');
+      const L = ledgerLines();
+      const S = (/** @type {string} */ call, level = 'nightmare') => ({ ...L.S(call, 'set', 0, 0), level });
+      const one = (/** @type {any[]} */ lines, /** @type {number} */ budget) => callPrefixes(lines, { nightmare: budget });
+      const c1 = [S('c1'), L.B('c1'), L.P('c1', 0, 6e9, 0), L.B('c1'), L.N('c1', 3e9), L.B('c1'), L.P('c1', 1, 2e9, 0), L.E('c1', 8e9, 0, 3e9)];
+      const view = (/** @type {any} */ r) => /** @type {any} */ (r.calls[0]);
+      let got = view(one(c1, 9e9));
+      same([got.spent, got.ended, got.firstAffected, got.status], [11e9, true, 2, 'affected'], `c1 at 9e9: ${JSON.stringify(got)}`);
+      got = view(one(c1, 9e9 + 1));
+      same([got.firstAffected, got.status], [null, 'clear'], `c1 at 9e9+1: ${JSON.stringify(got)}`);
+      const c2 = [S('c2'), L.B('c2'), L.P('c2', 0, 5e9, 0), L.B('c2')];
+      got = view(one(c2, 5e9));
+      same([got.ended, got.open, got.firstAffected, got.status], [false, true, 1, 'affected'], `c2 at 5e9: ${JSON.stringify(got)}`);
+      got = view(one(c2, 6e9));
+      same([got.firstAffected, got.spent, got.status], [null, 5e9, 'clear'], `c2 at 6e9: ${JSON.stringify(got)}`);
+      got = view(one([S('c3'), L.B('c3'), L.P('c3', 0, 7e9, 0)], 6e9));
+      same(got.status, 'potentially-affected', `c3: ${JSON.stringify(got)}`);
+      /** @type {[string, any[], string][]} */
+      const malformed = [
+        ['begin while open', [S('m'), L.B('m'), L.B('m'), L.P('m', 0, 1, 0)], 'begin while a primitive is open'],
+        ['end mismatch', [S('m'), L.B('m'), L.P('m', 0, 5, 0), L.E('m', 4, 0, 0)], 'end mismatch'],
+        ['duplicate start', [S('c1'), ...c1], 'duplicate start'],
+        ['duplicate end', [...c1, L.E('c1', 8e9, 0, 3e9)], 'duplicate end'],
+        ['invalid units', [S('m'), L.B('m'), L.N('m', -1)], 'invalid units'],
+        ['p without begin', [S('m'), L.P('m', 0, 1, 0)], 'p without an open primitive'],
+      ];
+      for (const [label, lines, problem] of malformed) {
+        const r = one(lines, 9e9);
+        assert(view(r).status === 'ambiguous' && view(r).problems.includes(problem), `${label}: ${JSON.stringify(r)}`);
+      }
+      const stray = one([...c1, L.P('zz', 0, 1, 0)], 9e9);
+      same([stray.unowned, stray.problems, view(stray).status], [['zz'], ['unowned p line zz'], 'affected'], `an unowned line: ${JSON.stringify(stray)}`);
+    },
+  },
+  {
+    name: 'fit-read: the four-attempt bound',
+    async run() {
+      const { boundFirings } = await import('./fit-read.mjs');
+      const call = (/** @type {number} */ attempt, /** @type {string} */ endResult, status = 'clear') => ({ stage: 'set', attempt, status, ended: true, endResult });
+      const run = (/** @type {any[]} */ calls) => boundFirings(calls, 4);
+      same(run([0, 1, 2, 3].map((a) => call(a, 'below-to-one'))), { fires: true, side: 'below', attempts: 4 }, 'four below');
+      same(run([call(0, 'below-to-one'), call(1, 'below-to-one'), call(2, 'below-to-one'), call(3, 'above-to-max')]).fires, false, 'mixed sides');
+      same(run([0, 1, 2, 3].map((a) => call(a, 'above-to-max'))).side, 'above', 'four above');
+      same(run([0, 1, 3].map((a) => call(a, 'below-to-one'))), { fires: false, side: null, attempts: 3 }, 'attempt 2 missing');
+      same(run([...[0, 1, 2, 3].map((a) => call(a, 'below-to-one')), call(4, 'hit')]), { fires: true, side: 'below', attempts: 5 }, 'a fifth attempt');
+      same(run([call(0, 'below-to-one'), call(1, 'below-to-one', 'ambiguous'), call(2, 'below-to-one'), call(3, 'below-to-one')]).fires, false, 'an ambiguous call');
+    },
+  },
 ];
 
 /**
