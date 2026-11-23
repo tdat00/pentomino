@@ -48,7 +48,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T08a The four frozen variants, a candidate epoch (depends on T07c)
 - [x] T08b The freeze's constants and checks (`freeze.mjs check`) (depends on T08a)
 - [x] T08c The frozen family's real-call and live cases on the frozen trees (depends on T08b)
-- [ ] T09a The live verification's identity record and the live-deadline row and verification checks (depends on T08c)
+- [x] T09a The live verification's identity record and the live-deadline row and verification checks (depends on T08c)
 - [ ] T09b The live-deadline receipt (`live-deadline.mjs receipt`) (depends on T09a)
 - [ ] T09c The `live-deadline` kind of `v4-check accept` (depends on T09b)
 - [ ] T10 The plan `V4-S3P` (depends on T09c)
@@ -619,7 +619,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T08a | 2026-11-24 05:37 | 2026-11-24 05:43 | about 9 min | 38.59 | this task's commit |
 | T08b | 2026-11-24 05:43 | 2026-11-24 05:54 | about 11 min | 70.74 | this task's commit |
 | T08c | 2026-11-24 05:55 | 2026-11-24 06:02 | about 10 min | 55.24 | this task's commit |
-| T09a | | | | | |
+| T09a | 2026-11-24 06:03 | 2026-11-24 06:23 | 20 min | 141.50 | this task's commit |
 | T09b | | | | | |
 | T09c | | | | | |
 | T10 | | | | | |

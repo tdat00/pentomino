@@ -5944,7 +5944,7 @@ const itemCases = [
         const manifest = argAfter(step, '--manifest');
         assert(manifest === undefined || Object.hasOwn(compiled.itemManifests, manifest.split('\\').at(-1) ?? ''), `${step.id}: ${manifest} is not one of the compiled item manifests`);
       }
-      same([...missing], ['tools\\ig-proto\\live-deadline.mjs'], 'every script exists, but the live-deadline tool of N-V4-13');
+      same([...missing], [], 'every script exists');
       assert(live.prerequisites.some((/** @type {any} */ p) => p.type === 'file' && p.path === 'tools/ig-proto/live-deadline.mjs'), 'the tool is a file prerequisite of V4-LIVE');
       same(steps.find((/** @type {any} */ s) => s.id === 'accept-p0').node[0], 'tools\\ig-proto\\v4-check.mjs', 'accept-p0 runs v4-check');
       for (const [name, template] of Object.entries(compiled.templates)) {
@@ -9080,6 +9080,153 @@ const itemCases = [
         }
       }
       same(Object.keys(FREEZE_VALUES.W), ['n-small', 'n-mid', 'n-upper', 'n-large', 'hell-1'], 'W has the five class ids');
+    },
+  },
+  {
+    name: 'live-deadline: row checks',
+    async run() {
+      const { LIVE_DECLARED, rowChecks } = await import('./live-deadline.mjs');
+      const { S, C, B, P, E } = ledgerLines();
+      const closed = (/** @type {string} */ key) => {
+        const c = `${key}:1:2:1`;
+        return {
+          lines: [S(c, 'set', 0, 10), C(c), B(c), P(c, 0, 100, 0), B(c), P(c, 1, 50, 10), E(c, 160, 2, 0)],
+          links: /** @type {any[] | null} */ ([{ t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' }]), problems: /** @type {string[]} */ ([]),
+        };
+      };
+      const rowOf = async (/** @type {number} */ i, /** @type {Record<string, any>} */ over = {}, /** @type {number} */ accepted = 10, /** @type {Record<string, any>} */ top = {}) => {
+        const d = LIVE_DECLARED[i];
+        return { rowKey: d.rowKey, caseId: d.caseId, rep: d.rep, seed: d.seed, localRep: d.rep, run: await matrixRun(d.caseId, d.rep, accepted, { igSetMs: 30000, ...over }), ...top };
+      };
+      const clean = async () => {
+        const rows = await Promise.all(LIVE_DECLARED.map((_, i) => rowOf(i)));
+        return { rows, journals: Object.fromEntries(LIVE_DECLARED.map((d) => [d.rowKey, closed(d.rowKey)])) };
+      };
+      const base = await clean();
+      const ok = rowChecks(base.rows, base.journals);
+      same([ok.observed.length, ok.failures, ok.incomplete, ok.table.length], [10, [], [], 10], `the clean rows: ${JSON.stringify(ok)}`);
+      assert(ok.table.every((t) => t.ledgerComplete === true && t.status === 'valid' && t.responseMs === 31000), 'the clean table');
+      /** @param {string} name @param {(x: { rows: any[], journals: any }) => Promise<void> | void} edit @returns {Promise<any>} */
+      const variant = async (name, edit) => {
+        const x = await clean();
+        await edit(x);
+        return rowChecks(x.rows, x.journals);
+      };
+      const hasIn = (/** @type {string[]} */ list, /** @type {string} */ text, /** @type {string} */ what) => assert(list.some((l) => l.includes(text)), `${what}: ${JSON.stringify(list)} lacks "${text}"`);
+      const late = await variant('(1)', async (x) => { x.rows[3] = await rowOf(3, { responseMs: 120001 }); });
+      same([late.failures.length, late.incomplete], [1, []], `(1) ${JSON.stringify(late)}`);
+      hasIn(late.failures, 'outside [0, 120000]', '(1)');
+      const negative = await variant('(2)', async (x) => { x.rows[4] = await rowOf(4, { responseMs: -1 }); });
+      same(negative.failures.length, 1, `(2) ${JSON.stringify(negative)}`);
+      hasIn(negative.failures, 'outside [0, 120000]', '(2)');
+      const killed = await variant('(3)', async (x) => { x.rows[5] = await rowOf(5, { errors: [{ phase: 'host', code: 'child-timeout', message: 'x' }] }); });
+      same(killed.failures.length, 1, `(3) ${JSON.stringify(killed)}`);
+      hasIn(killed.failures, 'killed at the row limit', '(3)');
+      hasIn(killed.incomplete, 'row 26x26-hell-1~0: censored', '(3)');
+      const errored = await variant('(4)', async (x) => { x.rows[6] = await rowOf(6, { partialReason: 'error:internal', errors: [{ phase: 'batch', code: 'internal', message: 'x' }] }); });
+      same([errored.failures.length, errored.incomplete], [1, []], `(4) ${JSON.stringify(errored)}`);
+      hasIn(errored.failures, 'row 26x26-hell-1~1: error', '(4)');
+      const invalidMeasure = await variant('(5)', async (x) => { x.rows[7] = await rowOf(7, { measurementValid: false }); });
+      same([invalidMeasure.failures, invalidMeasure.observed.length, invalidMeasure.incomplete.length], [[], 9, 1], `(5) ${JSON.stringify(invalidMeasure)}`);
+      hasIn(invalidMeasure.incomplete, 'row 26x26-hell-1~2: censored', '(5)');
+      const interrupted = await variant('(6)', async (x) => { x.rows[8] = await rowOf(8, { interrupted: true }); });
+      same([interrupted.failures, interrupted.observed.length, interrupted.incomplete.length], [[], 9, 1], `(6) ${JSON.stringify(interrupted)}`);
+      hasIn(interrupted.incomplete, 'row 26x26-hell-1~3: censored', '(6)');
+      const seed = 'landscape/14x14-nightmare/9';
+      const other = await variant('(7)', async (x) => { x.rows[9] = await rowOf(9, { seed }, 10, { seed }); });
+      same([other.failures, other.observed.length], [[], 9], `(7) ${JSON.stringify(other)}`);
+      assert(other.incomplete.includes('row 26x26-hell-1~4 is not its declared request'), `(7) ${JSON.stringify(other)}`);
+      const noSet = await variant('(8)', async (x) => { x.rows[1] = await rowOf(1, { igSetMs: null, partialReason: null }); });
+      same([noSet.failures, noSet.observed.length], [[], 9], `(8) ${JSON.stringify(noSet)}`);
+      assert(noSet.incomplete.includes('row 14x14-nightmare~1: no igSetMs for a completed set'), `(8) ${JSON.stringify(noSet)}`);
+      const cut = (/** @type {number} */ ms) => async (/** @type {{ rows: any[] }} */ x) => {
+        x.rows[2] = { ...x.rows[2], run: await matrixRun('14x14-nightmare', 2, 0, { partialReason: 'set:reserve-cut', igSetMs: null, responseMs: ms }) };
+      };
+      const slowCut = await variant('(9)', cut(110000));
+      same([slowCut.failures, slowCut.incomplete], [['row 14x14-nightmare~2: the set stage ended at 110000 ms, over 48000'], []], `(9) ${JSON.stringify(slowCut)}`);
+      const fastCut = await variant('(10)', cut(46000));
+      same([fastCut.failures, fastCut.incomplete, fastCut.observed.length], [[], [], 10], `(10) ${JSON.stringify(fastCut)}`);
+      const twice = await variant('(11)', async (x) => { x.rows.push(x.rows[0]); });
+      assert(twice.incomplete.includes('row 14x14-nightmare~0 is published 2 times') && !twice.observed.includes('14x14-nightmare~0'), `(11) ${JSON.stringify(twice)}`);
+      const extra = await variant('(12)', async (x) => { x.rows.push({ ...(await rowOf(0)), rowKey: '14x14-nightmare~7', rep: 7, seed: 'landscape/14x14-nightmare/7' }); });
+      assert(extra.incomplete.includes('unexpected row 14x14-nightmare~7') && extra.observed.length === 10, `(12) ${JSON.stringify(extra)}`);
+      const noLink = await variant('(13)', async (x) => { x.journals['14x14-nightmare~0'] = { ...closed('14x14-nightmare~0'), links: null }; });
+      hasIn(noLink.incomplete, 'row 14x14-nightmare~0: journal not closed: no linkage', '(13)');
+      same([noLink.failures, noLink.observed.length], [[], 9], `(13) ${JSON.stringify(noLink)}`);
+      const edge = await variant('(14)', async (x) => { x.rows[1] = await rowOf(1, { igSetMs: 48001 }); });
+      same([edge.failures, edge.incomplete], [['row 14x14-nightmare~1: set stage 48001 ms outside [0, 48000]'], []], `(14) ${JSON.stringify(edge)}`);
+      const unreadable = await variant('(15)', async (x) => { x.journals['14x14-nightmare~3'] = { lines: [], links: null, problems: ['bad json'] }; delete x.journals['14x14-nightmare~4']; });
+      hasIn(unreadable.incomplete, 'row 14x14-nightmare~3: unreadable journals: bad json', '(15)');
+      hasIn(unreadable.incomplete, 'row 14x14-nightmare~4: unreadable journals', '(15)');
+    },
+  },
+  {
+    name: 'live-deadline: verification checks',
+    async run() {
+      const { LIVE_CASES, LIVE_TEST_DEADLINE, verifyChecks } = await import('./live-deadline.mjs');
+      const parentOf = (/** @type {string} */ variant, /** @type {string} */ treeId) => ({
+        variant, chain: ['base', variant], treeId, copyDigest: 'c', edits: [{ id: 'meta-1' }, { id: 'a-1' }, { id: 'meta-2' }],
+        files: { 'core/engine/ig-params.js': 'x' }, params: { variant, callBudget: 1, liveDeadline: 'frozen' },
+      });
+      const twinOf = (/** @type {string} */ parent, /** @type {string} */ twin, /** @type {string} */ treeId) => ({
+        variant: twin, chain: ['base', parent, 'w8', twin], treeId, copyDigest: 'e', edits: [{ id: 'meta-1' }, { id: 'a-1' }, { id: 'w8-1' }, { id: 'meta-2' }],
+        files: { 'core/engine/ig-params.js': 'y' }, params: { variant: twin, callBudget: 1, liveDeadline: structuredClone(LIVE_TEST_DEADLINE) },
+      });
+      const make = () => ({
+        state: { task: 'V4-LIVE-verify', label: 'frozen', done: true, results: LIVE_CASES.map((name) => ({ name, pass: true, reason: null, ms: 1 })) },
+        identity: {
+          format: 'ig-selftest-identity', version: 1, task: 'V4-LIVE-verify', label: 'frozen', group: 'v4', selected: [...LIVE_CASES], harnessHash: 'h',
+          frozenCommit: FROZEN_COMMIT, sourceDigest: FROZEN_DIGEST,
+          trees: {
+            'fr-frozen': { treeId: 't1', paramsHash: 'p1' }, 'fr-frozen-none': { treeId: 't2', paramsHash: 'p2' },
+            'fr-frozen-live-test': { treeId: 'd1' }, 'fr-frozen-none-live-test': { treeId: 'd2' },
+          },
+          startedAt: 'a', endedAt: 'b',
+        },
+        freezeVariants: { 'fr-frozen': { treeId: 't1', paramsHash: 'p1' }, 'fr-frozen-none': { treeId: 't2', paramsHash: 'p2' } },
+        parents: { 'fr-frozen': parentOf('fr-frozen', 't1'), 'fr-frozen-none': parentOf('fr-frozen-none', 't2') },
+        twins: { 'fr-frozen-live-test': twinOf('fr-frozen', 'fr-frozen-live-test', 'd1'), 'fr-frozen-none-live-test': twinOf('fr-frozen-none', 'fr-frozen-none-live-test', 'd2') },
+        harnessHash: 'h',
+      });
+      /** @type {(edit: (x: any) => void) => { observed: string[], failures: string[], incomplete: string[] }} */
+      const run = (edit) => {
+        const x = make();
+        edit(x);
+        return verifyChecks(x);
+      };
+      const ok = run(() => {});
+      same([ok.observed.length, ok.failures, ok.incomplete], [15, [], []], `the clean verification: ${JSON.stringify(ok)}`);
+      const name = LIVE_CASES[3];
+      const incompleteWith = (/** @type {string} */ label, /** @type {(x: any) => void} */ edit, /** @type {string[]} */ texts) => {
+        const got = run(edit);
+        for (const text of texts) {
+          assert(got.incomplete.includes(text), `${label}: ${JSON.stringify(got.incomplete)} lacks "${text}"`);
+        }
+        return got;
+      };
+      incompleteWith('(1)', (x) => { x.identity.task = 'S24-T09a'; }, ['the verification record is S24-T09a/frozen/v4, not V4-LIVE-verify/frozen/v4']);
+      incompleteWith('(2)', (x) => { x.identity.label = 'selftest'; }, ['the verification record is V4-LIVE-verify/selftest/v4, not V4-LIVE-verify/frozen/v4']);
+      incompleteWith('(3)', (x) => { x.identity.trees['fr-frozen-live-test'].treeId = 'd9'; }, ['the verification tested another tree fr-frozen-live-test']);
+      incompleteWith('(4)', (x) => { x.harnessHash = 'g'; }, ['the verification ran another producer']);
+      same(incompleteWith('(5)', (x) => { x.identity = null; }, ['no verification identity']).incomplete, ['no verification identity'], '(5) nothing else');
+      incompleteWith('(6)', (x) => { x.identity.sourceDigest = 'x'; }, ['the verification ran another source']);
+      const failed = run((x) => { x.state.results[3] = { name, pass: false, reason: 'why', ms: 1 }; });
+      same([failed.failures, failed.observed.length], [[`self-test case ${name} failed: why`], 14], `(7) ${JSON.stringify(failed)}`);
+      same(run((x) => { x.state.done = false; }).failures, ['the live verification is not done'], '(8) not done');
+      incompleteWith('(9)', (x) => { x.identity.selected.push(name); }, [`the verification selected ${name} 2 times`]);
+      const missing = run((x) => { x.identity.selected.splice(3, 1); x.state.results.splice(3, 1); });
+      same([missing.observed.length, missing.observed.includes(`self-test:${name}`)], [14, false], `(10) ${JSON.stringify(missing)}`);
+      incompleteWith('(11)', (x) => { x.identity.format = 'x'; }, ['the verification identity is not ig-selftest-identity version 1']);
+      incompleteWith('(12)', (x) => { delete x.identity.endedAt; }, ['the verification identity lacks endedAt']);
+      const twin = 'fr-frozen-live-test';
+      incompleteWith('(13)', (x) => { x.twins[twin].chain = ['base', 'fr-frozen-none', 'w8', twin]; }, [`the test derivative ${twin} is not fr-frozen with w8`]);
+      incompleteWith('(14)', (x) => { x.twins[twin].edits.splice(2, 0, { id: 'x-1' }); }, [`the test derivative ${twin} has an edit other than w8-1`]);
+      incompleteWith('(15)', (x) => { x.twins[twin].params.callBudget = 2; }, [`the test derivative ${twin} changes a parameter other than liveDeadline`]);
+      incompleteWith('(16)', (x) => { x.twins[twin].params.liveDeadline.levels = ['hard']; }, [`the test derivative ${twin} has another test deadline`]);
+      incompleteWith('(17)', (x) => { x.twins[twin].files['core/engine/x.js'] = 'z'; }, [`the test derivative ${twin} adds a file`]);
+      incompleteWith('(18)', (x) => { delete x.parents['fr-frozen']; }, ['no captured tree metadata for fr-frozen']);
+      const stateOnly = incompleteWith('(19)', (x) => { x.state.task = 'S24-T09a'; }, ['the verification state is S24-T09a/frozen, not V4-LIVE-verify/frozen']);
+      assert(!stateOnly.incomplete.some((t) => t.startsWith('the verification record is')), `(19) ${JSON.stringify(stateOnly.incomplete)}`);
     },
   },
 ];
@@ -12300,6 +12447,22 @@ async function main(argv, { historical = HISTORICAL_SELFTEST } = {}) {
     lastInvocation: {
       start: startedAt, end: new Date().toISOString(), seconds, horizonS, progress: { cases: results.length - failures },
     },
+  });
+  // The identity of this run (stages 2 to 4 pack T09a, R13): the producer, the source, the group, the cases run and the
+  // trees they loaded, at execution time; a separate file, so that historical states keep their format.
+  writeJson(join(artifactDir(label, task, 'self-test'), 'identity.json'), {
+    format: 'ig-selftest-identity', version: 1, task, label,
+    group: on.has('items') ? 'items' : on.has('v4') ? 'v4' : on.has('frozen') ? 'frozen' : 'default',
+    selected: results.map((r) => r.name),
+    harnessHash: harnessInfo().harnessHash,
+    frozenCommit: label === 'frozen' ? FROZEN_COMMIT : null,
+    sourceDigest: label === 'frozen' ? await sourceDigest() : null,
+    trees: Object.fromEntries(Object.keys(engines).sort().map((variant) => [variant, {
+      treeId: engines[variant].tree.treeId,
+      copyDigest: engines[variant].tree.copyDigest,
+      paramsHash: sha256(JSON.stringify(engines[variant].tree.params ?? null)),
+    }])),
+    startedAt, endedAt: new Date().toISOString(),
   });
   process.stdout.write(`self-test: ${results.length - failures} passed, ${failures} failed (${seconds} s)\n`);
   return failures === 0 ? 0 : 1;

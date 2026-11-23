@@ -274,13 +274,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 06:03 +07:00 (dispatch, base `fae1b15`); 2026-11-24 06:23 +07:00 (accepted); 20 min. The developer reported 06:02:58-06:07 and, in the fix round, 06:19:34-06:20:48 |
+| Waiting for rulings | about 9 min (QUESTION 1 at 06:07, ruling relayed about 06:16) |
+| Agent id, model | `bf6381f7-03cc-4815-af9c-39b6e6736a9a`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 44 calls; 4,399,818 input, 36,562 output, 4,145,865 cache-read tokens |
+| AI credits | 141.50 (developer only) |
+| Questions and rulings | QUESTION 1 (the existing case `compile: no unresolved argument` asserted that `live-deadline.mjs` does not exist yet): ruling R-P24-13 by SA-Opus, option (a) (the assertion expects every script), with three more fixes (the `## Commands` line break, the stale V4-T11c README sentence, `verifyChecks` naming the identity and the state apart with variant 19); the open details accepted; pack amendment `916c14d` |
+| Fix rounds | 1 (R-P24-13) |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T09a-orch`: 227 passed, 0 failed (35.7 s; cases 226, 227 PASS); the identity gate: `ig-selftest-identity S24-T09a-orch frozen items True`; `firewall check --task S24-T09a`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the three Scope files |
+| Commit | this task's commit |
+| Issues and named items | T09b passes the four captured `ig-tree.json` as parents and twins; the six-tree identity is first exercised in S04 (already in the pack) |

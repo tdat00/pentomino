@@ -136,7 +136,7 @@ node tools\ig-proto\arm.mjs run --task T --arm A --shard S --variant V --workers
 node tools\ig-proto\arm.mjs publish --task T --arm A --label provisional --source-label <label> [--done-only]
 node tools\ig-proto\arm.mjs status --task T --arm A --shard S --label provisional [--check-rows]
 node tools\ig-proto\identity.mjs --task IGP-00 --arms base,log --label provisional
-node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6] [--frozen] [--items] [--task T]   # cases that generate or rate need the lock; --p6 runs every case; --frozen runs only the frozen-source group and --items only the measurement-items group (both unlocked)
+node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6] [--frozen] [--items] [--task T]   # cases that generate or rate need the lock; --p6 runs every case; --frozen runs only the frozen-source group and --items only the measurement-items group (both unlocked); a run writes `self-test/state.json` and `self-test/identity.json`
 node tools\ig-proto\self-test.mjs [--frozen | --items | --v4] --list --label frozen   # prints "<index> <name>" per case of the group; runs nothing, writes nothing (unlocked)
 node tools\ig-proto\fit-prior.mjs [--replace]       # recomputes data\prior-v1.json; exit 1 when it differs (unlocked)
 node tools\ig-proto\freeze.mjs check --label frozen --source-label "frozen 3fc65f4"   # unlocked (T08b): the six checks of the four frozen trees against the freeze's constants
@@ -1734,6 +1734,34 @@ It prints `freeze: <name> pass (<detail>)` per check, then `freeze: check pass (
 - **Self-test.** One case of the `--items` group: `freeze: classes, bounds and values` (`classOf` at every bound, the 19 distinct cells, the two arms of
   each class, each cell in its class, the five class ids of `W`).
 
+### The live-deadline receipt (T09a to T09c)
+
+`live-deadline.mjs` will hold the receipt of kind `live-deadline` (N-V4-13): it binds the live verification of S04 and the ten rows of `V4-LIVE` for both
+bounded twins. It is unlocked and rates nothing. T09a adds its constants and pure checks; T09b adds the receipt.
+
+- **The identity record.** Every self-test run (any group) writes `self-test/identity.json` after `self-test/state.json`, which keeps its format: `format`
+  `ig-selftest-identity`, `version` 1, `task`, `label`, `group` (`items`, `v4`, `frozen` or `default`), `selected` (the names of the cases it ran),
+  `harnessHash`, `frozenCommit` and `sourceDigest` (null unless the label is `frozen`), `trees` (for each tree the run loaded: `treeId`, `copyDigest` and
+  `paramsHash`, the SHA-256 of the tree's `params` JSON) and `startedAt`, `endedAt`. Older states have no identity file.
+- **The declared rows and the coverage.** `LIVE_DECLARED` are the ten requests of `V4-LIVE` (`fr-frozen` on `14x14-nightmare` and `26x26-hell-1`, reps 0 to 4,
+  seed `landscape/<case>/<rep>`); `LIVE_CASES` are the fifteen self-test cases of the verification (the seven factory cases on each bounded twin,
+  `fr-frozen-live-test` and `fr-frozen-none-live-test`, and `fz: the live deadline on the frozen trees`); `LIVE_COVERAGE` is the 25 ids: the ten row keys
+  and `self-test:<case>` for each case.
+- **The row rule** (`rowChecks(rows, journals)`). Each declared key once, of its declared case, rep and seed; an unexpected or repeated row is incomplete.
+  `ingestRow` judges the row: `invalid` and `censored` make coverage incomplete; `incorrect`, `error` and a `child-timeout` error (a row killed at its limit)
+  fail. A response outside 0 to 120,000 ms fails. The reserve holds on both set paths: a failed set (`partialReason` `set:<reason>`, the reserve cut
+  included) must answer within 48,000 ms; a completed set needs a finite `igSetMs` (missing: incomplete) in 0 to 48,000 ms. A row's worker journals and
+  link file must be readable and `rowLedger` must find the ledger closed; otherwise the row is incomplete, never `reserveChecked`.
+- **The verification rule** (`verifyChecks`). The identity record must be `ig-selftest-identity` version 1 with its fields, of the task `V4-LIVE-verify`,
+  label `frozen` and group `v4` (and the state of the same task and label), run by today's producer on the frozen commit and source digest, and must have loaded the trees of `freeze.json`'s two
+  arms (tree id and parameter hash) and the two test derivatives (the captured tree id). Each `LIVE_CASES` name must be selected once and have a passing
+  result; a failed case fails, and `done` must be true.
+- **The derivation of a test twin** (`twinDerivationProblems`, on the captured `ig-tree.json`). A twin is its frozen parent with `w8` and its test deadline
+  and nothing else: its chain is the parent's, then `w8`, then the twin; its edits are the parent's plus `w8-1` before the generated `meta-2`; it adds no
+  file; its parameters equal the parent's apart from `variant` and `liveDeadline`; and its `liveDeadline` is `LIVE_TEST_DEADLINE`. A twin whose tree id
+  matches the identity record but whose derivation differs is refused.
+- **Self-test.** Two cases of the `--items` group: `live-deadline: row checks` and `live-deadline: verification checks`.
+
 ## Admission statistics (V4-T09a)
 
 The statistics of plan section 5.2 are fixed in code before any validation seed runs (the provisional seeds are
@@ -2563,8 +2591,9 @@ this section executes any plan, rating, pool or measurement (unlocked). The matr
   'LIVE_DEADLINE_FIELDS'`, its `expected.fields` equal T04d's `LIVE_DEADLINE_FIELDS` (else `<path> lacks the live-deadline fields`); `{ type:
   'selection', path, activation }` (V4-T11f, below) when the class-selection receipt at `path` passes `proofCheck` against the expectation of the
   activation record (else `selection: <reason>`); another type is `unknown prerequisite <type>`. A parity, P-0, stage-1 or live-deadline receipt is
-  a prerequisite only through its accepted binding (RV3-06); the class-selection receipt is checked against records the gate reads itself. Today
-  `V4-S2` passes and `V4-LIVE` is blocked on `fr-frozen`, `freeze.json`, `live-deadline.mjs` and the P-0 binding, as it must be.
+  a prerequisite only through its accepted binding (RV3-06); the class-selection receipt is checked against records the gate reads itself. At its
+  compile `V4-S2` passed and `V4-LIVE` was blocked on `fr-frozen`, `freeze.json`, `live-deadline.mjs` and the P-0 binding, as it must be; the
+  stages 2 to 4 pack supplies them: the P-0 binding (accepted by `V4-S2`), the variant (T08a), the tool (T09a) and the freeze record (T12b).
 - **PowerShell readers.** A rows step's `price` holds `rows` and `rowS`, keys that differ only in case, which PowerShell 7's
   `ConvertFrom-Json` refuses. `run-task.ps1` therefore reads a plan with `ConvertFrom-Json -AsHashtable` (line 39; the state files and the
   budget decisions are read as before, and every earlier plan reads as before: the dry run of `plans/V4-T10c.json` is identical), and any
