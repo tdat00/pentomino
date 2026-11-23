@@ -44,7 +44,8 @@ index of T12a with the captured harness sources, and the proofs of the epoch. `a
 - Change: `tools/ig-proto/self-test.mjs`: two cases appended to `itemCases`.
 - Create (by step 1): the captures `docs/improve-generating/evidence/frozen/V4-S3/fit-sources/tools/ig-proto/...` (one
   file per captured path); (by the command) `docs/improve-generating/evidence/frozen/V4-S3/freeze.json` and `freeze.md`.
-- Change: `tools/ig-proto/README.md`: the subsection `### freeze.json (T12a, T12b)`; `## Commands` gains the `write` line.
+- Change: `tools/ig-proto/README.md`: the subsection `### freeze.json (T12a, T12b)`; `## Commands` gains the `write` line;
+  two phrases of the subsection `### The freeze checks (T08b)` (Documentation, ruling R-P24-12).
 - Guards: G1, G2 (new files only), G3 (the three code files and the new files of the Scope).
 
 ## Steps
@@ -156,7 +157,8 @@ index of T12a with the captured harness sources, and the proofs of the epoch. `a
 6. Add to `freezeChecks()` a seventh check, `record`, only when `abs(FREEZE_PATH)` exists: the file's `classes`,
    `bounds`, `tables`, `values` and `seeds` deep-equal the constants, its `variants` equal the four trees' identities
    today, and `freezeMismatch(<the file>, <the comparator cells of check 1>)` is empty; `main`'s summary line then says
-   `(7 checks; ...)`.
+   `(7 checks; ...)` (T08b's `main` prints `checks.length` in both lines, `(<k> checks; ...)` and `(<n> of <k>)`, so it
+   needs no change for this; R-P24-12).
 7. Run `node tools\ig-proto\freeze.mjs check ...` (six pass), then `node tools\ig-proto\freeze.mjs write --task V4-S3
    --label frozen --source-label "frozen 3fc65f4"`, then the check again (seven pass), then the second `write` (refused).
 
@@ -176,6 +178,15 @@ copies; the seeds used), its readers (`activate`, `V4-LIVE`'s prerequisites, the
 and its acceptance), the refusals of `write`, "written once; a different freeze is a new task id and file", the seventh
 check; `## Commands` gains `node tools\ig-proto\freeze.mjs write --task V4-S3 --label frozen --source-label "frozen
 3fc65f4"` (once, by T12b).
+
+In the subsection `### The freeze checks (T08b)` (ruling R-P24-12), exactly these edits, each paragraph rewrapped to the
+section's width and nothing else changed:
+
+- in check 5, the words "the two screen arms differ only in" become "the screen arm `fr-frozen` and the no-screen arm
+  `fr-frozen-none` differ only in";
+- in the paragraph on the output, `(6 checks;` becomes `(<k> checks;`, `(<n> of 6)` becomes `(<n> of <k>)`, and "and
+  exits 1." becomes "and exits 1, where `<k>` is 6, or 7 once `freeze.json` exists (the seventh check, `record`, in
+  `### freeze.json (T12a, T12b)`)."
 
 ## Commands and gates
 
