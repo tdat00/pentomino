@@ -2763,6 +2763,8 @@ and the verdicts, T03c the bindings, the go rule and the commands.
   slots exist, and used only while the reference slots plus them stay within `limits.memoryBytes` and the arena's bytes plus them within its capacity
   (`igListArrays`; `igListBytes(model) = 4 (3 NZ + 2 C)`); each call reports `igRepresentation` and `igListBytes` in its diagnostics object;
   `verifyUndo` also checks the lists.
+- **`p7-c1r5` (T04)**: `p7-c1` plus R5 on the live-row lists (the cell column scanned to the second piece, charged `k - colStart[c] + 1` at the
+  break; the claimed piece's column scanned on its list). A spike variant, never an arm.
 - **Self-test**: `--items` (unlocked): `p7: settings, work inputs and limits`, `p7: outcomes, fixtures and declarations`, `p7: the experiment declaration`,
   `p7: equality verdict`, `p7: timing verdict`, `p7: bindings and go`; `--v4` (locked): `p7: equality
   items of base against base`, `p7: timing items of base against base`, `p7: C1 memory rule (p7-c1)`.

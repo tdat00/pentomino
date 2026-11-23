@@ -184,13 +184,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 02:21 +07:00 (dispatch, base `729035e`); 2026-11-24 02:35 +07:00 (accepted); 15 min. The developer reported 02:21:20-02:33:52 |
+| Waiting for rulings | none |
+| Agent id, model | `788d1fc2-b4f8-4115-8771-859fa1a0a348`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 18 calls; 1,119,131 input, 10,737 output, 1,074,477 cache-read tokens |
+| AI credits | 32.64 (developer only) |
+| Questions and rulings | none; outcome: complete equality (no dropped-candidate ruling needed). The developer's notes (the command's markdown `\|` typed as `|`; 4 of the loop's 8 invocations needed; the README bullet placed as in T03d) change no behaviour |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `check-edits --all`: `ok p7-c1: 9 edits match`, `ok p7-c1r5: 10 edits match`; `build p7-c1r5`: tree `e593e48c...` reused; `V4-P7E-p7-c1r5-quick/p7.json`: `equal.verdict` equal, coverage complete, 149 items, 149 ended, 149 equal, 0 problems (the developer's quick equality run: 4 locked invocations, 181.4 + 182.0 + 155.5 + 94.0 s); `check-binding` of P-0: pass; `firewall check --task S24-T04`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the Scope files |
+| Commit | this task's commit |
+| Issues and named items | none |
