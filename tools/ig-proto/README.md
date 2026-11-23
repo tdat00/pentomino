@@ -139,6 +139,7 @@ node tools\ig-proto\identity.mjs --task IGP-00 --arms base,log --label provision
 node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6] [--frozen] [--items] [--task T]   # cases that generate or rate need the lock; --p6 runs every case; --frozen runs only the frozen-source group and --items only the measurement-items group (both unlocked)
 node tools\ig-proto\self-test.mjs [--frozen | --items | --v4] --list --label frozen   # prints "<index> <name>" per case of the group; runs nothing, writes nothing (unlocked)
 node tools\ig-proto\fit-prior.mjs [--replace]       # recomputes data\prior-v1.json; exit 1 when it differs (unlocked)
+node tools\ig-proto\freeze.mjs check --label frozen --source-label "frozen 3fc65f4"   # unlocked (T08b): the six checks of the four frozen trees against the freeze's constants
 node tools\ig-proto\verify.mjs --task T --arm A[,A2] --label provisional --source-label <label> --horizon-s 285   # locked
 node tools\ig-proto\compare.mjs --task T --pairs before:after --reference mp12b1 --label provisional                # unlocked
 node tools\ig-proto\compare.mjs --task IGP-03 --pairs IGP-01/before:w095,IGP-01/after:a3 --reference mp12b1 --pm4 IGP-02 --label provisional   # study
@@ -1670,6 +1671,45 @@ and differ only in parameters (`variants/fr-frozen.json`, `fr-frozen-none.json`,
   ids until then.
 - **Self-test.** One case of the `--v4` group (through the lock helper): `fr: the four frozen variants and their differences` (the chain, the parameters
   above, the differences, the uncapped twins, each algo id), which prints a `NOTE` line with the four tree ids and parameter hashes.
+
+### The freeze checks (T08b)
+
+`freeze.mjs` holds the freeze of plan 4.1 and 4.2 as constants (`FREEZE_CLASSES`, `FREEZE_BOUNDS`, `FREEZE_TABLES`, `FREEZE_VALUES`, `FROZEN_VARIANTS`;
+`classOf(levelId, area)` gives the class of a board) and proves the four frozen trees against them before the record `freeze.json` exists (T12b writes it
+once; `check` writes nothing, builds or reuses the trees, rates nothing and runs unlocked). The 19 comparator cells of the initial collection, each in one
+class:
+
+| Class | Cells | Bounds | `W` of `fr-frozen` (`fr-frozen-none`: none) |
+|---|---|---|---|
+| `n-small` | `3x29`, `10x10`, `12x12` Nightmare | Nightmare, 1 to 144 cells | none |
+| `n-mid` | `14x14`, `15x15b10`, `16x16` Nightmare | Nightmare, 196 to 256 | 190 M |
+| `n-upper` | `15x20`, `18x18` Nightmare | Nightmare, 257 to 324 | 190 M |
+| `n-large` | `18x20`, `20x20`, `20x21`, `32x15`, `22x22`, `24x24`, `26x26` Nightmare | Nightmare, 360 and more | 190 M |
+| `hell-1` | `14x14`, `20x20`, `24x24`, `26x26` Hell 1 | Hell 1, any area | none |
+
+The six checks, in this order (a failure is a question for the pack author, never a changed constant):
+
+1. `classes`: T11e's pure `activation` over the default expansion and the published `V4-S2` pilots gives 19 comparator cells, both conditional boards
+   (24x24 and 14x14 Hell 1) activated, and `freezeMismatch` (`activate`'s own refusal) finds no cell outside a class, in two classes or unmeasured.
+2. `bounds`: every cell's catalogue level and area fall in its class by `FREEZE_BOUNDS`.
+3. `runtime W`: for each of the 19 cells on `fr-frozen` and on `fr-frozen-none`, the tree's own `classW` returns the class value (190 M, or `DEDUCE.work`
+   for none), so the runtime classes (`n-mid` covers 196 to 324) apply the freeze's.
+4. `parameters`: the tables, `callBudget`, `setAttemptsBound`, `c4`, `rerate`, `rerateMax`, `perSetLevels` and `liveDeadline` of `fr-frozen` are the
+   values; `setStageCapMs` is `round((1 - reserve) x generationStopMs)`, and `generationStopMs` and `responseBoundMs` are the tree's `TIME.dispatchStopMs`
+   and `TIME.responseMs`; `fr-frozen-none` has `screen-s3-none` and four null classes.
+5. `differences`: each uncapped twin differs from its arm exactly in the matrix's `comparatorDifferences` (`callBudget`, `liveDeadline`,
+   `setAttemptsBound`), all null; the two screen arms differ only in `screenClasses` and `screenTable`.
+6. `prior`: `data/prior-s3-v1.json` is reproduced by `computePriorS3` and is `fr-frozen`'s `prior`.
+
+```
+node tools\ig-proto\freeze.mjs check --label frozen --source-label <SL>
+```
+
+It prints `freeze: <name> pass (<detail>)` per check, then `freeze: check pass (6 checks; <variant> <first 12 hex of the tree id>, ...)` and exits 0, or
+`freeze: check failed (<n> of 6)` and exits 1. `readPilots` and `freezeMismatch` of `manifest.mjs` are exported for it (no other change).
+
+- **Self-test.** One case of the `--items` group: `freeze: classes, bounds and values` (`classOf` at every bound, the 19 distinct cells, the two arms of
+  each class, each cell in its class, the five class ids of `W`).
 
 ## Admission statistics (V4-T09a)
 

@@ -9062,6 +9062,26 @@ const itemCases = [
       same([196, 400, 576, 676].map((a) => cells[`hell-1@${a}`].n), [68, 75, 70, 64], 'the pilots\' n');
     },
   },
+  {
+    name: 'freeze: classes, bounds and values',
+    async run() {
+      const { classOf, FREEZE_CLASSES, FREEZE_VALUES } = await import('./freeze.mjs');
+      same([['nightmare', 87], ['nightmare', 144], ['nightmare', 145], ['nightmare', 195], ['nightmare', 196], ['nightmare', 256], ['nightmare', 257],
+        ['nightmare', 324], ['nightmare', 325], ['nightmare', 359], ['nightmare', 360], ['nightmare', 676], ['hell-1', 196], ['hard', 100]]
+        .map(([level, area]) => classOf(/** @type {string} */ (level), /** @type {number} */ (area))),
+      ['n-small', 'n-small', null, null, 'n-mid', 'n-mid', 'n-upper', 'n-upper', null, null, 'n-large', 'n-large', 'hell-1', null], 'classOf at the bounds');
+      const cells = FREEZE_CLASSES.flatMap((c) => c.cells);
+      same([cells.length, new Set(cells).size], [19, 19], 'the 19 distinct cells');
+      assert(FREEZE_CLASSES.every((c) => c.screen === 'fr-frozen' && c.noScreen === 'fr-frozen-none'), 'every class names its two arms');
+      for (const cls of FREEZE_CLASSES) {
+        for (const cell of cls.cells) {
+          const { levelId, area } = caseBoard(cell);
+          same(classOf(levelId, area), cls.id, `${cell} is in ${cls.id}`);
+        }
+      }
+      same(Object.keys(FREEZE_VALUES.W), ['n-small', 'n-mid', 'n-upper', 'n-large', 'hell-1'], 'W has the five class ids');
+    },
+  },
 ];
 
 /**

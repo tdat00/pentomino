@@ -195,13 +195,13 @@ evidence; the questions and rulings; the deviations; and the named items for lat
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 05:43 +07:00 (dispatch, base `80581ca`); 2026-11-24 05:54 +07:00 (accepted); the developer reported 05:43:53-05:47:02 |
+| Waiting for rulings | about 5 min (the pack author's review) |
+| Agent id, model | `368cffd0-3cab-436b-b978-49d612c7ad44`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 30 calls; 2,688,849 input, 21,324 output, 2,594,965 cache-read tokens |
+| AI credits | 70.74 (developer only) |
+| Questions and rulings | no QUESTION; the six open details accepted by SA-Opus as ruling R-P24-12 (the 19-cell and activation rule is step 4.1's; unknown flags are refused by `parseArgs` for every command); two README phrases routed to T12b |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `freeze.mjs check`: six checks pass (classes 19 comparator cells, conditional 24x24-hell-1 and 14x14-hell-1 activated; bounds; runtime W 38 cells; parameters prior-s3-v1, screen-s3-v1, budget-s3-v1, deadline-s3-v1; differences; prior 27 cells; trees b3e530b1bca5, fa903f397ef6, 96ef38e2fd6d, e31d829dee8d); `self-test --items --task S24-T08b-orch`: 225 passed, 0 failed (35.3 s); `check-prerequisites --plan V4-LIVE`: blocked (missing freeze.json and live-deadline.mjs), as expected; `manifest.mjs` diff: the two `export` keywords only; `firewall check --task S24-T08b`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the four Scope files |
+| Commit | this task's commit |
+| Issues and named items | none |

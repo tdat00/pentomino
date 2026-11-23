@@ -2008,7 +2008,7 @@ export function activationPlans(expansion, record, priceOf, { activationSha256, 
  * @returns {Record<string, unknown[]>} For each conditional board, the `run` of every row of that case with a pilot rep (`reps.pilot`);
  *   none when the folder does not exist. A row published twice throws: three valid requests are three distinct reps.
  */
-function readPilots(dir, data) {
+export function readPilots(dir, data) {
   const [from, to] = repsOf(data, 'pilot');
   /** @type {Record<string, unknown[]>} */
   const pilots = Object.fromEntries(cellList(data.cells.hell1Conditional, 'cells.hell1Conditional').map((cell) => [cell, []]));
@@ -2410,7 +2410,7 @@ const classArmsOf = (freeze) => [...new Set(freeze.classes.flatMap((c) => [c.scr
  *   class, in the record's order), `in more than one class <cells>` (comparator cells, in the record's order) and `not measured <cells>`
  *   (class cells that are no comparator cell, sorted); each list is joined by `, `.
  */
-function freezeMismatch(freeze, comparatorCells) {
+export function freezeMismatch(freeze, comparatorCells) {
   /** @type {Map<string, number>} */
   const count = new Map();
   for (const { cells } of freeze.classes) {
