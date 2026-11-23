@@ -1,0 +1,8 @@
+{
+  "id": "fr-frozen-uncapped",
+  "extends": ["fr-frozen"],
+  "description": "Comparator (stages 2 to 4 pack T08a, RV3-04): fr-frozen without the call budget, the set-attempt bound and the live deadline (two separate timers as today).",
+  "edits": [],
+  "files": [],
+  "params": { "callBudget": null, "setAttemptsBound": null, "liveDeadline": null }
+}

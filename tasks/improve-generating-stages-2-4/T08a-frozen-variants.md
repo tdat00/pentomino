@@ -235,13 +235,13 @@ later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 05:37 +07:00 (dispatch, base `7bfa920`); 2026-11-24 05:43 +07:00 (accepted); the developer reported 05:37:18-05:39:09 |
+| Waiting for rulings | about 4 min (the pack author's review) |
+| Agent id, model | `52f2b9dc-5853-4262-a579-df1a1884c407`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 20 calls; 1,239,945 input, 13,154 output, 1,185,632 cache-read tokens |
+| AI credits | 38.59 (developer only) |
+| Questions and rulings | no QUESTION; the three deviations accepted by SA-Opus as ruling R-P24-11, which corrected the pack's T08a-T01 ("84" to "90 matching edits"; a stale figure) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `build` of the four frozen variants: all reused (`fr-frozen` b3e530b1..., `fr-frozen-none` fa903f39..., `fr-frozen-uncapped` 96ef38e2..., `fr-frozen-none-uncapped` e31d829d...); `check-edits --all`: `90 edits match` for each; the locked selection block (`--v4`, `S24-T08a-orch`): `fr: the four frozen variants and their differences` PASS with the NOTE of tree ids and parameter hashes, `cases: 1 passed, as required`; P-0 binding pass; `firewall check --task S24-T08a`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the six Scope files |
+| Commit | this task's commit |
+| Issues and named items | the four trees are a candidate epoch until T12b records them (check-list §3.3); T08b checks the runtime classes per comparator cell |

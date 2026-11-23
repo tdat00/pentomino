@@ -1,0 +1,11 @@
+{
+  "id": "fr-frozen-none",
+  "extends": ["fr-frozen"],
+  "description": "Frozen arm (stages 2 to 4 pack T08a): fr-frozen with no screen in any class (screen-s3-none); everything else frozen.",
+  "edits": [],
+  "files": [],
+  "params": {
+    "screenTable": "screen-s3-none",
+    "screenClasses": { "hell-1": null, "n-small": null, "n-mid": null, "n-large": null }
+  }
+}

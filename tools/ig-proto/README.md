@@ -1528,6 +1528,8 @@ re-checks the stage-1 results on the final trees.
   a real call's `start` line per arm and level), `fr: bracket-close re-rating (synthetic)` and `fr: (c4) probe
   (synthetic)` (the ordinals of the family subset and of the sample, with the skip and the double skip).
 
+The stage-4 arms of the matrix are written by the stages 2 to 4 pack (see `## The frozen family`).
+
 ## The frozen family (stages 2 to 4 pack)
 
 The variants, tables and checks of the freeze of plan v4's stage 3 and of the stage-4 runs; plan
@@ -1629,6 +1631,45 @@ then the batch's; with the parameter both share one clock from the request start
 - **Self-test.** Eleven cases of the `--v4` group: `live: the pool starts a request at its origin`, `live: igLiveOf rule`, `live: inert without its
   parameter`, `live live-test: the host's hard response bound`, `live: the host bound is inert without its parameter` and the six scripted cases above
   (`live live-test: ...`).
+
+### The four frozen variants (T08a)
+
+The four stage-4 arms of `data/frozen-round-v1.json` are four manifests with no edit and no file of their own: they share the one edit set of their chain
+and differ only in parameters (`variants/fr-frozen.json`, `fr-frozen-none.json`, `fr-frozen-uncapped.json`, `fr-frozen-none-uncapped.json`). Each algo id is
+`gen-v4-proto:<variant>` (at most 36 characters; the longest is `gen-v4-proto:fr-frozen-none-uncapped`).
+
+| Arm | Extends | Role |
+|---|---|---|
+| `fr-frozen` | `fr-base`, `v4-ps`, `v4-p5`, `live`, `p5-mode`, `ps-levels` | the freeze |
+| `fr-frozen-none` | `fr-frozen` | the freeze without any screen |
+| `fr-frozen-uncapped` | `fr-frozen` | the comparator of `fr-frozen` (RV3-04): no call budget, no set-attempt bound, no live deadline |
+| `fr-frozen-none-uncapped` | `fr-frozen-none` | the comparator of `fr-frozen-none` (RV3-04), uncapped the same way |
+
+- **The chain** of `fr-frozen` is `base > instr > log > v4 > link > v4-link > fr-base > v4-ps > v4-p5 > live > p5-mode > ps-levels > fr-frozen`
+  (`lib/tree.mjs` `chainOf`: depth first, ancestors first, each once). Its 90 edits are the 57 of `fr-base`, 7 of `v4-ps`, 3 of `v4-p5`, 19 of `live`, 2 of
+  `p5-mode` and 2 of `ps-levels`. Parameters merge in chain order and `paramFiles` override by name, so its `prior` is `data/prior-s3-v1.json` (T06a)
+  instead of `v4`'s `prior-v1`.
+- **The parameters of `fr-frozen`** (plan 4.1, D-P24-02):
+
+  | Parameter | Value |
+  |---|---|
+  | `priorTable` | `prior-s3-v1` (27 cells) |
+  | `screenTable`, `screenClasses` | `screen-s3-v1`; `hell-1` none, `n-small` none, `n-mid` 190 M, `n-large` 190 M |
+  | `rerate`, `rerateMax`, `c4` | `rescue`, 4, `false` |
+  | `callBudget` | `budget-s3-v1`; `any` Nightmare 10 G, Hell 1 40 G; `require` Nightmare 32 G, Hell 1 40 G |
+  | `setAttemptsBound` | 4 |
+  | `liveDeadline` | `deadline-s3-v1`; levels `nightmare` and `hell-1`, `reserve` 0.6, `setStageCapMs` 46000, `generationStopMs` 115000, `responseBoundMs` 120000, `hostMarginMs` 1000 |
+  | `perSetLevels` | `['hell-1']` (the per-set prior of `v4-ps`, on Hell 1 only) |
+
+- **The differences.** `fr-frozen-none` differs from `fr-frozen` only in `screenTable` (`screen-s3-none`) and `screenClasses` (no class has a screen).
+  Each uncapped twin differs from the arm it judges only in `callBudget`, `setAttemptsBound` and `liveDeadline`, all three `null`, which makes each inert:
+  `igModeBudget` leaves the context, `igSetBound` does not fire, `igLiveOf` and `igBoundStart` keep today's two timers.
+- **Runtime classes.** `ig-select-v4.js` keeps four classes (`n-small` up to 144 cells, `n-mid` 196 to 324, `n-large` 360 and more, `hell-1`); the freeze's
+  `n-mid` (196 to 256 cells) and `n-upper` (257 to 324) both fall in the runtime `n-mid`, at 190 M. T08b checks it per comparator cell.
+- **A candidate epoch** until T12b records it in `freeze.json`: the four trees are proved by `V4-S3P` and read by T11, and nothing else depends on their tree
+  ids until then.
+- **Self-test.** One case of the `--v4` group (through the lock helper): `fr: the four frozen variants and their differences` (the chain, the parameters
+  above, the differences, the uncapped twins, each algo id), which prints a `NOTE` line with the four tree ids and parameter hashes.
 
 ## Admission statistics (V4-T09a)
 

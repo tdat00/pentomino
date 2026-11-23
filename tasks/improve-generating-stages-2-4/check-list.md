@@ -45,7 +45,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T07a The live request deadline in the client and the pool (`live`) (depends on T06b)
 - [x] T07b The live request deadline's hard response bound in the host (depends on T07a)
 - [x] T07c The live request deadline's scripted-pool cases (depends on T07b)
-- [ ] T08a The four frozen variants, a candidate epoch (depends on T07c)
+- [x] T08a The four frozen variants, a candidate epoch (depends on T07c)
 - [ ] T08b The freeze's constants and checks (`freeze.mjs check`) (depends on T08a)
 - [ ] T08c The frozen family's real-call and live cases on the frozen trees (depends on T08b)
 - [ ] T09a The live verification's identity record and the live-deadline row and verification checks (depends on T08c)
@@ -614,7 +614,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T07a | 2026-11-24 05:21 | 2026-11-24 05:25 | about 5 min | 46.59 | this task's commit |
 | T07b | 2026-11-24 05:25 | 2026-11-24 05:30 | about 6 min | 46.37 | this task's commit |
 | T07c | 2026-11-24 05:30 | 2026-11-24 05:37 | about 7 min | 51.54 | this task's commit |
-| T08a | | | | | |
+| T08a | 2026-11-24 05:37 | 2026-11-24 05:43 | about 9 min | 38.59 | this task's commit |
 | T08b | | | | | |
 | T08c | | | | | |
 | T09a | | | | | |

@@ -12019,6 +12019,44 @@ const v4Cases = [
     },
   },
         ...liveCases('live-test'),
+  {
+    name: 'fr: the four frozen variants and their differences',
+    async run() {
+      const ids = ['fr-frozen', 'fr-frozen-none', 'fr-frozen-uncapped', 'fr-frozen-none-uncapped'];
+      /** @type {Record<string, any>} */
+      const trees = {};
+      for (const id of ids) {
+        trees[id] = await ensureTree(id);
+      }
+      same(trees['fr-frozen'].chain, ['base', 'instr', 'log', 'v4', 'link', 'v4-link', 'fr-base', 'v4-ps', 'v4-p5', 'live', 'p5-mode', 'ps-levels', 'fr-frozen'], 'the chain of fr-frozen');
+      const p = trees['fr-frozen'].params;
+      same([p.priorTable, p.screenTable, p.rerate, p.rerateMax, p.c4, p.setAttemptsBound, p.perSetLevels, p.perSetPrior],
+        ['prior-s3-v1', 'screen-s3-v1', 'rescue', 4, false, 4, ['hell-1'], true], 'fr-frozen: the scalar parameters');
+      same(p.screenClasses, { 'hell-1': null, 'n-small': null, 'n-mid': 190000000, 'n-large': 190000000 }, 'fr-frozen: the classes');
+      same(p.callBudget, { id: 'budget-s3-v1', any: { nightmare: 10000000000, 'hell-1': 40000000000 }, require: { nightmare: 32000000000, 'hell-1': 40000000000 } }, 'fr-frozen: the budget');
+      same(p.liveDeadline, { id: 'deadline-s3-v1', levels: ['nightmare', 'hell-1'], reserve: 0.6, setStageCapMs: 46000, generationStopMs: 115000, responseBoundMs: 120000, hostMarginMs: 1000 }, 'fr-frozen: the deadline');
+      same([Object.keys(p.prior).length, p.prior['hell-1@400'].share, p.prior['nightmare@196'].caseId], [27, 0.368421, '14x14-nightmare'], 'fr-frozen: the prior table prior-s3-v1');
+      const differs = (/** @type {string} */ a, /** @type {string} */ b) => {
+        const A = trees[a].params;
+        const B = trees[b].params;
+        return [...new Set([...Object.keys(A), ...Object.keys(B)])].filter((k) => k !== 'variant' && !isDeepStrictEqual(A[k], B[k])).sort();
+      };
+      same(differs('fr-frozen', 'fr-frozen-uncapped'), ['callBudget', 'liveDeadline', 'setAttemptsBound'], 'fr-frozen against its comparator');
+      same(differs('fr-frozen-none', 'fr-frozen-none-uncapped'), ['callBudget', 'liveDeadline', 'setAttemptsBound'], 'fr-frozen-none against its comparator');
+      same(differs('fr-frozen', 'fr-frozen-none'), ['screenClasses', 'screenTable'], 'the two screen arms');
+      for (const id of ['fr-frozen-uncapped', 'fr-frozen-none-uncapped']) {
+        same([trees[id].params.callBudget, trees[id].params.setAttemptsBound, trees[id].params.liveDeadline], [null, null, null], `${id} is uncapped`);
+      }
+      /** @type {string[]} */
+      const notes = [];
+      for (const id of ids) {
+        const { ALGO_ID } = await import(pathToFileURL(join(trees[id].root, 'core', 'engine', 'version.js')).href);
+        assert(ALGO_ID === `gen-v4-proto:${id}` && ALGO_ID.length <= 36, `${id}: algo ${ALGO_ID}`);
+        notes.push(`${id} ${trees[id].treeId} ${sha256(JSON.stringify(trees[id].params))}`);
+      }
+      process.stdout.write(`NOTE fr frozen trees (tree id, parameter hash): ${notes.join('; ')}\n`);
+    },
+  },
 ];
 
 /** @param {string} text @returns {string} The text without the worktree's absolute root (records refuse it). */
