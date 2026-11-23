@@ -288,13 +288,13 @@ each AC row with its evidence; the questions and rulings; the deviations; and th
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 05:21 +07:00 (dispatch, base `566caa9`); 2026-11-24 05:25 +07:00 (accepted); the developer reported 05:21:24-05:23:18 |
+| Waiting for rulings | none |
+| Agent id, model | `781d70e3-1650-488f-85c0-0fbb1bcc6808`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 20 calls; 1,552,518 input, 13,898 output, 1,480,972 cache-read tokens |
+| AI credits | 46.59 (developer only) |
+| Questions and rulings | none; no behaviour deviation (the snapshot command run twice, the second reporting it already taken) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `build live`: tree `8e10e7a1...` reused; `check-edits --all`: `ok live: 66 edits match`, exit 0; the locked selection block (`--v4`, `S24-T07a-orch`): the three `live:` cases PASS, `IG ... exit=0 seconds=2.735 quiet=15`, `cases: 3 passed, as required`; P-0 binding pass; `firewall check --task S24-T07a`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the three Scope files |
+| Commit | this task's commit |
+| Issues and named items | `lv-5` to `lv-8` (the set-stage cut, its timer and the batch origin) are exercised by T07c's scripted cases |

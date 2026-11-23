@@ -9224,6 +9224,9 @@ const synthetic = (score, { work = 1, Gproved = 1, stop = 'exhausted' } = {}) =>
 /** The synthetic band of the P1 cases: it sits above Hard's edge, so the AR1 refusal applies. */
 const BAND = Object.freeze({ id: 'st-band', min: 55, max: 70, share: 0.3 });
 
+/** The generation fixture of tests/fixtures/generation-case.json (read, never written): a 6x10 'hard' request (T07a). */
+const LIVE_RECIPE = () => JSON.parse(readFileSync(join(ROOT, 'tests', 'fixtures', 'generation-case.json'), 'utf8'));
+
 /** @returns {Promise<{ seedText: string, carved: any }>} The first of ig-selftest/proto/k15/0..49 of 10x10-master with 15 pieces. */
 async function k15Set() {
   if (memo.k15 === undefined) {
@@ -11444,6 +11447,92 @@ const v4Cases = [
       const guarded = 'const igPrior = igPerSetLevel(levelId) ? igPriorOf(request.calibration, levelId, uniqueness) : {};';
       same(text.split(guarded).length - 1, 1, 'the guarded igPrior line');
       same(text.split('const igPrior = igPriorOf(').length - 1, 0, 'the unguarded igPrior line');
+    },
+  },
+  {
+    name: 'live: the pool starts a request at its origin',
+    async run() {
+      const { createPool, PoolAbortError } = await browserModule(await engine('live'), 'worker-pool');
+      const recipe = LIVE_RECIPE();
+      const h = harness(createPool, { size: 1 });
+      /** @type {any[]} */
+      const timeouts = [];
+      const onTimeout = (/** @type {any} */ info) => timeouts.push(info);
+      const task = (/** @type {number} */ requestId, /** @type {string} */ revision) => ({
+        requestId, revision, kind: 'setAttempt',
+        payload: { boardRows: recipe.boardRows, rotation: 0, levelId: 'hard', seedText: 'fixture-set-0', uniqueness: 'any', attempt: 0 },
+      });
+      const stopsAfter = async (/** @type {string} */ what, /** @type {number} */ requestId, /** @type {number} */ ms) => {
+        const t = track(h.pool.run(task(requestId, `r${requestId}`)));
+        await settle();
+        h.clock.advance(ms - 1);
+        await settle();
+        assert(t.state === 'pending', `${what}: the task ended ${ms - 1} ms after the dispatch (${t.state})`);
+        h.clock.advance(1);
+        await settle();
+        assert(t.state === 'rejected' && t.error instanceof PoolAbortError && t.error.reason === 'deadline',
+          `${what}: the task is ${t.state} (${t.error?.reason}) ${ms} ms after the dispatch`);
+      };
+      h.pool.beginRequest({ requestId: 1, revision: 'r1', onTimeout, igOrigin: h.clock.now() - 100000 });
+      await stopsAfter('an origin 100 s back', 1, 15000);
+      h.pool.beginRequest({ requestId: 2, revision: 'r2', onTimeout });
+      await stopsAfter('no origin', 2, 115000);
+      h.pool.beginRequest({ requestId: 3, revision: 'r3', onTimeout, igOrigin: h.clock.now() + 5000 });
+      await stopsAfter('a later origin', 3, 115000);
+      h.pool.beginRequest({ requestId: 4, revision: 'r4', onTimeout, igOrigin: h.clock.now() - 200000 });
+      const late = track(h.pool.run(task(4, 'r4')));
+      await settle();
+      assert(late.state === 'rejected' && late.error instanceof PoolAbortError && late.error.reason === 'deadline',
+        `an origin 200 s back: the first dispatch is ${late.state} (${late.error?.reason})`);
+      same(timeouts.map((t) => t.elapsedMs), [115000, 115000, 115000, 200000], 'the elapsed times the pool reported');
+      h.pool.close();
+    },
+  },
+  {
+    name: 'live: igLiveOf rule',
+    async run() {
+      const { igLiveOf } = await browserModule(await engine('live'), 'generation-client');
+      const clock = { now: () => 5000 };
+      const T = { id: 'deadline-test', levels: ['hard'], reserve: 0.6, setStageCapMs: 46000, generationStopMs: 115000, responseBoundMs: 120000, hostMarginMs: 1000 };
+      same(igLiveOf({ igOrigin: 1000 }, 'hard', clock, T), { origin: 1000, setCutAt: 47000 }, 'a listed level with an origin');
+      same(igLiveOf({ igOrigin: 5000 }, 'hard', clock, T), { origin: 5000, setCutAt: 51000 }, 'an origin equal to now');
+      for (const [what, input, levelId, live] of /** @type {[string, any, string, any][]} */ ([
+        ['an unlisted level', { igOrigin: 1000 }, 'easy', T],
+        ['no origin', {}, 'hard', T],
+        ['a NaN origin', { igOrigin: Number.NaN }, 'hard', T],
+        ['a later origin', { igOrigin: 5001 }, 'hard', T],
+        ['no set-stage cap', { igOrigin: 1000 }, 'hard', { ...T, setStageCapMs: undefined }],
+        ['a null parameter', { igOrigin: 1000 }, 'hard', null],
+      ])) {
+        assert(igLiveOf(input, levelId, clock, live) === null, `${what}: ${JSON.stringify(igLiveOf(input, levelId, clock, live))}`);
+      }
+      assert(igLiveOf({ igOrigin: 1000 }, 'hard', clock) === null, 'the live tree (liveDeadline null) gave a deadline');
+    },
+  },
+  {
+    name: 'live: inert without its parameter',
+    async run() {
+      const tree = await engine('live');
+      const { createPool } = await browserModule(tree, 'worker-pool');
+      const { createGenerationClient } = await browserModule(tree, 'generation-client');
+      const recipe = LIVE_RECIPE();
+      const h = harness(createPool, { size: 4 });
+      const client = createGenerationClient(h.pool, { clock: h.clock, createdAt: () => '2026-01-01T00:00:00.000Z' });
+      const origin = h.clock.now() - 100000;
+      const r = track(client.generateSet({
+        igOrigin: origin, boardRows: recipe.boardRows, rotation: 0, levelId: 'hard', seedText: 'fixture-set-0', uniqueness: 'any', maxActive: 676,
+      }));
+      await settle();
+      h.clock.advance(46000);
+      await settle();
+      assert(r.state === 'pending', `the set stage ended at 46 s without a live deadline: ${JSON.stringify(r.value)}`);
+      h.clock.advance(68999);
+      await settle();
+      assert(r.state === 'pending', 'the set stage ended before 115 s after its own start');
+      h.clock.advance(1);
+      await settle();
+      same([r.value?.status, r.value?.reason], ['failed', 'time-limit'], 'the set stage at 115 s after its own start');
+      h.pool.close();
     },
   },
 ];

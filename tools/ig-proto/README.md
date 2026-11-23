@@ -1576,6 +1576,26 @@ changes no file of the `v4` chain (`check-binding --current v4` stays `pass`). N
   parameter` (`v4` and `p5-mode` give the same budgeted and unbudgeted results) and `fz: per-set prior levels (rule)`. The real frozen parameters are
   T08c's cases.
 
+### The live request deadline (T07a to T07c)
+
+The `live` variant (extends `v4-link`) is the client and pool half of N-V4-13's live request deadline (plan 4.5); T07a adds `lv-1` to `lv-9`, T07b adds
+`lv-10` to `lv-19` (the host's hard response bound) and T07c its scripted-pool cases. Today a request runs two separate 115-s clocks, the set stage's and
+then the batch's; with the parameter both share one clock from the request start.
+
+- **The origin.** The host gives `igOrigin`, a reading of the client's own clock taken at the request start (T07b passes the row's `s.t0`). The pool's
+  `beginRequest({ requestId, revision, onTimeout, igOrigin })` (`lv-1`, `lv-2`) starts its request at `igOrigin` when it is a finite number not later than
+  now, and arms the stop `TIME.dispatchStopMs` (115 s) after it, at once when that time has passed; a missing, non-finite or later origin is ignored
+  (today's start). `expire` and `checkDeadline` are unchanged.
+- **The set stage's cut.** `igLiveOf(input, levelId, clock, live = IG.liveDeadline)` (`lv-9`) returns `{ origin, setCutAt: origin + setStageCapMs }`, or
+  `null` when the parameter is null or lacks the level or a finite cap, or the input's origin is missing, not finite or later than now. The set stage
+  (`lv-5` to `lv-7`) passes the origin to the pool, arms a timer that wakes it at `setCutAt`, and after `v4-p5`'s bound and the ordered scan, and before
+  any new attempt, returns `{ status: 'failed', reason: 'reserve-cut', failures }` (a bench row's `partialReason` `set:reserve-cut`) once the cut has
+  passed. The batch (`lv-8`) shares the origin; the generation stop at 115 s keeps today's `time-limit`.
+- **The parameter** `liveDeadline { id, levels, reserve, setStageCapMs, generationStopMs, responseBoundMs, hostMarginMs }` (the freeze: `deadline-s3-v1`,
+  `['nightmare', 'hell-1']`, 0.6, 46000, 115000, 120000, 1000), default `null`: the variant is inert without it and for every level it does not list.
+- **Self-test.** Three cases of the `--v4` group: `live: the pool starts a request at its origin`, `live: igLiveOf rule` and `live: inert without its
+  parameter`.
+
 ## Admission statistics (V4-T09a)
 
 The statistics of plan section 5.2 are fixed in code before any validation seed runs (the provisional seeds are

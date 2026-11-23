@@ -1,0 +1,62 @@
+{
+  "id": "live",
+  "extends": ["v4-link"],
+  "description": "Frozen family (stages 2 to 4 pack T07a, T07b; plan 4.5, N-V4-13): the live request deadline. With IG.liveDeadline listing the level and the host origin igOrigin, the set stage and the batch share one 115-s clock from the request start, the set stage is cut at origin + setStageCapMs (reserve-cut), and the host returns the accepted prefix by origin + responseBoundMs; inert with liveDeadline null.",
+  "edits": [
+    {
+      "id": "lv-1",
+      "file": "core/browser/worker-pool.js",
+      "find": "    beginRequest({ requestId, revision, onTimeout }) {\n",
+      "replace": "    beginRequest({ requestId, revision, onTimeout, igOrigin }) {\n"
+    },
+    {
+      "id": "lv-2",
+      "file": "core/browser/worker-pool.js",
+      "find": "      const request = { requestId, revision, startedAt: clock.now(), timer: null, onTimeout, ended: false, timedOut: false };\n      request.timer = clock.setTimeout(() => expire(request), TIME.dispatchStopMs);\n",
+      "replace": "      // ig-proto, variant live (stages 2 to 4 pack T07a, plan 4.5): the 115-s clock may start at an earlier reading of\n      // the same clock (the host request's origin, shared by the set stage and the batch); never at a later one.\n      const igNow = clock.now();\n      const igStart = typeof igOrigin === 'number' && Number.isFinite(igOrigin) && igOrigin <= igNow ? igOrigin : igNow;\n      const request = { requestId, revision, startedAt: igStart, timer: null, onTimeout, ended: false, timedOut: false };\n      request.timer = clock.setTimeout(() => expire(request), Math.max(0, igStart + TIME.dispatchStopMs - igNow));\n"
+    },
+    {
+      "id": "lv-3",
+      "file": "core/browser/generation-client.js",
+      "find": "  function begin(revision) {\n",
+      "replace": "  function begin(revision, igLive = null) {\n"
+    },
+    {
+      "id": "lv-4",
+      "file": "core/browser/generation-client.js",
+      "find": "      pool.beginRequest({\n        requestId,\n        revision: tag,\n",
+      "replace": "      pool.beginRequest({\n        requestId,\n        revision: tag,\n        ...(igLive === null ? {} : { igOrigin: igLive.origin }),\n"
+    },
+    {
+      "id": "lv-5",
+      "file": "core/browser/generation-client.js",
+      "find": "    const maxAttempts = options.maxSetAttempts ?? Infinity;\n    const job = begin(input.revision);\n",
+      "replace": "    const maxAttempts = options.maxSetAttempts ?? Infinity;\n    // ig-proto, variant live (T07a): the request's origin and the set stage's cut at origin + setStageCapMs (plan 4.5).\n    const igLive = igLiveOf(input, request.levelId, clock);\n    const job = begin(input.revision, igLive);\n    const igCut = igLive === null ? null : clock.setTimeout(() => job.wake?.(), Math.max(0, igLive.setCutAt - clock.now()));\n"
+    },
+    {
+      "id": "lv-6",
+      "file": "core/browser/generation-client.js",
+      "find": "        while (winner < 0 && inflight.size < size && next < maxAttempts) {\n",
+      "replace": "        // ig-proto, variant live (T07a): after the bound and the ordered scan, the reserve's cut ends the set stage.\n        if (igLive !== null && clock.now() >= igLive.setCutAt) {\n          return { status: 'failed', reason: 'reserve-cut', failures: tally() };\n        }\n        while (winner < 0 && inflight.size < size && next < maxAttempts) {\n"
+    },
+    {
+      "id": "lv-7",
+      "file": "core/browser/generation-client.js",
+      "find": "      for (const c of inflight.values()) {\n        c.abort();\n      }\n      finish(job);\n",
+      "replace": "      for (const c of inflight.values()) {\n        c.abort();\n      }\n      if (igCut !== null) {\n        clock.clearTimeout(igCut);\n      }\n      finish(job);\n"
+    },
+    {
+      "id": "lv-8",
+      "file": "core/browser/generation-client.js",
+      "find": "    const job = begin(input.revision);\n    const frozen = candidateContext(ctx, state);\n",
+      "replace": "    const job = begin(input.revision, igLiveOf(input, levelId, clock));\n    const frozen = candidateContext(ctx, state);\n"
+    },
+    {
+      "id": "lv-9",
+      "file": "core/browser/generation-client.js",
+      "append": "\n// ig-proto, variant live (stages 2 to 4 pack T07a, plan 4.5, N-V4-13): the live request deadline. With\n// IG.liveDeadline listing the request's level and a host origin `igOrigin` (a reading of the client's clock, not\n// later than now), the set stage and the batch share that origin: the pool stops both at origin + 115 s, and the set\n// stage is cut at origin + setStageCapMs with the reason `reserve-cut`. Otherwise null: today's two separate timers.\nimport { IG as IG_LIVE } from '../engine/ig-params.js';\n\n/**\n * @param {any} input The SetInput or BatchInput.\n * @param {string} levelId\n * @param {{ now: () => number }} clock\n * @param {any} [live] IG.liveDeadline by default.\n * @returns {{ origin: number, setCutAt: number } | null}\n */\nexport function igLiveOf(input, levelId, clock, live = IG_LIVE.liveDeadline) {\n  const origin = input?.igOrigin;\n  if (live === undefined || live === null || !Array.isArray(live.levels) || !live.levels.includes(levelId)\n    || typeof live.setStageCapMs !== 'number' || !Number.isFinite(live.setStageCapMs)\n    || typeof origin !== 'number' || !Number.isFinite(origin) || origin > clock.now()) {\n    return null;\n  }\n  return { origin, setCutAt: origin + live.setStageCapMs };\n}\n"
+    }
+  ],
+  "files": [],
+  "params": { "liveDeadline": null }
+}
