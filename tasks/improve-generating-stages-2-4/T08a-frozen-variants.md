@@ -212,7 +212,7 @@ arms of the matrix are written by the stages 2 to 4 pack (see `## The frozen fam
 
 | ID | Criterion | How it is verified | Evidence |
 |---|---|---|---|
-| T08a-T01 | The four variants build with 84 matching edits each | `build`; `check-edits` | the lines |
+| T08a-T01 | The four variants build with 90 matching edits each | `build`; `check-edits` | the lines |
 | T08a-T02 | Parameters, differences and algo ids as the Tests table says; tree ids and parameter hashes reported | the case | the PASS and NOTE lines |
 | T08a-T03 | The `v4` chain did not move; `npm run check`, the firewall and G1 to G3 pass | the gates | their output |
 
