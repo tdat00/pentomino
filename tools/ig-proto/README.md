@@ -131,7 +131,7 @@ node tools\ig-proto\boards.mjs write|check
 node tools\ig-proto\receipt.mjs --label frozen --source-label "frozen 3fc65f4"      # unlocked, writes receipt.json|md (V4-T01b)
 node tools\ig-proto\arm.mjs run --task T --arm A --shard S --variant V --workers 4 --cases 26x26-nightmare:0-1 `
   --row-limit-s 90 --label provisional --source-label <label> --horizon-s 285 [--max-rows n] [--dry-run]
-node tools\ig-proto\arm.mjs publish --task T --arm A --label provisional --source-label <label>
+node tools\ig-proto\arm.mjs publish --task T --arm A --label provisional --source-label <label> [--done-only]
 node tools\ig-proto\arm.mjs status --task T --arm A --shard S --label provisional [--check-rows]
 node tools\ig-proto\identity.mjs --task IGP-00 --arms base,log --label provisional
 node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6] [--frozen] [--items] [--task T]   # cases that generate or rate need the lock; --p6 runs every case; --frozen runs only the frozen-source group and --items only the measurement-items group (both unlocked)
@@ -262,6 +262,13 @@ a time on this machine, four workers per request row). V4-T11h carries the rules
   a one-row run is always 0 (`localRep`).
 - `arm.mjs publish` writes `<S>.runs.json|md` and, for a tree with a journal, `<S>.calls.jsonl` (the journal lines,
   without the `accepted` blocks; above 5 MB the `row`, `start` and `end` lines only, as `<S>.calls-summary.jsonl`).
+  **Publication is written once** (N-V4-19, stages 2 to 4 pack T01a): both modes keep a
+  complete publication (`arm: kept <arm>/<shard>: already published`), refuse a partial one (`arm: incomplete publication
+  <arm>/<shard>: a ruling is required`) and refuse a shard whose stored producer differs from today's tree or harness
+  (`arm: producer changed ...`), before writing anything; the runs JSON is written last. **`--done-only`** publishes every
+  done shard and names every shard that is not done (`arm: not published <arm>/<shard>: not done (<r> of <e> rows
+  recorded; its rows count as missing)`); it is run for every arm of a stopped plan before a closure, an activation
+  reading or a fit. The default mode still refuses a shard that is not done.
 - `identity.mjs` compares, per seed and per pair of runs, at the strongest level the records can establish: **puzzle
   identity** (equal `details.resultDigest` at equal accepted counts, or, between two keyed arms, equal `igSetKey` and an
   equal common prefix of `igPuzzleKeys`), else **metric-prefix agreement** (set summary, then `clues`, `U`, `score`,

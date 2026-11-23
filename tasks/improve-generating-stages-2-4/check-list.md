@@ -25,7 +25,7 @@ Tasks run serially in this order (one repository). `S` tasks are runs that the o
 an owner stop: the orchestrator re-reads the approval with `manifest.mjs approval --plan <id>` and the round's account
 at that time, asks the owner on Discord, and the plan waits for his answer.
 
-- [ ] T01a N-V4-19: publish every done shard of an arm (`arm.mjs publish --done-only`) (depends on none)
+- [x] T01a N-V4-19: publish every done shard of an arm (`arm.mjs publish --done-only`) (depends on none)
 - [ ] T01b N-V4-20: the self-test's git guard sees `git -C` and calls inside expressions; `--list` for the gates (depends on T01a)
 - [ ] T02a The plan writer (`manifest.mjs write-plan`) and the plan `V4-S2B` (depends on T01b)
 - [ ] T02b The fitting reader, part 1: the declared grid, the no-regression preview and the call prefixes (pure) (depends on T02a)
@@ -580,7 +580,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 
 | ID | Start | End | Duration | AI credits | Commit |
 |---|---|---|---|---|---|
-| T01a | | | | | |
+| T01a | 2026-11-23 23:16 | 2026-11-23 23:28 | 12 min | 70.37 | this task's commit |
 | T01b | | | | | |
 | T02a | | | | | |
 | T02b | | | | | |

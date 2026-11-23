@@ -41,7 +41,7 @@ import { ACCEPTED_FORMAT, acceptedBinding, checkAccepted, LIVE_DEADLINE_FIELDS, 
 import { harnessInfo, sha256, sha256File, sha256Text, sourceDigest, sourceVersions, toCrlf, worktreeDigest, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard, carveSet, firstCarvedSet } from './lib/sets.mjs';
 import { buildTree, collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
-import { parseCases as armCases } from './arm.mjs';
+import { parseCases as armCases, publishCommand, publishPlan } from './arm.mjs';
 import * as p6 from './phase1/p6-bench.mjs';
 import { pairResult } from './identity.mjs';
 import {
@@ -8012,6 +8012,107 @@ const itemCases = [
         assert(fresh0.code === 0 && fresh0.out === 'p6-bench: run A old with a limit of 900 s; 0 s counted of 2700\n', `preflight on an empty ledger: ${JSON.stringify(fresh0)}`);
       } finally {
         rmSync(dir, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'publish: the plan of a publication (N-V4-19)',
+    run() {
+      const shards = (/** @type {'none' | 'complete' | 'incomplete'} */ cPublication) => [
+        { name: 'pilot-a', done: true, publication: /** @type {'none'} */ ('none'), recorded: 5, expected: 5 },
+        { name: 'pilot-b', done: false, publication: /** @type {'none'} */ ('none'), recorded: 2, expected: 5 },
+        { name: 'pilot-c', done: true, publication: cPublication, recorded: 5, expected: 5 },
+      ];
+      same(publishPlan(shards('complete'), { arm: 'fr', doneOnly: true }),
+        { refuse: null, publish: ['pilot-a'], kept: ['pilot-c'], notDone: [{ shard: 'pilot-b', recorded: 2, expected: 5 }] }, 'the done-only plan');
+      same(publishPlan(shards('complete'), { arm: 'fr', doneOnly: false }).refuse, 'shard pilot-b of arm fr is not done: nothing published', 'the default plan refuses a shard that is not done');
+      for (const doneOnly of [true, false]) {
+        const plan = publishPlan(shards('incomplete'), { arm: 'fr', doneOnly });
+        same([plan.refuse, plan.publish, plan.kept, plan.notDone], ['incomplete publication fr/pilot-c: a ruling is required', [], [], []], `a partial publication, doneOnly ${doneOnly}`);
+      }
+    },
+  },
+  {
+    name: 'publish: stopped shards, resume and immutable outputs',
+    async run() {
+      const dir = fresh(join(SELFTEST_DIR, 'S24-T01a-dev'));
+      try {
+        const armDir = join(dir, 'arm');
+        const outDir = join(dir, 'out');
+        mkdirSync(outDir, { recursive: true });
+        const addShard = async (/** @type {string} */ name, /** @type {boolean} */ done, treeId = 't') => {
+          const shardDir = join(armDir, name);
+          writeJson(join(shardDir, 'shard.json'), {
+            variant: 'base', treeId, copyDigest: 'c', harnessHash: 'h', rows: [{ key: 'x~0', caseId: 'x', rep: 0, seed: 'landscape/x/0' }],
+          });
+          writeJson(join(shardDir, 'state.json'), done ? { done: true, recorded: 1, expected: 1 } : { done: false, recorded: 0, expected: 1 });
+          if (done) {
+            writeJson(join(shardDir, 'rows', 'x~0', 'report.json'), { runs: [await matrixRun('x', 0)] });
+          }
+        };
+        /** @type {string[]} */
+        let said = [];
+        const io = {
+          armDir, outDir, producerOf: () => ({ treeId: 't', copyDigest: 'c', harnessHash: 'h' }),
+          metaOf: async () => ({ format: 'ig-proto-runs', version: 1, label: 'frozen', source: { label: 'selftest', sourceDigest: '0'.repeat(64), equalsMp12b1Source: false }, rerun: 'selftest' }),
+          say: (/** @type {string} */ line) => { said.push(line); },
+        };
+        const argv = ['--task', 'S24-T01a-dev', '--arm', 'fr', '--label', 'frozen', '--source-label', 'selftest'];
+        const outFile = (/** @type {string} */ name) => join(outDir, name);
+        const listing = () => readdirSync(outDir).sort();
+        /** @param {string[]} extra @returns {Promise<string>} The message of the refusal. */
+        const refused = async (extra) => {
+          try {
+            await publishCommand([...argv, ...extra], io);
+          } catch (e) {
+            return e instanceof Error ? e.message : String(e);
+          }
+          throw new Error('publish did not refuse');
+        };
+        await addShard('pilot-a', true);
+        await addShard('pilot-b', false);
+        await addShard('pilot-c', true);
+        writeFileSync(outFile('pilot-c.runs.json'), 'a complete publication\r\n');
+        writeFileSync(outFile('pilot-c.runs.md'), '# pilot-c\r\n\r\nThis tree writes no journal.\r\n');
+        const keptJson = readFileSync(outFile('pilot-c.runs.json'));
+        const keptMd = readFileSync(outFile('pilot-c.runs.md'));
+
+        const first = await publishCommand([...argv, '--done-only'], io);
+        same(first, 0, 'the done-only run returns 0');
+        same(listing(), ['pilot-a.runs.json', 'pilot-a.runs.md', 'pilot-c.runs.json', 'pilot-c.runs.md'], 'the files after the done-only run');
+        assert(readFileSync(outFile('pilot-c.runs.json')).equals(keptJson) && readFileSync(outFile('pilot-c.runs.md')).equals(keptMd), 'pilot-c was rewritten');
+        same(said, [
+          'arm: published fr/pilot-a: 1 rows, 0 journal lines',
+          'arm: kept fr/pilot-c: already published',
+          'arm: not published fr/pilot-b: not done (0 of 1 rows recorded; its rows count as missing)',
+          'arm: done-only: published 1, kept 1, not done 1 of 3 shards of fr',
+        ], `the done-only lines: ${JSON.stringify(said)}`);
+        const publishedA = [readFileSync(outFile('pilot-a.runs.json')), readFileSync(outFile('pilot-a.runs.md'))];
+        same(JSON.parse(publishedA[0].toString('utf8')).meta.label, 'frozen', 'the published runs JSON holds the meta block');
+
+        said = [];
+        await addShard('pilot-b', true);
+        same(await publishCommand(argv, io), 0, 'the default run returns 0');
+        same(listing(), ['pilot-a.runs.json', 'pilot-a.runs.md', 'pilot-b.runs.json', 'pilot-b.runs.md', 'pilot-c.runs.json', 'pilot-c.runs.md'], 'the files after the default run');
+        assert(readFileSync(outFile('pilot-a.runs.json')).equals(publishedA[0]) && readFileSync(outFile('pilot-a.runs.md')).equals(publishedA[1]), 'pilot-a was rewritten');
+        assert(readFileSync(outFile('pilot-c.runs.json')).equals(keptJson) && readFileSync(outFile('pilot-c.runs.md')).equals(keptMd), 'pilot-c was rewritten by the default run');
+        same(said.at(-1), 'arm: published 1, kept 2, not done 0 of 3 shards of fr', `the default summary: ${JSON.stringify(said)}`);
+
+        await addShard('pilot-d', true);
+        writeFileSync(outFile('pilot-d.runs.json'), 'only the completion marker\r\n');
+        const before = listing();
+        same(await refused([]), 'incomplete publication fr/pilot-d: a ruling is required', 'a partial publication');
+        same(await refused(['--done-only']), 'incomplete publication fr/pilot-d: a ruling is required', 'a partial publication, done-only');
+        same(listing(), before, 'a partial publication created or removed a file');
+
+        rmSync(join(armDir, 'pilot-d'), { recursive: true });
+        rmSync(outFile('pilot-d.runs.json'));
+        await addShard('pilot-e', true, 'other');
+        const producer = await refused([]);
+        assert(producer.startsWith('producer changed fr/pilot-e: observed tree other'), `the producer refusal: ${producer}`);
+        same(listing(), ['pilot-a.runs.json', 'pilot-a.runs.md', 'pilot-b.runs.json', 'pilot-b.runs.md', 'pilot-c.runs.json', 'pilot-c.runs.md'], 'a changed producer created a file');
+      } finally {
+        rmSync(join(SELFTEST_DIR, 'S24-T01a-dev'), { recursive: true, force: true });
       }
     },
   },

@@ -226,13 +226,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-23 23:16 +07:00 (dispatch, base `2ba6170`); 2026-11-23 23:28 +07:00 (accepted); 12 min. The developer reported 23:16:34-23:19:13 and, after the ruling, 23:24:11-23:25:02 |
+| Waiting for rulings | about 5 min (QUESTION 1 at 23:19, ruling relayed about 23:24) |
+| Agent id, model | `3993e5d4-0af8-4e4a-aae1-b326f74d34e1`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 30 calls; 2,304,284 input, 22,825 output, 2,202,191 cache-read tokens |
+| AI credits | 70.37 (developer only) |
+| Questions and rulings | QUESTION 1 (`publishPlan` judged shards in name order, so a not-done shard hid a partial publication in the default mode): ruling R-P24-01 by SA-Opus, Option A (the partial publication is checked before the loop); pack amendment `d20e07c` (T01a Step 1, its Tests row, check-list §5.4) |
+| Fix rounds | 0 (the ruling round only) |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T01a-orch`: 207 passed, 0 failed (31.9 s; cases 206 and 207 PASS); `arm.mjs publish --task V4-S2 --arm fr-none --done-only`: 8 kept, `published 0, kept 8, not done 0 of 8`, `git status --short` of the V4-S2 evidence empty; `firewall check --task S24-T01a`: OK, 289 files; `npm run check`: OK; G1, G2 empty; G3 the three Scope files |
+| Commit | this task's commit (`improve-generating-stages-2-4 T01a: ...`) |
+| Issues and named items | none |

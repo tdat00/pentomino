@@ -4,7 +4,9 @@
 //   node tools\ig-proto\arm.mjs run --task <T> --arm <A> --shard <S> --variant <V> --workers <1-8>
 //        --cases <case>:<a>-<b>[,...] --row-limit-s <R> --label <L> --source-label <SL> --horizon-s <H>
 //        [--max-rows <n>] [--dry-run]
-//   node tools\ig-proto\arm.mjs publish --task <T> --arm <A> --label <L> --source-label <SL>
+//   node tools\ig-proto\arm.mjs publish --task <T> --arm <A> --label <L> --source-label <SL> [--done-only]
+//        --done-only (N-V4-19): publishes every done shard not yet published and names the others; both modes keep a
+//        complete publication, refuse a partial one and refuse a shard whose producer is not today's.
 //   node tools\ig-proto\arm.mjs status --task <T> --arm <A> --shard <S> --label <L> [--check-rows]
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
@@ -12,7 +14,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { artifactDir, elapsedS, evidenceDir, parseArgs, rel } from './lib/paths.mjs';
-import { banner, buildMeta, harnessInfo, writeJson, writeJsonl, writeText } from './lib/records.mjs';
+import { banner, buildMeta, harnessInfo, readTreeInfo, writeJson, writeJsonl, writeText } from './lib/records.mjs';
 import { caseBoard } from './lib/sets.mjs';
 import { ensureTree } from './lib/tree.mjs';
 
@@ -241,10 +243,79 @@ async function runCommand(argv) {
  */
 const sec = (ms) => (ms === null || ms === undefined ? '-' : (ms / 1000).toFixed(2));
 
-/** @param {string[]} argv @returns {Promise<number>} */
-async function publishCommand(argv) {
-  const { args } = parseArgs(argv, { values: ['task', 'arm', 'label', 'source-label'] });
-  const armDir = artifactDir(args.label, args.task, args.arm);
+/**
+ * The state of a shard's publication in `outDir` (N-V4-19, review R01): `none` when none of its files exists;
+ * `complete` when its runs JSON and runs markdown exist and the journal file the markdown names (if any) exists;
+ * otherwise `incomplete`.
+ * @param {string} outDir
+ * @param {string} name
+ * @returns {'none' | 'complete' | 'incomplete'}
+ */
+export function publicationOf(outDir, name) {
+  const files = ['runs.json', 'runs.md', 'calls.jsonl', 'calls-summary.jsonl'].map((s) => join(outDir, `${name}.${s}`));
+  if (!files.some((f) => existsSync(f))) {
+    return 'none';
+  }
+  if (!existsSync(files[0]) || !existsSync(files[1])) {
+    return 'incomplete';
+  }
+  const named = /The journal lines are in `([^`]+)`/.exec(readFileSync(files[1], 'utf8'));
+  return named === null || existsSync(join(outDir, named[1])) ? 'complete' : 'incomplete';
+}
+
+/**
+ * The plan of a publication (N-V4-19, review R01): a partial publication refuses the command first, in both modes,
+ * before any other shard is judged (the first in name order is named); otherwise complete publications are kept,
+ * done shards without one are published, and the other shards are named (`--done-only`) or refuse the command (the
+ * default). Pure.
+ * @param {{ name: string, done: boolean, publication: 'none' | 'complete' | 'incomplete', recorded: number | null,
+ *   expected: number | null }[]} shards In name order.
+ * @param {{ arm: string, doneOnly: boolean }} o
+ * @returns {{ refuse: string | null, publish: string[], kept: string[],
+ *   notDone: { shard: string, recorded: number | null, expected: number | null }[] }}
+ */
+export function publishPlan(shards, { arm, doneOnly }) {
+  const partial = shards.find((s) => s.publication === 'incomplete');
+  if (partial !== undefined) {
+    return { refuse: `incomplete publication ${arm}/${partial.name}: a ruling is required`, publish: [], kept: [], notDone: [] };
+  }
+  /** @type {string[]} */
+  const publish = [];
+  /** @type {string[]} */
+  const kept = [];
+  /** @type {{ shard: string, recorded: number | null, expected: number | null }[]} */
+  const notDone = [];
+  for (const s of shards) {
+    if (s.publication === 'complete') {
+      kept.push(s.name);
+    } else if (s.done) {
+      publish.push(s.name);
+    } else if (doneOnly) {
+      notDone.push({ shard: s.name, recorded: s.recorded, expected: s.expected });
+    } else {
+      return { refuse: `shard ${s.name} of arm ${arm} is not done: nothing published`, publish: [], kept: [], notDone: [] };
+    }
+  }
+  return { refuse: null, publish, kept, notDone };
+}
+
+/**
+ * @param {string[]} argv
+ * @param {{ armDir?: string, outDir?: string, producerOf?: (variant: string) => { treeId: string, copyDigest: string, harnessHash: string },
+ *   metaOf?: (variant: string) => Promise<any>, say?: (line: string) => void }} [io] Seams of the self-test.
+ * @returns {Promise<number>}
+ */
+export async function publishCommand(argv, io = {}) {
+  const { args, on } = parseArgs(argv, { values: ['task', 'arm', 'label', 'source-label'], switches: ['done-only'] });
+  const doneOnly = on.has('done-only');
+  const armDir = io.armDir ?? artifactDir(args.label, args.task, args.arm);
+  const outDir = io.outDir ?? evidenceDir(args.label, args.task, args.arm);
+  const producerOf = io.producerOf ?? ((/** @type {string} */ variant) => {
+    const info = readTreeInfo(variant);
+    return { treeId: info.treeId, copyDigest: info.copyDigest, harnessHash: harnessInfo().harnessHash };
+  });
+  const metaOf = io.metaOf ?? ((/** @type {string} */ variant) => buildMeta({ task: args.task, label: args.label, kind: 'runs', trees: [variant], sourceLabel: args['source-label'] }));
+  const say = io.say ?? ((/** @type {string} */ line) => process.stdout.write(`${line}\n`));
   if (!existsSync(armDir)) {
     throw new Stop(`no arm ${args.arm} of ${args.task}`);
   }
@@ -252,19 +323,38 @@ async function publishCommand(argv) {
   if (shards.length === 0) {
     throw new Stop(`arm ${args.arm} of ${args.task} has no shard`);
   }
-  for (const name of shards) {
+  const list = shards.map((name) => {
     const dir = join(armDir, name);
     const state = existsSync(join(dir, 'state.json')) ? JSON.parse(readFileSync(join(dir, 'state.json'), 'utf8')) : null;
-    if (state?.done !== true) {
-      throw new Stop(`shard ${name} of arm ${args.arm} is not done: nothing published`);
+    const shardFile = join(dir, 'shard.json');
+    const expected = existsSync(shardFile) ? JSON.parse(readFileSync(shardFile, 'utf8')).rows.length : (state?.expected ?? null);
+    const journalFile = join(dir, 'rows.jsonl');
+    const recorded = state?.recorded ?? (existsSync(journalFile) ? readLines(journalFile).filter((l) => l.t === 'recorded').length : null);
+    return { name, done: state?.done === true, publication: publicationOf(outDir, name), recorded, expected };
+  });
+  const plan = publishPlan(list, { arm: args.arm, doneOnly });
+  if (plan.refuse !== null) {
+    throw new Stop(plan.refuse);
+  }
+  /** @param {string} name @returns {any} */
+  const shardOf = (name) => JSON.parse(readFileSync(join(armDir, name, 'shard.json'), 'utf8'));
+  for (const name of plan.publish) {
+    const shard = shardOf(name);
+    const now = producerOf(shard.variant);
+    if (shard.treeId !== now.treeId || shard.copyDigest !== now.copyDigest || shard.harnessHash !== now.harnessHash) {
+      throw new Stop(`producer changed ${args.arm}/${name}: observed tree ${shard.treeId}, copy ${shard.copyDigest}, harness ${shard.harnessHash}; today ${now.treeId}, ${now.copyDigest}, ${now.harnessHash}: a ruling is required`);
     }
-    const shard = JSON.parse(readFileSync(join(dir, 'shard.json'), 'utf8'));
-    const meta = await buildMeta({ task: args.task, label: args.label, kind: 'runs', trees: [shard.variant], sourceLabel: args['source-label'] });
+  }
+
+  /** @param {string} name */
+  async function publishShard(name) {
+    const dir = join(armDir, name);
+    const shard = shardOf(name);
+    const meta = await metaOf(shard.variant);
     const rows = shard.rows.map((/** @type {any} */ row) => {
       const run = JSON.parse(readFileSync(join(dir, 'rows', row.key, 'report.json'), 'utf8')).runs[0];
       return { rowKey: row.key, caseId: row.caseId, rep: row.rep, seed: row.seed, localRep: run.rep, run };
     });
-    writeJson(evidenceDir(args.label, args.task, args.arm, `${name}.runs.json`), { meta, shard: name, rows });
 
     const calls = collectCalls(dir, shard.rows.map((/** @type {{ key: string }} */ r) => r.key));
     const big = calls.length > 0 && calls.reduce((s, l) => s + l.length + 1, 0) > MAX_PUBLISHED_BYTES;
@@ -283,13 +373,27 @@ async function publishCommand(argv) {
     if (big) {
       lines.push('', 'The full journal is above 5 MB: only its `row`, `start` and `end` lines are published; the raw files stay under tests/artifacts/ig-proto/.');
     }
-    writeText(evidenceDir(args.label, args.task, args.arm, `${name}.runs.md`), lines.join('\n'));
+    writeText(join(outDir, `${name}.runs.md`), lines.join('\n'));
     if (calls.length > 0) {
       const kept = big ? calls.filter((l) => /"t":"(row|start|end)"/.test(l)) : calls;
-      writeJsonl(evidenceDir(args.label, args.task, args.arm, `${name}.calls${big ? '-summary' : ''}.jsonl`), kept.map((l) => JSON.parse(l)));
+      writeJsonl(join(outDir, `${name}.calls${big ? '-summary' : ''}.jsonl`), kept.map((l) => JSON.parse(l)));
     }
-    process.stdout.write(`arm: published ${args.arm}/${name}: ${rows.length} rows, ${calls.length} journal lines\n`);
+    writeJson(join(outDir, `${name}.runs.json`), { meta, shard: name, rows });
+    say(`arm: published ${args.arm}/${name}: ${rows.length} rows, ${calls.length} journal lines`);
   }
+
+  for (const name of plan.publish) {
+    await publishShard(name);
+  }
+  for (const name of plan.kept) {
+    say(`arm: kept ${args.arm}/${name}: already published`);
+  }
+  if (doneOnly) {
+    for (const entry of plan.notDone) {
+      say(`arm: not published ${args.arm}/${entry.shard}: not done (${entry.recorded ?? '?'} of ${entry.expected ?? '?'} rows recorded; its rows count as missing)`);
+    }
+  }
+  say(`arm:${doneOnly ? ' done-only:' : ''} published ${plan.publish.length}, kept ${plan.kept.length}, not done ${plan.notDone.length} of ${list.length} shards of ${args.arm}`);
   return 0;
 }
 
