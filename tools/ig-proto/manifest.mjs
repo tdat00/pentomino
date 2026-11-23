@@ -1544,16 +1544,77 @@ export const WRITE_PLAN_GENERATED_BY = 'manifest.mjs write-plan';
 const S2B_CELLS = Object.freeze(['3x29-nightmare', '18x18-nightmare', '18x20-nightmare', '20x20-nightmare', '20x21-nightmare',
   '32x15-nightmare', '22x22-nightmare', '24x24-nightmare']);
 const PARITY_FR_NONE = `${EVIDENCE}/V4-S2P/parity-fr-none.accepted.json`;
+/** The composites of the P7 spike, in the order of the plan `V4-P7` (T05b; D-P24-05). */
+const P7_COMPOSITES = Object.freeze(['p7-c1', 'p7-c1r5', 'p7-c1r5c5']);
+const P7_TIME_ROUNDS = 3;
+
+/**
+ * The plan `V4-P7` (T05b): the P7 timing probe of the composites that are equal on both tiers, priced at V4-S2K's item times x 1.25.
+ * @param {readonly string[] | undefined} candidates One to three of `P7_COMPOSITES`, in order.
+ * @param {PriceOf} priceOf
+ * @returns {{ plan: ReturnType<typeof planOf>, itemManifests: Record<string, any> }}
+ */
+function p7Plan(candidates, priceOf) {
+  const message = `manifest: V4-P7 needs one to three of ${P7_COMPOSITES.join(', ')}, in order`;
+  if (!Array.isArray(candidates) || candidates.length < 1 || candidates.length > P7_COMPOSITES.length
+    || new Set(candidates).size !== candidates.length || candidates.some((c) => !P7_COMPOSITES.includes(c))
+    || candidates.some((c, i) => i > 0 && P7_COMPOSITES.indexOf(c) < P7_COMPOSITES.indexOf(candidates[i - 1]))) {
+    throw new Error(message);
+  }
+  const kernel = JSON.parse(readFileSync(abs(`${EVIDENCE}/V4-S2K/kernel.json`), 'utf8'));
+  const oneRound = /** @type {{ itemMs: number }[]} */ (kernel.rows).map((row) => positive('itemMs', row.itemMs) * PROJECTION_FACTOR / 1000);
+  const durationsS = Array.from({ length: P7_TIME_ROUNDS }, () => oneRound).flat();
+  const prerequisites = /** @type {Prerequisite[]} */ (candidates.flatMap((c) => [
+    { type: 'variant', id: c },
+    { type: 'file', path: `${EVIDENCE}/V4-P7E-${c}-quick/p7.json` },
+    { type: 'file', path: `${EVIDENCE}/V4-P7E-${c}-full/p7.json` },
+  ]));
+  const perCandidate = candidates.flatMap((c) => [
+    unlockedStep(`bind-${c}`, [`${IG}p7-probe.mjs`, 'bind', '--candidate', c, '--task', 'V4-P7'], {
+      dependsOn: ['trees'], consumes: [`${EVIDENCE}/V4-P7E-${c}-quick/p7.json`, `${EVIDENCE}/V4-P7E-${c}-full/p7.json`], produces: [],
+      expect: `p7-probe: ${c} bound to its quick and full equality reports`,
+    }),
+    lockedStep({
+      id: `time-${c}`,
+      node: [`${IG}p7-probe.mjs`, 'time', '--candidate', c, '--task', 'V4-P7'],
+      state: `V4-P7\\time-${c}\\state.json`,
+      minHorizonS: PROBE_MIN_HORIZON_S,
+      price: {
+        type: 'items',
+        groups: [{
+          kind: 'p7-time', variant: c, lanes: ITEM_LANES['p7-time'], reserveS: DEFAULT_LIMITS.itemReserveS['p7-time'], durationsS,
+          durationSource: 'V4-S2K item times x 1.25',
+        }],
+      },
+      dependsOn: [`bind-${c}`], consumes: [treeFile('base'), treeFile(c)],
+      produces: [`${RAW}/V4-P7/time-${c}/experiment.json`, `${RAW}/V4-P7/time-${c}/state.json`, `${RAW}/V4-P7/time-${c}/items.jsonl`],
+      expect: 'the state has done: true (every item has ended)',
+    }, priceOf),
+  ]);
+  const plan = planOf({
+    task: 'V4-P7', generatedBy: WRITE_PLAN_GENERATED_BY, runnable: true, blockedBy: [], prerequisites,
+    steps: [gateStep('V4-P7', prerequisites), firewallSnapshotStep('V4-P7'), treesStep(['base', ...candidates]), ...perCandidate,
+      unlockedStep('report', [`${IG}p7-probe.mjs`, 'report', '--task', 'V4-P7'], {
+        dependsOn: candidates.map((c) => `time-${c}`), consumes: candidates.map((c) => `${RAW}/V4-P7/time-${c}/items.jsonl`),
+        produces: [`${EVIDENCE}/V4-P7/p7.json`, `${EVIDENCE}/V4-P7/p7.md`], expect: `p7-probe: wrote ${EVIDENCE}/V4-P7/p7.json`,
+      }),
+      firewallCheckStep('V4-P7')],
+  });
+  return { plan, itemManifests: {} };
+}
 
 /**
  * The plan `id` as `write-plan` writes it, with the item manifests it names (file name under `plans/items/` to content).
- * @param {string} id `V4-S2B` (T02a; T05b adds `V4-P7`, T10 adds `V4-S3P`).
- * @param {{ priceOf?: PriceOf, rowSOf?: (group: Group) => number, durations?: Record<string, number> }} [o] `rowSOf`: the
- *   projected seconds of one row of a group, by default `projectedRowS` of the cell's MP12b1 median (`refS`) and the stage-1
- *   factor (`factor`), as `compile` takes them.
+ * @param {string} id `V4-S2B` (T02a) or `V4-P7` (T05b; T10 adds `V4-S3P`).
+ * @param {{ priceOf?: PriceOf, rowSOf?: (group: Group) => number, durations?: Record<string, number>, candidates?: readonly string[] }} [o]
+ *   `rowSOf`: the projected seconds of one row of a group, by default `projectedRowS` of the cell's MP12b1 median (`refS`) and the stage-1
+ *   factor (`factor`), as `compile` takes them; `candidates`: the composites of `V4-P7`.
  * @returns {{ plan: ReturnType<typeof planOf>, itemManifests: Record<string, any> }}
  */
-export function writtenPlan(id, { priceOf = stepPrice, rowSOf, durations } = {}) {
+export function writtenPlan(id, { priceOf = stepPrice, rowSOf, durations, candidates } = {}) {
+  if (id === 'V4-P7') {
+    return p7Plan(candidates, priceOf);
+  }
   if (id !== 'V4-S2B') {
     throw new Error(`manifest: unknown written plan ${id}`);
   }
@@ -1573,24 +1634,28 @@ export function writtenPlan(id, { priceOf = stepPrice, rowSOf, durations } = {})
 }
 
 /**
- * `write-plan --plan <id> --label frozen --source-label <SL>`: writes `plans/<id>.json` and its item manifests once.
+ * `write-plan --plan <id> [--candidates <ids>] --label frozen --source-label <SL>`: writes `plans/<id>.json` and its item manifests once;
+ * `--candidates` (comma-separated composites) belongs to `V4-P7`.
  * @param {string[]} argv
  * @param {{ plansDir?: string }} [io] `plansDir`: the folder of the plans (the self-test's seam); the item manifests go under `items/`.
  * @returns {Promise<number>} 0 once the files are written; 1 for a refusal, with nothing written.
  */
 export async function writePlanCommand(argv, { plansDir = join(IG_DIR, 'plans') } = {}) {
-  const { args } = parseArgs(argv, { values: ['plan', 'label', 'source-label'] });
+  const { args } = parseArgs(argv, { values: ['plan', 'label', 'source-label', 'candidates'] });
   if (args.label !== 'frozen') {
     return refuseCommand('write-plan', '--label frozen only');
   }
   const id = args.plan;
   if (typeof id !== 'string' || id === '') {
-    return refuseCommand('write-plan', 'needs --plan <id> (one of V4-S2B)');
+    return refuseCommand('write-plan', 'needs --plan <id> (one of V4-S2B, V4-P7)');
+  }
+  if (args.candidates !== undefined && id !== 'V4-P7') {
+    return refuseCommand('write-plan', '--candidates belongs to V4-P7');
   }
   /** @type {ReturnType<typeof writtenPlan>} */
   let built;
   try {
-    built = writtenPlan(id);
+    built = writtenPlan(id, id === 'V4-P7' ? { candidates: typeof args.candidates === 'string' ? args.candidates.split(',') : [] } : {});
   } catch (e) {
     return refuseCommand('write-plan', messageOf(e));
   }

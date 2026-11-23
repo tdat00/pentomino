@@ -38,7 +38,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T03d P7 C1: ordered live-row lists for R4 (`p7-c1`) (depends on T03c)
 - [x] T04 P7: R5 on the live-row lists (`p7-c1r5`) (depends on T03d; skipped or revised when the pack author's ruling on a dropped `p7-c1` says so)
 - [x] T05a P7 C5: `select`, `liveRowOf` and `listRows` on the lists (`p7-c1r5c5`) (depends on T04; the same rule)
-- [ ] T05b P7: the full equality runs and the plan `V4-P7` (depends on T05a; with no eligible composite, no plan)
+- [x] T05b P7: the full equality runs and the plan `V4-P7` (depends on T05a; with no eligible composite, no plan)
 - [ ] S02 Run `V4-P7` and write the spike report (orchestrator, then the SAs; approved by the owner up to 20 counted minutes, D-S24-28; the approval re-read before the run; with no eligible composite, the report only) (depends on T05b)
 - [ ] T06a The prior table `prior-s3-v1` and its generator `fit-prior-s3.mjs` (depends on S02)
 - [ ] T06b P5's call budget by uniqueness mode and the per-set prior's level filter (`p5-mode`, `ps-levels`) (depends on T06a)
@@ -605,7 +605,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T03d | 2026-11-24 02:02 | 2026-11-24 02:21 | 19 min | 82.91 | this task's commit |
 | T04 | 2026-11-24 02:21 | 2026-11-24 02:35 | 15 min | 32.64 | this task's commit |
 | T05a | 2026-11-24 02:36 | 2026-11-24 02:49 | 14 min | 31.09 | this task's commit |
-| T05b | | | | | |
+| T05b | 2026-11-24 02:50 | 2026-11-24 04:25 | 96 min | 93.40 | this task's commit |
 | S02 | | | | | |
 | T06a | | | | | |
 | T06b | | | | | |

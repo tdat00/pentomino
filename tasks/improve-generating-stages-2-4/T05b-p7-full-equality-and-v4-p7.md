@@ -167,13 +167,13 @@ seconds); each AC row with its evidence; the questions and rulings; the deviatio
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 02:50 +07:00 (dispatch, base `5dcd1b4`); 2026-11-24 04:25 +07:00 (accepted); 96 min. The developer reported 02:50:04-04:23:28 |
+| Waiting for rulings | none |
+| Agent id, model | `21395897-d821-45f5-a029-907534dece99`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 60 calls; 5,077,195 input, 22,383 output, 4,992,806 cache-read tokens |
+| AI credits | 93.40 (developer only) |
+| Questions and rulings | none; outcome (1): the three composites equal on the full tier and bound. The developer's notes (the missing-`--candidates` refusal printed without the `manifest: ` prefix, as `refuseCommand` already does; two extra command-refusal assertions) change no behaviour |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T05b-orch`: 222 passed, 0 failed (35.1 s); the full reports: `p7-c1`, `p7-c1r5`, `p7-c1r5c5` each `equal`, coverage complete, 713 of 713 equal, 0 problems (the developer's locked full runs: 11, 11 and 10 invocations, 1,683.4, 1,655.9 and 1,570.8 helper seconds, locked verification without allocation); `check-prerequisites --plan V4-P7`: pass; dry run at 747: `time-p7-c1`, `time-p7-c1r5`, `time-p7-c1r5c5` go (horizons 885, 835, 525 s), forecast 930 s counted (allocation 960 s, guard 1,200 s); `approval --plan V4-P7`: spentS 11,086.156, requestedAdditionalGuardS 1,162.172, requestedCumulativeRoundMinutes 205; P-0 binding pass; `firewall check --task S24-T05b`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the Scope paths |
+| Commit | this task's commit |
+| Issues and named items | none; S02 times all three composites |

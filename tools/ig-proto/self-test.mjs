@@ -8986,6 +8986,47 @@ const itemCases = [
       same(goDecision({ quick: { ok: true }, full: good, timing: { verdict: 'failed', notSame: ['t1', 't2'], ratio: null } }).reasons, ['timing failed', 'differing 2'], 'differing pairs');
     },
   },
+  {
+    name: 'write-plan: V4-P7',
+    async run() {
+      const m = await import('./manifest.mjs');
+      const all = ['p7-c1', 'p7-c1r5', 'p7-c1r5c5'];
+      const { plan, itemManifests } = m.writtenPlan('V4-P7', { candidates: all });
+      same([plan.task, plan.generatedBy, plan.runnable], ['V4-P7', 'manifest.mjs write-plan', true], 'the plan\'s header');
+      same(plan.steps.map((s) => s.id), ['prerequisites', 'firewall-snapshot', 'trees', ...all.flatMap((c) => [`bind-${c}`, `time-${c}`]), 'report', 'firewall-check'], 'the steps in order');
+      same(plan.steps[2].node.slice(-5), ['build', 'base', ...all], 'the trees step');
+      same(plan.prerequisites, all.flatMap((c) => [
+        { type: 'variant', id: c },
+        { type: 'file', path: `docs/improve-generating/evidence/frozen/V4-P7E-${c}-quick/p7.json` },
+        { type: 'file', path: `docs/improve-generating/evidence/frozen/V4-P7E-${c}-full/p7.json` },
+      ]), 'the prerequisites');
+      for (const c of all) {
+        const bind = /** @type {any} */ (plan.steps.find((s) => s.id === `bind-${c}`));
+        same([bind.locked, bind.node.slice(-5)], [false, ['bind', '--candidate', c, '--task', 'V4-P7']], `${c}: the bind step`);
+        const time = /** @type {any} */ (plan.steps.find((s) => s.id === `time-${c}`));
+        same([time.locked, time.dependsOn, time.minHorizonS, time.price.groups.length], [true, [`bind-${c}`], 150, 1], `${c}: the time step`);
+        const [group] = time.price.groups;
+        same([group.kind, group.variant, group.lanes, group.reserveS, group.durationsS.length], ['p7-time', c, 1, 90, 90], `${c}: the item group`);
+      }
+      same(itemManifests, {}, 'no item manifest');
+      same([plan.allocationMinutes, plan.optionalMinutes, Math.round(m.planGuardS(plan) * 1000) / 1000], [16, 0, 1162.172], 'the approved price of three composites');
+      const one = m.writtenPlan('V4-P7', { candidates: ['p7-c1'] }).plan;
+      same([one.steps.length, one.allocationMinutes, Math.round(m.planGuardS(one) / 60 * 100) / 100], [7, 6, 6.46], 'one composite');
+      const refusal = 'manifest: V4-P7 needs one to three of p7-c1, p7-c1r5, p7-c1r5c5, in order';
+      for (const candidates of [[], ['p7-c1r5', 'p7-c1'], ['p7-x'], ['p7-c1', 'p7-c1'], undefined]) {
+        same(thrownBy(() => m.writtenPlan('V4-P7', { candidates })), refusal, `refused: ${JSON.stringify(candidates)}`);
+      }
+      const dir = fresh(join(SELFTEST_DIR, 'write-plan-p7', 'run'));
+      try {
+        const other = await captureOutput(() => m.writePlanCommand(['--plan', 'V4-S2B', '--candidates', 'p7-c1', '--label', 'frozen', '--source-label', 'self-test'], { plansDir: dir }));
+        same([other.code, other.err], [1, 'write-plan: --candidates belongs to V4-P7\n'], '--candidates of another plan');
+        const missing = await captureOutput(() => m.writePlanCommand(['--plan', 'V4-P7', '--label', 'frozen', '--source-label', 'self-test'], { plansDir: dir }));
+        same([missing.code, missing.err], [1, `write-plan: ${refusal.replace('manifest: ', '')}\n`], 'no --candidates');
+      } finally {
+        rmSync(join(SELFTEST_DIR, 'write-plan-p7'), { recursive: true, force: true });
+      }
+    },
+  },
 ];
 
 /**

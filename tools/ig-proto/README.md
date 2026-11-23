@@ -2601,6 +2601,11 @@ price, and each approval is asked again with `approval --plan <id>` when it is n
 existing plan or item manifest is refused (`plan exists: a plan is never rewritten`), and `compile` is never run again (N-V4-02). Plans:
 `V4-S2B` (the control pilot: `fr-none` on the eight unpiloted Nightmare controls, reps 0 to 4, 40 rows at 260 s, prerequisite the accepted P-1
 binding of `fr-none`; allocation 23 min, guard 28.24 min). Self-test (`--items`, unlocked): `write-plan: V4-S2B`.
+`V4-P7` (T05b): the P7 timing probe, `write-plan --plan V4-P7 --candidates <ids>`: per composite an unlocked step `bind-<id>` (its quick and
+full equality reports bound to the tree to be timed) and one locked step `time-<id>` of 90 paired `p7-time` items (one lane, reserve 90 s,
+priced at V4-S2K's item times x 1.25), then `report`; prerequisites the composites and their quick and full equality reports; three
+composites: allocation 16 min, guard 19.37 min (the owner's 20 minutes, D-S24-28); no eligible composite, no plan. Self-test (`--items`,
+unlocked): `write-plan: V4-P7`.
 
 ## The fitting reader (stages 2 to 4 pack, T02b and T02c)
 
