@@ -1,0 +1,351 @@
+{
+  "task": "V4-S4C",
+  "generatedBy": "manifest.mjs activate",
+  "template": true,
+  "runnable": false,
+  "activationSha256": "0f9e868cb02c5915f133221fb873c57c971e9a8e239f7261da0425d7a6096d6f",
+  "cells": [
+    {
+      "cell": "14x14-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-14x14-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 182.36532397043172,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "15x15b10-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-15x15b10-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 159.20788804542886,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "12x12-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-12x12-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 83.51265067325666,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "16x16-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-16x16-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 123.3058770850932,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "15x20-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-15x20-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 81.51445096127387,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "26x26-hell-1",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-26x26-hell-1",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 201.52751563695938,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "20x20-hell-1",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-20x20-hell-1",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 260,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "3x29-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-3x29-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 6.972338730636936,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "10x10-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-10x10-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 31.277429523023265,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "18x18-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-18x18-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 47.87882127231746,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "18x20-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-18x20-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 21.6901913071086,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "20x20-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-20x20-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 26.886183197770496,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "20x21-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-20x21-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 31.126033684846057,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "32x15-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-32x15-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 15.012559501883842,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "22x22-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-22x22-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 22.33553036855768,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "24x24-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-24x24-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 24.038188449537216,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "26x26-nightmare",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-26x26-nightmare",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 24.022347404654724,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "24x24-hell-1",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-24x24-hell-1",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 147.16591209457522,
+        "rowLimitS": 260
+      }
+    },
+    {
+      "cell": "14x14-hell-1",
+      "from": 20,
+      "to": 39,
+      "rows": 20,
+      "rowLimitS": 260,
+      "shard": "val-14x14-hell-1",
+      "candidates": [
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "price": {
+        "type": "rows",
+        "rows": 20,
+        "rowS": 147.16206887894964,
+        "rowLimitS": 260
+      }
+    }
+  ]
+}

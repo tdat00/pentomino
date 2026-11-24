@@ -120,9 +120,9 @@ The go checks; the owner's answers; the printout; the files written; the questio
 
 | Item | Value |
 |---|---|
-| Start, end | |
-| Owner's answers (S4-6; authorization; message id) | |
-| Go checks | |
-| Activation printout | |
-| Commit | |
-| Issues and named items | |
+| Start, end | 2026-11-24 10:16 to 10:28 +07:00 (go checks 10:16-10:19; ruling R-P24-18 10:19-10:21; owner stop 10:21-10:26; activate 10:27) |
+| Owner's answers (S4-6; authorization; message id) | S4-6 (a) skipped; activation (a) authorized. Asked in Discord message 1574625779600588872; first reply `a` (1574626326923448373, 10:22:51 +07:00) was ambiguous for two parts, so the orchestrator asked for confirmation (1574626585410011197); confirmed `A cho cả 2` (1574627345816486021, 10:26:54 +07:00) |
+| Go checks | (1) `24x24-hell-1: 5 of 5 pilot reps published`, `14x14-hell-1: 5 of 5 pilot reps published`; (2) freeze.json and the four variants exist, live-deadline `binding: pass`; (3) as written it printed three pre-T11g commits because `c802fae` is off the branch (history rewrite of 2026-11-20); ruling R-P24-18 (commit 8d27a19): the check names the branch's T11g `be71271`; `git merge-base --is-ancestor be71271 HEAD` exit 0, the log, diff and status of both files print nothing; (4) `freeze: check pass (7 checks; ...)` |
+| Activation printout | `activate: wrote docs/improve-generating/evidence/frozen/V4-S4/activation.json`, `... tools/ig-proto/plans/V4-S4.json`, `... tools/ig-proto/plans/V4-S4C.template.json`; `activation: 80 groups, 1120 declared rows, 19 comparator cells; conditional 24x24-hell-1: true (5 of 5 valid); conditional 14x14-hell-1: true (4 of 5 valid); optional approved none`; `V4-S4: allocation 1186 min, optional 0 min; ask the owner with approval --plan V4-S4 before any run`: as the pack author's expected figures |
+| Commit | this task's commit |
+| Issues and named items | none; G1, G2 empty |
