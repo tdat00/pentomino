@@ -42,9 +42,12 @@ after the owner has decided the optional item S4-6 and authorized the activation
    2. `docs/improve-generating/evidence/frozen/V4-S3/freeze.json` and the four variants exist, and `node
       tools\ig-proto\v4-check.mjs check-binding --binding docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json
       --current fr-frozen,fr-frozen-none --label frozen --source-label "frozen 3fc65f4"` prints `binding: pass`;
-   3. `git log --oneline c802fae..HEAD -- tools/ig-proto/data/frozen-round-v1.json tools/ig-proto/plans/V4-S4.universe.json`
-      and `git status --short -- tools/ig-proto/data/frozen-round-v1.json tools/ig-proto/plans/V4-S4.universe.json` print
-      nothing;
+   3. `git merge-base --is-ancestor be71271 HEAD` exits 0, and `git log --oneline be71271..HEAD --
+      tools/ig-proto/data/frozen-round-v1.json tools/ig-proto/plans/V4-S4.universe.json`, `git diff --stat be71271 HEAD --
+      tools/ig-proto/data/frozen-round-v1.json tools/ig-proto/plans/V4-S4.universe.json` and `git status --short --
+      tools/ig-proto/data/frozen-round-v1.json tools/ig-proto/plans/V4-S4.universe.json` print nothing (`be71271` is
+      T11g's commit on the branch; the v4 pack's log names `c802fae`, the same commit before the branch's history was
+      rewritten on 2026-11-20, which no branch contains; ruling R-P24-18);
    4. `node tools\ig-proto\freeze.mjs check --label frozen --source-label "frozen 3fc65f4"` prints `freeze: check pass (7
       checks; ...)` (its `record` check is `activate`'s own rule on the file).
 2. **STOP 1: ask the owner** (Discord), and wait. Text to relay: "Stage 4 is ready to be set up. Two decisions: (1) the
