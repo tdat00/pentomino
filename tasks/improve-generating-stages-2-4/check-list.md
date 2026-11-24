@@ -119,6 +119,12 @@ spend) and `V4-S4C`. The minimum caps at the timing-proxy spend in the plan's or
 `V4-S3P` 374-379, `V4-LIVE` 284-294, `V4-S4` 1,726-1,737, `V4-S4C` 1,441-1,497 (plan §8.3): minimum quotes for a scope,
 never replacement grants; an active higher grant is kept unless the owner changes it.
 
+**The grant raised (2026-11-24, S06).** Before `V4-S4`: logged 14,471.048 counted seconds plus 87.4 s off-log =
+242.6408 counted minutes. The owner raised the cumulative cap to **1,725** counted minutes (Q-S06 (a), Discord message
+1574639945073557515, 2026-11-24 11:16:58 +07:00; the cap on the account `ceil((14471.048 + 87.4 + 88911.486) / 60)`);
+runs pass `-ApprovedRoundMinutes 1723` from then on. Earlier answers of 2026-11-24 inside the 749: the four proofs of
+`V4-S3P` (Q-S03 (a)), `V4-LIVE` (Q-S04 (a)), S4-6 skipped and `activate` authorized (Q-S05 (a), (a)).
+
 ## 2. Traceability
 
 ### 2.1 The plan (`docs/improve-generating-stages-2-4/plan.md`)
