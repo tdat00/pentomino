@@ -629,8 +629,8 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T10 | 2026-11-24 07:02 | 2026-11-24 07:06 | about 6 min | 36.38 | this task's commit |
 | S03 | 2026-11-24 07:06 | 2026-11-24 08:21 | about 75 min (owner wait 33 min; run 39 min) | – (orchestrator run) | this task's commit |
 | T11 | 2026-11-24 08:23 | 2026-11-24 08:47 | about 24 min | – (SA agents) | this task's commit |
-| T12a | 2026-11-24 08:56 | 2026-11-24 09:08 | about 12 min | 45.73 | this task's commit |
-| T12b | 2026-11-24 09:05 | 2026-11-24 09:29 | about 24 min | 230.04 | this task's commit |
+| T12a | 2026-11-24 08:56 | 2026-11-24 09:05 | about 9 min | 45.73 | this task's commit |
+| T12b | 2026-11-24 09:05 | 2026-11-24 09:24 | about 19 min | 230.04 | this task's commit |
 | S04 | | | | | |
 | S05 | | | | | |
 | S06 | | | | | |

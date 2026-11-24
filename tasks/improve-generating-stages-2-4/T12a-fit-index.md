@@ -213,8 +213,8 @@ its problems); each AC row with its evidence; the questions and rulings; the dev
 
 | Item | Value |
 |---|---|
-| Start, end, duration | 2026-11-24 08:56:02 to 08:58:21 +07:00 (developer); accepted 09:08; about 12 min with the ruling |
-| Waiting for rulings | about 6 min (R-P24-16, deviations only) |
+| Start, end, duration | 2026-11-24 08:56:02 to 08:58:21 +07:00 (developer); accepted 09:05; about 9 min with the ruling |
+| Waiting for rulings | about 5 min (R-P24-16, deviations only) |
 | Agent id, model | ab232cec-d78d-4af9-b1b8-487cbd06975c, claude-sonnet-5.5 |
 | Calls; input, output and cache-read tokens | 20; 1,247,341 / 14,091 / 1,167,478 |
 | AI credits | 45.73 |
