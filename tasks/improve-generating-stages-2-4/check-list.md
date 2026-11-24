@@ -560,6 +560,12 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | D-S24-27 | Q-S24-5 (a): the 20-request uncapped Hell 1 check approved (67.69 / 84.61, inside the 749, read through T11's gate); no further paired run or replacement epoch pre-authorized; the four proofs asked at their gate | owner | `ff9adcf` |
 | D-S24-28 | Q-S24-6 (a): up to 20 counted minutes for `V4-P7` (at most three composites; 15.50 / 19.37) | owner | `ff9adcf` |
 | D-S24-29 | Q-S24-7 (a): N-V4-18 not implemented; stage 4 keeps both identical arms' rows on the seven boards fixed without a screen | owner | `ff9adcf` |
+| D-S24-30 | Q-S03 (a): the four proofs of `V4-S3P` approved (Discord 1574585730338922549, 2026-11-24 07:41) | owner | `a3e256f` |
+| D-S24-31 | Q-S04 (a): `V4-LIVE` approved (Discord 1574623003696824381, 2026-11-24 10:09) | owner | `9302bed` |
+| D-S24-32 | Q-S05 (a), (a): S4-6 skipped; `activate` authorized (Discord 1574627345816486021, 2026-11-24 10:26) | owner | `e4659bc` |
+| D-S24-33 | Q-S06 (a): the cumulative cap raised to 1,725 counted minutes; `V4-S4` approved (Discord 1574639945073557515, 2026-11-24 11:16) | owner | `c439cff` |
+| D-S24-34 | Q-S07 (a): `V4-S4C` approved as measurement only (Discord 1574772706199732236, 2026-11-24 20:04; R-P24-19) | owner | `44c335a` |
+| D-S24-35 | Q-T16 (a), phase 0's decision (N-V4-06) on the failing item 26x26 Nightmare (`Phase 0: FAIL (control 26x26-nightmare: fail)`, V4-S4F): today's search is kept on 26x26 Nightmare and `gen-v4` is proposed for the other boards with the recorded class choices. The FAIL stays recorded; this approves only the scope of the phase-2 pack, which must implement the route, prove compatibility and replay, measure `require` on the largest boards first (N-V4-15) and repeat the validation on the production code, and returns to the owner with its plan and price before anything runs or ships; Hell 1's offer rules unchanged (`stage4-report.md` §7.3). Phase 1 not started: the owner did not answer its optional question (Discord 1574929061115863041, 2026-11-25 06:25:48 +07:00, "Qt-16 a") | owner | `ec8ec0c` |
 
 ### 5.4 Rulings on developer questions (pack author)
 

@@ -141,6 +141,6 @@ Phase 0's line; the decision asked of the owner; the findings; the files written
 |---|---|
 | Start, end, duration | 2026-11-24 22:51 +07:00 to 2026-11-25 00:55 +07:00; about 2 h 4 min (SA-Opus draft; SA-Astra N-V4-17 in parallel; one review round T16-R1 to R5) |
 | Agents, models | SA-Opus a607e081 (claude-opus-5.5, drafter); SA-Astra 56d9faa7 (gpt-6-astra, N-V4-17 reader and reviewer) |
-| Owner's answer (date, message id) | pending: Q-T16 relayed on Discord after this commit; recorded in the register when answered |
+| Owner's answer (date, message id) | (a), 2026-11-25 06:25:48 +07:00, Discord ai-ws-1 message 1574929061115863041 ("Qt-16 a"), asked in message 1574846062135353425 (stage4-report.md §7.3); recorded as D-S24-35; phase 1's optional question not answered, phase 1 not started |
 | Commit | this task's commit |
 | Issues and named items | `Phase 0: FAIL (control 26x26-nightmare: fail)` (V4-S4F, purpose final). Joint findings F1 to F7: F1 26x26 Nightmare to the owner (uncapped twin information-only lower bound 0.8987); F2 N-V4-16 stays open for phase 2's validation (the bound never fired); F3 14x14 Hell 1's two lost completions from the 115-s stop, by design; F4 no budget stop (largest Nightmare call 8.39 G of 10 G); F5 population reported for phase 3; F6 N-V4-15 with the production pack; F7 re-rating unexercised, no change. Round final account 871.2 of 1,725 counted minutes; G1, G2 empty |
