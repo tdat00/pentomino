@@ -213,13 +213,13 @@ its problems); each AC row with its evidence; the questions and rulings; the dev
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 08:56:02 to 08:58:21 +07:00 (developer); accepted 09:08; about 12 min with the ruling |
+| Waiting for rulings | about 6 min (R-P24-16, deviations only) |
+| Agent id, model | ab232cec-d78d-4af9-b1b8-487cbd06975c, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 20; 1,247,341 / 14,091 / 1,167,478 |
+| AI credits | 45.73 |
+| Questions and rulings | no QUESTION; six deviations accepted as delivered by SA-Opus (R-P24-16), step 2 restated to the delivered behaviour |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | firewall check S24-T12a OK (289 files); `--items` 233 passed, 0 failed (case 233 `freeze: the fit index` PASS, 51.9 s); real `fitIndex()` `5697 0 3`, the three problems the uncaptured `lib/lane-worker.mjs`, `manifest.mjs`, `v4-check.mjs` of `review-input-index.json`; `FIT_INPUTS` missing 0; `npm run check` OK; G1, G2 empty; G3 the two files |
+| Commit | this task's commit |
+| Issues and named items | none; T12b captures the three harness sources |

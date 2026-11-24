@@ -10,7 +10,8 @@ import { isDeepStrictEqual } from 'node:util';
 
 import { computePriorS3, PRIOR_S3_FILE } from './fit-prior-s3.mjs';
 import { evidenceDir, mp12b1Report, parseArgs } from './lib/paths.mjs';
-import { lf, sha256 } from './lib/records.mjs';
+import { readRepoFile } from './lib/proof.mjs';
+import { lf, sha256, sha256Text } from './lib/records.mjs';
 import { loadCatalogue } from './lib/sets.mjs';
 import { ensureTree } from './lib/tree.mjs';
 import { activation, controlsFrom, expandMatrix, freezeMismatch, matrixData, readPilots } from './manifest.mjs';
@@ -50,6 +51,145 @@ export function classOf(levelId, area) {
     }
   }
   return null;
+}
+
+/** The indices that fitted the freeze, read transitively (R18); `field` null for an array file. */
+export const FIT_INDICES = Object.freeze([
+  { path: 'docs/improve-generating-stages-2-4/evidence/sa-astra/input-index.json', field: null, key: 'sha256Lf' },
+  { path: 'docs/improve-generating-stages-2-4/evidence/sa-astra/review-input-index.json', field: null, key: 'sha256Lf' },
+  { path: 'docs/improve-generating-stages-2-4/evidence/sa-astra/freeze-inputs.json', field: 'inputs', key: 'sha256Lf' },
+  { path: 'docs/improve-generating-stages-2-4/evidence/sa-opus/fit-input-index.json', field: 'entries', key: 'sha256Lf' },
+  { path: 'docs/improve-generating-stages-2-4/evidence/sa-opus/t11-transport-inputs.json', field: null, key: 'sha256Lf' },
+  { path: 'docs/improve-generating-stages-2-4/evidence/sa-opus/t11-projection-inputs.json', field: null, key: 'sha256Lf' },
+  { path: 'docs/improve-generating/evidence/frozen/V4-S2B/fit-read-preview-fr-none.json', field: 'inputs', key: 'sha256' },
+  { path: 'docs/improve-generating/evidence/frozen/V4-S2B/fit-read-prefixes-fr-none.json', field: 'inputs', key: 'sha256' },
+  { path: 'docs/improve-generating-stages-2-4/evidence/sa-astra/s01-review-checks.json', field: 'publicationInputs', key: 'sha256' },
+  { path: 'docs/improve-generating/evidence/frozen/V4-S3P/fit-read-prefixes-fr-frozen-none-uncapped.json', field: 'inputs', key: 'sha256' },
+]);
+/** The top-level files and scripts of the fit (hashed as they are today; every index file is one too). */
+export const FIT_INPUTS = Object.freeze([
+  'tools/ig-proto/freeze.mjs',
+  'tools/ig-proto/fit-prior-s3.mjs',
+  'tools/ig-proto/data/prior-s3-v1.json',
+  'tools/ig-proto/data/prior-v1.json',
+  'docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-14x14-hell-1.calls.jsonl',
+  'docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-20x20-hell-1.calls.jsonl',
+  'docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-24x24-hell-1.calls.jsonl',
+  'docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-26x26-hell-1.calls.jsonl',
+  'docs/improve-generating/evidence/provisional/IGP-05/families-windows.jsonl',
+  'docs/improve-generating/evidence/provisional/IGP-05/families-failed-sets.jsonl',
+  'docs/improve-generating-stages-2-4/evidence/sa-astra/analyze-records.mjs',
+  'docs/improve-generating-stages-2-4/evidence/sa-astra/freeze-inputs.mjs',
+  'docs/improve-generating-stages-2-4/evidence/sa-astra/review-records.mjs',
+  'docs/improve-generating-stages-2-4/evidence/sa-astra/stage2-computed.json',
+  'docs/improve-generating-stages-2-4/evidence/sa-astra/stage2-computed.md',
+  'docs/improve-generating-stages-2-4/evidence/sa-astra/rows-computed.json',
+  'docs/improve-generating-stages-2-4/evidence/sa-astra/calls-computed.json',
+  'docs/improve-generating-stages-2-4/evidence/sa-astra/review-records.json',
+  'docs/improve-generating-stages-2-4/evidence/sa-astra/s01-review-checks.mjs',
+  'docs/improve-generating-stages-2-4/evidence/sa-opus/bt-fit-index.mjs',
+  'docs/improve-generating-stages-2-4/evidence/sa-opus/t11-transport.mjs',
+  'docs/improve-generating-stages-2-4/evidence/sa-opus/t11-projection.mjs',
+  'docs/improve-generating-stages-2-4/report.md',
+  'docs/improve-generating-stages-2-4/plan.md',
+  'docs/improve-generating-stages-2-4/s01-reading.md',
+  'docs/improve-generating-stages-2-4/t11-reading.md',
+]);
+/** Where a mutable harness source's indexed epoch is captured, and from which commit. */
+export const FIT_CAPTURE = Object.freeze({ dir: 'docs/improve-generating/evidence/frozen/V4-S3/fit-sources', commit: '57ef5cf' });
+/** The fitting records and reps actually used (plan 4.7); every other rep is excluded, and refused by fitIndex. */
+export const FIT_SEEDS_USED = Object.freeze([
+  { source: 'V4-S2', arms: ['fr-base', 'fr-screen', 'fr-none', 'fr-close', 'fr-c4', 'fr-ps', 'fr-p5'], reps: [0, 1, 2, 3, 4] },
+  { source: 'V4-S2B', arms: ['fr-none'], reps: [0, 1, 2, 3, 4] },
+  { source: 'V4-S3P', arms: ['fr-frozen-none-uncapped'], reps: [0, 1, 2, 3, 4] },
+  { source: 'MP12b1', reps: 'landscape reps 0-19 of docs/difficulty-v3/landscape-v3-full (today\'s search)' },
+  { source: 'IGP-05', reps: 'PM1\'s first slice (ig-pm1/...)' },
+  { source: 'V4-S2K, V4-T10a-c', reps: 'the kernel streams ig-v4/kernel/<case>' },
+]);
+
+/**
+ * @param {string} text A runs file's text: a JSON object with `rows`, or JSON lines.
+ * @param {string} path
+ * @returns {number[] | null} The distinct `rep` numbers of the runs file `path` in order of appearance; null when the text is not JSON.
+ */
+function repsOf(text, path) {
+  try {
+    const rows = path.endsWith('.runs.json') ? (JSON.parse(text)?.rows ?? []) : text.split('\n').filter((l) => l.trim() !== '').map((l) => JSON.parse(l));
+    const reps = (Array.isArray(rows) ? rows : []).map((r) => r?.rep).filter((r) => typeof r === 'number');
+    return [...new Set(reps)];
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * @param {{ indices?: ReadonlyArray<{ path: string, field: string | null, key: string }>, read?: (path: string) => string | null,
+ *   capture?: { dir: string, commit: string } }} [o]
+ * @returns {{ indices: { path: string, key: string, entries: number }[], checked: number,
+ *   captures: { path: string, sourceCommit: string, capturedPath: string, hash: string, index: string, kind: 'normalized-text' }[],
+ *   uncaptured: { path: string, hash: string, index: string }[], problems: string[] }}
+ *   The transitive validation of the fit's indices (R18): every entry's `key` hash recomputed with `sha256Lf` (the LF-normalized text hash), an
+ *   entry of a `tools/` path that changed accepted only through the capture of its indexed epoch, a missing or changed input refused, and no
+ *   validation, Master or second-validation rep (20 or more) in a runs file.
+ */
+export function fitIndex({ indices = FIT_INDICES, read = (p) => readRepoFile(p), capture = FIT_CAPTURE } = {}) {
+  /** @type {ReturnType<typeof fitIndex>} */
+  const out = { indices: [], checked: 0, captures: [], uncaptured: [], problems: [] };
+  for (const { path: index, field, key } of indices) {
+    const text = read(index);
+    if (text === null) {
+      out.problems.push(`missing fit index ${index}`);
+      continue;
+    }
+    let list;
+    try {
+      const parsed = JSON.parse(text);
+      list = field === null ? parsed : parsed?.[field];
+    } catch {
+      list = null;
+    }
+    if (!Array.isArray(list)) {
+      out.problems.push(`malformed fit index ${index}`);
+      continue;
+    }
+    out.indices.push({ path: index, key, entries: list.length });
+    for (const e of list) {
+      const p = typeof e?.path === 'string' ? e.path.replace(/\\/g, '/') : String(e?.path);
+      const want = e?.[key];
+      if (typeof e?.path !== 'string' || typeof want !== 'string' || !/^[0-9a-f]{64}$/.test(want)) {
+        out.problems.push(`malformed entry ${p} (index ${index})`);
+        continue;
+      }
+      const current = read(p);
+      let matched = current;
+      if (current === null || sha256Text(current) !== want) {
+        matched = null;
+        const cap = `${capture.dir}/${p}`;
+        const captured = p.startsWith('tools/') ? read(cap) : null;
+        if (captured !== null && sha256Text(captured) === want) {
+          out.captures.push({ path: p, sourceCommit: capture.commit, capturedPath: cap, hash: want, index, kind: 'normalized-text' });
+        } else if (p.startsWith('tools/')) {
+          out.problems.push(`fit input ${p} changed or missing and has no matching capture (index ${index})`);
+          out.uncaptured.push({ path: p, hash: want, index });
+        } else {
+          out.problems.push(current === null ? `missing fit input ${p} (index ${index})` : `fit input ${p} changed (index ${index})`);
+        }
+        continue;
+      }
+      out.checked += 1;
+      if (p.endsWith('.runs.json') || p.endsWith('/rows.jsonl')) {
+        const reps = repsOf(/** @type {string} */ (matched), p);
+        if (reps === null) {
+          out.problems.push(`malformed fit input ${p} (index ${index})`);
+        } else {
+          for (const r of reps.filter((n) => n >= 20)) {
+            out.problems.push(`fit input ${p} holds rep ${r}: validation, Master and second-validation reps are never fitting inputs`);
+          }
+        }
+      }
+    }
+  }
+  return out;
 }
 
 /** @typedef {{ name: string, pass: boolean, detail: string }} FreezeCheck */

@@ -9515,6 +9515,46 @@ const itemCases = [
       assert(thrownBy(() => m.writtenPlan('V4-XX')) === 'manifest: unknown written plan V4-XX', 'an unknown plan is refused');
     },
   },
+  {
+    name: 'freeze: the fit index',
+    async run() {
+      const { fitIndex } = await import('./freeze.mjs');
+      const runs = JSON.stringify({ rows: [{ rep: 0 }, { rep: 4 }] });
+      const entries = (/** @type {string} */ r = runs) => [
+        { path: 'x\\a.json', sha256Lf: sha256Text('A\n') },
+        { path: 'tools/m.mjs', sha256Lf: sha256Text('old\n') },
+        { path: 'r/s.runs.json', sha256Lf: sha256Text(r) },
+      ];
+      const base = () => new Map([['i.json', JSON.stringify(entries())], ['x/a.json', 'A\r\n'], ['tools/m.mjs', 'new\n'], ['cap/tools/m.mjs', 'old\n'], ['r/s.runs.json', runs]]);
+      const indices = [{ path: 'i.json', field: null, key: 'sha256Lf' }];
+      const capture = { dir: 'cap', commit: '57ef5cf' };
+      const fit = (/** @type {(files: Map<string, string>) => void} */ change) => {
+        const files = base();
+        change(files);
+        return fitIndex({ indices, capture, read: (p) => files.get(p) ?? null });
+      };
+      const old = sha256Text('old\n');
+      const uncaptured = [{ path: 'tools/m.mjs', hash: old, index: 'i.json' }];
+      const noCapture = 'fit input tools/m.mjs changed or missing and has no matching capture (index i.json)';
+      const ok = fit(() => {});
+      same([ok.checked, ok.captures, ok.uncaptured, ok.problems, ok.indices],
+        [2, [{ path: 'tools/m.mjs', sourceCommit: '57ef5cf', capturedPath: 'cap/tools/m.mjs', hash: old, index: 'i.json', kind: 'normalized-text' }], [], [],
+          [{ path: 'i.json', key: 'sha256Lf', entries: 3 }]], 'the CRLF file and the captured source pass');
+      same(fit((f) => f.set('x/a.json', 'B\n')).problems, ['fit input x/a.json changed (index i.json)'], 'a changed input');
+      same(fit((f) => f.delete('x/a.json')).problems, ['missing fit input x/a.json (index i.json)'], 'a missing input');
+      const noCap = fit((f) => f.delete('cap/tools/m.mjs'));
+      same([noCap.problems, noCap.uncaptured], [[noCapture], uncaptured], 'a source without its capture');
+      const otherCap = fit((f) => f.set('cap/tools/m.mjs', 'other\n'));
+      same([otherCap.problems, otherCap.uncaptured], [[noCapture], uncaptured], 'a source with another capture');
+      const withRep = JSON.stringify({ rows: [{ rep: 0 }, { rep: 20 }] });
+      same(fit((f) => { f.set('i.json', JSON.stringify(entries(withRep))); f.set('r/s.runs.json', withRep); }).problems,
+        ['fit input r/s.runs.json holds rep 20: validation, Master and second-validation reps are never fitting inputs'], 'a validation rep');
+      same(fit((f) => f.delete('i.json')).problems, ['missing fit index i.json'], 'a missing index');
+      same(fit((f) => f.set('i.json', '{')).problems, ['malformed fit index i.json'], 'an unparsable index');
+      same(fit((f) => f.set('i.json', JSON.stringify([{ path: 'x\\a.json', sha256Lf: 'abc' }, ...entries().slice(1)]))).problems,
+        ['malformed entry x/a.json (index i.json)'], 'a malformed hash');
+    },
+  },
 ];
 
 /**
