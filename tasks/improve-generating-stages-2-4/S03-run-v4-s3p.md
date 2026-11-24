@@ -142,12 +142,12 @@ evidence; the questions and rulings; the deviations; and the named items for lat
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Owner's answer (date, message id) | |
-| Approval re-read (line; cap on the account) | |
-| Counted minutes of the run; the round's account after it | |
-| Receipts and bindings | |
-| Questions and rulings | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 07:42:21 +07:00 (runner launched) to 08:21:07 +07:00 (exit 0); about 39 min wall clock; pre-checks and the dry run 07:06-07:08, the owner stop 07:08-07:41 |
+| Owner's answer (date, message id) | (a), 2026-11-24 07:41:32 +07:00, Discord ai-ws-1 message 1574585730338922549 ("Q-s03 a"), asked in message 1574577154224820358 |
+| Approval re-read (line; cap on the account) | roundCountedSBeforeApproval 11887.323, requestedAdditionalGuardS 10416.597 (proofs 5340.000, Hell 1 rows 5076.597); cap ceil((11887.323 + 87.4 + 10416.597) / 60) = 374 of the 749 granted; dry run `-ApprovedRoundMinutes 747`: 13 unlocked, 8 go, 0 stop |
+| Counted minutes of the run; the round's account after it | 2298.808 s (38.31 min): parity 321.088 / 321.504 / 321.142 / 320.558; Hell 1 rows 14x14 522.096, 20x20 182.864, 24x24 150.346, 26x26 159.210; every invocation quietS 15 (idle declaration), horizonS 885, exit 0. Round account 14186.131 s logged + 87.4 s off-log = 14273.531 s = 237.9 of 749 counted minutes |
+| Receipts and bindings | four receipts `parity pass`, blocks `{ parity: pass, replay: pass }`: fr-frozen f8c819d1, fr-frozen-none d0210095, fr-frozen-uncapped 5c4bfaf3, fr-frozen-none-uncapped ee18d8f8; four `parity-<arm>.accepted.json` with acceptedBy V4-S3; `check-binding --current <arm>` `binding: pass` for all four; 20 Hell 1 rows published (5 per cell; 3148 / 2197 / 1649 / 1751 journal lines) |
+| Questions and rulings | Q-S03 to the owner, answered (a); no SA ruling needed |
+| Gates re-run by the orchestrator | run log: `firewall: OK, 289 production files unchanged since the snapshot of V4-S3P`, `Plan V4-S3P finished: task counted 2,299 s, round counted 14,186 s`; four check-binding pass; G1, G2 empty; git status lists only docs/improve-generating/evidence/frozen/V4-S3P/ (28 files) |
+| Commit | this task's commit |
+| Issues and named items | none |

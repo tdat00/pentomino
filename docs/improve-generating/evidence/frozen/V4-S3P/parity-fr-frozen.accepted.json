@@ -1,0 +1,248 @@
+{
+  "format": "ig-v4-accepted",
+  "version": 1,
+  "receipt": {
+    "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.receipt.json",
+    "sha256": "f8c819d1cc278730975a0527b3c9acd72843b0720171f2044c67b4b3ebbdd538"
+  },
+  "expected": {
+    "kind": "parity",
+    "source": {
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b"
+    },
+    "harnessHash": "fd37ef4646a72deb084c054edf0d443859d13c4dc949d17d1239d1c33f6383d0",
+    "arms": [
+      {
+        "id": "fr-frozen",
+        "treeId": "b3e530b1bca515e551f240faccc327f9868da0f475a60761986faf4884b781f7",
+        "paramsHash": "8d88421dd28da637585e3add86da5d69b7a780dbc3115fc67967ca25b206bd19"
+      }
+    ],
+    "coverage": {
+      "expected": [
+        "parity-fr-frozen:fr-frozen:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+        "parity-fr-frozen:fr-frozen:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+        "parity-fr-frozen:fr-frozen:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+        "parity-fr-frozen:fr-frozen:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+        "parity-fr-frozen:fr-frozen:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+        "parity-fr-frozen:fr-frozen:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+        "parity-fr-frozen:fr-frozen:14x14-master:ig-v4/parity/14x14-master:absent",
+        "parity-fr-frozen:fr-frozen:14x14-master:ig-v4/parity/14x14-master:charge",
+        "parity-fr-frozen:fr-frozen:14x14-master:ig-v4/parity/14x14-master:record",
+        "parity-fr-frozen:fr-frozen:12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+        "parity-fr-frozen:fr-frozen:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+        "parity-fr-frozen:fr-frozen:12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1"
+      ]
+    },
+    "fields": {
+      "blocks": {
+        "parity": "pass",
+        "replay": "pass"
+      }
+    }
+  },
+  "params": {
+    "fr-frozen": {
+      "variant": "fr-frozen",
+      "diagnosticOffers": true,
+      "logAccepted": true,
+      "p6": false,
+      "U0": 8,
+      "rerateMax": 4,
+      "W": {
+        "default": 190000000
+      },
+      "priorTable": "prior-s3-v1",
+      "screenTable": "screen-s3-v1",
+      "link": true,
+      "screenClasses": {
+        "hell-1": null,
+        "n-small": null,
+        "n-mid": 190000000,
+        "n-large": 190000000
+      },
+      "perSetPrior": true,
+      "callBudget": {
+        "id": "budget-s3-v1",
+        "any": {
+          "nightmare": 10000000000,
+          "hell-1": 40000000000
+        },
+        "require": {
+          "nightmare": 32000000000,
+          "hell-1": 40000000000
+        }
+      },
+      "setAttemptsBound": 4,
+      "liveDeadline": {
+        "id": "deadline-s3-v1",
+        "levels": [
+          "nightmare",
+          "hell-1"
+        ],
+        "reserve": 0.6,
+        "setStageCapMs": 46000,
+        "generationStopMs": 115000,
+        "responseBoundMs": 120000,
+        "hostMarginMs": 1000
+      },
+      "rerate": "rescue",
+      "c4": false,
+      "perSetLevels": [
+        "hell-1"
+      ],
+      "prior": {
+        "hell-1@196": {
+          "caseId": "14x14-hell-1",
+          "share": 0.4,
+          "n": 68,
+          "source": "V4-S2 fr-base window share"
+        },
+        "hell-1@215": {
+          "caseId": "15x15b10-hell-1",
+          "share": 0.404412,
+          "n": 3,
+          "source": "IGP-05 window share"
+        },
+        "hell-1@256": {
+          "caseId": "16x16-hell-1",
+          "share": 0.358108,
+          "n": 3,
+          "source": "IGP-05 window share"
+        },
+        "hell-1@300": {
+          "caseId": "15x20-hell-1",
+          "share": 0.443429,
+          "n": 4,
+          "source": "IGP-05 window share"
+        },
+        "hell-1@324": {
+          "caseId": "18x18-hell-1",
+          "share": 0.347222,
+          "n": 6,
+          "source": "IGP-05 window share"
+        },
+        "hell-1@360": {
+          "caseId": "18x20-hell-1",
+          "share": 0.331514,
+          "n": 6,
+          "source": "IGP-05 window share"
+        },
+        "hell-1@400": {
+          "caseId": "20x20-hell-1",
+          "share": 0.368421,
+          "n": 75,
+          "source": "V4-S2 fr-base window share"
+        },
+        "hell-1@420": {
+          "caseId": "20x21-hell-1",
+          "share": 0.390244,
+          "n": 3,
+          "source": "IGP-05 window share"
+        },
+        "hell-1@480": {
+          "caseId": "32x15-hell-1",
+          "share": 0.297161,
+          "n": 6,
+          "source": "IGP-05 window share"
+        },
+        "hell-1@484": {
+          "caseId": "22x22-hell-1",
+          "share": 0.2875,
+          "n": 5,
+          "source": "IGP-05 window share"
+        },
+        "hell-1@576": {
+          "caseId": "24x24-hell-1",
+          "share": 0.219512,
+          "n": 70,
+          "source": "V4-S2 fr-base window share"
+        },
+        "hell-1@676": {
+          "caseId": "26x26-hell-1",
+          "share": 0.2,
+          "n": 64,
+          "source": "V4-S2 fr-base window share"
+        },
+        "nightmare@100": {
+          "caseId": "10x10-nightmare",
+          "share": 0.2,
+          "n": 100
+        },
+        "nightmare@144": {
+          "caseId": "12x12-nightmare",
+          "share": 0.210526,
+          "n": 97
+        },
+        "nightmare@196": {
+          "caseId": "14x14-nightmare",
+          "share": 0.190476,
+          "n": 57
+        },
+        "nightmare@215": {
+          "caseId": "15x15b10-nightmare",
+          "share": 0.181818,
+          "n": 74
+        },
+        "nightmare@256": {
+          "caseId": "16x16-nightmare",
+          "share": 0.173913,
+          "n": 92
+        },
+        "nightmare@300": {
+          "caseId": "15x20-nightmare",
+          "share": 0.192308,
+          "n": 93
+        },
+        "nightmare@324": {
+          "caseId": "18x18-nightmare",
+          "share": 0.16,
+          "n": 100
+        },
+        "nightmare@360": {
+          "caseId": "18x20-nightmare",
+          "share": 0.16,
+          "n": 100
+        },
+        "nightmare@400": {
+          "caseId": "20x20-nightmare",
+          "share": 0.16313,
+          "n": 100
+        },
+        "nightmare@420": {
+          "caseId": "20x21-nightmare",
+          "share": 0.153846,
+          "n": 100
+        },
+        "nightmare@480": {
+          "caseId": "32x15-nightmare",
+          "share": 0.142857,
+          "n": 100
+        },
+        "nightmare@484": {
+          "caseId": "22x22-nightmare",
+          "share": 0.145503,
+          "n": 100
+        },
+        "nightmare@576": {
+          "caseId": "24x24-nightmare",
+          "share": 0.133333,
+          "n": 100
+        },
+        "nightmare@676": {
+          "caseId": "26x26-nightmare",
+          "share": 0.133333,
+          "n": 100
+        },
+        "nightmare@87": {
+          "caseId": "3x29-nightmare",
+          "share": 0.166667,
+          "n": 100
+        }
+      }
+    }
+  },
+  "acceptedAt": "2026-11-24T00:47:44.541Z",
+  "acceptedBy": "V4-S3"
+}
