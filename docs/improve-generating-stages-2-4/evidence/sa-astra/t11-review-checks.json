@@ -1,0 +1,2165 @@
+{
+  "base": "a3e256f",
+  "outcome": "A",
+  "epoch": {
+    "fr-frozen": {
+      "id": "fr-frozen",
+      "treeId": "b3e530b1bca515e551f240faccc327f9868da0f475a60761986faf4884b781f7",
+      "paramsHash": "8d88421dd28da637585e3add86da5d69b7a780dbc3115fc67967ca25b206bd19",
+      "harnessHash": "fd37ef4646a72deb084c054edf0d443859d13c4dc949d17d1239d1c33f6383d0",
+      "copyDigest": "d595ad752e7d7adf5b5601d5ecc4d131a01bb3532e4befda50c5f71f28d4dfec",
+      "check": {
+        "status": "pass",
+        "reasons": []
+      }
+    },
+    "fr-frozen-none": {
+      "id": "fr-frozen-none",
+      "treeId": "fa903f397ef6dce86ef70f3afb771c5de258b12836ae314bf796dbbf798ec6b3",
+      "paramsHash": "2fb012457857019b1b6a08cc1a7a2d6cf3147b3682c838c6d1351a688b0c528c",
+      "harnessHash": "fd37ef4646a72deb084c054edf0d443859d13c4dc949d17d1239d1c33f6383d0",
+      "copyDigest": "a7cec158d13d999135b745ca5d91c0bbc55d961c1c5ba902d9297330ff620951",
+      "check": {
+        "status": "pass",
+        "reasons": []
+      }
+    },
+    "fr-frozen-uncapped": {
+      "id": "fr-frozen-uncapped",
+      "treeId": "96ef38e2fd6d8f0ad07f1858275377f5d4bf788d7a2ae4cd80a813afdd829599",
+      "paramsHash": "a65b581dff5d038446347400c16669d15ca1b383b0aa428d091b5409a5a0f5bc",
+      "harnessHash": "fd37ef4646a72deb084c054edf0d443859d13c4dc949d17d1239d1c33f6383d0",
+      "copyDigest": "10dfd45aa3d411bdf1b0d2ed0900dc7210952aa0805061106e0f389836cbdcb9",
+      "check": {
+        "status": "pass",
+        "reasons": []
+      }
+    },
+    "fr-frozen-none-uncapped": {
+      "id": "fr-frozen-none-uncapped",
+      "treeId": "e31d829dee8d15a58c3e0d796afa35665222cd30fa707f3a52c5e5f868e6779c",
+      "paramsHash": "bedc1ecdfde3ecd52cccc9dfaa0da8ed5136ada5bdebb88ad34a96279bec08cf",
+      "harnessHash": "fd37ef4646a72deb084c054edf0d443859d13c4dc949d17d1239d1c33f6383d0",
+      "copyDigest": "d374ef7d6cebd4c444813167cff98ffc37a85f12ad0677632f92b1ac3307085f",
+      "check": {
+        "status": "pass",
+        "reasons": []
+      }
+    }
+  },
+  "cells": [
+    {
+      "cell": "14x14-hell-1",
+      "rows": 5,
+      "calls": 101,
+      "ended": 78,
+      "terminated": 23,
+      "maxCallG": 22.396,
+      "boundFirings": 0,
+      "maxEndedBatchG": 22.396,
+      "maxTerminatedG": 20.774,
+      "maxSetG": 10.979,
+      "setStarts": 20,
+      "batchStarts": 81,
+      "distinctBatchStarts": 31,
+      "setCuts": 0,
+      "lost": 1,
+      "completed": 3,
+      "served": [
+        10,
+        8,
+        10,
+        2,
+        10
+      ],
+      "maxSetS": 35.2739671
+    },
+    {
+      "cell": "20x20-hell-1",
+      "rows": 5,
+      "calls": 114,
+      "ended": 90,
+      "terminated": 24,
+      "maxCallG": 13.849,
+      "boundFirings": 0,
+      "maxEndedBatchG": 13.849,
+      "maxTerminatedG": 5.119,
+      "maxSetG": 1.936,
+      "setStarts": 20,
+      "batchStarts": 94,
+      "distinctBatchStarts": 58,
+      "setCuts": 0,
+      "lost": 0,
+      "completed": 5,
+      "served": [
+        10,
+        10,
+        10,
+        10,
+        10
+      ],
+      "maxSetS": 4.865979
+    },
+    {
+      "cell": "24x24-hell-1",
+      "rows": 5,
+      "calls": 109,
+      "ended": 86,
+      "terminated": 23,
+      "maxCallG": 5.796,
+      "boundFirings": 0,
+      "maxEndedBatchG": 4.989,
+      "maxTerminatedG": 2.13,
+      "maxSetG": 5.796,
+      "setStarts": 20,
+      "batchStarts": 89,
+      "distinctBatchStarts": 62,
+      "setCuts": 0,
+      "lost": 0,
+      "completed": 5,
+      "served": [
+        10,
+        10,
+        10,
+        10,
+        10
+      ],
+      "maxSetS": 17.167616
+    },
+    {
+      "cell": "26x26-hell-1",
+      "rows": 5,
+      "calls": 108,
+      "ended": 83,
+      "terminated": 25,
+      "maxCallG": 8.531,
+      "boundFirings": 0,
+      "maxEndedBatchG": 8.531,
+      "maxTerminatedG": 3.79,
+      "maxSetG": 6.181,
+      "setStarts": 20,
+      "batchStarts": 88,
+      "distinctBatchStarts": 22,
+      "setCuts": 0,
+      "lost": 0,
+      "completed": 5,
+      "served": [
+        10,
+        10,
+        10,
+        10,
+        10
+      ],
+      "maxSetS": 18.006574200000003
+    }
+  ],
+  "rows": [
+    {
+      "rowKey": "14x14-hell-1~0",
+      "cell": "14x14-hell-1",
+      "rep": 0,
+      "calls": 21,
+      "ended": 15,
+      "terminated": 6,
+      "maxSpent": 22396329762,
+      "maxEndedBatch": 22396329762,
+      "maxTerminated": 1600142201,
+      "maxSet": 263089014,
+      "boundFires": false,
+      "setEnds": [
+        "hit"
+      ],
+      "setTerminated": 3,
+      "setStarts": 4,
+      "batchStarts": 17,
+      "batchEnded": 14,
+      "K": 32,
+      "calibrationScore": 87,
+      "wc": 13,
+      "tablePrior": 13,
+      "perSetPrior": 13,
+      "distinctBatch": 0,
+      "setMs": 1009.0247,
+      "accepted": 10,
+      "tenthReadyMs": 76777.8383,
+      "responseMs": 76932.9334,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 87981678886,
+        "hi": 95764499336
+      }
+    },
+    {
+      "rowKey": "14x14-hell-1~1",
+      "cell": "14x14-hell-1",
+      "rep": 1,
+      "calls": 20,
+      "ended": 16,
+      "terminated": 4,
+      "maxSpent": 13447544177,
+      "maxEndedBatch": 13447544177,
+      "maxTerminated": 9610849308,
+      "maxSet": 10051930933,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "window",
+        "window"
+      ],
+      "setTerminated": 1,
+      "setStarts": 4,
+      "batchStarts": 16,
+      "batchEnded": 13,
+      "K": 34,
+      "calibrationScore": 102,
+      "wc": 16,
+      "tablePrior": 14,
+      "perSetPrior": 16,
+      "distinctBatch": 16,
+      "setMs": 31881.3792,
+      "accepted": 10,
+      "tenthReadyMs": 127962.8183,
+      "responseMs": 128135.9155,
+      "setCut": false,
+      "served": 8,
+      "completed": false,
+      "lost": true,
+      "workInterval": {
+        "lo": 135538318257,
+        "hi": 141055350169
+      }
+    },
+    {
+      "rowKey": "14x14-hell-1~2",
+      "cell": "14x14-hell-1",
+      "rep": 2,
+      "calls": 20,
+      "ended": 15,
+      "terminated": 5,
+      "maxSpent": 11120115597,
+      "maxEndedBatch": 11120115597,
+      "maxTerminated": 5620409695,
+      "maxSet": 3788795964,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 2,
+      "setStarts": 4,
+      "batchStarts": 16,
+      "batchEnded": 13,
+      "K": 35,
+      "calibrationScore": 86,
+      "wc": 14,
+      "tablePrior": 14,
+      "perSetPrior": 14,
+      "distinctBatch": 0,
+      "setMs": 11067.5098,
+      "accepted": 10,
+      "tenthReadyMs": 71814.81910000001,
+      "responseMs": 71975.4403,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 76855794518,
+        "hi": 83046611178
+      }
+    },
+    {
+      "rowKey": "14x14-hell-1~3",
+      "cell": "14x14-hell-1",
+      "rep": 3,
+      "calls": 19,
+      "ended": 15,
+      "terminated": 4,
+      "maxSpent": 20773606422,
+      "maxEndedBatch": 15593576781,
+      "maxTerminated": 20773606422,
+      "maxSet": 10979154873,
+      "boundFires": false,
+      "setEnds": [
+        "window",
+        "window",
+        "window",
+        "window"
+      ],
+      "setTerminated": 0,
+      "setStarts": 4,
+      "batchStarts": 15,
+      "batchEnded": 11,
+      "K": 32,
+      "calibrationScore": 91,
+      "wc": 11,
+      "tablePrior": 13,
+      "perSetPrior": 11,
+      "distinctBatch": 15,
+      "setMs": 35273.9671,
+      "accepted": 2,
+      "tenthReadyMs": null,
+      "responseMs": 150337.87980000002,
+      "setCut": false,
+      "served": 2,
+      "completed": false,
+      "lost": false,
+      "workInterval": {
+        "lo": 149601238478,
+        "hi": 155086130858
+      }
+    },
+    {
+      "rowKey": "14x14-hell-1~4",
+      "cell": "14x14-hell-1",
+      "rep": 4,
+      "calls": 21,
+      "ended": 17,
+      "terminated": 4,
+      "maxSpent": 15239602742,
+      "maxEndedBatch": 15239602742,
+      "maxTerminated": 7790597140,
+      "maxSet": 6581673034,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 1,
+      "setStarts": 4,
+      "batchStarts": 17,
+      "batchEnded": 14,
+      "K": 32,
+      "calibrationScore": 79,
+      "wc": 13,
+      "tablePrior": 13,
+      "perSetPrior": 13,
+      "distinctBatch": 0,
+      "setMs": 21917.5953,
+      "accepted": 10,
+      "tenthReadyMs": 75880.3731,
+      "responseMs": 76057.5339,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 80874163121,
+        "hi": 85987781829
+      }
+    },
+    {
+      "rowKey": "20x20-hell-1~0",
+      "cell": "20x20-hell-1",
+      "rep": 0,
+      "calls": 29,
+      "ended": 25,
+      "terminated": 4,
+      "maxSpent": 13848522825,
+      "maxEndedBatch": 13848522825,
+      "maxTerminated": 4127179374,
+      "maxSet": 1936270530,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 1,
+      "setStarts": 4,
+      "batchStarts": 25,
+      "batchEnded": 22,
+      "K": 42,
+      "calibrationScore": 94,
+      "wc": 17,
+      "tablePrior": 15,
+      "perSetPrior": 17,
+      "distinctBatch": 25,
+      "setMs": 4219.4178999999995,
+      "accepted": 10,
+      "tenthReadyMs": 44074.7229,
+      "responseMs": 44223.6918,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 54098194045,
+        "hi": 89701719367
+      }
+    },
+    {
+      "rowKey": "20x20-hell-1~1",
+      "cell": "20x20-hell-1",
+      "rep": 1,
+      "calls": 22,
+      "ended": 17,
+      "terminated": 5,
+      "maxSpent": 7530125603,
+      "maxEndedBatch": 7530125603,
+      "maxTerminated": 5118898074,
+      "maxSet": 1313624037,
+      "boundFires": false,
+      "setEnds": [
+        "window",
+        "hit"
+      ],
+      "setTerminated": 2,
+      "setStarts": 4,
+      "batchStarts": 18,
+      "batchEnded": 15,
+      "K": 38,
+      "calibrationScore": 88,
+      "wc": 15,
+      "tablePrior": 14,
+      "perSetPrior": 15,
+      "distinctBatch": 18,
+      "setMs": 4630.0097000000005,
+      "accepted": 10,
+      "tenthReadyMs": 41999.1624,
+      "responseMs": 42179.6422,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 51258332053,
+        "hi": 101231753083
+      }
+    },
+    {
+      "rowKey": "20x20-hell-1~2",
+      "cell": "20x20-hell-1",
+      "rep": 2,
+      "calls": 21,
+      "ended": 17,
+      "terminated": 4,
+      "maxSpent": 7011736270,
+      "maxEndedBatch": 7011736270,
+      "maxTerminated": 4271757315,
+      "maxSet": 1516238873,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 1,
+      "setStarts": 4,
+      "batchStarts": 17,
+      "batchEnded": 14,
+      "K": 39,
+      "calibrationScore": 94,
+      "wc": 14,
+      "tablePrior": 14,
+      "perSetPrior": 14,
+      "distinctBatch": 0,
+      "setMs": 4865.979,
+      "accepted": 10,
+      "tenthReadyMs": 24213.868,
+      "responseMs": 24401.4828,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 33285889242,
+        "hi": 71338835048
+      }
+    },
+    {
+      "rowKey": "20x20-hell-1~3",
+      "cell": "20x20-hell-1",
+      "rep": 3,
+      "calls": 19,
+      "ended": 13,
+      "terminated": 6,
+      "maxSpent": 5387247200,
+      "maxEndedBatch": 5387247200,
+      "maxTerminated": 1520392272,
+      "maxSet": 452699120,
+      "boundFires": false,
+      "setEnds": [
+        "hit"
+      ],
+      "setTerminated": 3,
+      "setStarts": 4,
+      "batchStarts": 15,
+      "batchEnded": 12,
+      "K": 38,
+      "calibrationScore": 103,
+      "wc": 11,
+      "tablePrior": 14,
+      "perSetPrior": 11,
+      "distinctBatch": 15,
+      "setMs": 1447.0518,
+      "accepted": 10,
+      "tenthReadyMs": 25939.648,
+      "responseMs": 26113.6534,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 32942738451,
+        "hi": 81740157661
+      }
+    },
+    {
+      "rowKey": "20x20-hell-1~4",
+      "cell": "20x20-hell-1",
+      "rep": 4,
+      "calls": 23,
+      "ended": 18,
+      "terminated": 5,
+      "maxSpent": 5766471369,
+      "maxEndedBatch": 5766471369,
+      "maxTerminated": 2773666533,
+      "maxSet": 1268056429,
+      "boundFires": false,
+      "setEnds": [
+        "window"
+      ],
+      "setTerminated": 3,
+      "setStarts": 4,
+      "batchStarts": 19,
+      "batchEnded": 17,
+      "K": 38,
+      "calibrationScore": 94,
+      "wc": 14,
+      "tablePrior": 14,
+      "perSetPrior": 14,
+      "distinctBatch": 0,
+      "setMs": 4372.0438,
+      "accepted": 10,
+      "tenthReadyMs": 26067.0386,
+      "responseMs": 26228.836900000002,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 32149437726,
+        "hi": 79237503482
+      }
+    },
+    {
+      "rowKey": "24x24-hell-1~0",
+      "cell": "24x24-hell-1",
+      "rep": 0,
+      "calls": 20,
+      "ended": 16,
+      "terminated": 4,
+      "maxSpent": 3069952976,
+      "maxEndedBatch": 3069952976,
+      "maxTerminated": 903485271,
+      "maxSet": 2038721069,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 1,
+      "setStarts": 4,
+      "batchStarts": 16,
+      "batchEnded": 13,
+      "K": 39,
+      "calibrationScore": 92,
+      "wc": 11,
+      "tablePrior": 9,
+      "perSetPrior": 11,
+      "distinctBatch": 16,
+      "setMs": 6302.1267,
+      "accepted": 10,
+      "tenthReadyMs": 21120.1502,
+      "responseMs": 21212.304,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 21984593949,
+        "hi": 252421502399
+      }
+    },
+    {
+      "rowKey": "24x24-hell-1~1",
+      "cell": "24x24-hell-1",
+      "rep": 1,
+      "calls": 18,
+      "ended": 13,
+      "terminated": 5,
+      "maxSpent": 1764178224,
+      "maxEndedBatch": 1468924312,
+      "maxTerminated": 760909371,
+      "maxSet": 1764178224,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 2,
+      "setStarts": 4,
+      "batchStarts": 14,
+      "batchEnded": 11,
+      "K": 42,
+      "calibrationScore": 101,
+      "wc": 12,
+      "tablePrior": 9,
+      "perSetPrior": 12,
+      "distinctBatch": 14,
+      "setMs": 7547.6366,
+      "accepted": 10,
+      "tenthReadyMs": 12968.2397,
+      "responseMs": 13143.0826,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 8152984137,
+        "hi": 247031945497
+      }
+    },
+    {
+      "rowKey": "24x24-hell-1~2",
+      "cell": "24x24-hell-1",
+      "rep": 2,
+      "calls": 18,
+      "ended": 13,
+      "terminated": 5,
+      "maxSpent": 4495453622,
+      "maxEndedBatch": 4495453622,
+      "maxTerminated": 2129722525,
+      "maxSet": 1156053697,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 2,
+      "setStarts": 4,
+      "batchStarts": 14,
+      "batchEnded": 11,
+      "K": 40,
+      "calibrationScore": 86,
+      "wc": 8,
+      "tablePrior": 9,
+      "perSetPrior": 8,
+      "distinctBatch": 14,
+      "setMs": 2663.9695,
+      "accepted": 10,
+      "tenthReadyMs": 20060.3177,
+      "responseMs": 20188.6284,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 22186667314,
+        "hi": 272887494934
+      }
+    },
+    {
+      "rowKey": "24x24-hell-1~3",
+      "cell": "24x24-hell-1",
+      "rep": 3,
+      "calls": 31,
+      "ended": 25,
+      "terminated": 6,
+      "maxSpent": 4988745331,
+      "maxEndedBatch": 4988745331,
+      "maxTerminated": 1434041911,
+      "maxSet": 498817392,
+      "boundFires": false,
+      "setEnds": [
+        "hit"
+      ],
+      "setTerminated": 3,
+      "setStarts": 4,
+      "batchStarts": 27,
+      "batchEnded": 24,
+      "K": 39,
+      "calibrationScore": 95,
+      "wc": 9,
+      "tablePrior": 9,
+      "perSetPrior": 9,
+      "distinctBatch": 0,
+      "setMs": 1608.3961,
+      "accepted": 10,
+      "tenthReadyMs": 32634.8014,
+      "responseMs": 32792.2141,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 40215420726,
+        "hi": 363609252544
+      }
+    },
+    {
+      "rowKey": "24x24-hell-1~4",
+      "cell": "24x24-hell-1",
+      "rep": 4,
+      "calls": 22,
+      "ended": 19,
+      "terminated": 3,
+      "maxSpent": 5796242350,
+      "maxEndedBatch": 4844785816,
+      "maxTerminated": 760818778,
+      "maxSet": 5796242350,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit",
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 0,
+      "setStarts": 4,
+      "batchStarts": 18,
+      "batchEnded": 15,
+      "K": 41,
+      "calibrationScore": 94,
+      "wc": 7,
+      "tablePrior": 9,
+      "perSetPrior": 7,
+      "distinctBatch": 18,
+      "setMs": 17167.615999999998,
+      "accepted": 10,
+      "tenthReadyMs": 39502.765999999996,
+      "responseMs": 39649.1529,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 33225611684,
+        "hi": 192144249074
+      }
+    },
+    {
+      "rowKey": "26x26-hell-1~0",
+      "cell": "26x26-hell-1",
+      "rep": 0,
+      "calls": 26,
+      "ended": 21,
+      "terminated": 5,
+      "maxSpent": 8530628656,
+      "maxEndedBatch": 8530628656,
+      "maxTerminated": 1948810828,
+      "maxSet": 580064294,
+      "boundFires": false,
+      "setEnds": [
+        "hit"
+      ],
+      "setTerminated": 3,
+      "setStarts": 4,
+      "batchStarts": 22,
+      "batchEnded": 20,
+      "K": 42,
+      "calibrationScore": 95,
+      "wc": 7,
+      "tablePrior": 8,
+      "perSetPrior": 7,
+      "distinctBatch": 22,
+      "setMs": 2033.7943999999998,
+      "accepted": 10,
+      "tenthReadyMs": 40127.308800000006,
+      "responseMs": 40314.3308,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 48090153510,
+        "hi": 528970863412
+      }
+    },
+    {
+      "rowKey": "26x26-hell-1~1",
+      "cell": "26x26-hell-1",
+      "rep": 1,
+      "calls": 24,
+      "ended": 19,
+      "terminated": 5,
+      "maxSpent": 5114851075,
+      "maxEndedBatch": 5114851075,
+      "maxTerminated": 3789813744,
+      "maxSet": 760976076,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 2,
+      "setStarts": 4,
+      "batchStarts": 20,
+      "batchEnded": 17,
+      "K": 41,
+      "calibrationScore": 86,
+      "wc": 8,
+      "tablePrior": 8,
+      "perSetPrior": 8,
+      "distinctBatch": 0,
+      "setMs": 2156.0199000000002,
+      "accepted": 10,
+      "tenthReadyMs": 22398.445099999997,
+      "responseMs": 22577.6508,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 27898714042,
+        "hi": 482120849202
+      }
+    },
+    {
+      "rowKey": "26x26-hell-1~2",
+      "cell": "26x26-hell-1",
+      "rep": 2,
+      "calls": 17,
+      "ended": 12,
+      "terminated": 5,
+      "maxSpent": 2686333992,
+      "maxEndedBatch": 2686333992,
+      "maxTerminated": 760808570,
+      "maxSet": 468575514,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 2,
+      "setStarts": 4,
+      "batchStarts": 13,
+      "batchEnded": 10,
+      "K": 39,
+      "calibrationScore": 102,
+      "wc": 8,
+      "tablePrior": 8,
+      "perSetPrior": 8,
+      "distinctBatch": 0,
+      "setMs": 2055.5758,
+      "accepted": 10,
+      "tenthReadyMs": 12639.413,
+      "responseMs": 12812.4362,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 13136838237,
+        "hi": 502741274581
+      }
+    },
+    {
+      "rowKey": "26x26-hell-1~3",
+      "cell": "26x26-hell-1",
+      "rep": 3,
+      "calls": 20,
+      "ended": 14,
+      "terminated": 6,
+      "maxSpent": 3798365582,
+      "maxEndedBatch": 3798365582,
+      "maxTerminated": 3267619122,
+      "maxSet": 760940363,
+      "boundFires": false,
+      "setEnds": [
+        "hit"
+      ],
+      "setTerminated": 3,
+      "setStarts": 4,
+      "batchStarts": 16,
+      "batchEnded": 13,
+      "K": 40,
+      "calibrationScore": 90,
+      "wc": 8,
+      "tablePrior": 8,
+      "perSetPrior": 8,
+      "distinctBatch": 0,
+      "setMs": 2108.483,
+      "accepted": 10,
+      "tenthReadyMs": 19162.4018,
+      "responseMs": 19349.2375,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 22353291665,
+        "hi": 560932786117
+      }
+    },
+    {
+      "rowKey": "26x26-hell-1~4",
+      "cell": "26x26-hell-1",
+      "rep": 4,
+      "calls": 21,
+      "ended": 17,
+      "terminated": 4,
+      "maxSpent": 6181408514,
+      "maxEndedBatch": 6050824331,
+      "maxTerminated": 1853669710,
+      "maxSet": 6181408514,
+      "boundFires": false,
+      "setEnds": [
+        "hit",
+        "hit",
+        "hit"
+      ],
+      "setTerminated": 1,
+      "setStarts": 4,
+      "batchStarts": 17,
+      "batchEnded": 14,
+      "K": 40,
+      "calibrationScore": 94,
+      "wc": 8,
+      "tablePrior": 8,
+      "perSetPrior": 8,
+      "distinctBatch": 0,
+      "setMs": 18006.574200000003,
+      "accepted": 10,
+      "tenthReadyMs": 38926.9364,
+      "responseMs": 39078.166300000004,
+      "setCut": false,
+      "served": 10,
+      "completed": true,
+      "lost": false,
+      "workInterval": {
+        "lo": 37229480758,
+        "hi": 443514500130
+      }
+    }
+  ],
+  "workerFiles": 116,
+  "transportTotals": {
+    "setStarts": 80,
+    "batchStarts": 352,
+    "distinctRows": 10,
+    "distinctBatchStarts": 173,
+    "minDelta": -3,
+    "maxDelta": 3,
+    "minScore": 79,
+    "maxScore": 103,
+    "setHit": 36,
+    "setWindow": 8,
+    "setTerminated": 36
+  },
+  "indices": {
+    "prefixes": 173,
+    "transport": 145,
+    "projection": 6
+  },
+  "account": {
+    "countedS": 2298.808,
+    "afterLoggedS": 14186.131000000001,
+    "afterMinutes": 237.89218333333335
+  },
+  "scope": "No P5 budget/attempt or evidence/transport flag; deadline projection still loses one completion. Not a measured zero-loss comparison or live-deadline proof.",
+  "signoff": {
+    "path": "docs/improve-generating-stages-2-4/t11-reading.md",
+    "beforeSha256Raw": "5369cec547f2367b4cbc26e5fff6afd843da0902052e9c21f6e6f4f49fc8f282",
+    "expectedAfterSha256Raw": "77ceba892ec3008fa746e68c9814a5093ac7981e2aa94affb26cf26459faf559",
+    "text": "- SA-Astra (reviewer): jointly signed acceptance of the final epoch, outcome (A), 2026-11-24."
+  },
+  "inputs": [
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fit-read-prefixes-fr-frozen-none-uncapped.json",
+      "sha256Lf": "081ca6ed4df44190674fa2860efb1b59f97774761eeaa3aaa4f6d84a495e3a07",
+      "sha256Raw": "ee3030355d3a2597ef8a755d91825f71f4e4728b4a7108d31f4aa4aaea470d47"
+    },
+    {
+      "path": "tools/ig-proto/plans/V4-S3P.json",
+      "sha256Lf": "5e6eede7b6920d698ec4b25125b77ee9e9391681337a2aace57c86131c337b8c",
+      "sha256Raw": "805978311f5078d092a48bc03ff02719e18d8947d02ac60581a879470c7fa06a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1.runs.json",
+      "sha256Lf": "6549cc269efe9416188c16ce1e0440d3adbb9f9ebc1f6c07e81090ea16c22b8b",
+      "sha256Raw": "5a862fc0416bf7458b8f0923ebdc2d22485a30a612af84b78a04ae10ac2e1819"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1.runs.json",
+      "sha256Lf": "1baeaa5dbeb270f21f42f6cee56880f9608d4505072021192b621731fab8a8cc",
+      "sha256Raw": "474af2e3f5f46afee12996624a46f26ea5087ded1f4e708eabe05091471481ee"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1.runs.json",
+      "sha256Lf": "4fa18ba0ac323905d0630437a3f7be9c89b5778021fd1d517c8626a17868e023",
+      "sha256Raw": "8e015c1091ccad1e10f1925c680f936fe0bba09cfc8373fb2f1bec3d247069cd"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1.runs.json",
+      "sha256Lf": "8aa7595a36fcd9a76ce5c14a01f0dc219db17463e3aa2bf2168b6001bb024edd",
+      "sha256Raw": "54694ea3fbb25bc5d58840e26b1445fd5286b267d64cfd15e0893b6fd60b003c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/state.json",
+      "sha256Lf": "de5364530a86709df3dcdc6d5e9dbbe99255d96f1fd3ceb91ef4d69a9ebd3fca",
+      "sha256Raw": "3b599edd78fcb5aff68a0a60765f11000815ec04f5dcea610252e48934444951"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/shard.json",
+      "sha256Lf": "5039872b32ef87e422dedcf0f4ac1943540b9f4e17ed4992c9f54dfe5b8a5de0",
+      "sha256Raw": "dfab6ec9ee0461346648454de90a4d6317c5b051fbdaa8860f524e22c3fea6b3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.row.jsonl",
+      "sha256Lf": "0006de39592e7d07bab5d5a2786ae2da481f03dd5a9b43182652769f79b732aa",
+      "sha256Raw": "0006de39592e7d07bab5d5a2786ae2da481f03dd5a9b43182652769f79b732aa"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.1.jsonl",
+      "sha256Lf": "442b3721939d65e4824f4eb868fc6ad01b245a8dd5c4465c324d409db01b9913",
+      "sha256Raw": "442b3721939d65e4824f4eb868fc6ad01b245a8dd5c4465c324d409db01b9913"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.2.jsonl",
+      "sha256Lf": "2f6912330e285c4e87c99c1ac07fde64e22bf484c1643a1ae2d94da82e186393",
+      "sha256Raw": "2f6912330e285c4e87c99c1ac07fde64e22bf484c1643a1ae2d94da82e186393"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.3.jsonl",
+      "sha256Lf": "68b93f5b485aaba101229bc398e3983349be8676f58bad31b231188b1db7f2fd",
+      "sha256Raw": "68b93f5b485aaba101229bc398e3983349be8676f58bad31b231188b1db7f2fd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.4.jsonl",
+      "sha256Lf": "0ee1b1ba923e767e30c3b7f5c955d65be52b2d656cac4dd33686237ca691dfde",
+      "sha256Raw": "0ee1b1ba923e767e30c3b7f5c955d65be52b2d656cac4dd33686237ca691dfde"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.5.jsonl",
+      "sha256Lf": "8a57509a317b344e03991f9a6ad8dcabf189599eeeb656e78978774260300c2a",
+      "sha256Raw": "8a57509a317b344e03991f9a6ad8dcabf189599eeeb656e78978774260300c2a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.6.jsonl",
+      "sha256Lf": "fb7850dcea022ffb8a1b9b452219de7a69b90a36b15f90ef2d808f1ac0b06312",
+      "sha256Raw": "fb7850dcea022ffb8a1b9b452219de7a69b90a36b15f90ef2d808f1ac0b06312"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.7.jsonl",
+      "sha256Lf": "6ac48257569c1e977d76b315212d4d80fdc89b656f118efdceed8b526dbc1a8b",
+      "sha256Raw": "6ac48257569c1e977d76b315212d4d80fdc89b656f118efdceed8b526dbc1a8b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.link.jsonl",
+      "sha256Lf": "dc8bcd342e516596fc72fbc975d20ea51acbd54a58188fbd35bdedf35320f377",
+      "sha256Raw": "dc8bcd342e516596fc72fbc975d20ea51acbd54a58188fbd35bdedf35320f377"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1.runs.md",
+      "sha256Lf": "2bc6c1876b5c06f8fbe6a7de81edf703125f283537cced091cdefe3be84d0bf8",
+      "sha256Raw": "9c12b5f634d1c01bec80ac07fef31f018bd78f3d0afb358e3471edb306598b71"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.row.jsonl",
+      "sha256Lf": "d7b8f38a4fdf6f3fc1d491df4e5690f62ea2422b087c38eac5ca415a312c1c29",
+      "sha256Raw": "d7b8f38a4fdf6f3fc1d491df4e5690f62ea2422b087c38eac5ca415a312c1c29"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.21336.1.jsonl",
+      "sha256Lf": "34216ba906b62f7dc2f6181ce0f96bc4c573e26990fde9a2c96dead512a24ae7",
+      "sha256Raw": "34216ba906b62f7dc2f6181ce0f96bc4c573e26990fde9a2c96dead512a24ae7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.21336.2.jsonl",
+      "sha256Lf": "13334beedeea6064e1f1b71263507c984df53b4c4b4d81137ee15d6bc7c64e69",
+      "sha256Raw": "13334beedeea6064e1f1b71263507c984df53b4c4b4d81137ee15d6bc7c64e69"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.21336.3.jsonl",
+      "sha256Lf": "ec6c208b4338f8eda18905445dadf853b45f0622676cba34a2a8319f92b0d298",
+      "sha256Raw": "ec6c208b4338f8eda18905445dadf853b45f0622676cba34a2a8319f92b0d298"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.21336.4.jsonl",
+      "sha256Lf": "e32cda363d62109166c91b6e120c0b62ae1160e96ebe61084540beb96103ed86",
+      "sha256Raw": "e32cda363d62109166c91b6e120c0b62ae1160e96ebe61084540beb96103ed86"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.21336.5.jsonl",
+      "sha256Lf": "c4daf1a4e794acc591ecd4dcd998b91a77515195b8b281662259924ae23b1782",
+      "sha256Raw": "c4daf1a4e794acc591ecd4dcd998b91a77515195b8b281662259924ae23b1782"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.link.jsonl",
+      "sha256Lf": "20a6d6ea558e0f027744594c90f8abc58cc98103bb68af6faae3db958768d31c",
+      "sha256Raw": "20a6d6ea558e0f027744594c90f8abc58cc98103bb68af6faae3db958768d31c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.row.jsonl",
+      "sha256Lf": "8dc5e783cab33eb84303ba3cf19e4ddef00a128272ea6275fefc40195e3e455f",
+      "sha256Raw": "8dc5e783cab33eb84303ba3cf19e4ddef00a128272ea6275fefc40195e3e455f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.1.jsonl",
+      "sha256Lf": "d49250ca936ecccbcb404500d2625b1ed8d68392e528a4095b3c45a386e94c5f",
+      "sha256Raw": "d49250ca936ecccbcb404500d2625b1ed8d68392e528a4095b3c45a386e94c5f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.2.jsonl",
+      "sha256Lf": "513825fd34b3dd1b074e4a8dbc907d7361a2eb7c5c56562954e9586d492e3e6f",
+      "sha256Raw": "513825fd34b3dd1b074e4a8dbc907d7361a2eb7c5c56562954e9586d492e3e6f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.3.jsonl",
+      "sha256Lf": "da37c225c8ca873871ac2d8bfe81b4476e87e2fce43a33dab62128aeaaddbc3b",
+      "sha256Raw": "da37c225c8ca873871ac2d8bfe81b4476e87e2fce43a33dab62128aeaaddbc3b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.4.jsonl",
+      "sha256Lf": "6dfea0442e61e0f4edd37bad465ae2633b38b111c5eb433c1d84978d5adeb240",
+      "sha256Raw": "6dfea0442e61e0f4edd37bad465ae2633b38b111c5eb433c1d84978d5adeb240"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.5.jsonl",
+      "sha256Lf": "aec2f0d7ec97e9572b1a5f60cb25c2f8624bc2b65651bd513d781969f019de5b",
+      "sha256Raw": "aec2f0d7ec97e9572b1a5f60cb25c2f8624bc2b65651bd513d781969f019de5b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.6.jsonl",
+      "sha256Lf": "3eb5b70d07bcf979b3334b62b0e18b066bfae7ed927c34b2fcb5d281aa3da53e",
+      "sha256Raw": "3eb5b70d07bcf979b3334b62b0e18b066bfae7ed927c34b2fcb5d281aa3da53e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.link.jsonl",
+      "sha256Lf": "56db77e79ca6895f1c80154924284a0faae9b0d38ed4e36496c141a702789b10",
+      "sha256Raw": "56db77e79ca6895f1c80154924284a0faae9b0d38ed4e36496c141a702789b10"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.row.jsonl",
+      "sha256Lf": "6fdfb4916208be2abcc8d63f3658e9df8febc772b7ea6eb3791baf59e7178149",
+      "sha256Raw": "6fdfb4916208be2abcc8d63f3658e9df8febc772b7ea6eb3791baf59e7178149"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.8312.1.jsonl",
+      "sha256Lf": "3786f504505c02b2e39c78b09feb5d49eeae91011b8927d0e39e63bd78f14f12",
+      "sha256Raw": "3786f504505c02b2e39c78b09feb5d49eeae91011b8927d0e39e63bd78f14f12"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.8312.2.jsonl",
+      "sha256Lf": "7a36e016f5142fc63b0095b4d9c918a82f7a149e2b04ed84fa883fdfa047bd8a",
+      "sha256Raw": "7a36e016f5142fc63b0095b4d9c918a82f7a149e2b04ed84fa883fdfa047bd8a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.8312.3.jsonl",
+      "sha256Lf": "4f459e1e423cafbf4b265f73e167ef04cf7f54f5e9e64c758c835f94b62d80d9",
+      "sha256Raw": "4f459e1e423cafbf4b265f73e167ef04cf7f54f5e9e64c758c835f94b62d80d9"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.8312.4.jsonl",
+      "sha256Lf": "14b2fd48f73628d00ee03e8de49e01300a76b8cad3d513b220348684800dbe1e",
+      "sha256Raw": "14b2fd48f73628d00ee03e8de49e01300a76b8cad3d513b220348684800dbe1e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.link.jsonl",
+      "sha256Lf": "759700f3a1bea8d5b5b27e29a7f235b01f8a1d6a3b88689a14f6c071a2fadcbe",
+      "sha256Raw": "759700f3a1bea8d5b5b27e29a7f235b01f8a1d6a3b88689a14f6c071a2fadcbe"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.row.jsonl",
+      "sha256Lf": "aee5202ee8c50e8d1de611659f3e60aff6fad730db94739a6c180608dc926e17",
+      "sha256Raw": "aee5202ee8c50e8d1de611659f3e60aff6fad730db94739a6c180608dc926e17"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.20980.1.jsonl",
+      "sha256Lf": "d5f0ecae7cece8f3d8a6928e1985f14a6a02d2f931dbaa68da667750e2bcb3e7",
+      "sha256Raw": "d5f0ecae7cece8f3d8a6928e1985f14a6a02d2f931dbaa68da667750e2bcb3e7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.20980.2.jsonl",
+      "sha256Lf": "f22465d3f39a3f730e6b8a60158c81571d552e066a62bc6a20671c842d8333ac",
+      "sha256Raw": "f22465d3f39a3f730e6b8a60158c81571d552e066a62bc6a20671c842d8333ac"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.20980.3.jsonl",
+      "sha256Lf": "f05316eb305ba545dab7bed6ca0c112b000fadcacd075422339ad0bbc0b964cd",
+      "sha256Raw": "f05316eb305ba545dab7bed6ca0c112b000fadcacd075422339ad0bbc0b964cd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.20980.4.jsonl",
+      "sha256Lf": "121d7dfc6ca0679cb70e47056741fa55f289125f7a4f3f02fe4d22d46355bce5",
+      "sha256Raw": "121d7dfc6ca0679cb70e47056741fa55f289125f7a4f3f02fe4d22d46355bce5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.20980.5.jsonl",
+      "sha256Lf": "3618d5f08f60588ea57c38f9ffc898876d96e0c410c98c0d813142a15f937a5d",
+      "sha256Raw": "3618d5f08f60588ea57c38f9ffc898876d96e0c410c98c0d813142a15f937a5d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.link.jsonl",
+      "sha256Lf": "d43c3dbf8948f31f7ac481f42efe35f4d3e8c3880d78216cf280b81505d9219c",
+      "sha256Raw": "d43c3dbf8948f31f7ac481f42efe35f4d3e8c3880d78216cf280b81505d9219c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/state.json",
+      "sha256Lf": "2da2df10274554fb7e8243e08aef144b8bf06cc2df72a55bb28325f6cf6ce41f",
+      "sha256Raw": "ecc8d73ad0984d34c84bc72b74af68e895ecaaae1b249820b60d13d87a26c9b0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/shard.json",
+      "sha256Lf": "fb9e842c9ec272a76f0d28332f8f45b476fced4132f5b373abb659ca84d451cd",
+      "sha256Raw": "52004a0fd104c96056251f5c8602ab96e6fc2c2c10da805b6a5f596a951363fe"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.row.jsonl",
+      "sha256Lf": "7feb0d58af6f03945e9e32f6671bea26ffcce6e32d200e01be403f08efc9b3cc",
+      "sha256Raw": "7feb0d58af6f03945e9e32f6671bea26ffcce6e32d200e01be403f08efc9b3cc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.14532.1.jsonl",
+      "sha256Lf": "33cf2932c7ced5b697bb228ff99a1dd8f993602cc4161bc9af0cc0f2fec41e61",
+      "sha256Raw": "33cf2932c7ced5b697bb228ff99a1dd8f993602cc4161bc9af0cc0f2fec41e61"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.14532.2.jsonl",
+      "sha256Lf": "035228076ed76dba0152d550c4865499f15d193074f6a14e68f3fb206a192169",
+      "sha256Raw": "035228076ed76dba0152d550c4865499f15d193074f6a14e68f3fb206a192169"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.14532.3.jsonl",
+      "sha256Lf": "92db333df76d1af510650e6d71848f89c30e35c6800b016ae278d775596a3911",
+      "sha256Raw": "92db333df76d1af510650e6d71848f89c30e35c6800b016ae278d775596a3911"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.14532.4.jsonl",
+      "sha256Lf": "f503d0118b539c9cb3979022564d42129dd74a34bd01d505d04c19556b3036f2",
+      "sha256Raw": "f503d0118b539c9cb3979022564d42129dd74a34bd01d505d04c19556b3036f2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.14532.5.jsonl",
+      "sha256Lf": "b06bc4013968979ab8339ee34c5a2c43934dd0005afd1e315e8ca771d8ef03fe",
+      "sha256Raw": "b06bc4013968979ab8339ee34c5a2c43934dd0005afd1e315e8ca771d8ef03fe"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.link.jsonl",
+      "sha256Lf": "e8df0642b690dc7664a22fcd0628ec79e219e751a509996e113d5e13f0b928b5",
+      "sha256Raw": "e8df0642b690dc7664a22fcd0628ec79e219e751a509996e113d5e13f0b928b5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1.runs.md",
+      "sha256Lf": "2535000e8a3baa9ef1f793f2565f4d475a42a66a1f204484a2729664ace6a114",
+      "sha256Raw": "7c23ff4649ffea5771f3c30cfe3de16aa188f71d4df3f7359d7fde41a472de4b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.row.jsonl",
+      "sha256Lf": "2bec7c64480f3ce06b1180c236327923a24520d1c3b1249200e5f95304eef951",
+      "sha256Raw": "2bec7c64480f3ce06b1180c236327923a24520d1c3b1249200e5f95304eef951"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.1.jsonl",
+      "sha256Lf": "e723cabc856e1c70302af14453a177452ce5029d1da12f003598a0db210acb69",
+      "sha256Raw": "e723cabc856e1c70302af14453a177452ce5029d1da12f003598a0db210acb69"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.2.jsonl",
+      "sha256Lf": "c54b83b14bc9d0eac18649c78c7e480267eaae099d09d6a556438270053853a6",
+      "sha256Raw": "c54b83b14bc9d0eac18649c78c7e480267eaae099d09d6a556438270053853a6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.3.jsonl",
+      "sha256Lf": "63b94ab7542b666f78fb60a3bc9c4a54841a4c9f42b963f93c856fe6b9599759",
+      "sha256Raw": "63b94ab7542b666f78fb60a3bc9c4a54841a4c9f42b963f93c856fe6b9599759"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.4.jsonl",
+      "sha256Lf": "54e1473b4469878db62c22fc9bc2ee13e6987a8063a292b0fef3438f9d40fac4",
+      "sha256Raw": "54e1473b4469878db62c22fc9bc2ee13e6987a8063a292b0fef3438f9d40fac4"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.5.jsonl",
+      "sha256Lf": "45ae5638c411814879c3071b2b4b9e3ab4349988feb06944f50e9690092d48d1",
+      "sha256Raw": "45ae5638c411814879c3071b2b4b9e3ab4349988feb06944f50e9690092d48d1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.6.jsonl",
+      "sha256Lf": "ebbbef2b5240819014e6a3313efeff18d13c16c569c2265c5cb78ba10bee85b9",
+      "sha256Raw": "ebbbef2b5240819014e6a3313efeff18d13c16c569c2265c5cb78ba10bee85b9"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.link.jsonl",
+      "sha256Lf": "3918eacf4ec55b6644ee4f34c527b51b698c17ef7383c29caa582717d6dcff55",
+      "sha256Raw": "3918eacf4ec55b6644ee4f34c527b51b698c17ef7383c29caa582717d6dcff55"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.row.jsonl",
+      "sha256Lf": "1bebb410790fac6cc0c839c73c3f65e35e2097e3d02168de3415dc901560b083",
+      "sha256Raw": "1bebb410790fac6cc0c839c73c3f65e35e2097e3d02168de3415dc901560b083"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.18532.1.jsonl",
+      "sha256Lf": "9ba6137a99d4114daaef76da4f9ae7a654e3a3568fa3a7dad65fb76a35ed05a1",
+      "sha256Raw": "9ba6137a99d4114daaef76da4f9ae7a654e3a3568fa3a7dad65fb76a35ed05a1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.18532.2.jsonl",
+      "sha256Lf": "ea6a530a09dc627c232d48d3e8641e49d9448c01325136a21f4671903d4bf030",
+      "sha256Raw": "ea6a530a09dc627c232d48d3e8641e49d9448c01325136a21f4671903d4bf030"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.18532.3.jsonl",
+      "sha256Lf": "c4164b3f9816dcea2d90a99084f50985bb9a10ca738b9a7c7e410e454f861117",
+      "sha256Raw": "c4164b3f9816dcea2d90a99084f50985bb9a10ca738b9a7c7e410e454f861117"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.18532.4.jsonl",
+      "sha256Lf": "9e90500f5bce5c404d506c26ec712515ef06e05d9ff9faa6739a2be129c508cd",
+      "sha256Raw": "9e90500f5bce5c404d506c26ec712515ef06e05d9ff9faa6739a2be129c508cd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.18532.5.jsonl",
+      "sha256Lf": "c10edc193b39646bc074252f5f1a50ba598b7a836c3745499d4f6157a48946a5",
+      "sha256Raw": "c10edc193b39646bc074252f5f1a50ba598b7a836c3745499d4f6157a48946a5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.link.jsonl",
+      "sha256Lf": "15301aa63e302b4757214cc882cecac3e36a8bded8c7dc1f8c23f65c226dedac",
+      "sha256Raw": "15301aa63e302b4757214cc882cecac3e36a8bded8c7dc1f8c23f65c226dedac"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.row.jsonl",
+      "sha256Lf": "c4cc94d995a5085ec5bbcdc7cccb31419c87906194587a46f53396349fea5fe3",
+      "sha256Raw": "c4cc94d995a5085ec5bbcdc7cccb31419c87906194587a46f53396349fea5fe3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.1.jsonl",
+      "sha256Lf": "09f82e71563dfe8e9f5ef4f9dd7b7f1ac5ef2c756bca82ee52c6dc9144f628fe",
+      "sha256Raw": "09f82e71563dfe8e9f5ef4f9dd7b7f1ac5ef2c756bca82ee52c6dc9144f628fe"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.2.jsonl",
+      "sha256Lf": "da1b414ff924c6f0cc6eda0e82aedbc8b9e16e5ee9ec4964873f2a5e3d74fcbc",
+      "sha256Raw": "da1b414ff924c6f0cc6eda0e82aedbc8b9e16e5ee9ec4964873f2a5e3d74fcbc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.3.jsonl",
+      "sha256Lf": "1aa922bb03b9dec8e649deaa696744af7730e8064880a4acc5ed5478a0c3683a",
+      "sha256Raw": "1aa922bb03b9dec8e649deaa696744af7730e8064880a4acc5ed5478a0c3683a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.4.jsonl",
+      "sha256Lf": "ac6fc953bb3ba3f35b0762ebe5cd8cfa37f0734208ddf70ab3c9c50432bd8890",
+      "sha256Raw": "ac6fc953bb3ba3f35b0762ebe5cd8cfa37f0734208ddf70ab3c9c50432bd8890"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.5.jsonl",
+      "sha256Lf": "eae68ae42ad23cd429b6f4995b2ef207d98c57c2a2e09b747b4bcda7c70547b2",
+      "sha256Raw": "eae68ae42ad23cd429b6f4995b2ef207d98c57c2a2e09b747b4bcda7c70547b2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.6.jsonl",
+      "sha256Lf": "f8bb1ace9aaa44a9421bed3b0ae7d32b4527d8df8f74ec75a5c16af1a099d87a",
+      "sha256Raw": "f8bb1ace9aaa44a9421bed3b0ae7d32b4527d8df8f74ec75a5c16af1a099d87a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.7.jsonl",
+      "sha256Lf": "f3f94218a508295e9ff536fb1f73b484e6b085d8da1f81475409b9925ba962f7",
+      "sha256Raw": "f3f94218a508295e9ff536fb1f73b484e6b085d8da1f81475409b9925ba962f7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.link.jsonl",
+      "sha256Lf": "7be1c7d079a35b9b62260c804385db820165e158e83a2d12ec2ee58720d7f82e",
+      "sha256Raw": "7be1c7d079a35b9b62260c804385db820165e158e83a2d12ec2ee58720d7f82e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.row.jsonl",
+      "sha256Lf": "4eea0ae8a03e696b444cbaa878648a46018efb2aab1f683a3d1859f068be7fe7",
+      "sha256Raw": "4eea0ae8a03e696b444cbaa878648a46018efb2aab1f683a3d1859f068be7fe7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.1.jsonl",
+      "sha256Lf": "9b00bc59009d98e6bd851afe36f5ad33645a9ee2893cb01404ab67642ea17750",
+      "sha256Raw": "9b00bc59009d98e6bd851afe36f5ad33645a9ee2893cb01404ab67642ea17750"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.2.jsonl",
+      "sha256Lf": "6488d19764a9db7b071a57dbd78e864726d6e9c2270956b845d5440a8d9fd7ef",
+      "sha256Raw": "6488d19764a9db7b071a57dbd78e864726d6e9c2270956b845d5440a8d9fd7ef"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.3.jsonl",
+      "sha256Lf": "790ca7dc54e39de128130cd229005f1f63ec0cbe8600b104dd3aecc5418b68aa",
+      "sha256Raw": "790ca7dc54e39de128130cd229005f1f63ec0cbe8600b104dd3aecc5418b68aa"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.4.jsonl",
+      "sha256Lf": "b9804b4c81f62f4b7822dfffa37df6a3962ff1efb76bdd858f445ba20bbe5fa1",
+      "sha256Raw": "b9804b4c81f62f4b7822dfffa37df6a3962ff1efb76bdd858f445ba20bbe5fa1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.5.jsonl",
+      "sha256Lf": "20571b49dac80409736e6be5d478fa66f575ff7c0d0a6fddf85e05035b1c7a20",
+      "sha256Raw": "20571b49dac80409736e6be5d478fa66f575ff7c0d0a6fddf85e05035b1c7a20"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.6.jsonl",
+      "sha256Lf": "0deb7bf9f374ddae733d9a392a528f5f1d4690f70800f37b2b3b9adbacc8ccfe",
+      "sha256Raw": "0deb7bf9f374ddae733d9a392a528f5f1d4690f70800f37b2b3b9adbacc8ccfe"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.7.jsonl",
+      "sha256Lf": "593c92dcbe5c62eaa415f694633195929f5be1164086ef348aab99a5c7a786be",
+      "sha256Raw": "593c92dcbe5c62eaa415f694633195929f5be1164086ef348aab99a5c7a786be"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.link.jsonl",
+      "sha256Lf": "5f5f6b5e11300ec34bc97f73a183d2cce55ab972586f95c9c78c2c06dfcc559e",
+      "sha256Raw": "5f5f6b5e11300ec34bc97f73a183d2cce55ab972586f95c9c78c2c06dfcc559e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/state.json",
+      "sha256Lf": "cb620c593d6da5b4b575a2ade44ff98a243c950427cf6b11fe4e0bb7eddbde5d",
+      "sha256Raw": "7d1c8403c107277746541136f39ab3db1d1f68d6ba8e734638ee89708c30a680"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/shard.json",
+      "sha256Lf": "3d4303bb5066f608f96ea7fd3e0ab2f2a1c39b7fcca2011e5dc028dafc168c80",
+      "sha256Raw": "09e43e60dedb652f23e11f1e0685b4917afbd5da37e2f412a69400d670bf54ac"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.row.jsonl",
+      "sha256Lf": "202d49fa871cc0594d34e8c8b8f2e5c95d71b027830561d0f8653a6b7a94a121",
+      "sha256Raw": "202d49fa871cc0594d34e8c8b8f2e5c95d71b027830561d0f8653a6b7a94a121"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.16604.1.jsonl",
+      "sha256Lf": "8d35c04761a961f75b404724bc17151c4746a9698e7c57ab70daaa09dc294ab7",
+      "sha256Raw": "8d35c04761a961f75b404724bc17151c4746a9698e7c57ab70daaa09dc294ab7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.16604.2.jsonl",
+      "sha256Lf": "7b890bc94f15ac884964f94ee70d8a7d9e25cb83c41f6ba31f074aa463ba32f7",
+      "sha256Raw": "7b890bc94f15ac884964f94ee70d8a7d9e25cb83c41f6ba31f074aa463ba32f7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.16604.3.jsonl",
+      "sha256Lf": "f22208da85df871b518cdea2c4815a4acf599e49b4186bbc817df9ee29601035",
+      "sha256Raw": "f22208da85df871b518cdea2c4815a4acf599e49b4186bbc817df9ee29601035"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.16604.4.jsonl",
+      "sha256Lf": "3f8c0a55427caebfa59f31ca2bc2dd6fbaefcd99593c9a63534706afbea51843",
+      "sha256Raw": "3f8c0a55427caebfa59f31ca2bc2dd6fbaefcd99593c9a63534706afbea51843"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.16604.5.jsonl",
+      "sha256Lf": "784642af59c41186cead9aa33c0c21821a976185951270b30a44fb91b722e57c",
+      "sha256Raw": "784642af59c41186cead9aa33c0c21821a976185951270b30a44fb91b722e57c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.link.jsonl",
+      "sha256Lf": "a7246ff27a616e766a8dd8517ddcbda90245e5473bc09a098e1076256eca2092",
+      "sha256Raw": "a7246ff27a616e766a8dd8517ddcbda90245e5473bc09a098e1076256eca2092"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1.runs.md",
+      "sha256Lf": "39d900850f665465a89c027c746a7fa6601d09b460387ae4da6ad4b93acf531b",
+      "sha256Raw": "3a0d638f00f8fa79aa1f110e2bfb86dd7a345093ee230e8aa913ef42aa411fa6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.row.jsonl",
+      "sha256Lf": "20fc87e7fa6aa952fe6de2fdb82f43238a07b8486bffd58020e4e85b7cde1bde",
+      "sha256Raw": "20fc87e7fa6aa952fe6de2fdb82f43238a07b8486bffd58020e4e85b7cde1bde"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.1.jsonl",
+      "sha256Lf": "2056a09bba041295804723628b7095ed042d965952e69e67c13435310764702c",
+      "sha256Raw": "2056a09bba041295804723628b7095ed042d965952e69e67c13435310764702c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.2.jsonl",
+      "sha256Lf": "f9151e1f41c80054588f807e6aaf1a813ec3a445ce16bb21124d01086cfc767f",
+      "sha256Raw": "f9151e1f41c80054588f807e6aaf1a813ec3a445ce16bb21124d01086cfc767f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.3.jsonl",
+      "sha256Lf": "7ee5e7f53ad2fbef3094b883a05ae6a818767ead9777c5617d3f36dabaef3791",
+      "sha256Raw": "7ee5e7f53ad2fbef3094b883a05ae6a818767ead9777c5617d3f36dabaef3791"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.4.jsonl",
+      "sha256Lf": "32b9986a3e5144b8e11d20aa5be3baff1c76cac96ed782d485710212a25fce82",
+      "sha256Raw": "32b9986a3e5144b8e11d20aa5be3baff1c76cac96ed782d485710212a25fce82"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.5.jsonl",
+      "sha256Lf": "a1fe275aecaf59893e7adfac80ed94018effab1e857613c97d4074edc80d71ec",
+      "sha256Raw": "a1fe275aecaf59893e7adfac80ed94018effab1e857613c97d4074edc80d71ec"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.6.jsonl",
+      "sha256Lf": "d734af78a43110929ca2e2b14ebb006764887655355b97f3927ae79bd4a3ba79",
+      "sha256Raw": "d734af78a43110929ca2e2b14ebb006764887655355b97f3927ae79bd4a3ba79"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.link.jsonl",
+      "sha256Lf": "d4aceffd98182881da163321c9ed6aed688bade58a434f8151d68e3ad141a161",
+      "sha256Raw": "d4aceffd98182881da163321c9ed6aed688bade58a434f8151d68e3ad141a161"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.row.jsonl",
+      "sha256Lf": "6dbc25f1fbbd285c5aa79b44b5ec4e32fa4825fa46df0682378c8f11e71b1952",
+      "sha256Raw": "6dbc25f1fbbd285c5aa79b44b5ec4e32fa4825fa46df0682378c8f11e71b1952"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.1.jsonl",
+      "sha256Lf": "764e71b5df898f1e72d77ebf12b58d8aa0c40c52451d3038b5b7b7f3d3efbd7c",
+      "sha256Raw": "764e71b5df898f1e72d77ebf12b58d8aa0c40c52451d3038b5b7b7f3d3efbd7c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.2.jsonl",
+      "sha256Lf": "3b654e7d740a05dfd6decdd650241f9bf45c717b6583ad0e592837f0c8efdcde",
+      "sha256Raw": "3b654e7d740a05dfd6decdd650241f9bf45c717b6583ad0e592837f0c8efdcde"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.3.jsonl",
+      "sha256Lf": "904f86f2454cd8563791480e81caed08f005196e187a5d3569babc16a69cc822",
+      "sha256Raw": "904f86f2454cd8563791480e81caed08f005196e187a5d3569babc16a69cc822"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.4.jsonl",
+      "sha256Lf": "ec6a6501a3c178968524ae41a9d31594dea5285753eed36c04c37db62305fdf2",
+      "sha256Raw": "ec6a6501a3c178968524ae41a9d31594dea5285753eed36c04c37db62305fdf2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.5.jsonl",
+      "sha256Lf": "ecef080f127f7005126875a2e1e470e022bb8493cb95d48876f19ed45f95f713",
+      "sha256Raw": "ecef080f127f7005126875a2e1e470e022bb8493cb95d48876f19ed45f95f713"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.6.jsonl",
+      "sha256Lf": "9ec89a49f2ab77ed1f61e77baf76a785e9eafe1dd7cc9ae4559fe0c46e291756",
+      "sha256Raw": "9ec89a49f2ab77ed1f61e77baf76a785e9eafe1dd7cc9ae4559fe0c46e291756"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.link.jsonl",
+      "sha256Lf": "be7679d51a8ccfde6a54a6beb3cb5fba4e14e35dfa6cc72bc098a5943781d39e",
+      "sha256Raw": "be7679d51a8ccfde6a54a6beb3cb5fba4e14e35dfa6cc72bc098a5943781d39e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.row.jsonl",
+      "sha256Lf": "aa5b58484d0fc1a9b59cc4a3b6e6c892bb7d88ec00bfcaf5e1ac1824c9cf4fda",
+      "sha256Raw": "aa5b58484d0fc1a9b59cc4a3b6e6c892bb7d88ec00bfcaf5e1ac1824c9cf4fda"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.1.jsonl",
+      "sha256Lf": "fc8f5e032c54b09d3f7054b570dfefc26c505a171cca173f244499aa6975348a",
+      "sha256Raw": "fc8f5e032c54b09d3f7054b570dfefc26c505a171cca173f244499aa6975348a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.2.jsonl",
+      "sha256Lf": "c6ee095161063783019b47c8342a741dd62cc787b25400ccad1803698e4a7792",
+      "sha256Raw": "c6ee095161063783019b47c8342a741dd62cc787b25400ccad1803698e4a7792"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.3.jsonl",
+      "sha256Lf": "5353dd0c7d0fe4886cba1751087408f14d9af0021007c4c7e54d48c89a141194",
+      "sha256Raw": "5353dd0c7d0fe4886cba1751087408f14d9af0021007c4c7e54d48c89a141194"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.4.jsonl",
+      "sha256Lf": "d1bb12af4876ec25fca661cd6c8cfda548a0257edf3fdba9d7af9c2afcd355dd",
+      "sha256Raw": "d1bb12af4876ec25fca661cd6c8cfda548a0257edf3fdba9d7af9c2afcd355dd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.5.jsonl",
+      "sha256Lf": "697656eacd276bae5decefc1faaff55eada15faa9b83a953ed5f292445fa8e52",
+      "sha256Raw": "697656eacd276bae5decefc1faaff55eada15faa9b83a953ed5f292445fa8e52"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.6.jsonl",
+      "sha256Lf": "98f7bc0d3b3cb0244cbf948afa670d1a28a42c3927c86e8de79e468da863e18d",
+      "sha256Raw": "98f7bc0d3b3cb0244cbf948afa670d1a28a42c3927c86e8de79e468da863e18d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.7.jsonl",
+      "sha256Lf": "a3f71846ac7537e8c6d47b1a6e9539a5022f19c1cbbd08f40e7bb4bbd0cc63e4",
+      "sha256Raw": "a3f71846ac7537e8c6d47b1a6e9539a5022f19c1cbbd08f40e7bb4bbd0cc63e4"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.link.jsonl",
+      "sha256Lf": "42abf9f3f0edc941de3d46e90089e3f49cfe3b582ac31ec555f57f2bbbd0f385",
+      "sha256Raw": "42abf9f3f0edc941de3d46e90089e3f49cfe3b582ac31ec555f57f2bbbd0f385"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.row.jsonl",
+      "sha256Lf": "32fdc9bd562140faaf57d153d0e83a9ec23806feaf113036edf6daa28f47ae13",
+      "sha256Raw": "32fdc9bd562140faaf57d153d0e83a9ec23806feaf113036edf6daa28f47ae13"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.10796.1.jsonl",
+      "sha256Lf": "60fc0588bca8f743c9d780187f957386690c511c041064564b3f9d84e4c2fc99",
+      "sha256Raw": "60fc0588bca8f743c9d780187f957386690c511c041064564b3f9d84e4c2fc99"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.10796.2.jsonl",
+      "sha256Lf": "a4c50a6805f6f57a0cd006b732b88df561d739421434408ea3f9d79b3273db03",
+      "sha256Raw": "a4c50a6805f6f57a0cd006b732b88df561d739421434408ea3f9d79b3273db03"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.10796.3.jsonl",
+      "sha256Lf": "e5c5da9e663f90e3fdbb38a2e90a1963bafe623a45494ef565ac93a6a028359e",
+      "sha256Raw": "e5c5da9e663f90e3fdbb38a2e90a1963bafe623a45494ef565ac93a6a028359e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.10796.4.jsonl",
+      "sha256Lf": "429acf17758afdd2a40ce14b3f11ac32e0857bbb35870cbff6c57539d4790253",
+      "sha256Raw": "429acf17758afdd2a40ce14b3f11ac32e0857bbb35870cbff6c57539d4790253"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.link.jsonl",
+      "sha256Lf": "395c54bfbc1d1a57a72707bd5d7afb1cbd5d270e74340875f6787843f95e0d2a",
+      "sha256Raw": "395c54bfbc1d1a57a72707bd5d7afb1cbd5d270e74340875f6787843f95e0d2a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/state.json",
+      "sha256Lf": "2fdaa87e0b89bd15c399787f8bda633cccf04555da3aee02ed7d208665b56892",
+      "sha256Raw": "a6b66bbe1f9f5dcf892945248e0e9f0e335ac21251d620ff3b54b7d6ee03dfa7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/shard.json",
+      "sha256Lf": "58702ab96e84491601d12f1d43d50c3648d1c4252a2ce6df6b4f661ea5603e7c",
+      "sha256Raw": "c1056e0683b34a6528c21178150e07b6602810837d6853a03e9358c66b2d3529"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.row.jsonl",
+      "sha256Lf": "39b96c4b1659ade2156be291ef97bb5aadf0add5f60ff9ceedfe5d58e6d04b1f",
+      "sha256Raw": "39b96c4b1659ade2156be291ef97bb5aadf0add5f60ff9ceedfe5d58e6d04b1f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.1.jsonl",
+      "sha256Lf": "badecb89364f7a9a8662997b8fc720d1bb50f16d2271e6d2eb81fef4693ffa42",
+      "sha256Raw": "badecb89364f7a9a8662997b8fc720d1bb50f16d2271e6d2eb81fef4693ffa42"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.2.jsonl",
+      "sha256Lf": "4ae3eaa627b11d568cd3b409e0ae53105a0379f9119aba9eb92855c3c80ce585",
+      "sha256Raw": "4ae3eaa627b11d568cd3b409e0ae53105a0379f9119aba9eb92855c3c80ce585"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.3.jsonl",
+      "sha256Lf": "f82ba8bcc873106adcdbc013e00f03afe44ed19844d278cefe8ef1b19e92e509",
+      "sha256Raw": "f82ba8bcc873106adcdbc013e00f03afe44ed19844d278cefe8ef1b19e92e509"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.4.jsonl",
+      "sha256Lf": "fa75d0b89d39965645b233088cf6ab637199275d3598e366a746887c768edd13",
+      "sha256Raw": "fa75d0b89d39965645b233088cf6ab637199275d3598e366a746887c768edd13"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.5.jsonl",
+      "sha256Lf": "076ad8f5349c706cbcdf851088a2f6404f9f73cfee05ffba64363cf77ec9351f",
+      "sha256Raw": "076ad8f5349c706cbcdf851088a2f6404f9f73cfee05ffba64363cf77ec9351f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.6.jsonl",
+      "sha256Lf": "b9f0288d9a9e67c91bea74cbe3f8d6d06db2166f43dc1ee431dd091eeecfff08",
+      "sha256Raw": "b9f0288d9a9e67c91bea74cbe3f8d6d06db2166f43dc1ee431dd091eeecfff08"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.7.jsonl",
+      "sha256Lf": "4ba98b54a26461840f83d52337cdf25bde5c9c84e6fc2d2c6aa2e9f9442ab6fc",
+      "sha256Raw": "4ba98b54a26461840f83d52337cdf25bde5c9c84e6fc2d2c6aa2e9f9442ab6fc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.link.jsonl",
+      "sha256Lf": "1d84901774da6777f509bd2d60e7ab0744cf7f8919dc7c52e103162d4d2fbbdf",
+      "sha256Raw": "1d84901774da6777f509bd2d60e7ab0744cf7f8919dc7c52e103162d4d2fbbdf"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1.runs.md",
+      "sha256Lf": "85c73522e9aca4c5648bfe19e9c81446dde4b888be72e289daff3388c2afd8db",
+      "sha256Raw": "5778c134dd5c132623eb8f34e775cf3015e9d0662a303e1d979b129e987c7c53"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.row.jsonl",
+      "sha256Lf": "6bb4b7bb5d4236e7c9028fc6b426578fcd0e21278748b8bfdfc6020a8e3b2971",
+      "sha256Raw": "6bb4b7bb5d4236e7c9028fc6b426578fcd0e21278748b8bfdfc6020a8e3b2971"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.1.jsonl",
+      "sha256Lf": "db740519c0a1da55f309c0c591b1f47376b1a51975b14f82d537cd0d760ac12d",
+      "sha256Raw": "db740519c0a1da55f309c0c591b1f47376b1a51975b14f82d537cd0d760ac12d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.2.jsonl",
+      "sha256Lf": "b88c8091bbcf37d1ace0ed417ec9edb952e311d9e9601bc89bf2b614a654500e",
+      "sha256Raw": "b88c8091bbcf37d1ace0ed417ec9edb952e311d9e9601bc89bf2b614a654500e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.3.jsonl",
+      "sha256Lf": "14ce3050120a402de2ecd1d0dde4cd91bf616ec5fc937bc6f2d829fccb9fe2be",
+      "sha256Raw": "14ce3050120a402de2ecd1d0dde4cd91bf616ec5fc937bc6f2d829fccb9fe2be"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.4.jsonl",
+      "sha256Lf": "12e11406296b58cab00c16a778f40fbb795e02a95ef6e6fd1632ebb2a61fadc0",
+      "sha256Raw": "12e11406296b58cab00c16a778f40fbb795e02a95ef6e6fd1632ebb2a61fadc0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.5.jsonl",
+      "sha256Lf": "c96f01e5a22394c8f341642ade5a12d8192863a14946fcdfa3363c3e6d20394f",
+      "sha256Raw": "c96f01e5a22394c8f341642ade5a12d8192863a14946fcdfa3363c3e6d20394f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.6.jsonl",
+      "sha256Lf": "0612e7e9f3c19b1e8044f6f8dd270c06daf3564667d2457d23286706d8bba2ca",
+      "sha256Raw": "0612e7e9f3c19b1e8044f6f8dd270c06daf3564667d2457d23286706d8bba2ca"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.link.jsonl",
+      "sha256Lf": "ad8c9b800eed98b9feaabb619b0cd25363aa278455b8a226a8fc8ceba2404d35",
+      "sha256Raw": "ad8c9b800eed98b9feaabb619b0cd25363aa278455b8a226a8fc8ceba2404d35"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.row.jsonl",
+      "sha256Lf": "075da93c83cecde10e19ff28c02b246e5f8cb2d4126bf1a2764503c17ab13ffd",
+      "sha256Raw": "075da93c83cecde10e19ff28c02b246e5f8cb2d4126bf1a2764503c17ab13ffd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.1.jsonl",
+      "sha256Lf": "36318267387e8aeba47113b128f8a9ed86652cde8fc494943c6f5af48eba0824",
+      "sha256Raw": "36318267387e8aeba47113b128f8a9ed86652cde8fc494943c6f5af48eba0824"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.2.jsonl",
+      "sha256Lf": "2094ee0aae8351db61d63608824a5a5b5f0fd1cdf53cb0ddd652b43e3421926b",
+      "sha256Raw": "2094ee0aae8351db61d63608824a5a5b5f0fd1cdf53cb0ddd652b43e3421926b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.3.jsonl",
+      "sha256Lf": "2f0acffcf617bf3d097096c63462a6c9d1709dfda4f4f1e74475aff0fa228c24",
+      "sha256Raw": "2f0acffcf617bf3d097096c63462a6c9d1709dfda4f4f1e74475aff0fa228c24"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.4.jsonl",
+      "sha256Lf": "2ed190c95e008f2ef3f6019b5e4e7e3a2f26b0e1e876ff3c5a7fc437f53795e6",
+      "sha256Raw": "2ed190c95e008f2ef3f6019b5e4e7e3a2f26b0e1e876ff3c5a7fc437f53795e6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.5.jsonl",
+      "sha256Lf": "2283c0b1c64ecfc60722e1459135c9b867cc4d7c6c622750d7f9cfa53dccde05",
+      "sha256Raw": "2283c0b1c64ecfc60722e1459135c9b867cc4d7c6c622750d7f9cfa53dccde05"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.6.jsonl",
+      "sha256Lf": "584eac472cc0de2e258fc9e8ee1e82784a1e11486341b97dceff7a8143f22f6c",
+      "sha256Raw": "584eac472cc0de2e258fc9e8ee1e82784a1e11486341b97dceff7a8143f22f6c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.link.jsonl",
+      "sha256Lf": "25b8dedc09c9883c32f60572d09184a8bfefac255fe36d65545af2cb48139e91",
+      "sha256Raw": "25b8dedc09c9883c32f60572d09184a8bfefac255fe36d65545af2cb48139e91"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.row.jsonl",
+      "sha256Lf": "090907bfcfd0b53af86e57c02f1690a674b6ade6354ebc8213df34e7aae9f207",
+      "sha256Raw": "090907bfcfd0b53af86e57c02f1690a674b6ade6354ebc8213df34e7aae9f207"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.1.jsonl",
+      "sha256Lf": "98371dbd5f40ecd0bbc8d4865b2664dc486fbc645e6a3e66ae5bc36da05a9151",
+      "sha256Raw": "98371dbd5f40ecd0bbc8d4865b2664dc486fbc645e6a3e66ae5bc36da05a9151"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.2.jsonl",
+      "sha256Lf": "0f1e991db1f92d025f5ab7f48745fa8b757502ee795b4b2683dd29711f548039",
+      "sha256Raw": "0f1e991db1f92d025f5ab7f48745fa8b757502ee795b4b2683dd29711f548039"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.3.jsonl",
+      "sha256Lf": "1e8619987d81d8f72c28d777fa477aed584c7c94a452d20457c98f1e2ffe418d",
+      "sha256Raw": "1e8619987d81d8f72c28d777fa477aed584c7c94a452d20457c98f1e2ffe418d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.4.jsonl",
+      "sha256Lf": "568d8e6524f12a5204c9ed1c3cfc957bf2a8be482124aa9e23bdd3aa468e3229",
+      "sha256Raw": "568d8e6524f12a5204c9ed1c3cfc957bf2a8be482124aa9e23bdd3aa468e3229"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.5.jsonl",
+      "sha256Lf": "44b7411d829e3efac1ad5b529837da6ec4eb051b49a46cf077e49b28eb897b65",
+      "sha256Raw": "44b7411d829e3efac1ad5b529837da6ec4eb051b49a46cf077e49b28eb897b65"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.6.jsonl",
+      "sha256Lf": "ae7f4df2e9a73f8bca4ec88cbd53fafa83c968f2bd8b4d096dc3b7dc18b3b90b",
+      "sha256Raw": "ae7f4df2e9a73f8bca4ec88cbd53fafa83c968f2bd8b4d096dc3b7dc18b3b90b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.7.jsonl",
+      "sha256Lf": "9d9190a4016b61b0c86c45238c9018f31c95fc5a6a94cc4744190e52897a9162",
+      "sha256Raw": "9d9190a4016b61b0c86c45238c9018f31c95fc5a6a94cc4744190e52897a9162"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.link.jsonl",
+      "sha256Lf": "524e2af9544d7283c0b5b3172f3594f2921f8b2328376a52e22e21d28c169248",
+      "sha256Raw": "524e2af9544d7283c0b5b3172f3594f2921f8b2328376a52e22e21d28c169248"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.row.jsonl",
+      "sha256Lf": "57ea10959be7bfbb199004be207815654af284225e777c97e4d0b5519e6c8c02",
+      "sha256Raw": "57ea10959be7bfbb199004be207815654af284225e777c97e4d0b5519e6c8c02"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.24084.1.jsonl",
+      "sha256Lf": "7a2c1f4df3acff0891c8aadc5e19ffe1f01a7b7686cc74116cacf0dce3c1fd19",
+      "sha256Raw": "7a2c1f4df3acff0891c8aadc5e19ffe1f01a7b7686cc74116cacf0dce3c1fd19"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.24084.2.jsonl",
+      "sha256Lf": "2a577993447f16baf07661440db4a4a20e25acada2824b9e09e6024c3539bbcc",
+      "sha256Raw": "2a577993447f16baf07661440db4a4a20e25acada2824b9e09e6024c3539bbcc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.24084.3.jsonl",
+      "sha256Lf": "1dc0bcb8f393bfa7ff1966c297f3a8dfbb07926b0aca12b682535f6c0abbb45f",
+      "sha256Raw": "1dc0bcb8f393bfa7ff1966c297f3a8dfbb07926b0aca12b682535f6c0abbb45f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.24084.4.jsonl",
+      "sha256Lf": "57c3033dd25037f8a1464c3daa906ac84e55aaa0af83d1dad450b90ec92d2b8c",
+      "sha256Raw": "57c3033dd25037f8a1464c3daa906ac84e55aaa0af83d1dad450b90ec92d2b8c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.24084.5.jsonl",
+      "sha256Lf": "5795716bfcb8b03ad9a6705fb2c028f9ce8c4f2b1dce355dc87b209799e93356",
+      "sha256Raw": "5795716bfcb8b03ad9a6705fb2c028f9ce8c4f2b1dce355dc87b209799e93356"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.link.jsonl",
+      "sha256Lf": "ccc34d7de085693ec8d794fdcd8f59479d4e268df12ac8c29a9481d40ed65728",
+      "sha256Raw": "ccc34d7de085693ec8d794fdcd8f59479d4e268df12ac8c29a9481d40ed65728"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-transport-inputs.json",
+      "sha256Lf": "de2b3ae568c57f256fea71bf92921c3ad660ffffabc5303f26475f1042a5ea9f",
+      "sha256Raw": "7023d046d32f7885da9e2d20d117caa1c1c72a9197953cbf97088f353499def9"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-projection-inputs.json",
+      "sha256Lf": "26445856a9352960d9a23325961bca1b1a0750ea45695c1a76683d16a8563c80",
+      "sha256Raw": "36f74edb510f388475c554a62a75f383548c77f5f2345d139ac5e82e3bdcc960"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen-source/core/engine/policy.js",
+      "sha256Lf": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10",
+      "sha256Raw": "df967a7ea4ee239dd73a18cca5f0e06517157be59313484627f6e394afb2ce15"
+    },
+    {
+      "path": "tools/ig-proto/verdicts.mjs",
+      "sha256Lf": "6eb4c7c5f2e93e96192800040585a89c6805192f8bf50db87ed1f2b8a326f43a",
+      "sha256Raw": "e4a37c5a3acd5202c89e3c47d643fb343e2bcaf5667053466408d19a3e1ed195"
+    },
+    {
+      "path": "tools/ig-proto/data/prior-s3-v1.json",
+      "sha256Lf": "536dfd5d70dcdd3fa89f0b18141c161656e5ca968b7a18c52ec218c17cb1e0e1",
+      "sha256Raw": "1a2e18627c63f627f12872e4a47d42f5e25fb4626b93f07e97d57fff77ec477a"
+    },
+    {
+      "path": "tools/ig-proto/data/boards-v1.json",
+      "sha256Lf": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+      "sha256Raw": "9d3aac635db2bbd40ddebc29dc807134e52455e58f6ad2ee9cc15ed9fbfde7b2"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-transport.json",
+      "sha256Lf": "310f80ef09766dec58d6da221ddbd78d1b646d711ca7a650ef8745b327ebd9a2",
+      "sha256Raw": "5e9a55ce0ef152da9fe985cd808534e9f86f06746bf661402598b074a7f602bf"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-projection.json",
+      "sha256Lf": "37d524e0031472f7bffb32dcffa13a51adefe533364090b5194d0f03d4b86545",
+      "sha256Raw": "eb32dfe1bf772de37f259307f500da2f225ac4bb2171709fdb87b69033765a84"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-prefixes-table.json",
+      "sha256Lf": "42da47a24df8536fe9ad54d086f82a22e1401338cf64327c9bec8d769bfb460b",
+      "sha256Raw": "a2c6d161941a09447f436178be783694b94e06f85a1cef3cf952d172fbf5ae26"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.receipt.json",
+      "sha256Lf": "f8c819d1cc278730975a0527b3c9acd72843b0720171f2044c67b4b3ebbdd538",
+      "sha256Raw": "d80a6c998745f380128ee703df042e072b27329b6aadb726f842214d50866fe3"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.accepted.json",
+      "sha256Lf": "6e2a984ab8a460dbd0e887e4941eaf77420bad914bbd3650c0521b632c7e2315",
+      "sha256Raw": "63f6b2a04ca60d839997b364e1f4d8e6440b976ce2e9789fa38944a7dc4bcf61"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen/items.jsonl",
+      "sha256Lf": "46c54829fe2d1fb9df7eb5a56784756118e5637cee30ecfba60588c7496f30c4",
+      "sha256Raw": "46c54829fe2d1fb9df7eb5a56784756118e5637cee30ecfba60588c7496f30c4"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen/state.json",
+      "sha256Lf": "6e1f6be6cf7a0ecc9225b7809e05b802bc7dc85a08a7223409306d65460b9204",
+      "sha256Raw": "a91c8893ba58c0dd1764835f371a38f01c788f0f12e5f3ca18068dc1f9b65d94"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S3P.parity-fr-frozen.json",
+      "sha256Lf": "97316401d3ebf49a3d95581e19a7e4d5989c5dcd4dea176d42a6a83a92099669",
+      "sha256Raw": "edd4789a98e8afcb7de00384a4590ca438185d09930de50a842a3e7a0c06b75f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/inputs/parity-fr-frozen/fr-frozen.ig-tree.json",
+      "sha256Lf": "f954fad71c63e5056b7ac4233fae7e17d4192d1ae34b6283f63de0431b537e54",
+      "sha256Raw": "eb3abf2aacbb26d46ac03fba6e6f3cadb034a979d701b0b67fd3b1fd97d3b09b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/inputs/parity-fr-frozen/harness.json",
+      "sha256Lf": "98815b8f1a4449560dff56f992f6f5f0a537c3d2c2c69077d7a1645222d395dc",
+      "sha256Raw": "92d0f80f8dcdc2a4d837953a1cefb71edbeede432cdcb4b2264668ee76f33941"
+    },
+    {
+      "path": "tools/ig-proto/variants/base.json",
+      "sha256Lf": "89d0694c51e3eba087a1a38cbcf6bc4d5e68bc6866ce13927190f19c09978406",
+      "sha256Raw": "40fdacb7b0e4968b399e983df28bb205080179da1c260f53a7240580ea0cbd1b"
+    },
+    {
+      "path": "tools/ig-proto/variants/instr.json",
+      "sha256Lf": "3c85252a241311d05f5894352b5de6bdfb1b07d2d96ca536196825c6b8992a84",
+      "sha256Raw": "2f585239d064a8f4042c47d408f6aee4ec5a29750fb927ad307c2dc5124d6720"
+    },
+    {
+      "path": "tools/ig-proto/variants/log.json",
+      "sha256Lf": "bf767cb25cc994721fbd53273ab8d53617c23f11e95b341d5b1aa33a0f82f31a",
+      "sha256Raw": "3239ba6c1f4ff2d274a150d526a8b1ef059d6f4af0402feb069931d3967d7852"
+    },
+    {
+      "path": "tools/ig-proto/variants/v4.json",
+      "sha256Lf": "f5e70dfbb3c98d250c492c32984c5c9917aa3f56d40c8eb8b4c055ac4e30d33c",
+      "sha256Raw": "2da970b74f142069d2c476a5713f4638b1b0e3ee53fc648feaa8e76533adc42c"
+    },
+    {
+      "path": "tools/ig-proto/variants/link.json",
+      "sha256Lf": "2939dd487578f61e628223960f00e413bca5d92abc536dc337943a28acadb7e9",
+      "sha256Raw": "a7750e420bae2e5d56b2ec831214bf4ea967ebee53a6e7337fe9a880304a6305"
+    },
+    {
+      "path": "tools/ig-proto/variants/v4-link.json",
+      "sha256Lf": "987f3f774e8bc232b322bf08bff1ec462809e4ba2a25c4ad25572d8e78c6fe6b",
+      "sha256Raw": "82b9e9d2ede5010ed85b4b491bd45736a3ae8f6965018bf96899373faa575cf3"
+    },
+    {
+      "path": "tools/ig-proto/variants/fr-base.json",
+      "sha256Lf": "ba6596d805b897be72f5cecb6bff82494dae3c5bb9504eef5a2bb7d3c85419bb",
+      "sha256Raw": "3148fde874ed2d1f1a151427622f91914d614c448649311f0a52fcec58bd8a92"
+    },
+    {
+      "path": "tools/ig-proto/variants/v4-ps.json",
+      "sha256Lf": "0b423a894b3a3b0be6d740bd3d77b78545c747edc066ac93500d88a3469d0db6",
+      "sha256Raw": "4278e47b754edbad3d850c735c960069fbd06c9cb44564694bfdae11f47227b2"
+    },
+    {
+      "path": "tools/ig-proto/variants/v4-p5.json",
+      "sha256Lf": "d96afe2c9b726d5beab621728e8849ff4a4bf54bcc0d6a7866fb44e6bbfa4447",
+      "sha256Raw": "96b5734168a776c658f839a4aa2cab16976642fd8bf501ccbbb0bb88a7eafaa7"
+    },
+    {
+      "path": "tools/ig-proto/variants/live.json",
+      "sha256Lf": "973b447e63fff624ce27c0ad07267311c54d23e522be8eb075b6fcf12d815ccc",
+      "sha256Raw": "79f43a26b300493e3aec872e0a0173881738d52e6a8693cfa58abe344064edeb"
+    },
+    {
+      "path": "tools/ig-proto/variants/p5-mode.json",
+      "sha256Lf": "8387afe9266debca0af8030b1c29fae5cb05ba1220e2c96e9c3be70e61bd332e",
+      "sha256Raw": "ae465eb369291c22e134fb76f6c7c1ca1e0e7eebf4dfc94f71a861d7889183e5"
+    },
+    {
+      "path": "tools/ig-proto/variants/ps-levels.json",
+      "sha256Lf": "1b2651e066f5785c5ce226f38da8a4abf7ddfa64d3493052e4f439324aee102a",
+      "sha256Raw": "0ebbc42e03dfdb9930959c19daad4662f2e4872e1d1f90849242d25da7cc64df"
+    },
+    {
+      "path": "tools/ig-proto/variants/fr-frozen.json",
+      "sha256Lf": "29af6f1862eaf9ef832dfd4d373c7343198c3f94107ecf54eadcca41f4fdc219",
+      "sha256Raw": "00203334b83f8f8838a3dadc3deabc1345f8cf7e82a3402d4d34b70c428bdc0a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.receipt.json",
+      "sha256Lf": "d0210095b821f5b13a7f4dbefd046fb97af5800ccf41eba9d84193acf2a359c0",
+      "sha256Raw": "73b8fb5a83cdee49f4dd3c4676b6c45f33eb3622a8c53d7f0908a87b304352d2"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.accepted.json",
+      "sha256Lf": "8f6d5db4d479d716ccbe10423133de617fc50c640ba67ead8aaad55629813358",
+      "sha256Raw": "2e49ba281bc4ca0eca27b1d011c89df94623958ddd7d57a9b0bc4a6060e6c669"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none/items.jsonl",
+      "sha256Lf": "f5c149aed786c842c0cd9d02e1349f249ca1872ccb7cdac808354403150b33ae",
+      "sha256Raw": "f5c149aed786c842c0cd9d02e1349f249ca1872ccb7cdac808354403150b33ae"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none/state.json",
+      "sha256Lf": "1bc28a500643c17dd8af85aa6e0ca71856452131e4220555156636f5a49c830e",
+      "sha256Raw": "b6709a08b7f90e0bd0ca9836d7030afa86a9eadd3ad2a6f351674c7fe7abe3d4"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S3P.parity-fr-frozen-none.json",
+      "sha256Lf": "6e9dc93ce8af941b278ddcd60ce3ec22971a415e452a6d34f5e8fa2d51f503c5",
+      "sha256Raw": "059b89667893b632c0e95aa1349b46f28be441cb1e901fdacabe039cad7c5cdc"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/inputs/parity-fr-frozen-none/fr-frozen-none.ig-tree.json",
+      "sha256Lf": "51937e9989d0ea3a6c739ce3e21001f94c215430bbfebc30f436ae9c2de965ce",
+      "sha256Raw": "909d810357371c6bb87bfff144bd6ab033282e83f80f6978734a35128999c1e9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/inputs/parity-fr-frozen-none/harness.json",
+      "sha256Lf": "98815b8f1a4449560dff56f992f6f5f0a537c3d2c2c69077d7a1645222d395dc",
+      "sha256Raw": "92d0f80f8dcdc2a4d837953a1cefb71edbeede432cdcb4b2264668ee76f33941"
+    },
+    {
+      "path": "tools/ig-proto/variants/fr-frozen-none.json",
+      "sha256Lf": "d2a2423ba251d6e0aff890f2a47cc1c543c0c6a5efc16d0252700ddc3972e2bd",
+      "sha256Raw": "eca2dfe7b94a1a485822d3f0d3af4f4380fca4e253f70a376cd5186eec8bd8a8"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.receipt.json",
+      "sha256Lf": "5c4bfaf355544217889316d297cd1d6fe41bcff062192e680262820d8a8de77b",
+      "sha256Raw": "8f3f5682b0a372f69d3245951169ee8a52da696fd3c92ed77437e3bf7c190166"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.accepted.json",
+      "sha256Lf": "73f7733fe8a6b66f7fcebd01863ee59c0763a5de29bbd5313a3f7b27064adc3d",
+      "sha256Raw": "9f0579a37673e96fe45e7f72a79ad424eac243e2461135f4e7e013542c44cf0a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-uncapped/items.jsonl",
+      "sha256Lf": "dc1ea157a9ca5d16f4513122a8114ff8a2966c82a6d25a4abfcb05633d72b3fc",
+      "sha256Raw": "dc1ea157a9ca5d16f4513122a8114ff8a2966c82a6d25a4abfcb05633d72b3fc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-uncapped/state.json",
+      "sha256Lf": "020463921d68be5c4c3223c878bc40417e2bf5d5a57106883bea89cf556c3b76",
+      "sha256Raw": "5d6019e0eb36b9b1755b858099487392974c9ff7855250454804935325da662c"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S3P.parity-fr-frozen-uncapped.json",
+      "sha256Lf": "6d2cb6241938b6e23a576915ec2216319ccb21affa4e8d87de2429f0f0ab41b8",
+      "sha256Raw": "af6996dc9451b58c82b2c0309cb0e77b58af78231f5a2c28299d73d205d833d3"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/inputs/parity-fr-frozen-uncapped/fr-frozen-uncapped.ig-tree.json",
+      "sha256Lf": "c19405082bb7cc98ba84ae4bb553394008b111d4b9ee3cfb3c9bb1f3d5fd980a",
+      "sha256Raw": "f9dbf31d02658bd267a0ed23563f768a0e473b123f7352ab43b9b42aceab0c59"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/inputs/parity-fr-frozen-uncapped/harness.json",
+      "sha256Lf": "98815b8f1a4449560dff56f992f6f5f0a537c3d2c2c69077d7a1645222d395dc",
+      "sha256Raw": "92d0f80f8dcdc2a4d837953a1cefb71edbeede432cdcb4b2264668ee76f33941"
+    },
+    {
+      "path": "tools/ig-proto/variants/fr-frozen-uncapped.json",
+      "sha256Lf": "f2c6802f6c84094530c6e2aa5de82661ebc6288b88930117b18b19255fe628aa",
+      "sha256Raw": "06d2717f2ca16055e146dbdb79e4e885bdad2e47e05776492186951fca387a61"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.receipt.json",
+      "sha256Lf": "ee18d8f8c0771c5be58fcfb858b5de2f2d2f2562781c4df096db9dcd22286cd3",
+      "sha256Raw": "fd61fb6972ee54d260c34376c9bfeabd44f1d57c338f10f7e8c28710309540a2"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.accepted.json",
+      "sha256Lf": "244b0d242160eeb93abee57ebd8785496738793c934ff0ebf2c30970ad325c23",
+      "sha256Raw": "6fe9052b1db549792c40cc6858b9b961d84c85a4900522a7530a273a2170331d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none-uncapped/items.jsonl",
+      "sha256Lf": "e8d4bdeabdcba033e02bcba4e4dd338298108e99b7f3e76265647259a009bc3f",
+      "sha256Raw": "e8d4bdeabdcba033e02bcba4e4dd338298108e99b7f3e76265647259a009bc3f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none-uncapped/state.json",
+      "sha256Lf": "39664f06495f35fdfe81026ed9f86095f76e337b842d770a7a2e6bd337c0a086",
+      "sha256Raw": "2e2f352787538fc91b87642cac856a5b0a283c40605c04f7502f67617952bb39"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S3P.parity-fr-frozen-none-uncapped.json",
+      "sha256Lf": "e975aad38ea42ab1b27851880d889e19232e1dd55bb17298a5477ff1a601b6ba",
+      "sha256Raw": "34561d32f631e946c88e108da5c212ac3dc38b19bce8fde414f2f4e0154f5d4f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/inputs/parity-fr-frozen-none-uncapped/fr-frozen-none-uncapped.ig-tree.json",
+      "sha256Lf": "beaeaf3fba6da17439bb15171851162f28c4d21444f0ac901d7a17e09f29c432",
+      "sha256Raw": "c21435517c203efb81197e316f5d99fb0e48d7aba03538a334594e411854f07c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/inputs/parity-fr-frozen-none-uncapped/harness.json",
+      "sha256Lf": "98815b8f1a4449560dff56f992f6f5f0a537c3d2c2c69077d7a1645222d395dc",
+      "sha256Raw": "92d0f80f8dcdc2a4d837953a1cefb71edbeede432cdcb4b2264668ee76f33941"
+    },
+    {
+      "path": "tools/ig-proto/variants/fr-frozen-none-uncapped.json",
+      "sha256Lf": "d0862e59a042296a139f70bdb8d929294f01ac885e37fb61f511a2a7d3a54e32",
+      "sha256Raw": "3ef742f88442d9a060696f4d3a78b7f14137026ab11c0df4a3ebe2e0f0175922"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/invocations.jsonl",
+      "sha256Lf": "f1a8b004f0d8bbe3be8fb3fe961e0a915f6efecb872dc4aa74f65b0673e0e50b",
+      "sha256Raw": "f1a8b004f0d8bbe3be8fb3fe961e0a915f6efecb872dc4aa74f65b0673e0e50b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/run-1.log",
+      "sha256Lf": "7ec5379da59b12034a9e6f60e93b52b014c7d718e5a632953c488db8f33d229d",
+      "sha256Raw": "fb6960375a43884c84ad6458f9fa8d196e478ba24ebc1eb1515340bc8f05f630"
+    },
+    {
+      "path": "tools/ig-proto/fit-read.mjs",
+      "sha256Lf": "6df34ca93e8bd48295e2d9d06e91cd0db34f94269d1a9fa06f03f4576db4751e",
+      "sha256Raw": "9a32f34b6801dbb937defa5b7ef3959a2363a43f349ca5cb04647901ab4d499c"
+    },
+    {
+      "path": "tools/ig-proto/lib/proof.mjs",
+      "sha256Lf": "db22a68a3aac1d14f08db9abec1e1f3d114f938ee0c69b9b0beda738fa0a778a",
+      "sha256Raw": "20150b8d78c79a9b211f91b956b03d0ec931260734cad0be817a67cef6f18c9c"
+    },
+    {
+      "path": "tools/ig-proto/lib/tree.mjs",
+      "sha256Lf": "c35e4f5509687f2f84f5c008d834b1d70eea141718bbd869dba05155251f3675",
+      "sha256Raw": "a437fc3a34c799de5999add50e63f440b4859a5ab6f03c60e59c2016295aa892"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/s01-reading.md",
+      "sha256Lf": "499dd68911a598037de05693663773a647e55c7d02b9c39779e471e68a17b92f",
+      "sha256Raw": "0228e3ad978ed089221c7a01f55abe4fe2f89a4b5579f3fc7beb3984192b90b2"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/plan.md",
+      "sha256Lf": "2fa90684e990179debe55eed21066d46f0cbd71d4a0bd41b3d150f7bb6499838",
+      "sha256Raw": "8391ae2afcdfc82e3d9479615b1d43f123034465b9a498d3c3c9e6bf988f2c7a"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T11-sa-reading-of-the-fit-runs.md",
+      "sha256Lf": "d8bf206b34ad677a48a111820bfb868a27fa8f9e0fca3864dbde37ad3ee5c86c",
+      "sha256Raw": "a7dda0b30ad00c3b0e06f077ad81763207366190a5127759987d5cf21182d439"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-transport.mjs",
+      "sha256Lf": "6c66a6c69a9b4e1b956531fdd6b75aaf23fc534e78f03c1daf0d917b73e76830",
+      "sha256Raw": "770204c092a4ae3db2d17fc9aa4441a4540b37d077942aecff8bacdb574dfa26"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-projection.mjs",
+      "sha256Lf": "5b8cb2b253e3de163c92ba642fce900e9de9bbc26306b75c816ccf0fe1093945",
+      "sha256Raw": "b4c6ead621edaf6047ac27476d5d5891628cb0bccbc4345f79a25e79b1ee0ed9"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/t11-reading.md",
+      "sha256Lf": "e5ca5784b6211fd01e815cff615a130080a156d38a5f85b4e627c92c21d832c4",
+      "sha256Raw": "77ceba892ec3008fa746e68c9814a5093ac7981e2aa94affb26cf26459faf559"
+    }
+  ]
+}

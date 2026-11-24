@@ -1,0 +1,186 @@
+{
+  "script": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-epoch.mjs",
+  "arms": [
+    {
+      "id": "fr-frozen",
+      "kind": "parity",
+      "verdict": "pass",
+      "blocks": {
+        "parity": "pass",
+        "replay": "pass"
+      },
+      "treeId": "b3e530b1bca515e551f240faccc327f9868da0f475a60761986faf4884b781f7",
+      "paramsHash": "8d88421dd28da637585e3add86da5d69b7a780dbc3115fc67967ca25b206bd19",
+      "source": {
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b"
+      },
+      "bindingReceiptHashMatches": true,
+      "bindingArm": {
+        "id": "fr-frozen",
+        "treeId": "b3e530b1bca515e551f240faccc327f9868da0f475a60761986faf4884b781f7",
+        "paramsHash": "8d88421dd28da637585e3add86da5d69b7a780dbc3115fc67967ca25b206bd19"
+      },
+      "acceptedBy": "V4-S3",
+      "acceptedAt": "2026-11-24T00:47:44.541Z"
+    },
+    {
+      "id": "fr-frozen-none",
+      "kind": "parity",
+      "verdict": "pass",
+      "blocks": {
+        "parity": "pass",
+        "replay": "pass"
+      },
+      "treeId": "fa903f397ef6dce86ef70f3afb771c5de258b12836ae314bf796dbbf798ec6b3",
+      "paramsHash": "2fb012457857019b1b6a08cc1a7a2d6cf3147b3682c838c6d1351a688b0c528c",
+      "source": {
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b"
+      },
+      "bindingReceiptHashMatches": true,
+      "bindingArm": {
+        "id": "fr-frozen-none",
+        "treeId": "fa903f397ef6dce86ef70f3afb771c5de258b12836ae314bf796dbbf798ec6b3",
+        "paramsHash": "2fb012457857019b1b6a08cc1a7a2d6cf3147b3682c838c6d1351a688b0c528c"
+      },
+      "acceptedBy": "V4-S3",
+      "acceptedAt": "2026-11-24T00:53:06.561Z"
+    },
+    {
+      "id": "fr-frozen-uncapped",
+      "kind": "parity",
+      "verdict": "pass",
+      "blocks": {
+        "parity": "pass",
+        "replay": "pass"
+      },
+      "treeId": "96ef38e2fd6d8f0ad07f1858275377f5d4bf788d7a2ae4cd80a813afdd829599",
+      "paramsHash": "a65b581dff5d038446347400c16669d15ca1b383b0aa428d091b5409a5a0f5bc",
+      "source": {
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b"
+      },
+      "bindingReceiptHashMatches": true,
+      "bindingArm": {
+        "id": "fr-frozen-uncapped",
+        "treeId": "96ef38e2fd6d8f0ad07f1858275377f5d4bf788d7a2ae4cd80a813afdd829599",
+        "paramsHash": "a65b581dff5d038446347400c16669d15ca1b383b0aa428d091b5409a5a0f5bc"
+      },
+      "acceptedBy": "V4-S3",
+      "acceptedAt": "2026-11-24T00:58:28.178Z"
+    },
+    {
+      "id": "fr-frozen-none-uncapped",
+      "kind": "parity",
+      "verdict": "pass",
+      "blocks": {
+        "parity": "pass",
+        "replay": "pass"
+      },
+      "treeId": "e31d829dee8d15a58c3e0d796afa35665222cd30fa707f3a52c5e5f868e6779c",
+      "paramsHash": "bedc1ecdfde3ecd52cccc9dfaa0da8ed5136ada5bdebb88ad34a96279bec08cf",
+      "source": {
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b"
+      },
+      "bindingReceiptHashMatches": true,
+      "bindingArm": {
+        "id": "fr-frozen-none-uncapped",
+        "treeId": "e31d829dee8d15a58c3e0d796afa35665222cd30fa707f3a52c5e5f868e6779c",
+        "paramsHash": "bedc1ecdfde3ecd52cccc9dfaa0da8ed5136ada5bdebb88ad34a96279bec08cf"
+      },
+      "acceptedBy": "V4-S3",
+      "acceptedAt": "2026-11-24T01:03:49.210Z"
+    }
+  ],
+  "runs": [
+    {
+      "shard": "pilot-14x14-hell-1",
+      "rows": 5,
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "treeId": "e31d829dee8d15a58c3e0d796afa35665222cd30fa707f3a52c5e5f868e6779c",
+      "paramsHash": "bedc1ecdfde3ecd52cccc9dfaa0da8ed5136ada5bdebb88ad34a96279bec08cf",
+      "harnessHash": "fd37ef4646a72deb084c054edf0d443859d13c4dc949d17d1239d1c33f6383d0"
+    },
+    {
+      "shard": "pilot-20x20-hell-1",
+      "rows": 5,
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "treeId": "e31d829dee8d15a58c3e0d796afa35665222cd30fa707f3a52c5e5f868e6779c",
+      "paramsHash": "bedc1ecdfde3ecd52cccc9dfaa0da8ed5136ada5bdebb88ad34a96279bec08cf",
+      "harnessHash": "fd37ef4646a72deb084c054edf0d443859d13c4dc949d17d1239d1c33f6383d0"
+    },
+    {
+      "shard": "pilot-24x24-hell-1",
+      "rows": 5,
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "treeId": "e31d829dee8d15a58c3e0d796afa35665222cd30fa707f3a52c5e5f868e6779c",
+      "paramsHash": "bedc1ecdfde3ecd52cccc9dfaa0da8ed5136ada5bdebb88ad34a96279bec08cf",
+      "harnessHash": "fd37ef4646a72deb084c054edf0d443859d13c4dc949d17d1239d1c33f6383d0"
+    },
+    {
+      "shard": "pilot-26x26-hell-1",
+      "rows": 5,
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "treeId": "e31d829dee8d15a58c3e0d796afa35665222cd30fa707f3a52c5e5f868e6779c",
+      "paramsHash": "bedc1ecdfde3ecd52cccc9dfaa0da8ed5136ada5bdebb88ad34a96279bec08cf",
+      "harnessHash": "fd37ef4646a72deb084c054edf0d443859d13c4dc949d17d1239d1c33f6383d0"
+    }
+  ],
+  "problems": [],
+  "inputs": [
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.receipt.json",
+      "sha256Lf": "f8c819d1cc278730975a0527b3c9acd72843b0720171f2044c67b4b3ebbdd538"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.accepted.json",
+      "sha256Lf": "6e2a984ab8a460dbd0e887e4941eaf77420bad914bbd3650c0521b632c7e2315"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.receipt.json",
+      "sha256Lf": "d0210095b821f5b13a7f4dbefd046fb97af5800ccf41eba9d84193acf2a359c0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.accepted.json",
+      "sha256Lf": "8f6d5db4d479d716ccbe10423133de617fc50c640ba67ead8aaad55629813358"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.receipt.json",
+      "sha256Lf": "5c4bfaf355544217889316d297cd1d6fe41bcff062192e680262820d8a8de77b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.accepted.json",
+      "sha256Lf": "73f7733fe8a6b66f7fcebd01863ee59c0763a5de29bbd5313a3f7b27064adc3d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.receipt.json",
+      "sha256Lf": "ee18d8f8c0771c5be58fcfb858b5de2f2d2f2562781c4df096db9dcd22286cd3"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.accepted.json",
+      "sha256Lf": "244b0d242160eeb93abee57ebd8785496738793c934ff0ebf2c30970ad325c23"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1.runs.json",
+      "sha256Lf": "6549cc269efe9416188c16ce1e0440d3adbb9f9ebc1f6c07e81090ea16c22b8b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1.runs.json",
+      "sha256Lf": "1baeaa5dbeb270f21f42f6cee56880f9608d4505072021192b621731fab8a8cc"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1.runs.json",
+      "sha256Lf": "4fa18ba0ac323905d0630437a3f7be9c89b5778021fd1d517c8626a17868e023"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1.runs.json",
+      "sha256Lf": "8aa7595a36fcd9a76ce5c14a01f0dc219db17463e3aa2bf2168b6001bb024edd"
+    }
+  ]
+}

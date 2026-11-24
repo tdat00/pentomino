@@ -182,9 +182,9 @@ The outcome (A), (B) or (C); the numbers per cell; the files written; the ruling
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Agents, models | |
-| Outcome | |
-| Rulings (register) and owner questions | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 08:23 to 08:47 +07:00; about 24 min (SA-Opus draft 08:23-08:38, SA-Astra review 08:39-08:47) |
+| Agents, models | SA-Opus a607e081 (claude-opus-5.5, drafter); SA-Astra 56d9faa7 (gpt-6-astra, reviewer) |
+| Outcome | (A) nothing flagged: 20 of 20 rows valid and complete; 432 calls, 0 affected / 0 potentially affected / 0 ambiguous; largest call 22.396 G against the 40 G budget; 0 bound firings (vacuous: every first set attempt ended with a hit or a window); transport 80 set starts on the table prior, 352 batch starts on the per-set prior with no mismatch (173 differ from the table); projection 0 reserve cuts, 1 lost completion (14x14 rep 1, accepted by D-S24-04); jointly signed acceptance of the candidate epoch unchanged (T08a's four trees) |
+| Rulings (register) and owner questions | none; SA-Astra review: accept (one round), checks in evidence/sa-astra/t11-review-checks.* |
+| Commit | this task's commit |
+| Issues and named items | none; observations kept in the note: the deadline's lost completion, the bound and budget not exercised by these rows, `require` exercised only by S03's proofs |

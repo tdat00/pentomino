@@ -1,0 +1,1068 @@
+{
+  "script": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-prefixes-table.mjs",
+  "record": "docs/improve-generating/evidence/frozen/V4-S3P/fit-read-prefixes-fr-frozen-none-uncapped.json",
+  "budget": 40000000000,
+  "bound": 4,
+  "summary": {
+    "declared": 20,
+    "present": 20,
+    "missing": [],
+    "unexpected": [],
+    "identityRows": 0,
+    "incompleteRows": 0,
+    "unreadableRows": 0,
+    "ambiguousRows": 0,
+    "affectedCalls": 0,
+    "potentiallyAffectedCalls": 0,
+    "ambiguousCalls": 0,
+    "boundFirings": 0
+  },
+  "maxSpentG": 22.396,
+  "headroom": 1.786,
+  "cells": [
+    {
+      "cell": "14x14-hell-1",
+      "rows": 5,
+      "valid": 5,
+      "complete": 5,
+      "unreadable": 0,
+      "identity": 0,
+      "problems": 0,
+      "calls": 101,
+      "clear": 101,
+      "affected": 0,
+      "potentiallyAffected": 0,
+      "ambiguous": 0,
+      "maxSpentG": 22.396,
+      "boundFirings": 0,
+      "recomputedSameMax": true,
+      "ended": 78,
+      "terminated": 23,
+      "terminatedOpen": 23,
+      "maxEndedBatchG": 22.396,
+      "maxTerminatedG": 20.774,
+      "maxSetG": 10.979,
+      "top": [
+        {
+          "rowKey": "14x14-hell-1~0",
+          "call": "14x14-hell-1~0:8212:1:2",
+          "stage": "batch",
+          "attempt": "2/0",
+          "ended": true,
+          "result": "window",
+          "spentG": 22.396
+        },
+        {
+          "rowKey": "14x14-hell-1~3",
+          "call": "14x14-hell-1~3:8312:4:4",
+          "stage": "batch",
+          "attempt": "3/1",
+          "ended": false,
+          "result": null,
+          "spentG": 20.774
+        },
+        {
+          "rowKey": "14x14-hell-1~0",
+          "call": "14x14-hell-1~0:8212:5:1",
+          "stage": "batch",
+          "attempt": "3/0",
+          "ended": true,
+          "result": "hit",
+          "spentG": 20.643
+        }
+      ],
+      "setEnds": {
+        "ended": 13,
+        "terminated": 7,
+        "results": {
+          "hit": 7,
+          "window": 6
+        }
+      }
+    },
+    {
+      "cell": "20x20-hell-1",
+      "rows": 5,
+      "valid": 5,
+      "complete": 5,
+      "unreadable": 0,
+      "identity": 0,
+      "problems": 0,
+      "calls": 114,
+      "clear": 114,
+      "affected": 0,
+      "potentiallyAffected": 0,
+      "ambiguous": 0,
+      "maxSpentG": 13.849,
+      "boundFirings": 0,
+      "recomputedSameMax": true,
+      "ended": 90,
+      "terminated": 24,
+      "terminatedOpen": 24,
+      "maxEndedBatchG": 13.849,
+      "maxTerminatedG": 5.119,
+      "maxSetG": 1.936,
+      "top": [
+        {
+          "rowKey": "20x20-hell-1~0",
+          "call": "20x20-hell-1~0:14532:1:3",
+          "stage": "batch",
+          "attempt": "6/0",
+          "ended": true,
+          "result": "hit",
+          "spentG": 13.849
+        },
+        {
+          "rowKey": "20x20-hell-1~1",
+          "call": "20x20-hell-1~1:7644:6:2",
+          "stage": "batch",
+          "attempt": "7/0",
+          "ended": true,
+          "result": "hit",
+          "spentG": 7.53
+        },
+        {
+          "rowKey": "20x20-hell-1~2",
+          "call": "20x20-hell-1~2:18532:4:3",
+          "stage": "batch",
+          "attempt": "8/0",
+          "ended": true,
+          "result": "hit",
+          "spentG": 7.012
+        }
+      ],
+      "setEnds": {
+        "ended": 10,
+        "terminated": 10,
+        "results": {
+          "hit": 8,
+          "window": 2
+        }
+      }
+    },
+    {
+      "cell": "24x24-hell-1",
+      "rows": 5,
+      "valid": 5,
+      "complete": 5,
+      "unreadable": 0,
+      "identity": 0,
+      "problems": 0,
+      "calls": 109,
+      "clear": 109,
+      "affected": 0,
+      "potentiallyAffected": 0,
+      "ambiguous": 0,
+      "maxSpentG": 5.796,
+      "boundFirings": 0,
+      "recomputedSameMax": true,
+      "ended": 86,
+      "terminated": 23,
+      "terminatedOpen": 23,
+      "maxEndedBatchG": 4.989,
+      "maxTerminatedG": 2.13,
+      "maxSetG": 5.796,
+      "top": [
+        {
+          "rowKey": "24x24-hell-1~4",
+          "call": "24x24-hell-1~4:10796:1:1",
+          "stage": "set",
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 5.796
+        },
+        {
+          "rowKey": "24x24-hell-1~3",
+          "call": "24x24-hell-1~3:24412:5:6",
+          "stage": "batch",
+          "attempt": "6/1",
+          "ended": true,
+          "result": "window",
+          "spentG": 4.989
+        },
+        {
+          "rowKey": "24x24-hell-1~4",
+          "call": "24x24-hell-1~4:10796:4:3",
+          "stage": "batch",
+          "attempt": "8/0",
+          "ended": true,
+          "result": "hit",
+          "spentG": 4.845
+        }
+      ],
+      "setEnds": {
+        "ended": 12,
+        "terminated": 8,
+        "results": {
+          "hit": 12
+        }
+      }
+    },
+    {
+      "cell": "26x26-hell-1",
+      "rows": 5,
+      "valid": 5,
+      "complete": 5,
+      "unreadable": 0,
+      "identity": 0,
+      "problems": 0,
+      "calls": 108,
+      "clear": 108,
+      "affected": 0,
+      "potentiallyAffected": 0,
+      "ambiguous": 0,
+      "maxSpentG": 8.531,
+      "boundFirings": 0,
+      "recomputedSameMax": true,
+      "ended": 83,
+      "terminated": 25,
+      "terminatedOpen": 25,
+      "maxEndedBatchG": 8.531,
+      "maxTerminatedG": 3.79,
+      "maxSetG": 6.181,
+      "top": [
+        {
+          "rowKey": "26x26-hell-1~0",
+          "call": "26x26-hell-1~0:8096:6:3",
+          "stage": "batch",
+          "attempt": "8/0",
+          "ended": true,
+          "result": "hit",
+          "spentG": 8.531
+        },
+        {
+          "rowKey": "26x26-hell-1~0",
+          "call": "26x26-hell-1~0:8096:7:4",
+          "stage": "batch",
+          "attempt": "8/6",
+          "ended": true,
+          "result": "hit",
+          "spentG": 6.802
+        },
+        {
+          "rowKey": "26x26-hell-1~4",
+          "call": "26x26-hell-1~4:24084:1:1",
+          "stage": "set",
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 6.181
+        }
+      ],
+      "setEnds": {
+        "ended": 9,
+        "terminated": 11,
+        "results": {
+          "hit": 9
+        }
+      }
+    }
+  ],
+  "rows": [
+    {
+      "rowKey": "14x14-hell-1~0",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 21
+      },
+      "maxSpentG": 22.396,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.263
+        },
+        {
+          "attempt": 1,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        }
+      ]
+    },
+    {
+      "rowKey": "14x14-hell-1~1",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 20
+      },
+      "maxSpentG": 13.448,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 10.052
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "window",
+          "spentG": 7.209
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 5.392
+        },
+        {
+          "attempt": 3,
+          "ended": true,
+          "result": "window",
+          "spentG": 3.369
+        }
+      ]
+    },
+    {
+      "rowKey": "14x14-hell-1~2",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 20
+      },
+      "maxSpentG": 11.12,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 3.789
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.84
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        }
+      ]
+    },
+    {
+      "rowKey": "14x14-hell-1~3",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 19
+      },
+      "maxSpentG": 20.774,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "window",
+          "spentG": 10.979
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "window",
+          "spentG": 7.173
+        },
+        {
+          "attempt": 2,
+          "ended": true,
+          "result": "window",
+          "spentG": 4.947
+        },
+        {
+          "attempt": 3,
+          "ended": true,
+          "result": "window",
+          "spentG": 3.497
+        }
+      ]
+    },
+    {
+      "rowKey": "14x14-hell-1~4",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 21
+      },
+      "maxSpentG": 15.24,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 6.582
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "hit",
+          "spentG": 3.615
+        },
+        {
+          "attempt": 2,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.633
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0.84
+        }
+      ]
+    },
+    {
+      "rowKey": "20x20-hell-1~0",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 29
+      },
+      "maxSpentG": 13.849,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 1.936
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.377
+        },
+        {
+          "attempt": 2,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.122
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        }
+      ]
+    },
+    {
+      "rowKey": "20x20-hell-1~1",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 22
+      },
+      "maxSpentG": 7.53,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "window",
+          "spentG": 1.314
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.286
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0.303
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0.165
+        }
+      ]
+    },
+    {
+      "rowKey": "20x20-hell-1~2",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 21
+      },
+      "maxSpentG": 7.012,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 1.401
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "hit",
+          "spentG": 1.484
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 1.516
+        },
+        {
+          "attempt": 3,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.755
+        }
+      ]
+    },
+    {
+      "rowKey": "20x20-hell-1~3",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 19
+      },
+      "maxSpentG": 5.387,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.453
+        },
+        {
+          "attempt": 1,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0.198
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        }
+      ]
+    },
+    {
+      "rowKey": "20x20-hell-1~4",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 23
+      },
+      "maxSpentG": 5.766,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "window",
+          "spentG": 1.128
+        },
+        {
+          "attempt": 1,
+          "ended": false,
+          "result": null,
+          "spentG": 1.071
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 1.15
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 1.268
+        }
+      ]
+    },
+    {
+      "rowKey": "24x24-hell-1~0",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 20
+      },
+      "maxSpentG": 3.07,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 2.039
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "hit",
+          "spentG": 1.017
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0.285
+        },
+        {
+          "attempt": 3,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.472
+        }
+      ]
+    },
+    {
+      "rowKey": "24x24-hell-1~1",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 18
+      },
+      "maxSpentG": 1.764,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 1.764
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.238
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        }
+      ]
+    },
+    {
+      "rowKey": "24x24-hell-1~2",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 18
+      },
+      "maxSpentG": 4.495,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 1.156
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.368
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        }
+      ]
+    },
+    {
+      "rowKey": "24x24-hell-1~3",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 31
+      },
+      "maxSpentG": 4.989,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.499
+        },
+        {
+          "attempt": 1,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0.349
+        }
+      ]
+    },
+    {
+      "rowKey": "24x24-hell-1~4",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 22
+      },
+      "maxSpentG": 5.796,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 5.796
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "hit",
+          "spentG": 1.742
+        },
+        {
+          "attempt": 2,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.459
+        },
+        {
+          "attempt": 3,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.305
+        }
+      ]
+    },
+    {
+      "rowKey": "26x26-hell-1~0",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 26
+      },
+      "maxSpentG": 8.531,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.58
+        },
+        {
+          "attempt": 1,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0
+        }
+      ]
+    },
+    {
+      "rowKey": "26x26-hell-1~1",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 24
+      },
+      "maxSpentG": 5.115,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.696
+        },
+        {
+          "attempt": 1,
+          "ended": false,
+          "result": null,
+          "spentG": 0.761
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0.587
+        },
+        {
+          "attempt": 3,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.284
+        }
+      ]
+    },
+    {
+      "rowKey": "26x26-hell-1~2",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 17
+      },
+      "maxSpentG": 2.686,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.469
+        },
+        {
+          "attempt": 1,
+          "ended": false,
+          "result": null,
+          "spentG": 0.429
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0.193
+        },
+        {
+          "attempt": 3,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.401
+        }
+      ]
+    },
+    {
+      "rowKey": "26x26-hell-1~3",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 20
+      },
+      "maxSpentG": 3.798,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.562
+        },
+        {
+          "attempt": 1,
+          "ended": false,
+          "result": null,
+          "spentG": 0.761
+        },
+        {
+          "attempt": 2,
+          "ended": false,
+          "result": null,
+          "spentG": 0.126
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 0.253
+        }
+      ]
+    },
+    {
+      "rowKey": "26x26-hell-1~4",
+      "rowStatus": "valid",
+      "complete": true,
+      "calls": {
+        "clear": 21
+      },
+      "maxSpentG": 6.181,
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      },
+      "sets": [
+        {
+          "attempt": 0,
+          "ended": true,
+          "result": "hit",
+          "spentG": 6.181
+        },
+        {
+          "attempt": 1,
+          "ended": true,
+          "result": "hit",
+          "spentG": 2.814
+        },
+        {
+          "attempt": 2,
+          "ended": true,
+          "result": "hit",
+          "spentG": 0.864
+        },
+        {
+          "attempt": 3,
+          "ended": false,
+          "result": null,
+          "spentG": 1.169
+        }
+      ]
+    }
+  ],
+  "inputs": {
+    "entries": 117,
+    "sha256Lf": "bcebda3af94751ea1a4ee7d0430a3a0044ca3ddeb14941a803c34821218b8e1e"
+  }
+}
