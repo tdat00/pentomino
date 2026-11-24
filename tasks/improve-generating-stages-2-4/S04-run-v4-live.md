@@ -151,12 +151,12 @@ evidence; the questions and rulings; the deviations; and the named items for lat
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Owner's answer (date, message id) | |
-| Approval re-read (line; cap on the account) | |
-| Verification (seconds; cases) | |
-| Counted minutes of the run; the round's account after it | |
-| Receipt and binding | |
-| Questions and rulings | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | pre-checks 09:24 +07:00; owner stop 09:27-10:09; runner launched about 10:10, finished 10:15:30 (exit 0); about 51 min with the owner wait, run about 6 min |
+| Owner's answer (date, message id) | (a), 2026-11-24 10:09:39 +07:00, Discord ai-ws-1 message 1574623003696824381 ("Q-s04 a"), asked in message 1574612096656740518 |
+| Approval re-read (line; cap on the account) | `{"plan":"V4-LIVE","spentS":14186.131,"assumedEarlierGuardS":0,"roundCountedSBeforeApproval":14186.131,"requestedAdditionalGuardS":2634.330247546194,"requestedCumulativeRoundMinutes":281}`; cap ceil((14186.131 + 87.4 + 2634.330) / 60) = 282 of the 749 granted; dry run `-ApprovedRoundMinutes 747`: 7 unlocked, 2 go, forecast 2,107 s |
+| Verification (seconds; cases) | V4-LIVE-verify, locked, `--v4` group: `self-test: 15 passed, 0 failed (50.13 s)`, `IG V4-LIVE-verify cases exit=0 seconds=50.267 quiet=15`, `cases: 15 passed, as required`; identity.json task V4-LIVE-verify, label frozen, group v4, 15 selected |
+| Counted minutes of the run; the round's account after it | 284.917 s (4.75 min): 14x14-nightmare 93.435, 26x26-hell-1 191.482; quietS 45 (idle declaration expired), horizonS 885, exit 0. Round account 14471.048 s logged + 87.4 s off-log = 14558.448 s = 242.6 of 749 counted minutes |
+| Receipt and binding | `receipt: live-deadline pass` (sha256 14e5bf0b...), verdict pass, workCutoffMs 115000, responseBoundMs 120000, reserveChecked true; 10 rows valid, 10 accepted each, ledgers complete; response 5.6-11.9 s (14x14 Nightmare), 13.2-41.2 s (26x26 Hell 1); `live-deadline.accepted.json` acceptedBy V4-LIVE; `check-binding --current fr-frozen,fr-frozen-none` `binding: pass`; 10 rows published (1647 / 1758 journal lines) |
+| Questions and rulings | Q-S04 to the owner, answered (a); no SA ruling needed |
+| Commit | this task's commit |
+| Issues and named items | none; run log `firewall: OK, 289 production files unchanged since the snapshot of V4-LIVE`; G1, G2 empty |

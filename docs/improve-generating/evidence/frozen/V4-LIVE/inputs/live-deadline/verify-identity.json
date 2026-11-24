@@ -1,0 +1,61 @@
+{
+  "format": "ig-selftest-identity",
+  "version": 1,
+  "task": "V4-LIVE-verify",
+  "label": "frozen",
+  "group": "v4",
+  "selected": [
+    "fz: the live deadline on the frozen trees",
+    "live fr-frozen-live-test: the set stage is cut by the reserve",
+    "live fr-frozen-live-test: one clock from the request start and the prefix at the stop",
+    "live fr-frozen-live-test: the same puzzles at widths 1, 2, 4 and 8 without a cut",
+    "live fr-frozen-live-test: a cut leaves a prefix of the same fold at every width",
+    "live fr-frozen-live-test: the deadline applies to the listed levels only",
+    "live fr-frozen-live-test: the host bound around a held assembly",
+    "live fr-frozen-live-test: the host's hard response bound",
+    "live fr-frozen-none-live-test: the set stage is cut by the reserve",
+    "live fr-frozen-none-live-test: one clock from the request start and the prefix at the stop",
+    "live fr-frozen-none-live-test: the same puzzles at widths 1, 2, 4 and 8 without a cut",
+    "live fr-frozen-none-live-test: a cut leaves a prefix of the same fold at every width",
+    "live fr-frozen-none-live-test: the deadline applies to the listed levels only",
+    "live fr-frozen-none-live-test: the host bound around a held assembly",
+    "live fr-frozen-none-live-test: the host's hard response bound"
+  ],
+  "harnessHash": "feca53fa268596e671fde545b37830ed760ee636a088a0f299e231b1c7f3bfad",
+  "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+  "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+  "trees": {
+    "fr-frozen": {
+      "treeId": "b3e530b1bca515e551f240faccc327f9868da0f475a60761986faf4884b781f7",
+      "copyDigest": "d595ad752e7d7adf5b5601d5ecc4d131a01bb3532e4befda50c5f71f28d4dfec",
+      "paramsHash": "8d88421dd28da637585e3add86da5d69b7a780dbc3115fc67967ca25b206bd19"
+    },
+    "fr-frozen-live-test": {
+      "treeId": "b81a0540f9a028fdfddc9a9c9b7e0c7eaeb262d9ac3859ec0517928123b46fa0",
+      "copyDigest": "5754cb532309d00cea621b791579cd88e3febed08a51fd62a1de8d4c244b0133",
+      "paramsHash": "ff86dd5f44bddb77a416565797aa42eadcb87df6a1eecf44d56667faf0fdf78b"
+    },
+    "fr-frozen-none": {
+      "treeId": "fa903f397ef6dce86ef70f3afb771c5de258b12836ae314bf796dbbf798ec6b3",
+      "copyDigest": "a7cec158d13d999135b745ca5d91c0bbc55d961c1c5ba902d9297330ff620951",
+      "paramsHash": "2fb012457857019b1b6a08cc1a7a2d6cf3147b3682c838c6d1351a688b0c528c"
+    },
+    "fr-frozen-none-live-test": {
+      "treeId": "8acfdbeb532c6aec145112235f346b9a8ea0d56bfbe20867e1bbfcd14c4078da",
+      "copyDigest": "a11a0c69b7ef935de94646f9436b63f4cb418ca677aa35294d15648b611715da",
+      "paramsHash": "998e3068b922f2ac117ca74a423be3381629fa4773b3c483d6960deb20f83a5b"
+    },
+    "fr-frozen-none-uncapped": {
+      "treeId": "e31d829dee8d15a58c3e0d796afa35665222cd30fa707f3a52c5e5f868e6779c",
+      "copyDigest": "d374ef7d6cebd4c444813167cff98ffc37a85f12ad0677632f92b1ac3307085f",
+      "paramsHash": "bedc1ecdfde3ecd52cccc9dfaa0da8ed5136ada5bdebb88ad34a96279bec08cf"
+    },
+    "fr-frozen-uncapped": {
+      "treeId": "96ef38e2fd6d8f0ad07f1858275377f5d4bf788d7a2ae4cd80a813afdd829599",
+      "copyDigest": "10dfd45aa3d411bdf1b0d2ed0900dc7210952aa0805061106e0f389836cbdcb9",
+      "paramsHash": "a65b581dff5d038446347400c16669d15ca1b383b0aa428d091b5409a5a0f5bc"
+    }
+  },
+  "startedAt": "2026-11-24T02:24:52.388Z",
+  "endedAt": "2026-11-24T02:25:42.602Z"
+}
