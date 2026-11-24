@@ -1,0 +1,2151 @@
+{
+  "script": "docs/improve-generating-stages-2-4/evidence/sa-opus/t16-p5.mjs",
+  "budgetAny": {
+    "nightmare": 10000000000,
+    "hell-1": 40000000000
+  },
+  "deadline": {
+    "reserve": 0.6,
+    "setStageCapMs": 46000,
+    "generationStopMs": 115000,
+    "responseBoundMs": 120000
+  },
+  "summary": [
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "bounded": true,
+      "rows": 460,
+      "journaledRequests": 460,
+      "unjournaled": 0,
+      "shards": 35,
+      "requests": 460,
+      "setCalls": 1836,
+      "setByEnd": {
+        "in-band": 954,
+        "no end": 882
+      },
+      "boundCondition": 0,
+      "boundFired": 0,
+      "glue": 0,
+      "budgetStops": 0,
+      "multiPid": 0,
+      "uniqueness": {
+        "any": 35
+      },
+      "otherNoWindow": [
+        {
+          "rowKey": "3x29-nightmare~21",
+          "call": "3x29-nightmare~21:21064:3:2",
+          "stage": "batch",
+          "attempt": "4/0",
+          "locate": "below-to-one"
+        }
+      ]
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "bounded": true,
+      "rows": 380,
+      "journaledRequests": 380,
+      "unjournaled": 0,
+      "shards": 19,
+      "requests": 380,
+      "setCalls": 1517,
+      "setByEnd": {
+        "in-band": 784,
+        "no end": 733
+      },
+      "boundCondition": 0,
+      "boundFired": 0,
+      "glue": 0,
+      "budgetStops": 0,
+      "multiPid": 0,
+      "uniqueness": {
+        "any": 19
+      },
+      "otherNoWindow": [
+        {
+          "rowKey": "3x29-nightmare~21",
+          "call": "3x29-nightmare~21:19948:3:2",
+          "stage": "batch",
+          "attempt": "4/0",
+          "locate": "below-to-one"
+        }
+      ]
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-uncapped",
+      "bounded": false,
+      "rows": 60,
+      "journaledRequests": 60,
+      "unjournaled": 0,
+      "shards": 3,
+      "requests": 60,
+      "setCalls": 240,
+      "setByEnd": {
+        "in-band": 119,
+        "no end": 121
+      },
+      "boundCondition": 0,
+      "boundFired": 0,
+      "glue": 0,
+      "budgetStops": 0,
+      "multiPid": 0,
+      "uniqueness": {
+        "any": 3
+      },
+      "otherNoWindow": []
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "bounded": false,
+      "rows": 320,
+      "journaledRequests": 320,
+      "unjournaled": 0,
+      "shards": 16,
+      "requests": 320,
+      "setCalls": 1277,
+      "setByEnd": {
+        "in-band": 674,
+        "no end": 603
+      },
+      "boundCondition": 0,
+      "boundFired": 0,
+      "glue": 0,
+      "budgetStops": 0,
+      "multiPid": 0,
+      "uniqueness": {
+        "any": 16
+      },
+      "otherNoWindow": [
+        {
+          "rowKey": "3x29-nightmare~21",
+          "call": "3x29-nightmare~21:4464:3:2",
+          "stage": "batch",
+          "attempt": "4/0",
+          "locate": "below-to-one"
+        }
+      ]
+    }
+  ],
+  "lost": [
+    {
+      "cell": "14x14-hell-1",
+      "rep": 26,
+      "bounded": "fr-frozen-none",
+      "uncapped": "fr-frozen-none-uncapped",
+      "boundedRow": {
+        "acceptedCount": 7,
+        "partialReason": "time-limit",
+        "responseS": 115.1,
+        "igSetS": 22.8,
+        "lastAcceptedS": 110.4
+      },
+      "uncappedRow": {
+        "acceptedCount": 10,
+        "partialReason": null,
+        "responseS": 129.5,
+        "igSetS": 23,
+        "t10S": 129.4
+      },
+      "budgetStopsInBoundedRow": 0,
+      "uncappedT10AboveResponseBound": true,
+      "cause": "the live deadline's 115-s generation stop (the uncapped twin reached ten after 115 s)"
+    },
+    {
+      "cell": "14x14-hell-1",
+      "rep": 38,
+      "bounded": "fr-frozen-none",
+      "uncapped": "fr-frozen-none-uncapped",
+      "boundedRow": {
+        "acceptedCount": 9,
+        "partialReason": "time-limit",
+        "responseS": 115.2,
+        "igSetS": 7.2,
+        "lastAcceptedS": 106.6
+      },
+      "uncappedRow": {
+        "acceptedCount": 10,
+        "partialReason": null,
+        "responseS": 119.9,
+        "igSetS": 7.1,
+        "t10S": 119.8
+      },
+      "budgetStopsInBoundedRow": 0,
+      "uncappedT10AboveResponseBound": false,
+      "cause": "the live deadline's 115-s generation stop (the uncapped twin reached ten after 115 s)"
+    }
+  ],
+  "arms": [
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cells": {
+        "10x10-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 11,
+            "no end": 9
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "10x10-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 79,
+          "setByEnd": {
+            "in-band": 40,
+            "no end": 39
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.64,
+          "budgetAnyG": 10
+        },
+        "12x12-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 10,
+            "no end": 10
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "12x12-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 38,
+            "no end": 42
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 6.8,
+          "budgetAnyG": 10
+        },
+        "14x14-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 35,
+            "no end": 45
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 23.08,
+          "budgetAnyG": 40
+        },
+        "14x14-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 7,
+            "no end": 13
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "14x14-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 39,
+            "no end": 41
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 2.63,
+          "budgetAnyG": 10
+        },
+        "15x15b10-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 11,
+            "no end": 9
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "15x15b10-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 41,
+            "no end": 39
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 2.85,
+          "budgetAnyG": 10
+        },
+        "15x20-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 9,
+            "no end": 11
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "15x20-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 41,
+            "no end": 39
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "set",
+          "level": "nightmare",
+          "maxSpentG": 1.97,
+          "budgetAnyG": 10
+        },
+        "16x16-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 11,
+            "no end": 9
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "16x16-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 38,
+            "no end": 42
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 3.71,
+          "budgetAnyG": 10
+        },
+        "18x18-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 13,
+            "no end": 7
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "18x18-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 42,
+            "no end": 38
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 2.57,
+          "budgetAnyG": 10
+        },
+        "18x20-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 11,
+            "no end": 9
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "18x20-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 37,
+            "no end": 43
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "set",
+          "level": "nightmare",
+          "maxSpentG": 2.39,
+          "budgetAnyG": 10
+        },
+        "20x20-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 42,
+            "no end": 38
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 17.67,
+          "budgetAnyG": 40
+        },
+        "20x20-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 11,
+            "no end": 9
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "20x20-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 44,
+            "no end": 36
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 3.4,
+          "budgetAnyG": 10
+        },
+        "20x21-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 9,
+            "no end": 11
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "20x21-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 46,
+            "no end": 34
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 2.92,
+          "budgetAnyG": 10
+        },
+        "22x22-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 11,
+            "no end": 9
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "22x22-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 41,
+            "no end": 39
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 3.29,
+          "budgetAnyG": 10
+        },
+        "24x24-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 45,
+            "no end": 35
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 21.05,
+          "budgetAnyG": 40
+        },
+        "24x24-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 10,
+            "no end": 10
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "24x24-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 47,
+            "no end": 33
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 2.79,
+          "budgetAnyG": 10
+        },
+        "26x26-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 37,
+            "no end": 43
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 11.54,
+          "budgetAnyG": 40
+        },
+        "26x26-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 10,
+            "no end": 10
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "26x26-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 44,
+            "no end": 36
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 3.76,
+          "budgetAnyG": 10
+        },
+        "32x15-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 11,
+            "no end": 9
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "32x15-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 47,
+            "no end": 33
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 3.21,
+          "budgetAnyG": 10
+        },
+        "3x29-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 20,
+          "setByEnd": {
+            "in-band": 7,
+            "no end": 13
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        },
+        "3x29-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 78,
+          "setByEnd": {
+            "in-band": 45,
+            "no end": 33
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 1.67,
+          "budgetAnyG": 10
+        },
+        "6x10-master": {
+          "uniqueness": "any",
+          "requests": 5,
+          "published": 5,
+          "multiPid": 0,
+          "setCalls": 19,
+          "setByEnd": {
+            "in-band": 13,
+            "no end": 6
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": null,
+          "level": "master",
+          "maxSpentG": 0,
+          "budgetAnyG": null
+        }
+      },
+      "findings": [],
+      "budgetStops": [],
+      "unjournaled": []
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cells": {
+        "10x10-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 79,
+          "setByEnd": {
+            "in-band": 41,
+            "no end": 38
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.64,
+          "budgetAnyG": 10
+        },
+        "12x12-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 37,
+            "no end": 43
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 6.8,
+          "budgetAnyG": 10
+        },
+        "14x14-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 35,
+            "no end": 45
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 23.08,
+          "budgetAnyG": 40
+        },
+        "14x14-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 40,
+            "no end": 40
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 7.89,
+          "budgetAnyG": 10
+        },
+        "15x15b10-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 40,
+            "no end": 40
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 7.14,
+          "budgetAnyG": 10
+        },
+        "15x20-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 40,
+            "no end": 40
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 6.36,
+          "budgetAnyG": 10
+        },
+        "16x16-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 35,
+            "no end": 45
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 7.64,
+          "budgetAnyG": 10
+        },
+        "18x18-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 41,
+            "no end": 39
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 8.39,
+          "budgetAnyG": 10
+        },
+        "18x20-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 37,
+            "no end": 43
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 7.51,
+          "budgetAnyG": 10
+        },
+        "20x20-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 42,
+            "no end": 38
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 17.67,
+          "budgetAnyG": 40
+        },
+        "20x20-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 46,
+            "no end": 34
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.99,
+          "budgetAnyG": 10
+        },
+        "20x21-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 45,
+            "no end": 35
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.5,
+          "budgetAnyG": 10
+        },
+        "22x22-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 41,
+            "no end": 39
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "set",
+          "level": "nightmare",
+          "maxSpentG": 4.42,
+          "budgetAnyG": 10
+        },
+        "24x24-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 45,
+            "no end": 35
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 21.05,
+          "budgetAnyG": 40
+        },
+        "24x24-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 49,
+            "no end": 31
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.19,
+          "budgetAnyG": 10
+        },
+        "26x26-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 37,
+            "no end": 43
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 11.54,
+          "budgetAnyG": 40
+        },
+        "26x26-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 44,
+            "no end": 36
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "set",
+          "level": "nightmare",
+          "maxSpentG": 5.61,
+          "budgetAnyG": 10
+        },
+        "32x15-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 44,
+            "no end": 36
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.37,
+          "budgetAnyG": 10
+        },
+        "3x29-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 78,
+          "setByEnd": {
+            "in-band": 45,
+            "no end": 33
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 1.67,
+          "budgetAnyG": 10
+        }
+      },
+      "findings": [],
+      "budgetStops": [],
+      "unjournaled": []
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-uncapped",
+      "cells": {
+        "14x14-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 39,
+            "no end": 41
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 2.63,
+          "budgetAnyG": 10
+        },
+        "15x15b10-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 41,
+            "no end": 39
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 2.85,
+          "budgetAnyG": 10
+        },
+        "16x16-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 39,
+            "no end": 41
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 3.71,
+          "budgetAnyG": 10
+        }
+      },
+      "findings": [],
+      "budgetStops": [],
+      "unjournaled": []
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cells": {
+        "10x10-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 79,
+          "setByEnd": {
+            "in-band": 40,
+            "no end": 39
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.64,
+          "budgetAnyG": 10
+        },
+        "12x12-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 38,
+            "no end": 42
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 6.8,
+          "budgetAnyG": 10
+        },
+        "14x14-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 36,
+            "no end": 44
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 23.08,
+          "budgetAnyG": 40
+        },
+        "15x20-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 40,
+            "no end": 40
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 6.36,
+          "budgetAnyG": 10
+        },
+        "18x18-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 42,
+            "no end": 38
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 8.39,
+          "budgetAnyG": 10
+        },
+        "18x20-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 37,
+            "no end": 43
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 7.51,
+          "budgetAnyG": 10
+        },
+        "20x20-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 42,
+            "no end": 38
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 17.67,
+          "budgetAnyG": 40
+        },
+        "20x20-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 46,
+            "no end": 34
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.99,
+          "budgetAnyG": 10
+        },
+        "20x21-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 46,
+            "no end": 34
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.5,
+          "budgetAnyG": 10
+        },
+        "22x22-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 42,
+            "no end": 38
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "set",
+          "level": "nightmare",
+          "maxSpentG": 4.42,
+          "budgetAnyG": 10
+        },
+        "24x24-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 45,
+            "no end": 35
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 21.05,
+          "budgetAnyG": 40
+        },
+        "24x24-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 49,
+            "no end": 31
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.19,
+          "budgetAnyG": 10
+        },
+        "26x26-hell-1": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 37,
+            "no end": 43
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "hell-1",
+          "maxSpentG": 11.54,
+          "budgetAnyG": 40
+        },
+        "26x26-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 45,
+            "no end": 35
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "set",
+          "level": "nightmare",
+          "maxSpentG": 5.61,
+          "budgetAnyG": 10
+        },
+        "32x15-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 80,
+          "setByEnd": {
+            "in-band": 44,
+            "no end": 36
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 5.37,
+          "budgetAnyG": 10
+        },
+        "3x29-nightmare": {
+          "uniqueness": "any",
+          "requests": 20,
+          "published": 20,
+          "multiPid": 0,
+          "setCalls": 78,
+          "setByEnd": {
+            "in-band": 45,
+            "no end": 33
+          },
+          "attemptsMax": 4,
+          "boundCondition": 0,
+          "boundFired": 0,
+          "glue": 0,
+          "budgetStops": 0,
+          "maxSpentStage": "batch",
+          "level": "nightmare",
+          "maxSpentG": 1.67,
+          "budgetAnyG": 10
+        }
+      },
+      "findings": [],
+      "budgetStops": [],
+      "unjournaled": []
+    }
+  ],
+  "inputs": {
+    "published": {
+      "entries": 77,
+      "sha256Lf": "8fefadc9279bf804fe110e1f0dd82af1296cda43561b3c1bbc532c4a165c7ef4"
+    },
+    "journals": [
+      {
+        "task": "V4-S4",
+        "arm": "fr-frozen",
+        "shards": [
+          {
+            "shard": "master-10x10-master",
+            "files": 30,
+            "lines": 865,
+            "sha256": "46764ddc81ae93b4b29f9222f9d001c18af24f41b547d3f6f8240f7cb7ad25f6"
+          },
+          {
+            "shard": "master-12x12-master",
+            "files": 30,
+            "lines": 688,
+            "sha256": "a837362dd0e8dbda65a3eaf52bc25885a32c4113d540f99508c986d07d018b80"
+          },
+          {
+            "shard": "master-14x14-master",
+            "files": 33,
+            "lines": 793,
+            "sha256": "26ba4993678174cebe6dae1b6f32ee2d2a6dd9a15304ec06f9b44044e0b4be3e"
+          },
+          {
+            "shard": "master-15x15b10-master",
+            "files": 29,
+            "lines": 1313,
+            "sha256": "abbd2796a75d00f7160e852a9a44661c514bfa033d2dee963627654ada2294d3"
+          },
+          {
+            "shard": "master-15x20-master",
+            "files": 31,
+            "lines": 1210,
+            "sha256": "91ca6d7b53ad80ab00caaf7a20e068f93b3af698912f011a8ba254e46d676729"
+          },
+          {
+            "shard": "master-16x16-master",
+            "files": 29,
+            "lines": 726,
+            "sha256": "313de37125016b6f27220d0120fd75d10036195743b4ad4b0a5b0358adf7e147"
+          },
+          {
+            "shard": "master-18x18-master",
+            "files": 27,
+            "lines": 742,
+            "sha256": "baf1114a66ab2f7a579b18483fc65094f836c3b8de7068e8043657b759b43b1b"
+          },
+          {
+            "shard": "master-18x20-master",
+            "files": 29,
+            "lines": 850,
+            "sha256": "64d0bac107b9f6ba56e293ffc56e7cc8547050ae1fcbe319b924b9a56a077c86"
+          },
+          {
+            "shard": "master-20x20-master",
+            "files": 29,
+            "lines": 1049,
+            "sha256": "a04210444ccb348671c8316dd1abe9736924c816ce5ed9cd5ab9aa789b2a0d9d"
+          },
+          {
+            "shard": "master-20x21-master",
+            "files": 31,
+            "lines": 1159,
+            "sha256": "494d1c088aacf36ed23d331e200d28e14a399b099f63e94f9eb7299fed0112c0"
+          },
+          {
+            "shard": "master-22x22-master",
+            "files": 29,
+            "lines": 937,
+            "sha256": "d9533a1ed82f0e283429e1f60f6d4e28e5f9096e59b2d633b91cbe3c7d11e17e"
+          },
+          {
+            "shard": "master-24x24-master",
+            "files": 30,
+            "lines": 1007,
+            "sha256": "32fa4b58ac589f53adc2c191f30eca131ec23de10e3b2bd6974e49b061dd1748"
+          },
+          {
+            "shard": "master-26x26-master",
+            "files": 30,
+            "lines": 1095,
+            "sha256": "afae70c4731f1cf482c01fe2b134cc9a2671ed25797637d32b556999a9156475"
+          },
+          {
+            "shard": "master-32x15-master",
+            "files": 29,
+            "lines": 955,
+            "sha256": "203054ba43e4aa2f89655a8535ed62c12666eaca40f99338a0efebbc8e598cda"
+          },
+          {
+            "shard": "master-3x29-master",
+            "files": 33,
+            "lines": 536,
+            "sha256": "9c276c36b19034c38bbacc3860bfe59c47e00aa160dc9f83f4dc8d17cfa08746"
+          },
+          {
+            "shard": "master-6x10-master",
+            "files": 27,
+            "lines": 746,
+            "sha256": "56dc276e1b50ac3ce3a4dae9da7a9bbd249eb9115aadf7bbe13f38f87414a590"
+          },
+          {
+            "shard": "val-10x10-nightmare",
+            "files": 119,
+            "lines": 3792,
+            "sha256": "7177943ed456abd7d4ed6dbb2168bfcca6495e8d828723b6e80a0db655c54b2f"
+          },
+          {
+            "shard": "val-12x12-nightmare",
+            "files": 122,
+            "lines": 3772,
+            "sha256": "1062fcbfa8b26ef06cb6f933ff9ea73592177d7f9b6f1bca8511eba0d5fb9c10"
+          },
+          {
+            "shard": "val-14x14-hell-1",
+            "files": 122,
+            "lines": 9628,
+            "sha256": "ae3b16b2838e6e374f4697e950f6f7829f26691c93e321a084c8aaba2a459108"
+          },
+          {
+            "shard": "val-14x14-nightmare",
+            "files": 121,
+            "lines": 4930,
+            "sha256": "2b8a9aeb5cc647fcd0296b8d4c0e41dd6a8930630ac6670e6e7078e59dfa24a7"
+          },
+          {
+            "shard": "val-15x15b10-nightmare",
+            "files": 119,
+            "lines": 6798,
+            "sha256": "4512127a7191ba2abade026ccf9d31a68d23805e609967ecf50efba6e6664bee"
+          },
+          {
+            "shard": "val-15x20-nightmare",
+            "files": 119,
+            "lines": 4816,
+            "sha256": "d8cb745163c6c13cdcb906654e2a7cafde906c881242e088b10c961ec0471adf"
+          },
+          {
+            "shard": "val-16x16-nightmare",
+            "files": 123,
+            "lines": 4781,
+            "sha256": "0b22245fe347ae734d80832b1894d77580bb5eb6759b275d99a1a79875f4b52a"
+          },
+          {
+            "shard": "val-18x18-nightmare",
+            "files": 118,
+            "lines": 4803,
+            "sha256": "a443b3b62d1197c79c97231b04bdb6b424c8b40f02a7ec8e2eff4451deeab18f"
+          },
+          {
+            "shard": "val-18x20-nightmare",
+            "files": 123,
+            "lines": 4733,
+            "sha256": "6815b4e328b253180691f9658bf9d912f1d2e32bcd62a7d40c7ad5cbafd002da"
+          },
+          {
+            "shard": "val-20x20-hell-1",
+            "files": 118,
+            "lines": 6959,
+            "sha256": "e1d4db11684bc14c17032de7ad29b802477e7749bdc4b691eac925cd7110345b"
+          },
+          {
+            "shard": "val-20x20-nightmare",
+            "files": 116,
+            "lines": 4379,
+            "sha256": "bd2c83663664597790862a4e5577a341a49b0eea7a481b680223ac35797fc454"
+          },
+          {
+            "shard": "val-20x21-nightmare",
+            "files": 114,
+            "lines": 4517,
+            "sha256": "ecd321de026da61c2e09503551476177f02bc7ad588f1cee3adb49de16160f13"
+          },
+          {
+            "shard": "val-22x22-nightmare",
+            "files": 119,
+            "lines": 3891,
+            "sha256": "10de785ab9212ff9665f97de91b8089f1d449eadcfd01a60ea93552861ad4a1c"
+          },
+          {
+            "shard": "val-24x24-hell-1",
+            "files": 115,
+            "lines": 5529,
+            "sha256": "9a7210a5f77a6af16cfded3c1a2b86604f06d078578661e9ede1624b9d6b3c9a"
+          },
+          {
+            "shard": "val-24x24-nightmare",
+            "files": 113,
+            "lines": 4149,
+            "sha256": "3d970aed82c57700df31017d79a4dac149bdce876cc85972c318dfbd68beccc4"
+          },
+          {
+            "shard": "val-26x26-hell-1",
+            "files": 123,
+            "lines": 4271,
+            "sha256": "1c18ccb1f9c4a8d87db533360dca0cfb3e41220908d896435d79019e06d97309"
+          },
+          {
+            "shard": "val-26x26-nightmare",
+            "files": 116,
+            "lines": 4273,
+            "sha256": "962be78bcb1f802ec5814d216402e351a53aff5a7e0b23d6f5fbe4ff21fc1a07"
+          },
+          {
+            "shard": "val-32x15-nightmare",
+            "files": 113,
+            "lines": 4414,
+            "sha256": "fe947c615dca93f43f4830bb722bec635a02bf060eab9dc562ede2aea024aea4"
+          },
+          {
+            "shard": "val-3x29-nightmare",
+            "files": 113,
+            "lines": 3042,
+            "sha256": "5db92bacc77563b7e20102e2c72da85a2116eb1e351861d7a46cd52d6a6fece0"
+          }
+        ]
+      },
+      {
+        "task": "V4-S4",
+        "arm": "fr-frozen-none",
+        "shards": [
+          {
+            "shard": "val-10x10-nightmare",
+            "files": 118,
+            "lines": 3812,
+            "sha256": "079596038ad102d53d86f14a2abfaf2a61f33f0bf200a307e627621aa7730338"
+          },
+          {
+            "shard": "val-12x12-nightmare",
+            "files": 123,
+            "lines": 3767,
+            "sha256": "0baf690ebf004ff4171f1525a61ea17beb3174ec2e6ba483a87284b8b023725a"
+          },
+          {
+            "shard": "val-14x14-hell-1",
+            "files": 122,
+            "lines": 9623,
+            "sha256": "39d5af5527aa89ca3fb3a34819ac0b671b9d63a9ca5d277fdbe08124145c2fb3"
+          },
+          {
+            "shard": "val-14x14-nightmare",
+            "files": 120,
+            "lines": 4477,
+            "sha256": "bbcd63d9702b8c874ff32b3db0cc8a7a1759d468d964e3356cd71465fea915ad"
+          },
+          {
+            "shard": "val-15x15b10-nightmare",
+            "files": 120,
+            "lines": 5490,
+            "sha256": "02b2d9f289e7d64907bdb41d069dcbb7cd050034f5021b1fa3551f3dfd7b2c2b"
+          },
+          {
+            "shard": "val-15x20-nightmare",
+            "files": 120,
+            "lines": 4590,
+            "sha256": "9d1123391962201c4e430e36835a9cef857de1f4ea02c6a4648741d950ce2474"
+          },
+          {
+            "shard": "val-16x16-nightmare",
+            "files": 125,
+            "lines": 4184,
+            "sha256": "206482b8c394b11364b3d1ee299000ca9f226d533a32f010a97704d86e4e2e5a"
+          },
+          {
+            "shard": "val-18x18-nightmare",
+            "files": 119,
+            "lines": 4376,
+            "sha256": "b4d59b3cb81b2e053c64beebf9c55ac5a90de831dc47c92f613d2a9548a0bd43"
+          },
+          {
+            "shard": "val-18x20-nightmare",
+            "files": 123,
+            "lines": 4254,
+            "sha256": "4177c3716d238776835f3499c64a642dd4bd0b8b9587ac0c9829dad2c55423b8"
+          },
+          {
+            "shard": "val-20x20-hell-1",
+            "files": 118,
+            "lines": 6959,
+            "sha256": "0353cd13c0ed74d389a2943cc27f0a1cdfc8b748bc9766b8c1e4e58788fa3ab1"
+          },
+          {
+            "shard": "val-20x20-nightmare",
+            "files": 114,
+            "lines": 4172,
+            "sha256": "c4df8d0c733551c806f35ac3396e711377ffd23a75ef36bb5155979f9fe78ce9"
+          },
+          {
+            "shard": "val-20x21-nightmare",
+            "files": 115,
+            "lines": 4321,
+            "sha256": "0a6ef157c4199874dd1297f3e660900d695489bf0c5c8b6c3139ec2f344cf87e"
+          },
+          {
+            "shard": "val-22x22-nightmare",
+            "files": 119,
+            "lines": 3590,
+            "sha256": "f282198d397fe1f6248a518bb3f78b705062eee006540bc89991821df5ccc015"
+          },
+          {
+            "shard": "val-24x24-hell-1",
+            "files": 115,
+            "lines": 5518,
+            "sha256": "90635754ea39a13c6dda0b95f7d413e0cf3340eb0b070f1556b66fc6e238d1c7"
+          },
+          {
+            "shard": "val-24x24-nightmare",
+            "files": 111,
+            "lines": 3999,
+            "sha256": "15606590495d142f8dffb2267694f5d43c7af606f47d88bd28880709959d1d43"
+          },
+          {
+            "shard": "val-26x26-hell-1",
+            "files": 123,
+            "lines": 4297,
+            "sha256": "a95a6c2be94a8d7949ae9be255c3a7d3e4c2959105c22ef84c03f1313ab29909"
+          },
+          {
+            "shard": "val-26x26-nightmare",
+            "files": 116,
+            "lines": 3956,
+            "sha256": "d5d1e42878ae94cf72bcc40be995eaeb2701ac4791eb2dcf84fa2d30d5ac17e4"
+          },
+          {
+            "shard": "val-32x15-nightmare",
+            "files": 116,
+            "lines": 4485,
+            "sha256": "f0825bd83c5e31a3bf8897f2747e41403af7e786da22364da9224dceec277d16"
+          },
+          {
+            "shard": "val-3x29-nightmare",
+            "files": 113,
+            "lines": 3021,
+            "sha256": "2a627c87f09e73ff12ef94ac5c0d3e76f55a4b1f0977e53ddd329163465bc6d3"
+          }
+        ]
+      },
+      {
+        "task": "V4-S4C",
+        "arm": "fr-frozen-uncapped",
+        "shards": [
+          {
+            "shard": "val-14x14-nightmare",
+            "files": 121,
+            "lines": 4959,
+            "sha256": "e38ba89bfde13bc357eec0ec3bcdbeb012d9efe41b779cc8b5b457f8dacc001e"
+          },
+          {
+            "shard": "val-15x15b10-nightmare",
+            "files": 119,
+            "lines": 6867,
+            "sha256": "41f934d22e7ac8a651e3bd5a20d2a1aadb58b7f455916527fc8966263ba3f2f7"
+          },
+          {
+            "shard": "val-16x16-nightmare",
+            "files": 121,
+            "lines": 4784,
+            "sha256": "2d2cb61cab9f5a8f7571d42ecfb3d3a7d708cbbb4bbaf28034f459adc85e1b9c"
+          }
+        ]
+      },
+      {
+        "task": "V4-S4C",
+        "arm": "fr-frozen-none-uncapped",
+        "shards": [
+          {
+            "shard": "val-10x10-nightmare",
+            "files": 119,
+            "lines": 3809,
+            "sha256": "361a0aba8c1a5b41dbb28fd2056cc9f7cc44ca86e726c681144564562642245a"
+          },
+          {
+            "shard": "val-12x12-nightmare",
+            "files": 122,
+            "lines": 3764,
+            "sha256": "072f11982761d38e42dd3b78d869058afa2789c25e3f324fce0210f63db42e76"
+          },
+          {
+            "shard": "val-14x14-hell-1",
+            "files": 124,
+            "lines": 11522,
+            "sha256": "c96140298eb95817d1e6a92fe9af908958a78fcce19be4e1590aecc6b055ec24"
+          },
+          {
+            "shard": "val-15x20-nightmare",
+            "files": 120,
+            "lines": 4619,
+            "sha256": "8ef7fa99308eb34509584f760296c2c722c6c45cb64bc628286ee4cb9e68bd11"
+          },
+          {
+            "shard": "val-18x18-nightmare",
+            "files": 118,
+            "lines": 4387,
+            "sha256": "b4483ac778ed912fe0cdfa12e8bb43a2f1d85a45fb30ece75f60570f12a15687"
+          },
+          {
+            "shard": "val-18x20-nightmare",
+            "files": 123,
+            "lines": 4237,
+            "sha256": "141897f18d5a97550a957145cd1d09198b2c9c9a6f640d3e89d0faa2c63b07fb"
+          },
+          {
+            "shard": "val-20x20-hell-1",
+            "files": 118,
+            "lines": 6955,
+            "sha256": "763ad6fa204e039d924ccc517a560e454eee9c00633d91614ee21b43d907ccb3"
+          },
+          {
+            "shard": "val-20x20-nightmare",
+            "files": 114,
+            "lines": 4154,
+            "sha256": "79e4ecf9f72c1129d362797a37f4297c12523f6a5be789e3d9f6e8378c47fba6"
+          },
+          {
+            "shard": "val-20x21-nightmare",
+            "files": 114,
+            "lines": 4325,
+            "sha256": "d8c47f7128f3ecebea341ba0aa3d5d0cfaec379dce80b0dcef877037016e7d4f"
+          },
+          {
+            "shard": "val-22x22-nightmare",
+            "files": 118,
+            "lines": 3595,
+            "sha256": "7f3bf666ef6d7e6ee78160adbbc3d635db6eb7b51a04ff20adf7c590ff0a5919"
+          },
+          {
+            "shard": "val-24x24-hell-1",
+            "files": 115,
+            "lines": 5521,
+            "sha256": "0f9438fbf75c290588df8fe677c754e891a07217607415cca293fe56e452bf9e"
+          },
+          {
+            "shard": "val-24x24-nightmare",
+            "files": 111,
+            "lines": 3971,
+            "sha256": "5e6297cf34cb28f7f962659324b95d33d6c6fcd12fae760384be5f29b10094b8"
+          },
+          {
+            "shard": "val-26x26-hell-1",
+            "files": 123,
+            "lines": 4283,
+            "sha256": "05d63d847b30946aa7c6d57c021ffb45162d240fcadc331acdbae43c5512ae2a"
+          },
+          {
+            "shard": "val-26x26-nightmare",
+            "files": 117,
+            "lines": 3957,
+            "sha256": "c8557de4598b8ca22a3c38933cc47281cdbcab9027f0a4dfae549bf7a5c64fdd"
+          },
+          {
+            "shard": "val-32x15-nightmare",
+            "files": 116,
+            "lines": 4460,
+            "sha256": "a1d50533dac780922fe2e09d6212454b27170420759fffa1555074ff9d2b86ca"
+          },
+          {
+            "shard": "val-3x29-nightmare",
+            "files": 113,
+            "lines": 3043,
+            "sha256": "39faa8ba77192ff57362710e7073802186ef974229760b2e6f48f34537ebac59"
+          }
+        ]
+      }
+    ]
+  }
+}

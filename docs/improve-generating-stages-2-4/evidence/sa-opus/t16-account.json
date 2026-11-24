@@ -1,0 +1,531 @@
+{
+  "script": "docs/improve-generating-stages-2-4/evidence/sa-opus/t16-account.mjs",
+  "offLogS": 87.4,
+  "grantMin": 1725,
+  "finalAccount": {
+    "loggedS": 52184.597,
+    "offLogS": 87.4,
+    "totalS": 52271.997,
+    "minutes": 871.2,
+    "grantMin": 1725,
+    "withinGrant": true
+  },
+  "plans": [
+    {
+      "task": "IGP-02",
+      "invocations": 7,
+      "steps": 6,
+      "multi": [
+        "screens x2"
+      ],
+      "countedS": 1020.46,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 1,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 285,
+      "quietS": [
+        null
+      ],
+      "taskCapS": [
+        1875
+      ],
+      "roundCapS": [
+        5520
+      ],
+      "roundBeforeS": 0,
+      "start": "2026-11-17T01:17:27.4708028Z",
+      "end": "2026-11-17T02:20:16.2176448Z",
+      "loggedAfterS": 1020.46,
+      "accountAfterMin": 17
+    },
+    {
+      "task": "V4-T04",
+      "invocations": 11,
+      "steps": 6,
+      "multi": [
+        "parity x3",
+        "replay x4"
+      ],
+      "countedS": 1353.69,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 4,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 285,
+      "quietS": [
+        null
+      ],
+      "taskCapS": [
+        1875
+      ],
+      "roundCapS": [
+        5520
+      ],
+      "roundBeforeS": 1020.46,
+      "start": "2026-11-17T02:20:32.8041048Z",
+      "end": "2026-11-17T04:10:55.9924206Z",
+      "loggedAfterS": 2374.15,
+      "accountAfterMin": 39.6
+    },
+    {
+      "task": "V4-T05",
+      "invocations": 2,
+      "steps": 2,
+      "multi": [],
+      "countedS": 186.086,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 0,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 285,
+      "quietS": [
+        null
+      ],
+      "taskCapS": [
+        450
+      ],
+      "roundCapS": [
+        5520
+      ],
+      "roundBeforeS": 2374.15,
+      "start": "2026-11-17T04:43:40.2535602Z",
+      "end": "2026-11-17T05:01:59.0594093Z",
+      "loggedAfterS": 2560.236,
+      "accountAfterMin": 42.7
+    },
+    {
+      "task": "V4-T06",
+      "invocations": 2,
+      "steps": 2,
+      "multi": [],
+      "countedS": 163.493,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 0,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 245,
+      "quietS": [
+        null
+      ],
+      "taskCapS": [
+        300
+      ],
+      "roundCapS": [
+        5520
+      ],
+      "roundBeforeS": 2560.236,
+      "start": "2026-11-17T05:18:29.0283805Z",
+      "end": "2026-11-17T05:21:13.4151517Z",
+      "loggedAfterS": 2723.729,
+      "accountAfterMin": 45.4
+    },
+    {
+      "task": "V4-T10a",
+      "invocations": 1,
+      "steps": 1,
+      "multi": [],
+      "countedS": 69.035,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 0,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 285,
+      "quietS": [
+        null
+      ],
+      "taskCapS": [
+        375
+      ],
+      "roundCapS": [
+        5520
+      ],
+      "roundBeforeS": 2723.729,
+      "start": "2026-11-17T10:22:31.7802501Z",
+      "end": "2026-11-17T10:46:07.6740201Z",
+      "loggedAfterS": 2792.764,
+      "accountAfterMin": 46.5
+    },
+    {
+      "task": "V4-T10b",
+      "invocations": 1,
+      "steps": 1,
+      "multi": [],
+      "countedS": 60.087,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 0,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 245,
+      "quietS": [
+        null
+      ],
+      "taskCapS": [
+        300
+      ],
+      "roundCapS": [
+        5520
+      ],
+      "roundBeforeS": 2792.764,
+      "start": "2026-11-17T11:13:12.4237953Z",
+      "end": "2026-11-17T11:14:12.7531110Z",
+      "loggedAfterS": 2852.851,
+      "accountAfterMin": 47.5
+    },
+    {
+      "task": "V4-T10c",
+      "invocations": 1,
+      "steps": 1,
+      "multi": [],
+      "countedS": 61.059,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 0,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 245,
+      "quietS": [
+        null
+      ],
+      "taskCapS": [
+        300
+      ],
+      "roundCapS": [
+        5520
+      ],
+      "roundBeforeS": 2852.851,
+      "start": "2026-11-17T11:40:22.2376158Z",
+      "end": "2026-11-17T11:41:25.0479120Z",
+      "loggedAfterS": 2913.91,
+      "accountAfterMin": 48.6
+    },
+    {
+      "task": "V4-S2",
+      "invocations": 44,
+      "steps": 44,
+      "multi": [],
+      "countedS": 7338.802,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 0,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 885,
+      "quietS": [
+        45,
+        15
+      ],
+      "taskCapS": [
+        42000
+      ],
+      "roundCapS": [
+        44880,
+        44820
+      ],
+      "roundBeforeS": 2913.91,
+      "start": "2026-11-20T11:24:38.1979651Z",
+      "end": "2026-11-23T05:05:57.5825089Z",
+      "loggedAfterS": 10252.712,
+      "accountAfterMin": 172.3
+    },
+    {
+      "task": "V4-S2B",
+      "invocations": 8,
+      "steps": 8,
+      "multi": [],
+      "countedS": 833.444,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 0,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 885,
+      "quietS": [
+        15
+      ],
+      "taskCapS": [
+        1725
+      ],
+      "roundCapS": [
+        44820
+      ],
+      "roundBeforeS": 10252.712,
+      "start": "2026-11-23T17:13:55.3813033Z",
+      "end": "2026-11-23T17:27:50.6302633Z",
+      "loggedAfterS": 11086.156,
+      "accountAfterMin": 186.2,
+      "approval": "D-S24-26 (Q-S24-4 (a), 2026-11-23)",
+      "guardS": 1694.624,
+      "capMin": 201,
+      "log": "S01-run-v4-s2b.md",
+      "withinGuard": true,
+      "withinCap": true,
+      "withinTaskCap": true
+    },
+    {
+      "task": "V4-P7",
+      "invocations": 3,
+      "steps": 3,
+      "multi": [],
+      "countedS": 801.167,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 0,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 885,
+      "quietS": [
+        15
+      ],
+      "taskCapS": [
+        1200
+      ],
+      "roundCapS": [
+        44820
+      ],
+      "roundBeforeS": 11086.156,
+      "start": "2026-11-23T21:26:18.5297241Z",
+      "end": "2026-11-23T21:39:41.8026270Z",
+      "loggedAfterS": 11887.323,
+      "accountAfterMin": 199.6,
+      "approval": "D-S24-28 (up to 20 min)",
+      "guardS": 1162.172,
+      "capMin": 206,
+      "log": "S02-run-v4-p7-and-spike-report.md",
+      "withinGuard": true,
+      "withinCap": true,
+      "withinTaskCap": true
+    },
+    {
+      "task": "V4-S3P",
+      "invocations": 8,
+      "steps": 8,
+      "multi": [],
+      "countedS": 2298.808,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 0,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 885,
+      "quietS": [
+        15
+      ],
+      "taskCapS": [
+        10425
+      ],
+      "roundCapS": [
+        44820
+      ],
+      "roundBeforeS": 11887.323,
+      "start": "2026-11-24T00:42:23.0004464Z",
+      "end": "2026-11-24T01:20:44.4234206Z",
+      "loggedAfterS": 14186.131,
+      "accountAfterMin": 237.9,
+      "approval": "D-S24-27 (rows) and Q-S03 (a) (proofs), 2026-11-24 07:41",
+      "guardS": 10416.597,
+      "capMin": 374,
+      "log": "S03-run-v4-s3p.md",
+      "withinGuard": true,
+      "withinCap": true,
+      "withinTaskCap": true
+    },
+    {
+      "task": "V4-LIVE",
+      "invocations": 2,
+      "steps": 2,
+      "multi": [],
+      "countedS": 284.917,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 0,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 885,
+      "quietS": [
+        45
+      ],
+      "taskCapS": [
+        2700
+      ],
+      "roundCapS": [
+        44820
+      ],
+      "roundBeforeS": 14186.131,
+      "start": "2026-11-24T03:10:39.7234391Z",
+      "end": "2026-11-24T03:15:25.4375670Z",
+      "loggedAfterS": 14471.048,
+      "accountAfterMin": 242.6,
+      "approval": "Q-S04 (a), 2026-11-24 10:09",
+      "guardS": 2634.33,
+      "capMin": 282,
+      "log": "S04-run-v4-live.md",
+      "withinGuard": true,
+      "withinCap": true,
+      "withinTaskCap": true
+    },
+    {
+      "task": "V4-S4",
+      "invocations": 94,
+      "steps": 84,
+      "multi": [
+        "rows-fr-frozen-val-20x20-hell-1 x2",
+        "rows-fr-frozen-none-val-20x20-hell-1 x2",
+        "rows-log-link-val-18x18-nightmare x2",
+        "rows-log-link-val-18x20-nightmare x2",
+        "rows-log-link-val-20x20-nightmare x2",
+        "rows-log-link-val-20x21-nightmare x2",
+        "rows-fr-frozen-val-14x14-hell-1 x3",
+        "rows-fr-frozen-none-val-14x14-hell-1 x3"
+      ],
+      "countedS": 28043.391,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 10,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 885,
+      "quietS": [
+        45
+      ],
+      "taskCapS": [
+        88950
+      ],
+      "roundCapS": [
+        103380
+      ],
+      "roundBeforeS": 14471.048,
+      "start": "2026-11-24T04:18:25.5308755Z",
+      "end": "2026-11-24T12:06:38.3398722Z",
+      "loggedAfterS": 42514.439,
+      "accountAfterMin": 710,
+      "approval": "Q-S06 (a), 2026-11-24 11:16 (grant raised to 1,725)",
+      "guardS": 88911.486,
+      "capMin": 1725,
+      "log": "S06-run-v4-s4.md",
+      "withinGuard": true,
+      "withinCap": true,
+      "withinTaskCap": true
+    },
+    {
+      "task": "V4-S4C",
+      "invocations": 23,
+      "steps": 19,
+      "multi": [
+        "rows-fr-frozen-none-uncapped-val-20x20-hell-1 x2",
+        "rows-fr-frozen-none-uncapped-val-24x24-hell-1 x2",
+        "rows-fr-frozen-none-uncapped-val-14x14-hell-1 x3"
+      ],
+      "countedS": 9670.158,
+      "killed": 0,
+      "nonZeroExit": 0,
+      "notDone": 4,
+      "decisions": [
+        "go"
+      ],
+      "maxHorizonS": 885,
+      "quietS": [
+        45
+      ],
+      "taskCapS": [
+        43950
+      ],
+      "roundCapS": [
+        103380
+      ],
+      "roundBeforeS": 42514.439,
+      "start": "2026-11-24T13:05:51.3684663Z",
+      "end": "2026-11-24T15:47:15.5191133Z",
+      "loggedAfterS": 52184.597,
+      "accountAfterMin": 871.2,
+      "approval": "Q-S07 (a), 2026-11-24 20:04 (measurement only)",
+      "guardS": 43921.283,
+      "capMin": 1443,
+      "log": "S07-run-v4-s4c.md",
+      "withinGuard": true,
+      "withinCap": true,
+      "withinTaskCap": true
+    }
+  ],
+  "inputs": {
+    "entries": 14,
+    "sha256Lf": "c6ded537d93d3b668734acca645b4f8d521dda13a738eb30616d94cdeb9e46ae",
+    "files": [
+      {
+        "path": "tests/artifacts/ig-proto/frozen/IGP-02/invocations.jsonl",
+        "sha256Lf": "42cc68ef20f8838b412158e4f8f2d293f03b863dbb58df93dcd997ba089645f2"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-LIVE/invocations.jsonl",
+        "sha256Lf": "049a5f295b46aaee86c24d4b88c8acd9d3d7d15173d485be6e12fc0891cb9bef"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-P7/invocations.jsonl",
+        "sha256Lf": "617fbe0de0d35cd72856e0d967fc7539947d49acc954b905c23d4edebef79d59"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-S2/invocations.jsonl",
+        "sha256Lf": "fa19a7a27bb8225dd496c8d95a7d47fd7c6edef0e88aa3094710d2d09657f0ca"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-S2B/invocations.jsonl",
+        "sha256Lf": "155db3f734dc062d30c05625b97d5054a424e59892d1a9486c9790c644b59fb7"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-S3P/invocations.jsonl",
+        "sha256Lf": "f1a8b004f0d8bbe3be8fb3fe961e0a915f6efecb872dc4aa74f65b0673e0e50b"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-S4/invocations.jsonl",
+        "sha256Lf": "994768a79c53d7e279962baa8753dbb064017fde6a1e202d0f8e40aee9b52992"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-S4C/invocations.jsonl",
+        "sha256Lf": "f2294ac178eeac1a9cf20fdb21691b4dbcde1f801fcc1ac5a36f13ba4a94a18f"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-T04/invocations.jsonl",
+        "sha256Lf": "67d5dcfcdc0c703c3088c0937bb45a69a99754cedbc8bcc604cdf82357e9c3e6"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-T05/invocations.jsonl",
+        "sha256Lf": "c56961d797ccedcde03eacfae0deb51f5745c59ef0a9d947a3cf30e4284f0928"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-T06/invocations.jsonl",
+        "sha256Lf": "73868436068c2fa858c12faa74620bc9ade964ad2f90ffd5a11dd30befa95e0d"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-T10a/invocations.jsonl",
+        "sha256Lf": "81be0bcf4242e6c949214758ce1e4fa9e215158e57367cc75e9dc2821bbdc5b6"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-T10b/invocations.jsonl",
+        "sha256Lf": "d97a8bf38dd406a0c9ceedf5ff199929045503915bc54dc8833ad5e5c8bb4629"
+      },
+      {
+        "path": "tests/artifacts/ig-proto/frozen/V4-T10c/invocations.jsonl",
+        "sha256Lf": "6248b9aa1a6873f8b328b669080023b59fff32d69102254fa28fae33a178e584"
+      }
+    ]
+  }
+}

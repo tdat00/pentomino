@@ -60,7 +60,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] S05 The stage-4 activation (orchestrator; **STOP: the owner decides S4-6 and authorizes `activate`**) (depends on S04)
 - [x] S06 Run `V4-S4` (orchestrator; **STOP: the owner approves its allowance, a raise of the cumulative cap**) (depends on S05)
 - [x] S07 Run `V4-S4C` (orchestrator; **STOP: the owner approves its scope at its turn**) (depends on S06)
-- [ ] T16 The stage-4 report and phase 0's decision (N-V4-06) to the owner (SA-Opus and SA-Astra) (depends on S07)
+- [x] T16 The stage-4 report and phase 0's decision (N-V4-06) to the owner (SA-Opus and SA-Astra) (depends on S07)
 
 | ID | File | Developer (h) | Machine: formal projected / guard (counted min); timing proxy | Owner stop |
 |---|---|---:|---|---|
@@ -646,4 +646,4 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | S05 | 2026-11-24 10:16 | 2026-11-24 10:28 | about 12 min (owner wait 5 min) | – (orchestrator) | this task's commit |
 | S06 | 2026-11-24 10:28 | 2026-11-24 19:10 | about 8 h 42 min (owner wait 48 min; run 7 h 49 min) | – (orchestrator run) | this task's commit |
 | S07 | 2026-11-24 19:12 | 2026-11-24 22:50 | about 3 h 38 min (SA reading 45 min; owner wait 6 min; run 2 h 42 min) | – (orchestrator run) | this task's commit |
-| T16 | | | | | |
+| T16 | 2026-11-24 22:51 | 2026-11-25 00:55 | about 2 h 4 min | – (SA agents) | this task's commit |
