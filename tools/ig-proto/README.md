@@ -139,7 +139,8 @@ node tools\ig-proto\identity.mjs --task IGP-00 --arms base,log --label provision
 node tools\ig-proto\self-test.mjs --label selftest [--only 1,3] [--proto] [--p6] [--frozen] [--items] [--task T]   # cases that generate or rate need the lock; --p6 runs every case; --frozen runs only the frozen-source group and --items only the measurement-items group (both unlocked); a run writes `self-test/state.json` and `self-test/identity.json`
 node tools\ig-proto\self-test.mjs [--frozen | --items | --v4] --list --label frozen   # prints "<index> <name>" per case of the group; runs nothing, writes nothing (unlocked)
 node tools\ig-proto\fit-prior.mjs [--replace]       # recomputes data\prior-v1.json; exit 1 when it differs (unlocked)
-node tools\ig-proto\freeze.mjs check --label frozen --source-label "frozen 3fc65f4"   # unlocked (T08b): the six checks of the four frozen trees against the freeze's constants
+node tools\ig-proto\freeze.mjs check --label frozen --source-label "frozen 3fc65f4"   # unlocked (T08b, T12b): the six checks of the four frozen trees against the freeze's constants, and a seventh, record, once freeze.json exists
+node tools\ig-proto\freeze.mjs write --task V4-S3 --label frozen --source-label "frozen 3fc65f4"   # unlocked (T12b): writes freeze.json and freeze.md once; run once, by T12b
 node tools\ig-proto\live-deadline.mjs receipt --task V4-LIVE --require-pass --label frozen --source-label "frozen 3fc65f4"   # unlocked (T09b): writes the live-deadline receipt once; run by V4-LIVE's plan only
 node tools\ig-proto\v4-check.mjs accept --task T [--step S --manifest M] --receipt R --binding B --by X --label frozen --source-label "frozen 3fc65f4"   # unlocked: writes the accepted binding of a stage1, parity, p0-identity or live-deadline receipt once (--step and --manifest for the two middle kinds only)
 node tools\ig-proto\verify.mjs --task T --arm A[,A2] --label provisional --source-label <label> --horizon-s 285   # locked
@@ -1669,8 +1670,8 @@ and differ only in parameters (`variants/fr-frozen.json`, `fr-frozen-none.json`,
   `igModeBudget` leaves the context, `igSetBound` does not fire, `igLiveOf` and `igBoundStart` keep today's two timers.
 - **Runtime classes.** `ig-select-v4.js` keeps four classes (`n-small` up to 144 cells, `n-mid` 196 to 324, `n-large` 360 and more, `hell-1`); the freeze's
   `n-mid` (196 to 256 cells) and `n-upper` (257 to 324) both fall in the runtime `n-mid`, at 190 M. T08b checks it per comparator cell.
-- **A candidate epoch** until T12b records it in `freeze.json`: the four trees are proved by `V4-S3P` and read by T11, and nothing else depends on their tree
-  ids until then.
+- **The epoch.** A candidate epoch until T12b recorded it in `freeze.json`: `V4-S3P` proved the four trees and T11 read them (outcome (A)); the record's
+  `variants` now hold their tree ids and parameter hashes.
 - **Self-test.** One case of the `--v4` group (through the lock helper): `fr: the four frozen variants and their differences` (the chain, the parameters
   above, the differences, the uncapped twins, each algo id), which prints a `NOTE` line with the four tree ids and parameter hashes.
 
@@ -1723,18 +1724,56 @@ The six checks, in this order (a failure is a question for the pack author, neve
    values; `setStageCapMs` is `round((1 - reserve) x generationStopMs)`, and `generationStopMs` and `responseBoundMs` are the tree's `TIME.dispatchStopMs`
    and `TIME.responseMs`; `fr-frozen-none` has `screen-s3-none` and four null classes.
 5. `differences`: each uncapped twin differs from its arm exactly in the matrix's `comparatorDifferences` (`callBudget`, `liveDeadline`,
-   `setAttemptsBound`), all null; the two screen arms differ only in `screenClasses` and `screenTable`.
+   `setAttemptsBound`), all null; the screen arm `fr-frozen` and the no-screen arm `fr-frozen-none` differ only in `screenClasses` and
+   `screenTable`.
 6. `prior`: `data/prior-s3-v1.json` is reproduced by `computePriorS3` and is `fr-frozen`'s `prior`.
 
 ```
 node tools\ig-proto\freeze.mjs check --label frozen --source-label <SL>
 ```
 
-It prints `freeze: <name> pass (<detail>)` per check, then `freeze: check pass (6 checks; <variant> <first 12 hex of the tree id>, ...)` and exits 0, or
-`freeze: check failed (<n> of 6)` and exits 1. `readPilots` and `freezeMismatch` of `manifest.mjs` are exported for it (no other change).
+It prints `freeze: <name> pass (<detail>)` per check, then `freeze: check pass (<k> checks; <variant> <first 12 hex of the tree id>, ...)` and exits 0, or
+`freeze: check failed (<n> of <k>)` and exits 1, where `<k>` is 6, or 7 once `freeze.json` exists (the seventh check, `record`, in
+`### freeze.json (T12a, T12b)`). `readPilots` and `freezeMismatch` of `manifest.mjs` are exported for it (no other change).
 
 - **Self-test.** One case of the `--items` group: `freeze: classes, bounds and values` (`classOf` at every bound, the 19 distinct cells, the two arms of
   each class, each cell in its class, the five class ids of `W`).
+
+### freeze.json (T12a, T12b)
+
+`freeze.mjs` writes the freeze record once, `docs/improve-generating/evidence/frozen/V4-S3/freeze.json` (`FREEZE_PATH`, the path `activate` reads) and its
+Markdown `freeze.md`; a different freeze is a new task id and file. Its Markdown starts with the records' common banner, whose re-run hint names a plan
+`V4-S3.json` that does not exist: the freeze has no plan, and `freeze.mjs check` (the seventh check) re-checks the written record.
+
+- **The record** (`freezeRecord`): `format` `ig-v4-freeze`, `version` 1, `classes`, `bounds`, `tables` and `values` (plain copies of T08b's constants), `variants`
+  (for each of the four frozen variants its `treeId` and `paramsHash`, from `freezeChecks().trees`), `seeds`, `fit`, `proofs` and `meta`. Readers use `classes`
+  only and accept extra keys: `activate` (S05) refuses a file whose classes do not name exactly the 19 comparator cells, each once; `V4-LIVE`'s prerequisites
+  (S04) need the file; the live receipt (T09b) and its acceptance (T09c) read `variants`. `freezeMarkdown` renders it: the classes with their bounds and
+  `W_screen`, the table ids, the prior's twelve Hell 1 shares and its 15 Nightmare entries of `prior-v1`, the call budget by mode, the bound, the deadline,
+  the mechanisms, the variants, the seeds and the fit.
+- **The seeds** (`FREEZE_SEEDS`, plan 4.7): `used` is `FIT_SEEDS_USED` (the records and reps a fit actually read), `fitting` the fitting streams and `excluded`
+  the reps no fit reads (validation reps 20 to 39, Master reps 20 to 24, second validation reps 40 to 59).
+- **The fit index** (T12a `fitIndex(options)`; `fit` in the record). The ten indices of `FIT_INDICES` are read transitively: each entry's hash is recomputed
+  with `sha256Lf`, the SHA-256 of the UTF-8 text with every CRLF replaced by LF (`lib/records.mjs` `sha256Text`; the fit-read records name it `sha256`). An
+  input that changed or is missing is a problem; so is a runs file or `rows.jsonl` holding a rep of 20 or more. The record's `fit` holds `hash` (that
+  convention), `indices` (`path`, `key`, `entries` and the index file's own `sha256File`), `files` (the `FIT_INPUTS` with their `sha256File`), `checked` (5,697
+  entries today) and `captures`.
+- **The captures.** A harness source under `tools/` that moved since the fit (`lib/lane-worker.mjs`, `manifest.mjs` and `v4-check.mjs`, the sources of
+  `review-input-index.json`) is accepted only through the capture of its indexed epoch: a normalized text capture (CRLF, UTF-8 without BOM) of `57ef5cf:<path>`,
+  under `docs/improve-generating/evidence/frozen/V4-S3/fit-sources/<path>` (`FIT_CAPTURE`), read by the developer with the read-only `git --no-pager show`,
+  compared with the indexed hash by `sha256Lf`, and written once (`flag: 'wx'`, an existing capture is refused and never truncated). It is not a byte-for-byte
+  Git-blob copy, and the harness runs no git. The record lists each capture (`path`, `sourceCommit`, `capturedPath`, `hash`, `index`, `kind` `normalized-text`).
+- **`write`.** `node tools\ig-proto\freeze.mjs write --task V4-S3 --label frozen --source-label <SL>`. Refusals, in this order (exit 1, `freeze: <reason>` on
+  stderr, nothing written): `--label frozen only`; `the freeze record is V4-S3's`; `<path> exists: the freeze record is written once` (`freeze.json` or
+  `freeze.md`); `fit index: <first problem> (<n> problems)`; `check failed (<n> of <k>): <name>: <detail>` (the first failing check of `freezeChecks()`); `the
+  proofs of the epoch do not stand (<arm>: <reasons>)` (each of the four `V4-S3P/parity-<arm>.accepted.json` bindings must pass `checkAccepted` with the arm's
+  tree id and parameter hash today); `missing fit input <path>`. Then it writes `freeze.json` and `freeze.md` and prints `freeze: wrote <dir>/freeze.json and
+  freeze.md (5 classes, 19 cells, 4 variants, <checked> fit entries, <c> captures)`. `writeCommand(argv, io)` takes the test seam `io` (`outDir`, `fit`, the options
+  of `fitIndex` with `files` replacing `FIT_INPUTS`, `stdout`, `stderr`); the command line passes none.
+- **The seventh check.** Once `freeze.json` exists, `freezeChecks()` adds `record`: the file's `classes`, `bounds`, `tables`, `values` and `seeds` equal the
+  constants, its `variants` equal the four trees' identities today, and `freezeMismatch` finds no cell outside a class, in two classes or unmeasured.
+- **Self-test.** Two more cases of the `--items` group: `freeze: the record and its markdown` and `freeze: write refuses a changed or missing fit input`
+  (a changed byte and a deleted input of a private index under `tests/artifacts/ig-proto/selftest/S24-T12b-dev/`: exit 1, neither file written).
 
 ### The live-deadline receipt (T09a to T09c)
 

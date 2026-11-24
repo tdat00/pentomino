@@ -3,15 +3,16 @@
 // the classes, bounds, table ids and values as constants, the checks of the four frozen trees against them (`check`, unlocked: it builds or
 // reuses trees and reads records, it rates nothing), and (T12b) the record freeze.json, written once.
 //   node tools\ig-proto\freeze.mjs check --label frozen --source-label <SL>
-import { readFileSync } from 'node:fs';
+//   node tools\ig-proto\freeze.mjs write --task V4-S3 --label frozen --source-label <SL>   (once)
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 
 import { computePriorS3, PRIOR_S3_FILE } from './fit-prior-s3.mjs';
-import { evidenceDir, mp12b1Report, parseArgs } from './lib/paths.mjs';
-import { readRepoFile } from './lib/proof.mjs';
-import { lf, sha256, sha256Text } from './lib/records.mjs';
+import { abs, evidenceDir, mp12b1Report, parseArgs } from './lib/paths.mjs';
+import { checkAccepted, readRepoFile } from './lib/proof.mjs';
+import { banner, buildMeta, lf, sha256, sha256File, sha256Text, writeJson, writeText } from './lib/records.mjs';
 import { loadCatalogue } from './lib/sets.mjs';
 import { ensureTree } from './lib/tree.mjs';
 import { activation, controlsFrom, expandMatrix, freezeMismatch, matrixData, readPilots } from './manifest.mjs';
@@ -106,6 +107,23 @@ export const FIT_SEEDS_USED = Object.freeze([
   { source: 'IGP-05', reps: 'PM1\'s first slice (ig-pm1/...)' },
   { source: 'V4-S2K, V4-T10a-c', reps: 'the kernel streams ig-v4/kernel/<case>' },
 ]);
+/** Where the freeze record is written, once (T12b; the path `activate` reads). */
+export const FREEZE_PATH = 'docs/improve-generating/evidence/frozen/V4-S3/freeze.json';
+/** The seeds of the freeze (plan 4.7): the reps used, the fitting streams and the reps never read by a fit. */
+export const FREEZE_SEEDS = Object.freeze({
+  used: FIT_SEEDS_USED,
+  fitting: [
+    'landscape/<cell>/<rep>, reps 0-4: V4-S2, V4-S2B and the Hell 1 check of V4-S3P',
+    'the provisional reps 0-5',
+    'MP12b1 reps 0-19 (reps 10-19 fitted prior-v1)',
+    "PM1's first slice (ig-pm1/...; IGP-05)",
+    'R28',
+    'the parity, replay and kernel streams (ig-v4/parity/..., ig-v4/replay/..., ig-v4/kernel/...)',
+  ],
+  excluded: ['validation reps 20-39', 'Master reps 20-24', 'second validation reps 40-59'],
+});
+const FIT_HASH_CONVENTION = 'sha256Lf: the SHA-256 of the UTF-8 text with every CRLF replaced by LF (lib/records.mjs sha256Text); the fit-read records name it sha256';
+const PROOF_DIR = 'docs/improve-generating/evidence/frozen/V4-S3P';
 
 /**
  * @param {string} text A runs file's text: a JSON object with `rows`, or JSON lines.
@@ -197,7 +215,7 @@ export function fitIndex({ indices = FIT_INDICES, read = (p) => readRepoFile(p),
 /**
  * @returns {Promise<{ checks: FreezeCheck[], trees: Record<string, { treeId: string, paramsHash: string }> }>}
  *   The six checks of the four frozen trees against the freeze's constants, in this order: classes, bounds, runtime W, parameters,
- *   differences, prior. Nothing is written.
+ *   differences, prior; once `freeze.json` exists, a seventh, `record`. Nothing is written.
  */
 export async function freezeChecks() {
   /** @type {Record<string, any>} */
@@ -296,7 +314,35 @@ export async function freezeChecks() {
     detail: fileSame && treeSame ? `${Object.keys(table.cells).length} cells reproduced`
       : [...(fileSame ? [] : ['the file differs from the recomputed table']), ...(treeSame ? [] : ['the tree\'s prior differs from the table'])].join('; '),
   });
+  if (existsSync(abs(FREEZE_PATH))) {
+    checks.push({ name: 'record', ...recordCheck(trees, record.comparatorCells.map((c) => c.cell)) });
+  }
   return { checks, trees };
+}
+
+/**
+ * @param {Record<string, { treeId: string, paramsHash: string }>} trees The four trees' identities today.
+ * @param {string[]} cells The comparator cells of the initial collection.
+ * @returns {{ pass: boolean, detail: string }} Whether the written record equals the constants and today's trees and names the 19 cells in its classes.
+ */
+function recordCheck(trees, cells) {
+  /** @type {any} */
+  let file = null;
+  try {
+    file = JSON.parse(readRepoFile(FREEZE_PATH) ?? '');
+  } catch {
+    file = null;
+  }
+  if (typeof file !== 'object' || file === null || Array.isArray(file.classes) === false) {
+    return { pass: false, detail: `${FREEZE_PATH} is not a freeze record` };
+  }
+  const problems = [
+    ...[['classes', FREEZE_CLASSES], ['bounds', FREEZE_BOUNDS], ['tables', FREEZE_TABLES], ['values', FREEZE_VALUES], ['seeds', FREEZE_SEEDS]]
+      .filter(([key, want]) => !isDeepStrictEqual(file[/** @type {string} */ (key)], want)).map(([key]) => `${key} differ from the constants`),
+    ...(isDeepStrictEqual(file.variants, trees) ? [] : ['variants differ from the trees today']),
+    ...freezeMismatch(file, cells),
+  ];
+  return { pass: problems.length === 0, detail: problems.length > 0 ? problems.join('; ') : `${cells.length} cells in their classes; the four trees as today` };
 }
 
 /**
@@ -333,11 +379,183 @@ async function parameterCheck(built) {
   return { pass: true, detail: `${FREEZE_TABLES.prior}, ${FREEZE_TABLES.screen}, ${FREEZE_TABLES.budget}, ${FREEZE_TABLES.deadline}; deadline numbers relate` };
 }
 
+/**
+ * @param {{ variants: Record<string, { treeId: string, paramsHash: string }>, fit: any, proofs: { path: string, sha256: string }[], meta: any }} o
+ * @returns {Record<string, any>} The freeze record (plan 4.2): the constants as plain copies, the four trees, the seeds, the fit index and the proofs.
+ */
+export function freezeRecord({ variants, fit, proofs, meta }) {
+  const copy = (/** @type {unknown} */ value) => JSON.parse(JSON.stringify(value));
+  return {
+    format: 'ig-v4-freeze', version: 1, classes: copy(FREEZE_CLASSES), bounds: copy(FREEZE_BOUNDS), tables: copy(FREEZE_TABLES),
+    values: copy(FREEZE_VALUES), variants, seeds: copy(FREEZE_SEEDS), fit, proofs, meta,
+  };
+}
+
+/** @returns {{ cells: Record<string, { caseId: string, share: number, n: number, source?: string }> }} The prior table `prior-s3-v1` as the data file holds it. */
+const readPriorTable = () => JSON.parse(readFileSync(PRIOR_S3_FILE, 'utf8'));
+
+/**
+ * @param {Record<string, any>} record A freeze record.
+ * @param {{ cells: Record<string, { caseId: string, share: number, n: number, source?: string }> }} [prior] The prior table (default: the data file).
+ * @returns {string} The record's Markdown (LF line ends; `writeText` writes CRLF).
+ */
+export function freezeMarkdown(record, prior = readPriorTable()) {
+  const M = (/** @type {number | null} */ n) => (n === null ? 'none' : `${n / 1e6} M`);
+  const G = (/** @type {number} */ n) => `${n / 1e9} G`;
+  const bound = (/** @type {[string, number, number | null]} */ [level, lo, hi]) => `${level} ${lo}${hi === null ? '+' : `-${hi}`}`;
+  const { values, fit } = record;
+  const hell = Object.entries(prior.cells).filter(([key]) => key.startsWith('hell-1@'));
+  const nightmare = Object.keys(prior.cells).filter((key) => key.startsWith('nightmare@')).length;
+  /** @param {string} title @param {string[]} head @param {unknown[][]} rows @returns {string[]} */
+  const table = (title, head, rows) => [
+    title, '', `| ${head.join(' | ')} |`, `|${head.map(() => '---').join('|')}|`, ...rows.map((r) => `| ${r.join(' | ')} |`), '',
+  ];
+  const lines = [
+    ...(record.meta?.source ? [banner(record.meta), ''] : []),
+    '# The freeze of stage 3 (V4-S3)',
+    '',
+    ...table('## Classes', ['Class', 'Cells', 'Bounds', 'W_screen'],
+      record.classes.map((/** @type {{ id: string, cells: string[] }} */ c) => [c.id, c.cells.join(', '), bound(record.bounds[c.id]), M(values.W[c.id])])),
+    ...table('## Tables', ['Table', 'Id'], Object.entries(record.tables)),
+    `The prior \`${record.tables.prior}\`: the ${hell.length} Hell 1 shares below and the ${nightmare} Nightmare entries of prior-v1.`,
+    '',
+    ...table('### Hell 1 shares of the prior', ['Cell', 'Case', 'Share', 'Windows', 'Source'], hell.map(([key, e]) => [key, e.caseId, e.share, e.n, e.source ?? ''])),
+    ...table('## Call budget', ['Mode', 'Nightmare', 'Hell 1'], Object.entries(values.callBudget).map(([mode, b]) => {
+      const budget = /** @type {Record<string, number>} */ (b);
+      return [mode, G(budget.nightmare), G(budget['hell-1'])];
+    })),
+    '## Bound, deadline and mechanisms',
+    '',
+    `- The set-attempts bound: ${values.setAttemptsBound}.`,
+    `- The deadline: reserve ${values.deadline.reserve}, set-stage cap ${values.deadline.setStageCapMs} ms, generation stop ${values.deadline.generationStopMs} ms, response bound ${values.deadline.responseBoundMs} ms.`,
+    `- The mechanisms: \`c4\` ${values.c4 ? 'on' : 'off'}, ${values.rerate} re-rating with \`rerateMax\` ${values.rerateMax}, ${values.ranker === null ? 'no ranker' : `ranker ${values.ranker}`}, `
+      + `the per-set prior on ${values.perSetLevels.join(', ')} only, the reference kernel.`,
+    '',
+    ...table('## Variants', ['Variant', 'Tree id', 'Parameter hash'], Object.entries(record.variants).map(([id, v]) => [id, v.treeId, v.paramsHash])),
+    '## Seeds',
+    '',
+    '### Used',
+    '',
+    ...record.seeds.used.map((/** @type {{ source: string, arms?: string[], reps: unknown }} */ s) => `- ${s.source}${s.arms ? ` (${s.arms.join(', ')})` : ''}: reps ${JSON.stringify(s.reps)}`),
+    '',
+    '### Fitting',
+    '',
+    ...record.seeds.fitting.map((/** @type {string} */ s) => `- ${s}`),
+    '',
+    '### Excluded',
+    '',
+    ...record.seeds.excluded.map((/** @type {string} */ s) => `- ${s}`),
+    '',
+    '## The fit',
+    '',
+    `The hash convention: ${fit.hash}.`,
+    '',
+    ...table('### Indices', ['Fit index', 'Entries', 'SHA-256'], fit.indices.map((/** @type {any} */ i) => [i.path, i.entries, i.sha256])),
+    ...table('### Files', ['Fit file', 'SHA-256'], fit.files.map((/** @type {any} */ f) => [f.path, f.sha256])),
+    ...table('### Captured sources', ['Captured source', 'From', 'Captured at', 'sha256Lf'],
+      fit.captures.map((/** @type {any} */ c) => [c.path, c.sourceCommit, c.capturedPath, c.hash])),
+    `Entries checked: ${fit.checked}.`,
+    '',
+    ...table('## Proofs', ['Proof', 'SHA-256'], record.proofs.map((/** @type {any} */ p) => [p.path, p.sha256])),
+  ];
+  return `${lines.join('\n').trimEnd()}\n`;
+}
+
+/**
+ * `write --task V4-S3 --label frozen [--source-label <SL>]` (T12b): checks everything, then writes `freeze.json` and `freeze.md` once.
+ * @param {string[]} argv The arguments after `write`.
+ * @param {{ outDir?: string, fit?: Parameters<typeof fitIndex>[0] & { files?: readonly string[] }, stdout?: (text: string) => void,
+ *   stderr?: (text: string) => void }} [io] The test seam: a private folder and the options of `fitIndex` (`files` replaces `FIT_INPUTS`).
+ * @returns {Promise<number>} 0 when written; 1 for a refusal (nothing written).
+ */
+export async function writeCommand(argv, io = {}) {
+  const out = io.stdout ?? ((/** @type {string} */ text) => process.stdout.write(text));
+  const err = io.stderr ?? ((/** @type {string} */ text) => process.stderr.write(text));
+  /** @param {string} reason @returns {number} */
+  const refuse = (reason) => {
+    err(`freeze: ${reason}\n`);
+    return 1;
+  };
+  /** @type {ReturnType<typeof parseArgs>} */
+  let parsed;
+  try {
+    parsed = parseArgs(argv, { values: ['task', 'label', 'source-label'] });
+  } catch (e) {
+    return refuse(e instanceof Error ? e.message : String(e));
+  }
+  const { args } = parsed;
+  if (args.label !== 'frozen') {
+    return refuse('--label frozen only');
+  }
+  if (args.task !== 'V4-S3') {
+    return refuse('the freeze record is V4-S3\'s');
+  }
+  const outDir = io.outDir ?? 'docs/improve-generating/evidence/frozen/V4-S3';
+  for (const name of ['freeze.json', 'freeze.md']) {
+    if (existsSync(abs(`${outDir}/${name}`))) {
+      return refuse(`${outDir}/${name} exists: the freeze record is written once`);
+    }
+  }
+  const { files = FIT_INPUTS, ...fitOptions } = io.fit ?? {};
+  const fit = fitIndex(fitOptions);
+  if (fit.problems.length > 0) {
+    return refuse(`fit index: ${fit.problems[0]} (${fit.problems.length} problems)`);
+  }
+  const { checks, trees } = await freezeChecks();
+  const failing = checks.filter((c) => !c.pass);
+  if (failing.length > 0) {
+    return refuse(`check failed (${failing.length} of ${checks.length}): ${failing[0].name}: ${failing[0].detail}`);
+  }
+  /** @type {{ path: string, sha256: string }[]} */
+  const proofs = [];
+  for (const id of FROZEN_VARIANTS) {
+    const path = `${PROOF_DIR}/parity-${id}.accepted.json`;
+    const text = readRepoFile(path);
+    /** @type {any} */
+    let binding = null;
+    try {
+      binding = text === null ? null : JSON.parse(text);
+    } catch {
+      binding = null;
+    }
+    const check = binding === null ? { status: 'incomplete', reasons: [`missing or unreadable ${path}`] } : checkAccepted(binding, { current: [{ id, ...trees[id] }] });
+    if (check.status !== 'pass') {
+      return refuse(`the proofs of the epoch do not stand (${id}: ${check.reasons.join('; ')})`);
+    }
+    proofs.push({ path, sha256: sha256File(abs(path)) });
+  }
+  const missing = files.find((p) => !existsSync(abs(p)));
+  if (missing !== undefined) {
+    return refuse(`missing fit input ${missing}`);
+  }
+  const meta = await buildMeta({ task: 'V4-S3', label: 'frozen', kind: 'freeze', trees: [...FROZEN_VARIANTS], sourceLabel: args['source-label'] });
+  const record = freezeRecord({
+    variants: Object.fromEntries(FROZEN_VARIANTS.map((id) => [id, trees[id]])),
+    fit: {
+      hash: FIT_HASH_CONVENTION,
+      indices: fit.indices.map((i) => ({ path: i.path, key: i.key, entries: i.entries, sha256: sha256File(abs(i.path)) })),
+      files: files.map((path) => ({ path, sha256: sha256File(abs(path)) })),
+      checked: fit.checked,
+      captures: fit.captures,
+    },
+    proofs,
+    meta,
+  });
+  writeJson(abs(`${outDir}/freeze.json`), record);
+  writeText(abs(`${outDir}/freeze.md`), freezeMarkdown(record));
+  out(`freeze: wrote ${outDir}/freeze.json and freeze.md (${FREEZE_CLASSES.length} classes, ${FREEZE_CLASSES.flatMap((c) => c.cells).length} cells, `
+    + `${FROZEN_VARIANTS.length} variants, ${fit.checked} fit entries, ${fit.captures.length} captures)\n`);
+  return 0;
+}
+
 /** @param {string[]} argv @returns {Promise<number>} */
 async function main(argv) {
   const [command, ...rest] = argv;
+  if (command === 'write') {
+    return writeCommand(rest);
+  }
   if (command !== 'check') {
-    process.stderr.write('usage: freeze.mjs check --label frozen --source-label <SL>\n');
+    process.stderr.write('usage: freeze.mjs check --label frozen --source-label <SL>\n       freeze.mjs write --task V4-S3 --label frozen --source-label <SL>\n');
     return 1;
   }
   parseArgs(rest, { values: ['label', 'source-label'] });

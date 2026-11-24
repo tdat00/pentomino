@@ -9555,6 +9555,64 @@ const itemCases = [
         ['malformed entry x/a.json (index i.json)'], 'a malformed hash');
     },
   },
+  {
+    name: 'freeze: the record and its markdown',
+    async run() {
+      const { FIT_SEEDS_USED, FREEZE_CLASSES, freezeMarkdown, freezeRecord } = await import('./freeze.mjs');
+      const variants = {
+        'fr-frozen': { treeId: 'a', paramsHash: 'b' }, 'fr-frozen-none': { treeId: 'c', paramsHash: 'd' },
+        'fr-frozen-uncapped': { treeId: 'e', paramsHash: 'f' }, 'fr-frozen-none-uncapped': { treeId: 'g', paramsHash: 'h' },
+      };
+      const fit = {
+        hash: 'sha256Lf: ...', indices: [{ path: 'i', key: 'sha256Lf', entries: 1, sha256: 'z' }], files: [{ path: 'x', sha256: 'y' }], checked: 1,
+        captures: [{ path: 'tools/m.mjs', sourceCommit: '57ef5cf', capturedPath: 'cap/tools/m.mjs', hash: 'q', index: 'i' }],
+      };
+      const record = freezeRecord({ variants, fit, proofs: [], meta: {} });
+      same([record.format, record.version], ['ig-v4-freeze', 1], 'format and version');
+      same(record.classes, FREEZE_CLASSES, 'the classes');
+      same([record.classes.length, record.classes.flatMap((/** @type {any} */ c) => c.cells).length], [5, 19], '5 classes, 19 cells');
+      same(record.values.W['n-upper'], 190000000, 'W of n-upper');
+      same(record.values.callBudget.require.nightmare, 32000000000, 'the require budget of Nightmare');
+      same(record.seeds.used, FIT_SEEDS_USED, 'the seeds used');
+      same(record.seeds.excluded, ['validation reps 20-39', 'Master reps 20-24', 'second validation reps 40-59'], 'the excluded reps');
+      same([record.variants, record.fit], [variants, fit], 'the variants and the fit as given');
+      same(JSON.parse(JSON.stringify(record)), record, 'a plain JSON record');
+      const md = freezeMarkdown(record);
+      for (const line of ['| n-upper | 15x20-nightmare, 18x18-nightmare | nightmare 257-324 | 190 M |', '| require | 32 G | 40 G |', '| tools/m.mjs | 57ef5cf | cap/tools/m.mjs | q |']) {
+        assert(md.includes(line), `the markdown holds ${line}`);
+      }
+    },
+  },
+  {
+    name: 'freeze: write refuses a changed or missing fit input',
+    async run() {
+      const { writeCommand } = await import('./freeze.mjs');
+      const folder = 'tests/artifacts/ig-proto/selftest/S24-T12b-dev';
+      const text = '{"a":1}';
+      rmSync(abs(folder), { recursive: true, force: true });
+      try {
+        mkdirSync(abs(folder), { recursive: true });
+        writeFileSync(abs(`${folder}/a.json`), text);
+        writeFileSync(abs(`${folder}/idx.json`), JSON.stringify([{ path: `${folder}/a.json`, sha256Lf: sha256Text(text) }]));
+        const run = async () => {
+          let stdout = '';
+          let stderr = '';
+          const code = await writeCommand(['--task', 'V4-S3', '--label', 'frozen', '--source-label', 'self-test'], {
+            outDir: `${folder}/out`, fit: { indices: [{ path: `${folder}/idx.json`, field: null, key: 'sha256Lf' }] },
+            stdout: (t) => { stdout += t; }, stderr: (t) => { stderr += t; },
+          });
+          assert(!existsSync(abs(`${folder}/out/freeze.json`)) && !existsSync(abs(`${folder}/out/freeze.md`)), 'neither freeze file exists');
+          return { code, stdout, stderr };
+        };
+        writeFileSync(abs(`${folder}/a.json`), '{"a":2}');
+        same(await run(), { code: 1, stdout: '', stderr: `freeze: fit index: fit input ${folder}/a.json changed (index ${folder}/idx.json) (1 problems)\n` }, 'a changed input');
+        rmSync(abs(`${folder}/a.json`));
+        same(await run(), { code: 1, stdout: '', stderr: `freeze: fit index: missing fit input ${folder}/a.json (index ${folder}/idx.json) (1 problems)\n` }, 'a missing input');
+      } finally {
+        rmSync(abs(folder), { recursive: true, force: true });
+      }
+    },
+  },
 ];
 
 /**

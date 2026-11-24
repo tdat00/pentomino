@@ -55,7 +55,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] S03 Run `V4-S3P` (orchestrator; **STOP: the owner approves the four proofs' cap at their gate**; the 20 Hell 1 rows are approved, D-S24-27) (depends on T10)
 - [x] T11 The SAs' reading of `V4-S3P` and `V4-S2B`: the read gate of D-S24-24 (SA-Opus and SA-Astra; may stop for a joint SA ruling and the owner) (depends on S03, S01, T02d)
 - [x] T12a The freeze's fit index: the validated transitive inputs of every fitted value (depends on T11's jointly signed acceptance of the final epoch)
-- [ ] T12b The freeze record `freeze.json` (`freeze.mjs write`) (depends on T12a)
+- [x] T12b The freeze record `freeze.json` (`freeze.mjs write`) (depends on T12a)
 - [ ] S04 Run `V4-LIVE` (orchestrator; **STOP: the owner approves its cap at its turn**) (depends on T12b)
 - [ ] S05 The stage-4 activation (orchestrator; **STOP: the owner decides S4-6 and authorizes `activate`**) (depends on S04)
 - [ ] S06 Run `V4-S4` (orchestrator; **STOP: the owner approves its allowance, a raise of the cumulative cap**) (depends on S05)
@@ -630,7 +630,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | S03 | 2026-11-24 07:06 | 2026-11-24 08:21 | about 75 min (owner wait 33 min; run 39 min) | – (orchestrator run) | this task's commit |
 | T11 | 2026-11-24 08:23 | 2026-11-24 08:47 | about 24 min | – (SA agents) | this task's commit |
 | T12a | 2026-11-24 08:56 | 2026-11-24 09:08 | about 12 min | 45.73 | this task's commit |
-| T12b | | | | | |
+| T12b | 2026-11-24 09:05 | 2026-11-24 09:29 | about 24 min | 230.04 | this task's commit |
 | S04 | | | | | |
 | S05 | | | | | |
 | S06 | | | | | |

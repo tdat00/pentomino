@@ -268,13 +268,13 @@ items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 09:05:34 to 09:14:26 +07:00 (developer), fix round 09:24-09:27; accepted 09:29; about 24 min |
+| Waiting for rulings | about 8 min (R-P24-17) |
+| Agent id, model | 7d4e78b2-6264-4871-b546-e2c81ad33482, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 68; 8,852,468 / 55,191 / 8,492,753 |
+| AI credits | 230.04 |
+| Questions and rulings | no QUESTION; nine deviations and two named items ruled by SA-Opus (R-P24-17): all accepted, a README-only fix round (the `check` line comment, the epoch bullet, the banner sentence) |
+| Fix rounds | 1 (README only, R-P24-17) |
+| Gates re-run by the orchestrator | firewall check S24-T12b OK (289 files); `--items` 235 passed, 0 failed (234 `freeze: the record and its markdown`, 235 `freeze: write refuses a changed or missing fit input`), no `S24-T12b-dev` folder left; `freeze.mjs check` `record pass (19 cells in their classes; the four trees as today)`, `check pass (7 checks; ...)`; second `write` refused (exit 1); `check-prerequisites --plan V4-LIVE` pass; `fitIndex()` 5697 checked, 3 captures, 0 problems; README diff against a38d9f7 +45 / -6 (only the R-P24-12 and R-P24-17 lines); `npm run check` OK; G1, G2 empty; G3 the Scope files |
+| Commit | this task's commit |
+| Issues and named items | none open; `freeze.json` written once: 5 classes, 19 cells, 4 variants (b3e530b1, fa903f39, 96ef38e2, e31d829d), 5,697 fit entries, 3 captures (lib/lane-worker.mjs, manifest.mjs, v4-check.mjs of 57ef5cf) |
