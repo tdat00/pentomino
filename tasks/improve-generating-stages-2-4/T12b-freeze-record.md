@@ -45,7 +45,8 @@ index of T12a with the captured harness sources, and the proofs of the epoch. `a
 - Create (by step 1): the captures `docs/improve-generating/evidence/frozen/V4-S3/fit-sources/tools/ig-proto/...` (one
   file per captured path); (by the command) `docs/improve-generating/evidence/frozen/V4-S3/freeze.json` and `freeze.md`.
 - Change: `tools/ig-proto/README.md`: the subsection `### freeze.json (T12a, T12b)`; `## Commands` gains the `write` line;
-  two phrases of the subsection `### The freeze checks (T08b)` (Documentation, ruling R-P24-12).
+  two phrases of the subsection `### The freeze checks (T08b)` (Documentation, ruling R-P24-12); the `check` line's
+  comment in `## Commands` and the epoch bullet of the frozen family's section (Documentation, ruling R-P24-17).
 - Guards: G1, G2 (new files only), G3 (the three code files and the new files of the Scope).
 
 ## Steps
@@ -187,6 +188,20 @@ section's width and nothing else changed:
 - in the paragraph on the output, `(6 checks;` becomes `(<k> checks;`, `(<n> of 6)` becomes `(<n> of <k>)`, and "and
   exits 1." becomes "and exits 1, where `<k>` is 6, or 7 once `freeze.json` exists (the seventh check, `record`, in
   `### freeze.json (T12a, T12b)`)."
+
+Three more edits, which the write makes necessary (ruling R-P24-17; each paragraph rewrapped to its section's width,
+nothing else changed, and no other file touched: `freeze.mjs`'s hash is in `freeze.json`'s `fit.files`):
+
+- in `## Commands`, the comment of the `freeze.mjs check` line, `# unlocked (T08b): the six checks of the four frozen
+  trees against the freeze's constants`, becomes `# unlocked (T08b, T12b): the six checks of the four frozen trees
+  against the freeze's constants, and a seventh, record, once freeze.json exists`;
+- in the frozen family's section, the bullet "**A candidate epoch** until T12b records it in `freeze.json`: the four
+  trees are proved by `V4-S3P` and read by T11, and nothing else depends on their tree ids until then." becomes
+  "**The epoch.** A candidate epoch until T12b recorded it in `freeze.json`: `V4-S3P` proved the four trees and T11 read
+  them (outcome (A)); the record's `variants` now hold their tree ids and parameter hashes.";
+- at the end of the first paragraph of `### freeze.json (T12a, T12b)`, the sentence "Its Markdown starts with the
+  records' common banner, whose re-run hint names a plan `V4-S3.json` that does not exist: the freeze has no plan, and
+  `freeze.mjs check` (the seventh check) re-checks the written record."
 
 ## Commands and gates
 
