@@ -141,13 +141,13 @@ its evidence; the questions and rulings; the deviations; and the named items for
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 07:02 +07:00 (dispatch, base `1eb3ac1`); 2026-11-24 07:06 +07:00 (accepted); the developer reported 07:02:13-07:04:16 |
+| Waiting for rulings | none |
+| Agent id, model | `9d78fc1c-b5bc-4575-889b-1959f87146e4`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 19 calls; 1,237,363 input, 11,118 output, 1,183,646 cache-read tokens |
+| AI credits | 36.38 (developer only) |
+| Questions and rulings | none; the developer's notes (one assertion of the row tail; `ratio` and `rowS` shared above the branch with V4-S2B's case still passing; the group object passed to `rowS`; two comments left as they were) change no behaviour |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T10-orch`: 232 passed, 0 failed (49.3 s; `write-plan: V4-S3P` PASS); a second `write-plan --plan V4-S3P`: refused, exit 1; `check-prerequisites --plan V4-S3P`: pass; `firewall check --task S24-T10`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the eight Scope paths |
+| Commit | this task's commit |
+| Issues and named items | S03 re-reads the approval and dry-runs `V4-S3P` |

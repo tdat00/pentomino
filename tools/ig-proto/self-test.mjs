@@ -9485,6 +9485,36 @@ const itemCases = [
       }
     },
   },
+  {
+    name: 'write-plan: V4-S3P',
+    async run() {
+      const m = await import('./manifest.mjs');
+      const { plan, itemManifests } = m.writtenPlan('V4-S3P');
+      const arms = ['fr-frozen', 'fr-frozen-none', 'fr-frozen-uncapped', 'fr-frozen-none-uncapped'];
+      const cells = ['14x14', '20x20', '24x24', '26x26'].map((c) => `${c}-hell-1`);
+      same([plan.task, plan.generatedBy, plan.runnable], ['V4-S3P', 'manifest.mjs write-plan', true], 'the plan\'s header');
+      same(plan.prerequisites, [...arms.map((id) => ({ type: 'variant', id })),
+        { type: 'accepted', path: 'docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json', current: ['v4'] }], 'the prerequisites');
+      same(plan.steps.map((s) => s.id), ['prerequisites', 'firewall-snapshot', 'trees', ...arms.flatMap((a) => [`parity-${a}`, `receipt-${a}`, `accept-${a}`]),
+        ...cells.map((c) => `rows-fr-frozen-none-uncapped-pilot-${c}`), 'publish-fr-frozen-none-uncapped', 'firewall-check'], 'the steps in order');
+      same([plan.steps.length, plan.steps.filter((s) => s.locked).length], [21, 8], 'the steps and the locked steps');
+      same(plan.steps[2].node.slice(-5), ['build', ...arms], 'the trees step');
+      const step = (/** @type {string} */ id) => /** @type {any} */ (plan.steps.find((s) => s.id === id));
+      same(step('accept-fr-frozen').node.slice(-2), ['--by', 'V4-S3'], 'the binding is accepted by V4-S3');
+      same(step('receipt-fr-frozen').node.slice(-3), ['--arm', 'fr-frozen', '--require-pass'], 'the receipt requires a pass');
+      for (const cell of cells) {
+        const row = step(`rows-fr-frozen-none-uncapped-pilot-${cell}`);
+        same(row.node.slice(-8), ['--variant', 'fr-frozen-none-uncapped', '--workers', '4', '--cases', `${cell}:0-4`, '--row-limit-s', '260'], `${cell}: the node's tail`);
+        same(row.state, `V4-S3P\\fr-frozen-none-uncapped\\pilot-${cell}\\state.json`, `${cell}: the state`);
+      }
+      same([plan.allocationMinutes, plan.optionalMinutes, Math.round(m.planGuardS(plan) * 1000) / 1000], [139, 0, 10416.597], 'the approved price');
+      same(Object.keys(itemManifests), arms.map((a) => `V4-S3P.parity-${a}.json`), 'the item manifests');
+      for (const arm of arms) {
+        same(itemManifests[`V4-S3P.parity-${arm}.json`], m.parityManifest('V4-S3P', arm), `${arm}: the item manifest`);
+      }
+      assert(thrownBy(() => m.writtenPlan('V4-XX')) === 'manifest: unknown written plan V4-XX', 'an unknown plan is refused');
+    },
+  },
 ];
 
 /**

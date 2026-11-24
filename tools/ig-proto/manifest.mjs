@@ -1547,6 +1547,9 @@ const PARITY_FR_NONE = `${EVIDENCE}/V4-S2P/parity-fr-none.accepted.json`;
 /** The composites of the P7 spike, in the order of the plan `V4-P7` (T05b; D-P24-05). */
 const P7_COMPOSITES = Object.freeze(['p7-c1', 'p7-c1r5', 'p7-c1r5c5']);
 const P7_TIME_ROUNDS = 3;
+/** The four stage-4 arms in the order of their P-1 passes, and the Hell 1 boards of the uncapped check (plan 4.6). */
+const S3P_ARMS = Object.freeze(['fr-frozen', 'fr-frozen-none', 'fr-frozen-uncapped', 'fr-frozen-none-uncapped']);
+const S3P_HELL = Object.freeze(['14x14-hell-1', '20x20-hell-1', '24x24-hell-1', '26x26-hell-1']);
 
 /**
  * The plan `V4-P7` (T05b): the P7 timing probe of the composites that are equal on both tiers, priced at V4-S2K's item times x 1.25.
@@ -1615,11 +1618,29 @@ export function writtenPlan(id, { priceOf = stepPrice, rowSOf, durations, candid
   if (id === 'V4-P7') {
     return p7Plan(candidates, priceOf);
   }
-  if (id !== 'V4-S2B') {
+  if (id !== 'V4-S2B' && id !== 'V4-S3P') {
     throw new Error(`manifest: unknown written plan ${id}`);
   }
   const ratio = factor();
   const rowS = rowSOf ?? ((/** @type {Group} */ g) => projectedRowS({ refS: refS(g.cell), factor: ratio, rowLimitS: g.rowLimitS }));
+  if (id === 'V4-S3P') {
+    const prerequisites = /** @type {Prerequisite[]} */ ([
+      ...S3P_ARMS.map((arm) => ({ type: 'variant', id: arm })),
+      { type: 'accepted', path: P0_BINDING, current: ['v4'] },
+    ]);
+    const proofs = S3P_ARMS.flatMap((arm) => parityPass('V4-S3P', arm, priceOf, durations ?? durationsFromLogs()));
+    const rows = S3P_HELL.map((cell) => {
+      const group = /** @type {any} */ ({ task: 'V4-S3P', arm: 'fr-frozen-none-uncapped', shard: `pilot-${cell}`, cell, from: 0, to: 4, rows: 5, rowLimitS: 260 });
+      return rowStep(group, priceOf, rowS(group));
+    });
+    const plan = planOf({
+      task: 'V4-S3P', generatedBy: WRITE_PLAN_GENERATED_BY, runnable: true, blockedBy: [], prerequisites,
+      steps: [gateStep('V4-S3P', prerequisites), firewallSnapshotStep('V4-S3P'), treesStep(S3P_ARMS), ...proofs, ...rows,
+        publishStep('V4-S3P', 'fr-frozen-none-uncapped', rows), firewallCheckStep('V4-S3P')],
+    });
+    const itemManifests = Object.fromEntries(S3P_ARMS.map((arm) => [`V4-S3P.parity-${arm}.json`, parityManifest('V4-S3P', arm)]));
+    return { plan, itemManifests };
+  }
   const prerequisites = /** @type {Prerequisite[]} */ ([{ type: 'accepted', path: PARITY_FR_NONE, current: ['fr-none'] }]);
   const rows = S2B_CELLS.map((cell) => {
     const group = /** @type {any} */ ({ task: 'V4-S2B', arm: 'fr-none', shard: `pilot-${cell}`, cell, from: 0, to: 4, rows: 5, rowLimitS: 260 });
@@ -1647,7 +1668,7 @@ export async function writePlanCommand(argv, { plansDir = join(IG_DIR, 'plans') 
   }
   const id = args.plan;
   if (typeof id !== 'string' || id === '') {
-    return refuseCommand('write-plan', 'needs --plan <id> (one of V4-S2B, V4-P7)');
+    return refuseCommand('write-plan', 'needs --plan <id> (one of V4-S2B, V4-P7, V4-S3P)');
   }
   if (args.candidates !== undefined && id !== 'V4-P7') {
     return refuseCommand('write-plan', '--candidates belongs to V4-P7');

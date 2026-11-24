@@ -2884,6 +2884,8 @@ full equality reports bound to the tree to be timed) and one locked step `time-<
 priced at V4-S2K's item times x 1.25), then `report`; prerequisites the composites and their quick and full equality reports; three
 composites: allocation 16 min, guard 19.37 min (the owner's 20 minutes, D-S24-28); no eligible composite, no plan. Self-test (`--items`,
 unlocked): `write-plan: V4-P7`.
+`V4-S3P` (T10): the four P-1 proofs of the candidate epoch (bindings `--by V4-S3`) and the 20 uncapped Hell 1 rows of
+`fr-frozen-none-uncapped` (D-S24-27), published for T11. Self-test (`--items`, unlocked): `write-plan: V4-S3P`.
 
 ## The fitting reader (stages 2 to 4 pack, T02b and T02c)
 

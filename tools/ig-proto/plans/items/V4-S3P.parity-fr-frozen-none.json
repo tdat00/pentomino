@@ -1,0 +1,55 @@
+{
+  "format": "ig-proto-items",
+  "version": 1,
+  "task": "V4-S3P",
+  "step": "parity-fr-frozen-none",
+  "rows": [
+    {
+      "kind": "v4-select",
+      "variant": "fr-frozen-none",
+      "caseId": "12x12-nightmare",
+      "seedText": "ig-v4/parity/12x12-nightmare",
+      "modes": [
+        "absent",
+        "charge",
+        "record"
+      ]
+    },
+    {
+      "kind": "v4-select",
+      "variant": "fr-frozen-none",
+      "caseId": "26x26-hell-1",
+      "seedText": "ig-v4/parity/26x26-hell-1",
+      "modes": [
+        "absent",
+        "charge",
+        "record"
+      ]
+    },
+    {
+      "kind": "v4-select",
+      "variant": "fr-frozen-none",
+      "caseId": "14x14-master",
+      "seedText": "ig-v4/parity/14x14-master",
+      "modes": [
+        "absent",
+        "charge",
+        "record"
+      ]
+    },
+    {
+      "kind": "v4-generate",
+      "variant": "fr-frozen-none",
+      "caseId": "12x12-nightmare",
+      "seedText": "ig-v4/replay/12x12-nightmare",
+      "quantity": 2
+    },
+    {
+      "kind": "v4-replay",
+      "variant": "fr-frozen-none",
+      "caseId": "12x12-nightmare",
+      "seedText": "ig-v4/replay/12x12-nightmare",
+      "puzzles": 2
+    }
+  ]
+}
