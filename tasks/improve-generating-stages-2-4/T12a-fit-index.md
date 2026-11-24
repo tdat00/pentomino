@@ -125,20 +125,24 @@ observation among the fitting inputs. T12b writes the record with it.
 2. Export `fitIndex({ indices = FIT_INDICES, read = (p) => readRepoFile(p), capture = FIT_CAPTURE } = {})` (pure but for
    `read`, which returns a repository file's UTF-8 text or null): returns `{ indices: [{ path, key, entries }],
    checked, captures: [{ path, sourceCommit, capturedPath, hash, index, kind: 'normalized-text' }], uncaptured: [{ path,
-   hash, index }], problems: [] }`:
+   hash, index }], problems: [] }` (`entries` the number of the index's entries, as T12b's record holds it; ruling
+   R-P24-16):
    - per index: `read(path)` null gives `missing fit index <path>`; a parse error, or a list (`field` null: the parsed
      value; else its field) that is not an array, gives `malformed fit index <path>`;
-   - per entry `e` of an index: `p` = `e.path` with `\` replaced by `/`; `want` = `e[key]`; a `want` that is not a
-     64-character lowercase hex string gives `malformed entry <p> (index <index>)`; `text = read(p)`; when `text !==
+   - per entry `e` of an index: `p` = `e.path` with `\` replaced by `/`; `want` = `e[key]`; an entry that is not an
+     object or has no string `path` (then `p` = `String(e?.path)`), or a `want` that is not a 64-character lowercase hex
+     string, gives `malformed entry <p> (index <index>)`; `text = read(p)`; when `text !==
      null` and `sha256Text(text) === want`, the entry is checked; otherwise, when `p` starts with `tools/`, `cap =
      \`${capture.dir}/${p}\`` must be readable with `sha256Text(read(cap)) === want` (then a `captures` item `{ path: p,
      sourceCommit: capture.commit, capturedPath: cap, hash: want, index, kind: 'normalized-text' }`), else `fit input <p>
      changed or missing and has no matching capture (index <index>)` and an `uncaptured` item `{ path: p, hash: want,
      index }` (T12b's capture block reads it); any other path gives `missing fit input <p> (index <index>)` (null text) or
      `fit input <p> changed (index <index>)`;
-   - per checked or captured entry whose `p` ends with `.runs.json`: every `rows[].rep` of its JSON, and whose `p` ends
-     with `/rows.jsonl`: every line's `rep`; a `rep` of 20 or more gives `fit input <p> holds rep <r>: validation, Master
-     and second-validation reps are never fitting inputs`;
+   - per checked entry (a capture is only ever of a `tools/` source, and no indexed runs file is under `tools/`) whose `p`
+     ends with `.runs.json`: every `rows[].rep` of its JSON, and whose `p` ends with `/rows.jsonl`: every line's `rep`;
+     each distinct `rep` of 20 or more, in order of first appearance, gives `fit input <p> holds rep <r>: validation,
+     Master and second-validation reps are never fitting inputs`, once for each index entry of the file; a text that
+     does not parse gives `malformed fit input <p> (index <index>)` (ruling R-P24-16);
    - `checked` the number of checked entries; the problems keep their order (indices in `indices` order, entries in file
      order).
 
