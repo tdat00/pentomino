@@ -53,7 +53,7 @@ import { linkSummary, timelineProblem } from './linkage.mjs';
 import { buildInventory, readFamilies } from './pm1-inventory.mjs';
 import { computePriorS3, familyShare, pilotShare } from './fit-prior-s3.mjs';
 import { compareSnapshot, snapshotEntries, verifySnapshot } from './snapshot.mjs';
-import { baselineVerdict, buildStepReceipt, captureStepInputs, expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, priorVerdict, replayVerdict, stage1Expectation, stage1Inputs, stage1Verdict, stepEvidence, stepExpectation } from './v4-check.mjs';
+import { baselineVerdict, buildStepReceipt, captureStepInputs, expandManifest, IDENTITY_SEEDS, identityVerdict, judgeStage1, liveExpectation, main as checkMain, parityVerdict, pm4GateEvidence, pm4Verdict, priorVerdict, replayVerdict, stage1Expectation, stage1Inputs, stage1Verdict, stepEvidence, stepExpectation } from './v4-check.mjs';
 
 const SELFTEST_DIR = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'selftest');
 const GIT_CALL = /(?:execFileSync|execSync|spawnSync|spawn|execFile|exec|fork)\(\s*['"`]git(?:\.exe)?\b|(?:^|[;|({&]|\$\(|@\()\s*&?\s*git(?:\.exe)?\s+(?:-C\s+(?:"[^"]*"|'[^']*'|\S+)\s+)?(?:rev-parse|status|log|diff|show|add|commit|push|ls-files)\b/m;
@@ -941,8 +941,12 @@ function thrownBy(fn) {
   return '';
 }
 
-/** @param {string[]} args @returns {Promise<{ code: number, out: string, err: string }>} `v4-check`'s `main` with its output captured. */
-async function runCheck(args) {
+/**
+ * @param {string[]} args
+ * @param {Parameters<typeof checkMain>[1]} [io] The seam of `main` (T09c).
+ * @returns {Promise<{ code: number, out: string, err: string }>} `v4-check`'s `main` with its output captured.
+ */
+async function runCheck(args, io = {}) {
   const { stdout, stderr } = process;
   const writes = [stdout.write, stderr.write];
   const text = { out: '', err: '' };
@@ -955,7 +959,7 @@ async function runCheck(args) {
     return true;
   });
   try {
-    return { code: await checkMain(args), ...text };
+    return { code: await checkMain(args, io), ...text };
   } finally {
     [stdout.write, stderr.write] = writes;
   }
@@ -2834,10 +2838,10 @@ const itemCases = [
       const refused = await runCheck(['accept', '--task', 'V4-T04', '--receipt', rel(w.receiptFile), '--binding', rel(existing), ...common]);
       assert(refused.code === 1 && refused.err === `v4-check: binding ${rel(existing)} exists (an accepted binding is never rewritten)\n`, `an existing binding: exit ${refused.code}, ${JSON.stringify(refused.err)}`);
       assert(before.equals(readFileSync(existing)), 'the existing binding changed');
-      w.write({ kind: 'live-deadline' });
+      w.write({ kind: 'deadline-projection' });
       const unwritten = join(w.dir, 'new-binding.json');
       const kind = await runCheck(['accept', '--task', 'V4-T04', '--receipt', rel(w.receiptFile), '--binding', rel(unwritten), ...common]);
-      assert(kind.code === 1 && kind.err === 'v4-check: accept knows the kinds stage1, parity, p0-identity\n' && !existsSync(unwritten), `another kind: exit ${kind.code}, ${JSON.stringify(kind.err)}`);
+      assert(kind.code === 1 && kind.err === 'v4-check: accept knows the kinds stage1, parity, p0-identity, live-deadline\n' && !existsSync(unwritten), `another kind: exit ${kind.code}, ${JSON.stringify(kind.err)}`);
       const label = await runCheck(['accept', '--task', 'V4-T04', '--receipt', rel(w.receiptFile), '--binding', rel(unwritten), '--by', 'x', '--label', 'selftest', '--source-label', 'x']);
       assert(label.code === 1 && label.err === 'v4-check: --label frozen only\n' && !existsSync(unwritten), `another label: exit ${label.code}, ${JSON.stringify(label.err)}`);
     },
@@ -9377,6 +9381,105 @@ const itemCases = [
         same((await run(a, ['--task', 'V4-S2', '--label', 'frozen'])).stderr, 'live-deadline: V4-S2 is a historical namespace\n', 'a historical namespace');
         same((await run(a, ['--label', 'frozen'])).stderr, 'live-deadline: receipt needs --task\n', 'no task');
         same((await run(a, ['--task', 'x'])).stderr, 'live-deadline: --label frozen only\n', 'no label');
+      } finally {
+        rmSync(abs(root), { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'live-deadline: the acceptance expectation',
+    async run() {
+      const { LIVE_ARMS, LIVE_COVERAGE, receiptCommand } = await import('./live-deadline.mjs');
+      const root = 'tests/artifacts/ig-proto/selftest/S24-T09c-dev';
+      const task = 'S24-T09c-dev';
+      const argv = ['--task', task, '--require-pass', '--label', 'frozen', '--source-label', 'self-test'];
+      /** @param {string} path @returns {any} */
+      const json = (path) => JSON.parse(readFileSync(abs(path), 'utf8'));
+      /** @param {string} name @param {(layout: any) => void} [change] @returns {Promise<any>} A passing receipt's fixture, then one change. */
+      const world = async (name, change = () => {}) => {
+        const layout = await liveFixture(`${root}/${name}`, task);
+        const code = await receiptCommand(argv, { layout, stdout: () => {}, stderr: () => {} });
+        same(code, 0, `${name}: the receipt did not pass (exit ${code})`);
+        change(layout);
+        return layout;
+      };
+      /** @param {string} path @param {(doc: any) => void} edit */
+      const edited = (path, edit) => {
+        const doc = json(path);
+        edit(doc);
+        writeJson(abs(path), doc);
+      };
+      try {
+        const layout = await world('ok');
+        const expectation = liveExpectation(task, { layout });
+        const trees = Object.fromEntries(LIVE_ARMS.map((id) => [id, readTreeInfo(id)]));
+        same(expectation.harnessHash, harnessInfo().harnessHash, 'the producer is today\'s');
+        same(expectation.arms, LIVE_ARMS.map((id) => ({ id, treeId: trees[id].treeId, paramsHash: sha256(JSON.stringify(trees[id].params)) })), 'the two arms');
+        same(expectation.params, Object.fromEntries(LIVE_ARMS.map((id) => [id, trees[id].params])), 'the params of both arms');
+        same([expectation.coverage, expectation.coverage.length], [[...LIVE_COVERAGE], 25], 'the coverage');
+        same(expectation.fields, { ...LIVE_DEADLINE_FIELDS }, 'the fields');
+        const runsPath = (/** @type {any} */ l) => `${l.runsDir}/live-14x14-nightmare.runs.json`;
+        const shardPath = (/** @type {any} */ l) => `${l.rawDir}/live-14x14-nightmare/shard.json`;
+        const twin = (/** @type {any} */ l, /** @type {string} */ id) => `${l.inputs}/${id}.ig-tree.json`;
+        const verifyCopy = (/** @type {any} */ l) => `${l.inputs}/verify-identity.json`;
+        const a = (/** @type {any} */ l) => runsPath(l);
+        /** @type {[string, (l: any) => void, (l: any) => string][]} */
+        const variants = [
+          ['(1)', (l) => edited(verifyCopy(l), (d) => { d.task = 'S24-T09c'; }), () => 'accept: the verification record is S24-T09c/frozen/v4, not V4-LIVE-verify/frozen/v4'],
+          ['(2)', (l) => edited(verifyCopy(l), (d) => { d.label = 'selftest'; }), () => 'accept: the verification record is V4-LIVE-verify/selftest/v4, not V4-LIVE-verify/frozen/v4'],
+          ['(3)', (l) => edited(twin(l, 'fr-frozen-none-live-test'), (d) => { d.treeId = 'd9'; }), () => 'accept: the verification tested another tree fr-frozen-none-live-test'],
+          ['(4)', (l) => {
+            edited(a(l), (d) => { d.meta.harness.harnessHash = 'g'; });
+            edited(shardPath(l), (d) => { d.harnessHash = 'g'; });
+          }, () => 'accept: the runs files name 2 producers'],
+          ['(5)', (l) => edited(a(l), (d) => { d.meta.harness.harnessHash = 'g'; }), (l) => `accept: runs file ${a(l)} differs from its raw shard`],
+          ['(6)', (l) => rmSync(abs(verifyCopy(l))), () => 'accept: no verification identity'],
+          ['(7)', (l) => edited(a(l), (d) => { d.meta.source.sourceDigest = 'x'; }), (l) => `accept: runs file ${a(l)} is not of the frozen source`],
+          ['(8)', (l) => edited(twin(l, 'fr-frozen-live-test'), (d) => { d.chain = d.chain.map((/** @type {string} */ c) => (c === 'fr-frozen' ? 'fr-frozen-none' : c)); }),
+            () => 'accept: the test derivative fr-frozen-live-test is not fr-frozen with w8'],
+          ['(9)', (l) => edited(twin(l, 'fr-frozen-none-live-test'), (d) => { d.edits.splice(d.edits.findIndex((/** @type {any} */ e) => e.id === 'w8-1'), 0, { id: 'x-1' }); }),
+            () => 'accept: the test derivative fr-frozen-none-live-test has an edit other than w8-1'],
+          ['(10)', (l) => edited(verifyCopy(l), (d) => { d.version = 2; }), () => 'accept: the verification identity is not ig-selftest-identity version 1'],
+        ];
+        for (const [label, change, message] of variants) {
+          const l = await world(`v${label.replace(/\D/g, '')}`, change);
+          same(thrownBy(() => liveExpectation(task, { layout: l })), message(l), label);
+        }
+      } finally {
+        rmSync(abs(root), { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'live-deadline: CLI receipt and accept',
+    async run() {
+      const { LIVE_ARMS, receiptCommand } = await import('./live-deadline.mjs');
+      const root = 'tests/artifacts/ig-proto/selftest/S24-T09c-cli';
+      const task = 'S24-T09c-cli';
+      try {
+        const layout = await liveFixture(root, task);
+        const code = await receiptCommand(['--task', task, '--require-pass', '--label', 'frozen', '--source-label', 'self-test'], { layout, stdout: () => {}, stderr: () => {} });
+        same(code, 0, 'the receipt did not pass');
+        const accepting = (/** @type {string} */ receipt, /** @type {string} */ binding) => runCheck(['accept', '--task', task, '--receipt', receipt, '--binding', binding, '--by', 'S24-T09c',
+          '--label', 'frozen', '--source-label', 'self-test'], { liveLayout: layout });
+        const first = await accepting(layout.receipt, layout.binding);
+        same([first.code, first.err], [0, ''], `the accept: ${first.err}`);
+        const bytes = readFileSync(abs(layout.binding));
+        const binding = JSON.parse(bytes.toString('utf8'));
+        same([binding.expected.kind, binding.expected.fields], ['live-deadline', { ...LIVE_DEADLINE_FIELDS }], 'the binding\'s kind and fields');
+        const current = LIVE_ARMS.map((id) => ({ id, treeId: readTreeInfo(id).treeId, paramsHash: sha256(JSON.stringify(readTreeInfo(id).params)) }));
+        same(checkAccepted(binding, { current }), { status: 'pass', reasons: [] }, 'the binding passes for today\'s two arms');
+        same(checkAccepted(binding, { current: current.map((c) => (c.id === 'fr-frozen-none' ? { ...c, treeId: 't9' } : c)) }), { status: 'incomplete', reasons: ['stale arm fr-frozen-none'] }, 'a moved arm is stale');
+        const again = await accepting(layout.receipt, layout.binding);
+        same([again.code, again.err], [1, `v4-check: binding ${layout.binding} exists (an accepted binding is never rewritten)\n`], 'the second accept');
+        assert(bytes.equals(readFileSync(abs(layout.binding))), 'the binding changed');
+        const lacking = `${layout.inputs}/verify-state.json`;
+        const receipt = JSON.parse(readFileSync(abs(layout.receipt), 'utf8'));
+        receipt.evidence = receipt.evidence.filter((/** @type {any} */ e) => e.path !== lacking);
+        writeJson(abs(`${root}/omit.json`), receipt);
+        const omitted = await accepting(`${root}/omit.json`, `${root}/omit.accepted.json`);
+        same([omitted.code, omitted.err], [1, `v4-check: the receipt's evidence index lacks ${lacking}\n`], 'the omitted mandatory input');
+        assert(!existsSync(abs(`${root}/omit.accepted.json`)), 'a binding was written for the omitted input');
       } finally {
         rmSync(abs(root), { recursive: true, force: true });
       }

@@ -141,6 +141,7 @@ node tools\ig-proto\self-test.mjs [--frozen | --items | --v4] --list --label fro
 node tools\ig-proto\fit-prior.mjs [--replace]       # recomputes data\prior-v1.json; exit 1 when it differs (unlocked)
 node tools\ig-proto\freeze.mjs check --label frozen --source-label "frozen 3fc65f4"   # unlocked (T08b): the six checks of the four frozen trees against the freeze's constants
 node tools\ig-proto\live-deadline.mjs receipt --task V4-LIVE --require-pass --label frozen --source-label "frozen 3fc65f4"   # unlocked (T09b): writes the live-deadline receipt once; run by V4-LIVE's plan only
+node tools\ig-proto\v4-check.mjs accept --task T [--step S --manifest M] --receipt R --binding B --by X --label frozen --source-label "frozen 3fc65f4"   # unlocked: writes the accepted binding of a stage1, parity, p0-identity or live-deadline receipt once (--step and --manifest for the two middle kinds only)
 node tools\ig-proto\verify.mjs --task T --arm A[,A2] --label provisional --source-label <label> --horizon-s 285   # locked
 node tools\ig-proto\compare.mjs --task T --pairs before:after --reference mp12b1 --label provisional                # unlocked
 node tools\ig-proto\compare.mjs --task IGP-03 --pairs IGP-01/before:w095,IGP-01/after:a3 --reference mp12b1 --pm4 IGP-02 --label provisional   # study
@@ -1273,11 +1274,11 @@ two functions; `v4-check.mjs` writes and checks the stage-1 binding.
   - `accept --task <T> --receipt <path> --binding <path> --by <text> --label frozen --source-label <SL>` writes the
     binding of a receipt of the kind `stage1` and prints `accepted: <receipt> sha256 <hash> -> <binding>` (exit 0); T11d
     adds the kinds `parity` and `p0-identity`, which also need `--step <S> --manifest <path>` (see "Parity and P-0
-    receipts (V4-T11d)").
+    receipts (V4-T11d)"), and T09c the kind `live-deadline`, which needs neither (see "The live-deadline receipt (T09a to T09c)").
     **A binding is written once and never rewritten**: an existing `--binding` file exits 1 (`v4-check: binding <path>
     exists (an accepted binding is never rewritten)`); another kind exits 1 (`v4-check: accept knows the kinds stage1,
-    parity, p0-identity`; N-V4-13 adds `live-deadline`); a receipt that does not bind exits 1 with the reason of
-    `stage1Expectation`, `stepExpectation` or `acceptedBinding`.
+    parity, p0-identity, live-deadline`); a receipt that does not bind exits 1 with the reason of
+    `stage1Expectation`, `stepExpectation`, `liveExpectation` or `acceptedBinding`.
   - `check-binding --binding <path> [--current <ids>] --label frozen --source-label <SL>` prints `binding: pass` (exit 0)
     or `binding: <status> (<reasons joined by '; '>)` (exit 2); `--current` builds each comma-separated variant's tree
     (`ensureTree`) and compares its `treeId` and the hash of its `params`; a missing binding is `incomplete` (`missing
@@ -1738,7 +1739,7 @@ It prints `freeze: <name> pass (<detail>)` per check, then `freeze: check pass (
 ### The live-deadline receipt (T09a to T09c)
 
 `live-deadline.mjs` holds the receipt of kind `live-deadline` (N-V4-13): it binds the live verification of S04 and the ten rows of `V4-LIVE` for both
-bounded twins. It is unlocked and rates nothing. T09a added its constants and pure checks and T09b the receipt.
+bounded twins. It is unlocked and rates nothing. T09a added its constants and pure checks, T09b the receipt and T09c its acceptance.
 
 - **The identity record.** Every self-test run (any group) writes `self-test/identity.json` after `self-test/state.json`, which keeps its format: `format`
   `ig-selftest-identity`, `version` 1, `task`, `label`, `group` (`items`, `v4`, `frozen` or `default`), `selected` (the names of the cases it ran),
@@ -1785,6 +1786,24 @@ bounded twins. It is unlocked and rates nothing. T09a added its constants and pu
 - **Self-test (T09b).** Two more cases of the `--items` group: `live-deadline: the receipt's verdicts` (`liveReceipt` on a complete synthetic input and ten one-fault
   variants) and `live-deadline: CLI receipt` (the command through its `io.layout` seam under `tests/artifacts/ig-proto/selftest/S24-T09b-dev/`: a pass, the refusal of a
   second one with no byte changed, a failing row, a missing identity and a malformed stored receipt).
+- **The acceptance** (T09c: `v4-check.mjs accept --task V4-LIVE --receipt <live-deadline.json> --binding <live-deadline.accepted.json> --by <text> --label frozen
+  --source-label <SL>`, the argument shape of `V4-LIVE`'s `accept-live` step). The kind `live-deadline` needs no `--step`, `--manifest` or new flag, as `stage1`.
+  `accept` first requires the receipt's evidence index to hold every mandatory input (`liveRequiredEvidence`: the runs files, their raw shard identities, the
+  rows' journal files, the captures, the harness and the verification copies, as `receipt` binds them) with the hash each file has now (`the receipt's evidence
+  index lacks <path>`, `the receipt's evidence <path> changed`), so a receipt with `evidence: []` is refused. Then `liveExpectation(task)` builds the expectation
+  apart from the receipt, from the freeze record, the captured `ig-tree.json` copies, the published runs files with their raw shard identities and the copy of the
+  verification identity, never from a tree folder or today's harness, and throws `accept: <reason>` at the first problem: no freeze record or no identity of an arm
+  in it; no captured tree or a copy that differs from the freeze record; no published rows; a runs file not of the frozen source, of another tree or differing
+  from its raw shard (or without one); runs files of more than one producer (that producer is the expectation's `harnessHash`); a missing, mistyped or incomplete
+  verification identity; a verification record that is not `V4-LIVE-verify/frozen/v4`, ran another producer or source, or tested another tree than the freeze's
+  arms or the captured twins; a twin that is not its frozen parent with `w8` (`twinDerivationProblems`). The expectation's `arms` are the two frozen arms and its
+  `fields` are `LIVE_DEADLINE_FIELDS`, which is what `V4-S4`'s prerequisite reads from the binding; `checkAccepted` then compares today's trees of the two arms.
+  `accept(argv, io)` and `main(argv, io)` take an optional `io` (`{ liveLayout }`, the layout of `liveLayout(task, base)`) that no command line passes: the seam of
+  the self-test.
+- **Self-test (T09c).** Two more cases of the `--items` group: `live-deadline: the acceptance expectation` (`liveExpectation` on a passing synthetic receipt's
+  inputs and ten one-change variants) and `live-deadline: CLI receipt and accept` (`main(['accept', ...])` with `V4-LIVE`'s argument shape under
+  `tests/artifacts/ig-proto/selftest/S24-T09c-cli/`: the binding of a passing receipt, `checkAccepted` for the two arms and for a moved one, the refusal of a second
+  accept and of a receipt whose index lacks a mandatory input).
 
 ## Admission statistics (V4-T09a)
 

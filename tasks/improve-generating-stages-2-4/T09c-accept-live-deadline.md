@@ -186,13 +186,13 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-24 06:48 +07:00 (dispatch, base `5f3e9a3`); 2026-11-24 07:01 +07:00 (accepted); 14 min. The developer reported 06:48:08-06:53 and, after the ruling, -06:59:14 |
+| Waiting for rulings | about 5 min (QUESTION 1 at 06:53, ruling relayed about 06:58) |
+| Agent id, model | `b4db4924-803f-43f7-8ac4-707db651428d`, claude-sonnet-5.5 (Dev-Sonnet) |
+| Calls; input, output and cache-read tokens | 44 calls; 4,437,218 input, 37,437 output, 4,319,777 cache-read tokens |
+| AI credits | 109.99 (developer only) |
+| Questions and rulings | QUESTION 1 (the existing case `accept: a binding is never rewritten` used `live-deadline` as its unknown kind): ruling R-P24-15 by SA-Opus, option (a) with the kind `deadline-projection` and the new refusal text listing `live-deadline`; the six open details accepted; pack amendment `b6f4eaa` |
+| Fix rounds | 0 (the ruling round only) |
+| Gates re-run by the orchestrator | `self-test --items --task S24-T09c-orch`: 231 passed, 0 failed (49 s; cases 230, 231 PASS); no `S24-T09c-*` scratch folder; P-0 `check-binding`: pass; `check-prerequisites --plan V4-LIVE`: blocked on `freeze.json` only, as expected; `firewall check --task S24-T09c`: OK, 289 files; `npm run check` OK; G1, G2 empty; G3 the three Scope files |
+| Commit | this task's commit |
+| Issues and named items | the first real acceptance is V4-LIVE's `accept-live` (S04), after T12b writes `freeze.json` |

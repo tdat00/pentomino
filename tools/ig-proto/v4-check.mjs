@@ -30,7 +30,8 @@ import { isDeepStrictEqual } from 'node:util';
 
 import { identityHash, manifestHash, readItemLog, runItems } from './lib/items.mjs';
 import { abs, artifactDir, evidenceDir, FROZEN_COMMIT, FROZEN_DIGEST, parseArgs, rel, ROOT } from './lib/paths.mjs';
-import { acceptedBinding, checkAccepted, proofEnvelope, readRepoFile, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
+import { acceptedBinding, checkAccepted, LIVE_DEADLINE_FIELDS, proofEnvelope, readRepoFile, STAGE1_COVERAGE_EXTRA } from './lib/proof.mjs';
+import { LIVE_ARMS, LIVE_COVERAGE, LIVE_ROWS, LIVE_TWINS, LIVE_VERIFY_TASK, liveEvidencePaths, liveLayout, twinDerivationProblems } from './live-deadline.mjs';
 import { banner, buildMeta, harnessInfo, readTreeInfo, sha256, sha256File, sourceDigest, writeJson, writeText } from './lib/records.mjs';
 import { caseBoard } from './lib/sets.mjs';
 import { collectSources, ensureTree, listVariants, planTree } from './lib/tree.mjs';
@@ -1205,6 +1206,180 @@ export function stepExpectation(task, step, manifestPath, kind, evidenceOf = ste
   return { harnessHash, arms, params, coverage, fields: { blocks } };
 }
 
+/** @param {string} path Repository-relative. @returns {string[]} The sorted names of the folder; none when it is absent. */
+const listRepoDir = (path) => (existsSync(abs(path)) ? readdirSync(abs(path)).sort() : []);
+
+/** @param {unknown} value @returns {value is Record<string, any>} */
+const isPlainObject = (value) => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * @param {(path: string) => string | null} readFile
+ * @param {string} path Repository-relative.
+ * @returns {any} The parsed JSON file; null when it is absent or does not parse.
+ */
+function readJsonWith(readFile, path) {
+  const text = readFile(path);
+  if (text === null) {
+    return null;
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+/** @param {unknown} shard @returns {boolean} Whether a shard name is safe as a path part. */
+const safeShard = (shard) => typeof shard === 'string' && /^[A-Za-z0-9._~-]+$/.test(shard);
+
+/**
+ * The expectation of the accepted binding of a live-deadline receipt (T09c, RV3-06): read from the freeze record, the
+ * captured copies, the published runs files and their raw shard identities, never from the receipt, a tree folder or
+ * today's harness. It throws `accept: <reason>` at the first problem.
+ * @param {string} task
+ * @param {{ layout?: ReturnType<typeof liveLayout>, readFile?: (path: string) => string | null, listDir?: (path: string) => string[] }} [io]
+ * @returns {{ harnessHash: string, arms: { id: string, treeId: string, paramsHash: string }[],
+ *   params: Record<string, unknown>, coverage: string[], fields: Record<string, unknown> }}
+ */
+export function liveExpectation(task, { layout = liveLayout(task), readFile = readRepoFile, listDir = listRepoDir } = {}) {
+  const fail = (/** @type {string} */ reason) => new Error(`accept: ${reason}`);
+  const freeze = readJsonWith(readFile, layout.freeze);
+  if (!isPlainObject(freeze) || !isPlainObject(freeze.variants)) {
+    throw fail(`no freeze record with variants (${layout.freeze})`);
+  }
+  /** @type {{ id: string, treeId: string, paramsHash: string }[]} */
+  const arms = [];
+  /** @type {Record<string, any>} */
+  const params = {};
+  /** @type {Record<string, any>} */
+  const copies = {};
+  for (const id of LIVE_ARMS) {
+    const frozen = freeze.variants[id];
+    if (!isPlainObject(frozen)) {
+      throw fail(`the freeze record has no identity of ${id}`);
+    }
+    const copy = readJsonWith(readFile, `${layout.inputs}/${id}.ig-tree.json`);
+    if (!isPlainObject(copy)) {
+      throw fail(`no captured tree metadata for ${id}`);
+    }
+    if (copy.treeId !== frozen.treeId || sha256(JSON.stringify(copy.params)) !== frozen.paramsHash) {
+      throw fail(`the captured tree ${id} differs from the freeze record`);
+    }
+    copies[id] = copy;
+    arms.push({ id, treeId: copy.treeId, paramsHash: frozen.paramsHash });
+    params[id] = copy.params;
+  }
+  const names = listDir(layout.runsDir).filter((name) => name.endsWith('.runs.json'));
+  if (names.length === 0) {
+    throw fail('no published rows');
+  }
+  /** @type {Set<string | null>} */
+  const producers = new Set();
+  for (const name of names) {
+    const path = `${layout.runsDir}/${name}`;
+    const doc = readJsonWith(readFile, path) ?? {};
+    if (doc.meta?.source?.frozenCommit !== FROZEN_COMMIT || doc.meta?.source?.sourceDigest !== FROZEN_DIGEST) {
+      throw fail(`runs file ${path} is not of the frozen source`);
+    }
+    const tree = doc.meta?.trees?.['fr-frozen'];
+    const frozen = freeze.variants['fr-frozen'];
+    if (!isPlainObject(tree) || tree.treeId !== frozen.treeId || sha256(JSON.stringify(tree.params)) !== frozen.paramsHash) {
+      throw fail(`rows of another tree ${path}`);
+    }
+    const raw = safeShard(doc.shard) ? readJsonWith(readFile, `${layout.rawDir}/${doc.shard}/shard.json`) : null;
+    if (!isPlainObject(raw)) {
+      throw fail(`no raw shard identity ${doc.shard}`);
+    }
+    if (raw.treeId !== tree.treeId || raw.copyDigest !== tree.copyDigest || raw.harnessHash !== doc.meta?.harness?.harnessHash) {
+      throw fail(`runs file ${path} differs from its raw shard`);
+    }
+    producers.add(typeof doc.meta?.harness?.harnessHash === 'string' ? doc.meta.harness.harnessHash : null);
+  }
+  const [harnessHash] = [...producers];
+  if (producers.size !== 1 || typeof harnessHash !== 'string') {
+    throw fail(`the runs files name ${producers.has(null) && producers.size === 1 ? 0 : producers.size} producers`);
+  }
+  const identity = readJsonWith(readFile, `${layout.inputs}/verify-identity.json`);
+  if (!isPlainObject(identity)) {
+    throw fail('no verification identity');
+  }
+  if (identity.format !== 'ig-selftest-identity' || identity.version !== 1) {
+    throw fail('the verification identity is not ig-selftest-identity version 1');
+  }
+  for (const [field, ok] of /** @type {[string, boolean][]} */ ([
+    ['selected', Array.isArray(identity.selected)], ['harnessHash', typeof identity.harnessHash === 'string'],
+    ['startedAt', typeof identity.startedAt === 'string'], ['endedAt', typeof identity.endedAt === 'string'], ['trees', isPlainObject(identity.trees)],
+  ])) {
+    if (!ok) {
+      throw fail(`the verification identity lacks ${field}`);
+    }
+  }
+  if (!(identity.task === LIVE_VERIFY_TASK && identity.label === 'frozen' && identity.group === 'v4')) {
+    throw fail(`the verification record is ${identity.task}/${identity.label}/${identity.group}, not ${LIVE_VERIFY_TASK}/frozen/v4`);
+  }
+  if (identity.harnessHash !== harnessHash) {
+    throw fail('the verification ran another producer');
+  }
+  if (identity.frozenCommit !== FROZEN_COMMIT || identity.sourceDigest !== FROZEN_DIGEST) {
+    throw fail('the verification ran another source');
+  }
+  for (const id of LIVE_ARMS) {
+    const tested = identity.trees[id];
+    const frozen = freeze.variants[id];
+    if (!isPlainObject(tested) || tested.treeId !== frozen.treeId || tested.paramsHash !== frozen.paramsHash) {
+      throw fail(`the verification tested another tree ${id}`);
+    }
+  }
+  /** @type {Record<string, any>} */
+  const twins = {};
+  for (const id of LIVE_TWINS) {
+    const copy = readJsonWith(readFile, `${layout.inputs}/${id}.ig-tree.json`);
+    if (!isPlainObject(copy)) {
+      throw fail(`no captured tree metadata for ${id}`);
+    }
+    if (!isPlainObject(identity.trees[id]) || identity.trees[id].treeId !== copy.treeId) {
+      throw fail(`the verification tested another tree ${id}`);
+    }
+    twins[id] = copy;
+  }
+  const [problem] = twinDerivationProblems(copies, twins);
+  if (problem !== undefined) {
+    throw fail(problem);
+  }
+  return { harnessHash, arms, params, coverage: [...LIVE_COVERAGE], fields: { ...LIVE_DEADLINE_FIELDS } };
+}
+
+/**
+ * The evidence index a live-deadline receipt must hold (T09c): the runs files, their raw shard identities and the journal
+ * files of the ten rows (the files T09b's `receipt` reads and binds, without the row identity files, R-P24-14), then the
+ * captured copies, the harness and the verification. A receipt whose index lacks one is not accepted (SA-Astra's review R13).
+ * @param {string} task
+ * @param {{ layout?: ReturnType<typeof liveLayout>, readFile?: (path: string) => string | null, listDir?: (path: string) => string[] }} [io]
+ * @returns {string[]}
+ */
+export function liveRequiredEvidence(task, { layout = liveLayout(task), readFile = readRepoFile, listDir = listRepoDir } = {}) {
+  const runs = listDir(layout.runsDir).filter((name) => name.endsWith('.runs.json')).map((name) => {
+    const path = `${layout.runsDir}/${name}`;
+    const doc = readJsonWith(readFile, path);
+    return { path, shard: String(isPlainObject(doc) ? doc.shard : undefined), doc };
+  });
+  /** @type {string[]} */
+  const journalFiles = [];
+  for (const key of LIVE_ROWS) {
+    const owner = runs.find(({ doc }) => isPlainObject(doc) && Array.isArray(doc.rows) && doc.rows.some((/** @type {any} */ r) => isPlainObject(r) && r.rowKey === key));
+    if (owner === undefined || !safeShard(owner.shard)) {
+      continue;
+    }
+    const logs = `${layout.rawDir}/${owner.shard}/logs`;
+    for (const name of listDir(logs)) {
+      if (name.startsWith(`${key}.`) && name.endsWith('.jsonl') && !name.endsWith('.row.jsonl')) {
+        journalFiles.push(`${logs}/${name}`);
+      }
+    }
+  }
+  return liveEvidencePaths(layout, { runs: runs.map(({ path, shard }) => ({ path, shard })), journalFiles });
+}
+
 /**
  * The source facts of the `source` block.
  * @returns {Promise<{ snapshotOk: boolean, digestEqual: boolean, variants: Record<string, string[]> }>}
@@ -1563,12 +1738,15 @@ async function evidenceCheck(argv) {
 
 /**
  * `accept --task <T> [--step <S> --manifest <path>] --receipt <path> --binding <path> --by <text> --label frozen --source-label <SL>`
- * (T04f, T11d): writes the accepted binding of a passing receipt of the kind `stage1`, `parity` or `p0-identity`, once.
- * The two later kinds need `--step` and `--manifest`: their expectation comes from the step's stored identity and its manifest.
+ * (T04f, T11d, T09c): writes the accepted binding of a passing receipt of the kind `stage1`, `parity`, `p0-identity` or
+ * `live-deadline`, once. The two middle kinds need `--step` and `--manifest`: their expectation comes from the step's stored
+ * identity and its manifest. The `live-deadline` kind needs neither: its expectation comes from the freeze record, the captured
+ * copies and the published runs files (`liveExpectation`), and its evidence index must hold every mandatory input.
  * @param {string[]} argv The arguments after `accept`.
+ * @param {{ liveLayout?: ReturnType<typeof liveLayout> }} [io] A test seam: the layout of a live-deadline receipt (no command line passes it).
  * @returns {Promise<number>} 0 once the binding is written; 1 for a refused command or a receipt that does not bind.
  */
-async function accept(argv) {
+async function accept(argv, io = {}) {
   const { args } = parseArgs(argv, { values: ['task', 'step', 'manifest', 'receipt', 'binding', 'by', 'label', 'source-label'] });
   if (args.label !== 'frozen') {
     return refuse('--label frozen only');
@@ -1592,13 +1770,27 @@ async function accept(argv) {
   } catch {
     return refuse(`unreadable receipt ${receiptPath}`);
   }
-  if (!['stage1', ...RECEIPT_KINDS].includes(receipt?.kind)) {
-    return refuse('accept knows the kinds stage1, parity, p0-identity');
+  if (!['stage1', 'live-deadline', ...RECEIPT_KINDS].includes(receipt?.kind)) {
+    return refuse('accept knows the kinds stage1, parity, p0-identity, live-deadline');
   }
-  if (receipt.kind !== 'stage1' && (args.step === undefined || args.manifest === undefined)) {
+  if (!['stage1', 'live-deadline'].includes(receipt.kind) && (args.step === undefined || args.manifest === undefined)) {
     return refuse(`accept needs --step and --manifest for a ${receipt.kind} receipt`);
   }
-  const expectation = receipt.kind === 'stage1' ? stage1Expectation(args.task) : stepExpectation(args.task, args.step, args.manifest, receipt.kind);
+  if (receipt.kind === 'live-deadline') {
+    const layout = io.liveLayout ?? liveLayout(args.task);
+    const listed = new Map((Array.isArray(receipt.evidence) ? receipt.evidence : []).map((/** @type {any} */ e) => [e?.path, e?.sha256]));
+    for (const path of liveRequiredEvidence(args.task, { layout })) {
+      if (!listed.has(path)) {
+        return refuse(`the receipt's evidence index lacks ${path}`);
+      }
+      if (!existsSync(abs(path)) || sha256File(abs(path)) !== listed.get(path)) {
+        return refuse(`the receipt's evidence ${path} changed`);
+      }
+    }
+  }
+  const expectation = receipt.kind === 'stage1' ? stage1Expectation(args.task)
+    : receipt.kind === 'live-deadline' ? liveExpectation(args.task, { layout: io.liveLayout ?? liveLayout(args.task) })
+      : stepExpectation(args.task, args.step, args.manifest, receipt.kind);
   const binding = acceptedBinding({ receiptPath, ...expectation, by: args.by });
   writeJson(abs(bindingPath), binding);
   process.stdout.write(`accepted: ${receiptPath} sha256 ${binding.receipt.sha256} -> ${bindingPath}\n`);
@@ -1844,15 +2036,16 @@ async function prepareRun(argv) {
  *   3 for a refused resume; `summary` and `prior-verdict`: 0 once the record is written; `pm4-gate` and `check-binding`: 0 only on
  *   `pass`, else 2; `evidence-check`: 0 when nothing changed, else 2; `accept`: 0 once the binding is written; `receipt`: 0 once
  *   the receipt is written, and with `--require-pass` 2 when its verdict is not `pass`).
+ * @param {{ liveLayout?: ReturnType<typeof liveLayout> }} [io] A test seam passed to the subcommand (no command line passes it).
  */
-export async function main(argv) {
+export async function main(argv, io = {}) {
   const [command, ...rest] = argv;
-  const subcommands = /** @type {Record<string, (argv: string[]) => Promise<number>>} */ ({
+  const subcommands = /** @type {Record<string, (argv: string[], io?: { liveLayout?: ReturnType<typeof liveLayout> }) => Promise<number>>} */ ({
     summary, 'pm4-gate': pm4Gate, 'evidence-check': evidenceCheck, accept, receipt: receiptCommand, 'check-binding': checkBinding, 'prior-verdict': priorCommand,
   });
   if (command !== undefined && Object.hasOwn(subcommands, command)) {
     try {
-      return await subcommands[command](rest);
+      return await subcommands[command](rest, io);
     } catch (e) {
       return refuse(cleanMessage(e).replace(/^v4-check: /, ''));
     }

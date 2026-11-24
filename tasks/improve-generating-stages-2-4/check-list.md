@@ -50,7 +50,7 @@ at that time, asks the owner on Discord, and the plan waits for his answer.
 - [x] T08c The frozen family's real-call and live cases on the frozen trees (depends on T08b)
 - [x] T09a The live verification's identity record and the live-deadline row and verification checks (depends on T08c)
 - [x] T09b The live-deadline receipt (`live-deadline.mjs receipt`) (depends on T09a)
-- [ ] T09c The `live-deadline` kind of `v4-check accept` (depends on T09b)
+- [x] T09c The `live-deadline` kind of `v4-check accept` (depends on T09b)
 - [ ] T10 The plan `V4-S3P` (depends on T09c)
 - [ ] S03 Run `V4-S3P` (orchestrator; **STOP: the owner approves the four proofs' cap at their gate**; the 20 Hell 1 rows are approved, D-S24-27) (depends on T10)
 - [ ] T11 The SAs' reading of `V4-S3P` and `V4-S2B`: the read gate of D-S24-24 (SA-Opus and SA-Astra; may stop for a joint SA ruling and the owner) (depends on S03, S01, T02d)
@@ -623,7 +623,7 @@ the collection, each once (T12b checks it; `activate` refuses otherwise and writ
 | T08c | 2026-11-24 05:55 | 2026-11-24 06:02 | about 10 min | 55.24 | this task's commit |
 | T09a | 2026-11-24 06:03 | 2026-11-24 06:23 | 20 min | 141.50 | this task's commit |
 | T09b | 2026-11-24 06:23 | 2026-11-24 06:47 | 25 min | 185.73 | this task's commit |
-| T09c | | | | | |
+| T09c | 2026-11-24 06:48 | 2026-11-24 07:01 | 14 min | 109.99 | this task's commit |
 | T10 | | | | | |
 | S03 | | | | | |
 | T11 | | | | | |
