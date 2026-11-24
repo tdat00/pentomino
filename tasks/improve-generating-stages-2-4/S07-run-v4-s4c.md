@@ -148,10 +148,10 @@ questions and rulings; the deviations; and the named items for later.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Owner's answer (date, message id) | |
-| Approval re-read (line; cap on the account) | |
-| Counted minutes of the run; the round's final account | |
-| Phase-0 line | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | approval re-read 19:12 +07:00; SA reading (R-P24-19) 19:13-19:58; owner stop 19:58-20:04; runner launched 20:05:50, finished 22:47 (exit 0); about 2 h 42 min of run |
+| Owner's answer (date, message id) | (a), 2026-11-24 20:04:31 +07:00, Discord ai-ws-1 message 1574772706199732236 ("q-s07 a"), asked in message 1574771959026421935 with the SAs' joint text (s06-reading.md §6, R-P24-19): measurement approval only |
+| Approval re-read (line; cap on the account) | `{"plan":"V4-S4C","spentS":42514.439,"assumedEarlierGuardS":0,"roundCountedSBeforeApproval":42514.439,"requestedAdditionalGuardS":43921.28276965763,"requestedCumulativeRoundMinutes":1441}`; cap ceil((42514.439 + 87.4 + 43921.283) / 60) = 1,443, within the grant 1,725; prerequisites pass; dry run `-ApprovedRoundMinutes 1723`: 8 unlocked, 19 go, 0 stop, forecast 35,137 s |
+| Counted minutes of the run; the round's final account | 9,670.158 s (161.17 min) in 23 invocations (19 locked steps), all exit 0, none killed, quietS 45, horizonS at most 885 (first invocation rows-fr-frozen-uncapped-val-14x14-nightmare: 45 / 885). Round final account 52,184.597 s logged + 87.4 s off-log = 52,271.997 s = 871.2 of 1,725 counted minutes |
+| Phase-0 line | `Phase 0: FAIL (control 26x26-nightmare: fail)` (V4-S4F/verdicts.md, purpose final; 5 arms, 99 runs files, 19 P5 pairs; declared rows 1120, published 1500, missing 0); class verdicts unchanged from V4-S4; P5 over the 19 declared pairs: 0 false stops, 0 unknown, 0 unexpected rows; lost completions 0 except 14x14-hell-1: 2; 19 shards published (fr-frozen-uncapped 3, fr-frozen-none-uncapped 16) |
+| Commit | this task's commit |
+| Issues and named items | none new; the FAIL and the 26x26 decision go to T16 (R-P24-19); `firewall: OK`; G1, G2 empty; the harness window (D-V4-20) closes with this final verdict |
