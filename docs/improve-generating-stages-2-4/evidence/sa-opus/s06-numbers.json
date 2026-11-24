@@ -1,0 +1,581 @@
+{
+  "script": "docs/improve-generating-stages-2-4/evidence/sa-opus/s06-numbers.mjs",
+  "manifest": {
+    "quantity": 10,
+    "capMs": 120000,
+    "resamples": 10000,
+    "resampleSeed": 20261116,
+    "reps": [
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39
+    ]
+  },
+  "controls": [
+    {
+      "cell": "3x29-nightmare",
+      "class": "n-small",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "recorded": {
+        "geoMean": 1.0591869954057995,
+        "lower": 0.9472801890051681,
+        "pass": true
+      },
+      "reproduced": {
+        "geoMean": 1.0591869954057995,
+        "lower": 0.9472801890051681,
+        "pass": true
+      },
+      "same": true,
+      "logSd": 0.4025944641461532,
+      "gmNeededFor09": 1.0100630759446652,
+      "passChanceAtParity": 0.45571896575746185,
+      "p95TodayS": 8.7766067,
+      "p95ShippedS": 6.4003214,
+      "screenAgainstToday": {
+        "geoMean": 1.0473035289132737,
+        "lower": 0.9375449902496422
+      }
+    },
+    {
+      "cell": "10x10-nightmare",
+      "class": "n-small",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "recorded": {
+        "geoMean": 1.522135163994111,
+        "lower": 1.317266804579746,
+        "pass": true
+      },
+      "reproduced": {
+        "geoMean": 1.522135163994111,
+        "lower": 1.317266804579746,
+        "pass": true
+      },
+      "same": true,
+      "logSd": 0.5030976177291846,
+      "gmNeededFor09": 1.0395775393939104,
+      "passChanceAtParity": 0.36503628001809707,
+      "p95TodayS": 55.8742575,
+      "p95ShippedS": 29.6597792,
+      "screenAgainstToday": {
+        "geoMean": 1.5350956607459267,
+        "lower": 1.3274704929688568
+      }
+    },
+    {
+      "cell": "18x18-nightmare",
+      "class": "n-upper",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "recorded": {
+        "geoMean": 2.001212907181786,
+        "lower": 1.6984165142524623,
+        "pass": true
+      },
+      "reproduced": {
+        "geoMean": 2.001212907181786,
+        "lower": 1.6984165142524623,
+        "pass": true
+      },
+      "same": true,
+      "logSd": 0.5922549253369199,
+      "gmNeededFor09": 1.0664811955616167,
+      "passChanceAtParity": 0.3134767195431263,
+      "p95TodayS": 120,
+      "p95ShippedS": 29.837636,
+      "screenAgainstToday": {
+        "geoMean": 3.732441003581245,
+        "lower": 3.095534119306123
+      }
+    },
+    {
+      "cell": "18x20-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "recorded": {
+        "geoMean": 1.6591288062801857,
+        "lower": 1.4374145194731394,
+        "pass": true
+      },
+      "reproduced": {
+        "geoMean": 1.6591288062801857,
+        "lower": 1.4374145194731394,
+        "pass": true
+      },
+      "same": true,
+      "logSd": 0.5120403517509075,
+      "gmNeededFor09": 1.042245143133881,
+      "passChanceAtParity": 0.358905404675257,
+      "p95TodayS": 85.00716779999999,
+      "p95ShippedS": 34.3729309,
+      "screenAgainstToday": {
+        "geoMean": 2.8818571036308227,
+        "lower": 2.356673460211553
+      }
+    },
+    {
+      "cell": "20x20-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "recorded": {
+        "geoMean": 2.088863267833705,
+        "lower": 1.7329615831517327,
+        "pass": true
+      },
+      "reproduced": {
+        "geoMean": 2.088863267833705,
+        "lower": 1.7329615831517327,
+        "pass": true
+      },
+      "same": true,
+      "logSd": 0.6673129460088404,
+      "gmNeededFor09": 1.089669391302068,
+      "passChanceAtParity": 0.28247497069405414,
+      "p95TodayS": 73.6913815,
+      "p95ShippedS": 24.2193921,
+      "screenAgainstToday": {
+        "geoMean": 3.7928452694323633,
+        "lower": 3.0564181785124704
+      }
+    },
+    {
+      "cell": "20x21-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "recorded": {
+        "geoMean": 1.5839811431116972,
+        "lower": 1.3792986276058001,
+        "pass": true
+      },
+      "reproduced": {
+        "geoMean": 1.5839811431116972,
+        "lower": 1.3792986276058001,
+        "pass": true
+      },
+      "same": true,
+      "logSd": 0.5083360124500047,
+      "gmNeededFor09": 1.041139314977268,
+      "passChanceAtParity": 0.36141453127233647,
+      "p95TodayS": 96.2292762,
+      "p95ShippedS": 25.345622499999998,
+      "screenAgainstToday": {
+        "geoMean": 2.746987998172864,
+        "lower": 2.2956793717461617
+      }
+    },
+    {
+      "cell": "32x15-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "recorded": {
+        "geoMean": 1.0539507622469275,
+        "lower": 0.9126590989538331,
+        "pass": true
+      },
+      "reproduced": {
+        "geoMean": 1.0539507622469275,
+        "lower": 0.9126590989538331,
+        "pass": true
+      },
+      "same": true,
+      "logSd": 0.5107235699275032,
+      "gmNeededFor09": 1.0418519198147824,
+      "passChanceAtParity": 0.35979246537476617,
+      "p95TodayS": 40.0604485,
+      "p95ShippedS": 25.5973969,
+      "screenAgainstToday": {
+        "geoMean": 1.6934439595315933,
+        "lower": 1.464555993632626
+      }
+    },
+    {
+      "cell": "22x22-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "recorded": {
+        "geoMean": 1.155386821595929,
+        "lower": 1.0388096227711745,
+        "pass": true
+      },
+      "reproduced": {
+        "geoMean": 1.155386821595929,
+        "lower": 1.0388096227711745,
+        "pass": true
+      },
+      "same": true,
+      "logSd": 0.37594063510941705,
+      "gmNeededFor09": 1.00237729464507,
+      "passChanceAtParity": 0.48873276523919607,
+      "p95TodayS": 31.6018529,
+      "p95ShippedS": 19.1825377,
+      "screenAgainstToday": {
+        "geoMean": 1.5903840254744814,
+        "lower": 1.4315651389420803
+      }
+    },
+    {
+      "cell": "24x24-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "recorded": {
+        "geoMean": 1.2433695406496388,
+        "lower": 1.1271388877754354,
+        "pass": true
+      },
+      "reproduced": {
+        "geoMean": 1.2433695406496388,
+        "lower": 1.1271388877754354,
+        "pass": true
+      },
+      "same": true,
+      "logSd": 0.3680504114806476,
+      "gmNeededFor09": 1.0001133431031324,
+      "passChanceAtParity": 0.4994505966958227,
+      "p95TodayS": 43.568093700000006,
+      "p95ShippedS": 23.8768645,
+      "screenAgainstToday": {
+        "geoMean": 1.7759166987060835,
+        "lower": 1.566366997233606
+      }
+    },
+    {
+      "cell": "26x26-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "recorded": {
+        "geoMean": 1.0006219645915206,
+        "lower": 0.886429539656821,
+        "pass": false
+      },
+      "reproduced": {
+        "geoMean": 1.0006219645915206,
+        "lower": 0.886429539656821,
+        "pass": false
+      },
+      "same": true,
+      "logSd": 0.43861384948113685,
+      "gmNeededFor09": 1.0205431817380366,
+      "passChanceAtParity": 0.4178732962503937,
+      "p95TodayS": 26.398446600000003,
+      "p95ShippedS": 26.1594208,
+      "screenAgainstToday": {
+        "geoMean": 1.4665780100036852,
+        "lower": 1.2929807789805263
+      }
+    }
+  ],
+  "cell26": {
+    "perSeed": [
+      {
+        "rep": 20,
+        "todayMs": 15823.9373,
+        "shippedMs": 16887.719599999997,
+        "screenMs": 9168.774000000001,
+        "ratio": 0.9370085289668122,
+        "screenRatio": 1.7258509480111515
+      },
+      {
+        "rep": 21,
+        "todayMs": 13972.7132,
+        "shippedMs": 38919.1043,
+        "screenMs": 18277.996499999997,
+        "ratio": 0.3590193929514457,
+        "screenRatio": 0.7644554040701343
+      },
+      {
+        "rep": 22,
+        "todayMs": 15248.027399999999,
+        "shippedMs": 19002.1459,
+        "screenMs": 7939.3623,
+        "ratio": 0.8024371289560512,
+        "screenRatio": 1.920560723120042
+      },
+      {
+        "rep": 23,
+        "todayMs": 21661.8963,
+        "shippedMs": 23775.123099999997,
+        "screenMs": 11357.926200000002,
+        "ratio": 0.911116052223511,
+        "screenRatio": 1.9072052343499113
+      },
+      {
+        "rep": 24,
+        "todayMs": 8701.8151,
+        "shippedMs": 11319.109400000001,
+        "screenMs": 11073.1517,
+        "ratio": 0.7687720643463344,
+        "screenRatio": 0.7858480887604926
+      },
+      {
+        "rep": 25,
+        "todayMs": 10242.9005,
+        "shippedMs": 7013.796399999999,
+        "screenMs": 9539.2241,
+        "ratio": 1.4603931901986777,
+        "screenRatio": 1.0737666284619523
+      },
+      {
+        "rep": 26,
+        "todayMs": 9919.217400000001,
+        "shippedMs": 13592.6455,
+        "screenMs": 9434.6056,
+        "ratio": 0.7297488483753954,
+        "screenRatio": 1.0513653480120038
+      },
+      {
+        "rep": 27,
+        "todayMs": 18124.9324,
+        "shippedMs": 15906.0846,
+        "screenMs": 10588.2676,
+        "ratio": 1.1394967935729452,
+        "screenRatio": 1.711793948237576
+      },
+      {
+        "rep": 28,
+        "todayMs": 9116.776,
+        "shippedMs": 16635.7473,
+        "screenMs": 9487.1139,
+        "ratio": 0.5480232318748915,
+        "screenRatio": 0.9609641136489359
+      },
+      {
+        "rep": 29,
+        "todayMs": 8712.055900000001,
+        "shippedMs": 7167.4071,
+        "screenMs": 5153.897400000001,
+        "ratio": 1.2155101249934583,
+        "screenRatio": 1.6903820980215865
+      },
+      {
+        "rep": 30,
+        "todayMs": 19402.8369,
+        "shippedMs": 16545.9882,
+        "screenMs": 10867.690799999998,
+        "ratio": 1.1726611106854288,
+        "screenRatio": 1.7853688752352064
+      },
+      {
+        "rep": 31,
+        "todayMs": 16643.785499999998,
+        "shippedMs": 15605.8332,
+        "screenMs": 8361.0514,
+        "ratio": 1.0665105340226242,
+        "screenRatio": 1.9906330799497294
+      },
+      {
+        "rep": 32,
+        "todayMs": 26398.446600000003,
+        "shippedMs": 9525.491399999999,
+        "screenMs": 8113.3703000000005,
+        "ratio": 2.771347481348837,
+        "screenRatio": 3.2536967528771616
+      },
+      {
+        "rep": 33,
+        "todayMs": 14872.4974,
+        "shippedMs": 14161.0932,
+        "screenMs": 10132.5155,
+        "ratio": 1.0502365311740198,
+        "screenRatio": 1.4677991264854222
+      },
+      {
+        "rep": 34,
+        "todayMs": 26278.532499999998,
+        "shippedMs": 15307.5785,
+        "screenMs": 14548.4031,
+        "ratio": 1.7167008158736536,
+        "screenRatio": 1.8062829521131427
+      },
+      {
+        "rep": 35,
+        "todayMs": 16060.5435,
+        "shippedMs": 13413.5942,
+        "screenMs": 9283.2464,
+        "ratio": 1.1973333366533483,
+        "screenRatio": 1.730056793494138
+      },
+      {
+        "rep": 36,
+        "todayMs": 23257.2062,
+        "shippedMs": 18429.0558,
+        "screenMs": 14401.7754,
+        "ratio": 1.261985771403438,
+        "screenRatio": 1.6148846620674282
+      },
+      {
+        "rep": 37,
+        "todayMs": 11237.5382,
+        "shippedMs": 18990.1359,
+        "screenMs": 10840.4515,
+        "ratio": 0.5917565971710608,
+        "screenRatio": 1.0366300887006414
+      },
+      {
+        "rep": 38,
+        "todayMs": 34631.3433,
+        "shippedMs": 26159.4208,
+        "screenMs": 10239.261999999999,
+        "ratio": 1.323857418892088,
+        "screenRatio": 3.3822108761354093
+      },
+      {
+        "rep": 39,
+        "todayMs": 10909.074499999999,
+        "shippedMs": 12190.152800000002,
+        "screenMs": 18432.581700000002,
+        "ratio": 0.8949087578295161,
+        "screenRatio": 0.5918364924431609
+      }
+    ],
+    "slowest": [
+      {
+        "rep": 21,
+        "todayMs": 13972.7132,
+        "shippedMs": 38919.1043,
+        "screenMs": 18277.996499999997,
+        "ratio": 0.3590193929514457,
+        "screenRatio": 0.7644554040701343
+      },
+      {
+        "rep": 28,
+        "todayMs": 9116.776,
+        "shippedMs": 16635.7473,
+        "screenMs": 9487.1139,
+        "ratio": 0.5480232318748915,
+        "screenRatio": 0.9609641136489359
+      },
+      {
+        "rep": 37,
+        "todayMs": 11237.5382,
+        "shippedMs": 18990.1359,
+        "screenMs": 10840.4515,
+        "ratio": 0.5917565971710608,
+        "screenRatio": 1.0366300887006414
+      },
+      {
+        "rep": 26,
+        "todayMs": 9919.217400000001,
+        "shippedMs": 13592.6455,
+        "screenMs": 9434.6056,
+        "ratio": 0.7297488483753954,
+        "screenRatio": 1.0513653480120038
+      },
+      {
+        "rep": 24,
+        "todayMs": 8701.8151,
+        "shippedMs": 11319.109400000001,
+        "screenMs": 11073.1517,
+        "ratio": 0.7687720643463344,
+        "screenRatio": 0.7858480887604926
+      }
+    ],
+    "fastest": [
+      {
+        "rep": 36,
+        "todayMs": 23257.2062,
+        "shippedMs": 18429.0558,
+        "screenMs": 14401.7754,
+        "ratio": 1.261985771403438,
+        "screenRatio": 1.6148846620674282
+      },
+      {
+        "rep": 38,
+        "todayMs": 34631.3433,
+        "shippedMs": 26159.4208,
+        "screenMs": 10239.261999999999,
+        "ratio": 1.323857418892088,
+        "screenRatio": 3.3822108761354093
+      },
+      {
+        "rep": 25,
+        "todayMs": 10242.9005,
+        "shippedMs": 7013.796399999999,
+        "screenMs": 9539.2241,
+        "ratio": 1.4603931901986777,
+        "screenRatio": 1.0737666284619523
+      },
+      {
+        "rep": 34,
+        "todayMs": 26278.532499999998,
+        "shippedMs": 15307.5785,
+        "screenMs": 14548.4031,
+        "ratio": 1.7167008158736536,
+        "screenRatio": 1.8062829521131427
+      },
+      {
+        "rep": 32,
+        "todayMs": 26398.446600000003,
+        "shippedMs": 9525.491399999999,
+        "screenMs": 8113.3703000000005,
+        "ratio": 2.771347481348837,
+        "screenRatio": 3.2536967528771616
+      }
+    ],
+    "withoutSlowestTwo": 1.0952843328415403,
+    "belowOne": 9,
+    "below08": 5,
+    "above12": 6
+  },
+  "s01": {
+    "w2": {
+      "cell": "26x26-nightmare",
+      "task": "V4-S2",
+      "arm": "fr-none",
+      "geo": 1.122,
+      "lower": 0.881,
+      "logSd": 0.444,
+      "ratios": [
+        0.546,
+        1.707,
+        1.418,
+        1.325,
+        1.015
+      ]
+    },
+    "w1": {
+      "cell": "32x15-nightmare",
+      "task": "V4-S2B",
+      "arm": "fr-none",
+      "geo": 0.991,
+      "lower": 0.813,
+      "logSd": 0.407,
+      "ratios": [
+        0.584,
+        1.373,
+        0.74,
+        1.528,
+        1.054
+      ]
+    }
+  },
+  "inputs": {
+    "entries": 33,
+    "sha256Lf": "7f954e533d74ab6d8ab33c9132cb802a54b7edba518d0879ed965f957bc8b6d9"
+  }
+}

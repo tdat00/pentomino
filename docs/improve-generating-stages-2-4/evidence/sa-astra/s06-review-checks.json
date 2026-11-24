@@ -1,0 +1,3548 @@
+{
+  "base": "96f231e",
+  "publicationCount": 80,
+  "declared": 1120,
+  "validPublished": 1120,
+  "controls": [
+    {
+      "cell": "3x29-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.0591869954057995,
+      "lower": 0.9472801890051681,
+      "pass": true,
+      "logSd": 0.4025944641461532,
+      "logMean": 0.057501628373912386,
+      "approximateNeeded20": 1.0100630759446652,
+      "approximateFresh20PowerAtTrueParity": 0.45571901725781255,
+      "approximateNeeded40": 0.9765012235268514,
+      "approximateFresh40PowerAtTrueParity": 0.645634295622881,
+      "medianTodayS": 4.655431549999999,
+      "medianShippedS": 4.5257121,
+      "p95TodayS": 8.7766067,
+      "p95ShippedS": 6.4003214,
+      "screen": {
+        "geoMean": 1.0473035289132737,
+        "lower": 0.9375449902496422,
+        "medianS": 4.618342800000001
+      },
+      "pairs": [
+        {
+          "rep": 20,
+          "todayMs": 5862.5534,
+          "shippedMs": 4235.2967,
+          "screenMs": 4236.7014,
+          "ratio": 1.3842131532367024,
+          "screenRatio": 1.3837542102919975,
+          "todaySetMs": 3060.8123,
+          "shippedSetMs": 2146.9139,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 21,
+          "todayMs": 3153.5063,
+          "shippedMs": 6031.2603,
+          "screenMs": 6069.3675,
+          "ratio": 0.5228602552604138,
+          "screenRatio": 0.5195774188990863,
+          "todaySetMs": 1326.5913,
+          "shippedSetMs": 4092.7593000000006,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 22,
+          "todayMs": 4261.843800000001,
+          "shippedMs": 4173.2332,
+          "screenMs": 4136.4075,
+          "ratio": 1.0212330813432617,
+          "screenRatio": 1.0303249377630226,
+          "todaySetMs": 565.1106,
+          "shippedSetMs": 573.1321,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 23,
+          "todayMs": 3542.7343,
+          "shippedMs": 2972.8435999999997,
+          "screenMs": 3039.5875,
+          "ratio": 1.1916988502186932,
+          "screenRatio": 1.1655312768591133,
+          "todaySetMs": 537.5582,
+          "shippedSetMs": 726.9974000000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 24,
+          "todayMs": 4368.7417,
+          "shippedMs": 4380.7069,
+          "screenMs": 4398.805899999999,
+          "ratio": 0.9972686599964037,
+          "screenRatio": 0.9931653724480092,
+          "todaySetMs": 791.6964,
+          "shippedSetMs": 1078.6521,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 25,
+          "todayMs": 3991.0359000000003,
+          "shippedMs": 3442.3666,
+          "screenMs": 3468.5883,
+          "ratio": 1.1593872366760707,
+          "screenRatio": 1.1506225457774855,
+          "todaySetMs": 1344.962,
+          "shippedSetMs": 1156.9892,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 26,
+          "todayMs": 2124.1229,
+          "shippedMs": 3973.6955000000003,
+          "screenMs": 4014.8675000000003,
+          "ratio": 0.5345459660912618,
+          "screenRatio": 0.5290642592812838,
+          "todaySetMs": 412.559,
+          "shippedSetMs": 750.4366,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 27,
+          "todayMs": 7586.2474,
+          "shippedMs": 5455.3006000000005,
+          "screenMs": 5499.6148,
+          "ratio": 1.3906195013341702,
+          "screenRatio": 1.3794143182537075,
+          "todaySetMs": 2159.1016,
+          "shippedSetMs": 1168.0296,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 28,
+          "todayMs": 8776.6067,
+          "shippedMs": 5040.2941,
+          "screenMs": 5128.6601,
+          "ratio": 1.74128860853576,
+          "screenRatio": 1.7112864820189586,
+          "todaySetMs": 1097.086,
+          "shippedSetMs": 1612.9288999999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 29,
+          "todayMs": 2970.8977,
+          "shippedMs": 3898.1805999999997,
+          "screenMs": 4027.3033000000005,
+          "ratio": 0.7621241817272397,
+          "screenRatio": 0.7376890883783199,
+          "todaySetMs": 786.9916,
+          "shippedSetMs": 751.8356,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 30,
+          "todayMs": 5265.1155,
+          "shippedMs": 6400.3214,
+          "screenMs": 6500.8454,
+          "ratio": 0.8226329852747707,
+          "screenRatio": 0.8099124307740037,
+          "todaySetMs": 1253.6981,
+          "shippedSetMs": 2098.6793000000002,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 31,
+          "todayMs": 6457.0165,
+          "shippedMs": 5992.6502,
+          "screenMs": 6063.5288,
+          "ratio": 1.077489305149164,
+          "screenRatio": 1.0648941751542436,
+          "todaySetMs": 912.3146,
+          "shippedSetMs": 854.8638,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 32,
+          "todayMs": 4630.9346,
+          "shippedMs": 5270.5879,
+          "screenMs": 5024.307,
+          "ratio": 0.8786372009847325,
+          "screenRatio": 0.9217061377817876,
+          "todaySetMs": 1405.0266000000001,
+          "shippedSetMs": 1602.9186,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 33,
+          "todayMs": 6009.7166,
+          "shippedMs": 4843.5581999999995,
+          "screenMs": 4870.2539,
+          "ratio": 1.24076481624604,
+          "screenRatio": 1.2339637159368633,
+          "todaySetMs": 1466.1114,
+          "shippedSetMs": 1628.8702,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 34,
+          "todayMs": 3013.4503,
+          "shippedMs": 2822.1288,
+          "screenMs": 2944.4995000000004,
+          "ratio": 1.0677933267964241,
+          "screenRatio": 1.0234168149799312,
+          "todaySetMs": 477.46420000000006,
+          "shippedSetMs": 402.8892,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 35,
+          "todayMs": 6692.971399999999,
+          "shippedMs": 6577.7809,
+          "screenMs": 6613.8916,
+          "ratio": 1.017512060944444,
+          "screenRatio": 1.011956621726307,
+          "todaySetMs": 694.4242,
+          "shippedSetMs": 716.5121,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 36,
+          "todayMs": 6528.4386,
+          "shippedMs": 4670.717299999999,
+          "screenMs": 4837.8797,
+          "ratio": 1.3977379020562861,
+          "screenRatio": 1.3494421120062163,
+          "todaySetMs": 540.5822999999999,
+          "shippedSetMs": 470.1386,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 37,
+          "todayMs": 13728.4583,
+          "shippedMs": 5208.6075,
+          "screenMs": 5321.8089,
+          "ratio": 2.6357252490228915,
+          "screenRatio": 2.579660141498129,
+          "todaySetMs": 4220.0414,
+          "shippedSetMs": 1377.4598,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 38,
+          "todayMs": 4679.9285,
+          "shippedMs": 3149.2473,
+          "screenMs": 3220.5425,
+          "ratio": 1.4860466816943845,
+          "screenRatio": 1.4531491200628466,
+          "todaySetMs": 2762.2512,
+          "shippedSetMs": 1153.5131000000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 39,
+          "todayMs": 1868.9013,
+          "shippedMs": 3417.0188000000003,
+          "screenMs": 3463.9917,
+          "ratio": 0.5469391330243778,
+          "screenRatio": 0.5395224532437535,
+          "todaySetMs": 427.89349999999996,
+          "shippedSetMs": 813.0919,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        }
+      ]
+    },
+    {
+      "cell": "10x10-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.522135163994111,
+      "lower": 1.317266804579746,
+      "pass": true,
+      "logSd": 0.5030976177291846,
+      "logMean": 0.4201140623256462,
+      "approximateNeeded20": 1.0395775393939104,
+      "approximateFresh20PowerAtTrueParity": 0.3650362183113549,
+      "approximateNeeded40": 0.9965923771364622,
+      "approximateFresh40PowerAtTrueParity": 0.5171138242033592,
+      "medianTodayS": 16.68387155,
+      "medianShippedS": 12.118299200000001,
+      "p95TodayS": 55.8742575,
+      "p95ShippedS": 29.6597792,
+      "screen": {
+        "geoMean": 1.5350956607459267,
+        "lower": 1.3274704929688568,
+        "medianS": 12.042064
+      },
+      "pairs": [
+        {
+          "rep": 20,
+          "todayMs": 13137.646200000001,
+          "shippedMs": 10395.3689,
+          "screenMs": 10073.564499999999,
+          "ratio": 1.2637979783478392,
+          "screenRatio": 1.3041705545241709,
+          "todaySetMs": 571.5529,
+          "shippedSetMs": 2564.0143000000003,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 21,
+          "todayMs": 14272.3867,
+          "shippedMs": 7548.9926,
+          "screenMs": 7275.1344,
+          "ratio": 1.8906346126236764,
+          "screenRatio": 1.9618038534105982,
+          "todaySetMs": 1103.2241999999999,
+          "shippedSetMs": 1211.1456,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 22,
+          "todayMs": 37615.2915,
+          "shippedMs": 16079.054600000001,
+          "screenMs": 15790.8748,
+          "ratio": 2.33939696305279,
+          "screenRatio": 2.3820904146488453,
+          "todaySetMs": 4619.3357,
+          "shippedSetMs": 1390.0364000000002,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 23,
+          "todayMs": 104792.9267,
+          "shippedMs": 64403.6786,
+          "screenMs": 64016.6083,
+          "ratio": 1.627126415415656,
+          "screenRatio": 1.6369646796798512,
+          "todaySetMs": 2764.6423,
+          "shippedSetMs": 602.3634999999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 24,
+          "todayMs": 23589.304699999997,
+          "shippedMs": 29659.7792,
+          "screenMs": 29254.1136,
+          "ratio": 0.7953297474311608,
+          "screenRatio": 0.8063585525968558,
+          "todaySetMs": 1778.8836999999999,
+          "shippedSetMs": 6447.0623,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 25,
+          "todayMs": 5967.13,
+          "shippedMs": 6416.4541,
+          "screenMs": 6463.0304,
+          "ratio": 0.9299731451363457,
+          "screenRatio": 0.9232712258323897,
+          "todaySetMs": 469.40900000000005,
+          "shippedSetMs": 561.159,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 26,
+          "todayMs": 11520.338199999998,
+          "shippedMs": 7879.4354,
+          "screenMs": 7715.518300000001,
+          "ratio": 1.462076610209914,
+          "screenRatio": 1.4931386009414296,
+          "todaySetMs": 4709.6299,
+          "shippedSetMs": 1180.7198,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 27,
+          "todayMs": 41055.5773,
+          "shippedMs": 19831.918299999998,
+          "screenMs": 19599.5011,
+          "ratio": 2.0701768068497945,
+          "screenRatio": 2.0947256305416873,
+          "todaySetMs": 7049.5887999999995,
+          "shippedSetMs": 1231.9011999999998,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 28,
+          "todayMs": 10847.702500000001,
+          "shippedMs": 5537.1987,
+          "screenMs": 5317.7952,
+          "ratio": 1.9590596414753911,
+          "screenRatio": 2.0398872261947965,
+          "todaySetMs": 5145.3847,
+          "shippedSetMs": 1769.9846,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 29,
+          "todayMs": 55874.2575,
+          "shippedMs": 17352.9377,
+          "screenMs": 17102.8822,
+          "ratio": 3.2198731111677996,
+          "screenRatio": 3.266949795163765,
+          "todaySetMs": 14200.809,
+          "shippedSetMs": 3874.0054,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 30,
+          "todayMs": 33427.3267,
+          "shippedMs": 19861.9954,
+          "screenMs": 19822.6792,
+          "ratio": 1.6829792791111007,
+          "screenRatio": 1.6863172915596596,
+          "todaySetMs": 14893.179699999999,
+          "shippedSetMs": 10439.5755,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 31,
+          "todayMs": 14466.2276,
+          "shippedMs": 10315.5668,
+          "screenMs": 10288.4921,
+          "ratio": 1.4023686609251562,
+          "screenRatio": 1.406059066712021,
+          "todaySetMs": 6661.671,
+          "shippedSetMs": 1657.5668,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 32,
+          "todayMs": 16796.278,
+          "shippedMs": 15554.001400000001,
+          "screenMs": 15627.4251,
+          "ratio": 1.0798686182450772,
+          "screenRatio": 1.0747949769408909,
+          "todaySetMs": 4739.5365,
+          "shippedSetMs": 1124.6927,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 33,
+          "todayMs": 16571.4651,
+          "shippedMs": 10681.0454,
+          "screenMs": 10829.0516,
+          "ratio": 1.5514834437460587,
+          "screenRatio": 1.530278524113783,
+          "todaySetMs": 4807.203,
+          "shippedSetMs": 3062.8905999999997,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 34,
+          "todayMs": 18861.133,
+          "shippedMs": 15616.7015,
+          "screenMs": 15635.728799999999,
+          "ratio": 1.2077539549564933,
+          "screenRatio": 1.206284225139541,
+          "todaySetMs": 6795.2883,
+          "shippedSetMs": 6766.2487,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 35,
+          "todayMs": 15727.2349,
+          "shippedMs": 7504.8939,
+          "screenMs": 7557.0257,
+          "ratio": 2.095597234226056,
+          "screenRatio": 2.081140851486055,
+          "todaySetMs": 4691.3288,
+          "shippedSetMs": 1404.0939,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 36,
+          "todayMs": 13718.9265,
+          "shippedMs": 8792.1881,
+          "screenMs": 8786.434799999999,
+          "ratio": 1.5603540715877087,
+          "screenRatio": 1.5613757812212983,
+          "todaySetMs": 2019.9941000000001,
+          "shippedSetMs": 583.014,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 37,
+          "todayMs": 17534.1914,
+          "shippedMs": 13555.553,
+          "screenMs": 13255.0764,
+          "ratio": 1.2935061668085397,
+          "screenRatio": 1.322828391996292,
+          "todaySetMs": 5672.8711,
+          "shippedSetMs": 7367.602400000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 38,
+          "todayMs": 8797.4405,
+          "shippedMs": 21868.5338,
+          "screenMs": 21978.807500000003,
+          "ratio": 0.402287623873531,
+          "screenRatio": 0.40026923662714636,
+          "todaySetMs": 813.6971000000001,
+          "shippedSetMs": 1098.4404000000002,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 39,
+          "todayMs": 44577.0128,
+          "shippedMs": 10437.8807,
+          "screenMs": 10577.3346,
+          "ratio": 4.2706957553174565,
+          "screenRatio": 4.2143899655022725,
+          "todaySetMs": 16893.265300000003,
+          "shippedSetMs": 4963.193200000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        }
+      ]
+    },
+    {
+      "cell": "18x18-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 2.001212907181786,
+      "lower": 1.6984165142524623,
+      "pass": true,
+      "logSd": 0.5922549253369199,
+      "logMean": 0.6937534503321738,
+      "approximateNeeded20": 1.0664811955616167,
+      "approximateFresh20PowerAtTrueParity": 0.3134767184758166,
+      "approximateNeeded40": 1.0147611692279983,
+      "approximateFresh40PowerAtTrueParity": 0.43782770618014555,
+      "medianTodayS": 34.47791515,
+      "medianShippedS": 15.726647250000001,
+      "p95TodayS": 120,
+      "p95ShippedS": 29.837636,
+      "screen": {
+        "geoMean": 3.732441003581245,
+        "lower": 3.095534119306123,
+        "medianS": 7.2385781
+      },
+      "pairs": [
+        {
+          "rep": 20,
+          "todayMs": 19149.763899999998,
+          "shippedMs": 15661.955300000001,
+          "screenMs": 6574.5706,
+          "ratio": 1.2226930503370799,
+          "screenRatio": 2.9127018424594904,
+          "todaySetMs": 5535.3778,
+          "shippedSetMs": 5478.9066,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 21,
+          "todayMs": 40684.0372,
+          "shippedMs": 14614.6404,
+          "screenMs": 5423.2548,
+          "ratio": 2.783786400929851,
+          "screenRatio": 7.501774985752099,
+          "todaySetMs": 7163.3991000000005,
+          "shippedSetMs": 1090.9337999999998,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 22,
+          "todayMs": 120000,
+          "shippedMs": 21596.4783,
+          "screenMs": 12374.610200000001,
+          "ratio": 5.556461490297703,
+          "screenRatio": 9.697275151341737,
+          "todaySetMs": 37292.4429,
+          "shippedSetMs": 3403.6624,
+          "todayAccepted": 4,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 23,
+          "todayMs": 8465.5865,
+          "shippedMs": 5164.4191,
+          "screenMs": 3692.6029,
+          "ratio": 1.6392136920103946,
+          "screenRatio": 2.292579713892333,
+          "todaySetMs": 590.2132,
+          "shippedSetMs": 574.1465,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 24,
+          "todayMs": 7782.3416,
+          "shippedMs": 8932.5763,
+          "screenMs": 5121.650100000001,
+          "ratio": 0.8712314721565826,
+          "screenRatio": 1.5194988818154522,
+          "todaySetMs": 3228.181,
+          "shippedSetMs": 542.8352,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 25,
+          "todayMs": 120000,
+          "shippedMs": 29837.636,
+          "screenMs": 11128.8152,
+          "ratio": 4.021766335644017,
+          "screenRatio": 10.782819001253612,
+          "todaySetMs": 26347.0662,
+          "shippedSetMs": 3749.0706,
+          "todayAccepted": 1,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 26,
+          "todayMs": 34392.2042,
+          "shippedMs": 23692.684999999998,
+          "screenMs": 10706.8639,
+          "ratio": 1.451595891305692,
+          "screenRatio": 3.2121641333275934,
+          "todaySetMs": 5305.7248,
+          "shippedSetMs": 5922.7459,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 27,
+          "todayMs": 42542.1054,
+          "shippedMs": 16156.5865,
+          "screenMs": 9152.981899999999,
+          "ratio": 2.6331122233028617,
+          "screenRatio": 4.647895720191472,
+          "todaySetMs": 12703.871000000001,
+          "shippedSetMs": 8555.3436,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 28,
+          "todayMs": 51277.469800000006,
+          "shippedMs": 23221.696,
+          "screenMs": 13502.057,
+          "ratio": 2.208170746873958,
+          "screenRatio": 3.7977524313517566,
+          "todaySetMs": 14878.6294,
+          "shippedSetMs": 4297.7008,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 29,
+          "todayMs": 22553.782600000002,
+          "shippedMs": 9292.367199999999,
+          "screenMs": 7027.8976,
+          "ratio": 2.4271299352010116,
+          "screenRatio": 3.2091791718763805,
+          "todaySetMs": 634.5784,
+          "shippedSetMs": 813.0963999999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 30,
+          "todayMs": 14503.192400000002,
+          "shippedMs": 10566.2243,
+          "screenMs": 7338.852599999999,
+          "ratio": 1.3725993304912145,
+          "screenRatio": 1.9762206969520009,
+          "todaySetMs": 3651.5097,
+          "shippedSetMs": 3304.9541,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 31,
+          "todayMs": 67346.2191,
+          "shippedMs": 9030.3896,
+          "screenMs": 5935.3147,
+          "ratio": 7.457731292124982,
+          "screenRatio": 11.346697269480927,
+          "todaySetMs": 16852.9579,
+          "shippedSetMs": 2255.999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 32,
+          "todayMs": 65121.143899999995,
+          "shippedMs": 43951.9563,
+          "screenMs": 16175.8171,
+          "ratio": 1.4816438079685659,
+          "screenRatio": 4.0258333472378345,
+          "todaySetMs": 14035.932400000002,
+          "shippedSetMs": 7114.851900000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 33,
+          "todayMs": 34563.6261,
+          "shippedMs": 11205.8466,
+          "screenMs": 5802.8643999999995,
+          "ratio": 3.0844279181904914,
+          "screenRatio": 5.956304286552001,
+          "todaySetMs": 7808.4992,
+          "shippedSetMs": 4082.7019,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 34,
+          "todayMs": 5542.2746,
+          "shippedMs": 7682.967,
+          "screenMs": 6986.8759,
+          "ratio": 0.7213716523837731,
+          "screenRatio": 0.7932407386826492,
+          "todaySetMs": 800.5118,
+          "shippedSetMs": 827.4112,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 35,
+          "todayMs": 32819.662899999996,
+          "shippedMs": 17329.8992,
+          "screenMs": 6188.1211,
+          "ratio": 1.8938172992950817,
+          "screenRatio": 5.3036555635603175,
+          "todaySetMs": 8188.1269999999995,
+          "shippedSetMs": 4454.9446,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 36,
+          "todayMs": 29750.4204,
+          "shippedMs": 26235.078,
+          "screenMs": 9636.809299999999,
+          "ratio": 1.133993975546785,
+          "screenRatio": 3.087165001801997,
+          "todaySetMs": 3151.1483,
+          "shippedSetMs": 3380.8904,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 37,
+          "todayMs": 41857.616700000006,
+          "shippedMs": 20663.7873,
+          "screenMs": 10679.0849,
+          "ratio": 2.025650772160242,
+          "screenRatio": 3.9195883441286252,
+          "todaySetMs": 12203.679,
+          "shippedSetMs": 2228.108,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 38,
+          "todayMs": 18498.337900000002,
+          "shippedMs": 14990.2158,
+          "screenMs": 7138.3036,
+          "ratio": 1.2340274580970343,
+          "screenRatio": 2.5914193254543,
+          "todaySetMs": 1688.4109999999998,
+          "shippedSetMs": 2730.7061,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 39,
+          "todayMs": 41575.762200000005,
+          "shippedMs": 15791.3392,
+          "screenMs": 15512.3904,
+          "ratio": 2.632820540008412,
+          "screenRatio": 2.6801647668691992,
+          "todaySetMs": 11163.8101,
+          "shippedSetMs": 5298.8535,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        }
+      ]
+    },
+    {
+      "cell": "18x20-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.6591288062801857,
+      "lower": 1.4374145194731394,
+      "pass": true,
+      "logSd": 0.5120403517509075,
+      "logMean": 0.506292649110734,
+      "approximateNeeded20": 1.042245143133881,
+      "approximateFresh20PowerAtTrueParity": 0.35890534668423685,
+      "approximateNeeded40": 0.9983999838248909,
+      "approximateFresh40PowerAtTrueParity": 0.5078900472358606,
+      "medianTodayS": 26.4371623,
+      "medianShippedS": 15.86469185,
+      "p95TodayS": 85.00716779999999,
+      "p95ShippedS": 34.3729309,
+      "screen": {
+        "geoMean": 2.8818571036308227,
+        "lower": 2.356673460211553,
+        "medianS": 9.39520355
+      },
+      "pairs": [
+        {
+          "rep": 20,
+          "todayMs": 8594.9981,
+          "shippedMs": 8482.6819,
+          "screenMs": 6512.713000000001,
+          "ratio": 1.0132406473947821,
+          "screenRatio": 1.3197262185513166,
+          "todaySetMs": 782.9197,
+          "shippedSetMs": 750.6171,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 21,
+          "todayMs": 16936.8694,
+          "shippedMs": 10075.2695,
+          "screenMs": 9758.4311,
+          "ratio": 1.6810338820217166,
+          "screenRatio": 1.7356139758982363,
+          "todaySetMs": 764.3606,
+          "shippedSetMs": 806.248,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 22,
+          "todayMs": 30537.6509,
+          "shippedMs": 15530.036,
+          "screenMs": 8610.6045,
+          "ratio": 1.9663605995504454,
+          "screenRatio": 3.5465164960253373,
+          "todaySetMs": 7428.0345,
+          "shippedSetMs": 6152.5563,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 23,
+          "todayMs": 17822.1138,
+          "shippedMs": 11403.292800000001,
+          "screenMs": 8107.6473000000005,
+          "ratio": 1.5628918868065895,
+          "screenRatio": 2.198185631483994,
+          "todaySetMs": 5227.0082999999995,
+          "shippedSetMs": 2629.4451,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 24,
+          "todayMs": 46319.4782,
+          "shippedMs": 34372.9309,
+          "screenMs": 10516.228200000001,
+          "ratio": 1.3475568415959547,
+          "screenRatio": 4.40457142228998,
+          "todaySetMs": 9983.6919,
+          "shippedSetMs": 6141.3918,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 25,
+          "todayMs": 43192.4246,
+          "shippedMs": 16199.3477,
+          "screenMs": 9452.7477,
+          "ratio": 2.6663064093623965,
+          "screenRatio": 4.569298363903227,
+          "todaySetMs": 9909.0034,
+          "shippedSetMs": 1237.9777,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 26,
+          "todayMs": 16378.586599999999,
+          "shippedMs": 7423.4188,
+          "screenMs": 5457.6332,
+          "ratio": 2.2063401030263843,
+          "screenRatio": 3.001042026789195,
+          "todaySetMs": 800.1161000000001,
+          "shippedSetMs": 784.8429,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 27,
+          "todayMs": 19225.455,
+          "shippedMs": 8774.4804,
+          "screenMs": 6645.202,
+          "ratio": 2.191064783733519,
+          "screenRatio": 2.893133271193261,
+          "todaySetMs": 969.788,
+          "shippedSetMs": 967.9361,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 28,
+          "todayMs": 31336.9822,
+          "shippedMs": 21008.4423,
+          "screenMs": 10671.2845,
+          "ratio": 1.4916375879995634,
+          "screenRatio": 2.9365707755237898,
+          "todaySetMs": 428.2073,
+          "shippedSetMs": 422.03729999999996,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 29,
+          "todayMs": 56445.668099999995,
+          "shippedMs": 28563.5221,
+          "screenMs": 12169.586,
+          "ratio": 1.9761452352544435,
+          "screenRatio": 4.638257053280202,
+          "todaySetMs": 13150.0944,
+          "shippedSetMs": 8269.134,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 30,
+          "todayMs": 7062.5738,
+          "shippedMs": 10333.5189,
+          "screenMs": 6518.224200000001,
+          "ratio": 0.6834626102053194,
+          "screenRatio": 1.0835119479320763,
+          "todaySetMs": 1458.0005999999998,
+          "shippedSetMs": 1476.8478,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 31,
+          "todayMs": 27694.2948,
+          "shippedMs": 18821.2224,
+          "screenMs": 10963.783000000001,
+          "ratio": 1.4714397509058712,
+          "screenRatio": 2.525979837433849,
+          "todaySetMs": 9733.8711,
+          "shippedSetMs": 4124.7537,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 32,
+          "todayMs": 11896.4377,
+          "shippedMs": 15134.2643,
+          "screenMs": 14068.6403,
+          "ratio": 0.7860598615289148,
+          "screenRatio": 0.8455996774613679,
+          "todaySetMs": 2804.5077,
+          "shippedSetMs": 8061.866300000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 33,
+          "todayMs": 85007.1678,
+          "shippedMs": 35574.7812,
+          "screenMs": 11643.1687,
+          "ratio": 2.389534522281194,
+          "screenRatio": 7.30103376411612,
+          "todaySetMs": 3941.9195,
+          "shippedSetMs": 13232.328300000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 34,
+          "todayMs": 120000,
+          "shippedMs": 21482.1991,
+          "screenMs": 10903.8351,
+          "ratio": 5.586020287839153,
+          "screenRatio": 11.005302161988858,
+          "todaySetMs": 13831.565200000001,
+          "shippedSetMs": 6013.0959,
+          "todayAccepted": 2,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 35,
+          "todayMs": 5377.7497,
+          "shippedMs": 6152.2968,
+          "screenMs": 6375.3683,
+          "ratio": 0.8741043995146659,
+          "screenRatio": 0.8435198481003835,
+          "todaySetMs": 614.0933,
+          "shippedSetMs": 614.4150999999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 36,
+          "todayMs": 50073.9062,
+          "shippedMs": 14602.4231,
+          "screenMs": 6426.6233,
+          "ratio": 3.4291504811965074,
+          "screenRatio": 7.791635492312113,
+          "todaySetMs": 21197.2914,
+          "shippedSetMs": 5224.7659,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 37,
+          "todayMs": 23030.8306,
+          "shippedMs": 21770.689599999998,
+          "screenMs": 12517.6253,
+          "ratio": 1.0578824567872211,
+          "screenRatio": 1.8398721840635381,
+          "todaySetMs": 3666.9209,
+          "shippedSetMs": 4273.2262,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 38,
+          "todayMs": 25180.0298,
+          "shippedMs": 19481.462,
+          "screenMs": 8216.9573,
+          "ratio": 1.2925123278735446,
+          "screenRatio": 3.0643982779367733,
+          "todaySetMs": 5500.1151,
+          "shippedSetMs": 4623.720200000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 39,
+          "todayMs": 49776.3507,
+          "shippedMs": 23095.097400000002,
+          "screenMs": 9337.6594,
+          "ratio": 2.155277799348012,
+          "screenRatio": 5.3307096101620495,
+          "todaySetMs": 13055.935800000001,
+          "shippedSetMs": 3507.5182,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        }
+      ]
+    },
+    {
+      "cell": "20x20-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 2.088863267833705,
+      "lower": 1.7329615831517327,
+      "pass": true,
+      "logSd": 0.6673129460088404,
+      "logMean": 0.7366200270257053,
+      "approximateNeeded20": 1.089669391302068,
+      "approximateFresh20PowerAtTrueParity": 0.2824750143133315,
+      "approximateNeeded40": 1.0303133169766214,
+      "approximateFresh40PowerAtTrueParity": 0.38857676003650665,
+      "medianTodayS": 38.938761650000004,
+      "medianShippedS": 15.2350012,
+      "p95TodayS": 73.6913815,
+      "p95ShippedS": 24.2193921,
+      "screen": {
+        "geoMean": 3.7928452694323633,
+        "lower": 3.0564181785124704,
+        "medianS": 7.8562091
+      },
+      "pairs": [
+        {
+          "rep": 20,
+          "todayMs": 66978.9902,
+          "shippedMs": 14278.294600000001,
+          "screenMs": 7428.5051,
+          "ratio": 4.690965698382494,
+          "screenRatio": 9.016483033712934,
+          "todaySetMs": 34609.869399999996,
+          "shippedSetMs": 3748.0169,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 21,
+          "todayMs": 4514.6404,
+          "shippedMs": 4672.7896,
+          "screenMs": 4610.337500000001,
+          "ratio": 0.9661552919052894,
+          "screenRatio": 0.979242929611986,
+          "todaySetMs": 573.5041,
+          "shippedSetMs": 624.3486,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 22,
+          "todayMs": 42553.924699999996,
+          "shippedMs": 18959.462799999998,
+          "screenMs": 8251.2676,
+          "ratio": 2.244468904467061,
+          "screenRatio": 5.157259073745227,
+          "todaySetMs": 11665.1594,
+          "shippedSetMs": 2348.9616,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 23,
+          "todayMs": 120000,
+          "shippedMs": 22899.8306,
+          "screenMs": 11940.025500000002,
+          "ratio": 5.240213436338695,
+          "screenRatio": 10.050229792222805,
+          "todaySetMs": 19431.8206,
+          "shippedSetMs": 5879.8289,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 24,
+          "todayMs": 49794.2532,
+          "shippedMs": 12247.5889,
+          "screenMs": 6509.951999999999,
+          "ratio": 4.065637212888489,
+          "screenRatio": 7.648943218014511,
+          "todaySetMs": 13126.5633,
+          "shippedSetMs": 1264.3239999999998,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 25,
+          "todayMs": 28504.8725,
+          "shippedMs": 27326.8609,
+          "screenMs": 10657.191,
+          "ratio": 1.0431081932282973,
+          "screenRatio": 2.674707856882738,
+          "todaySetMs": 5298.3829,
+          "shippedSetMs": 6196.963299999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 26,
+          "todayMs": 8342.7603,
+          "shippedMs": 9804.7616,
+          "screenMs": 4553.3965,
+          "ratio": 0.8508886437381609,
+          "screenRatio": 1.8322059807442643,
+          "todaySetMs": 3461.1014,
+          "shippedSetMs": 3637.4665,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 27,
+          "todayMs": 15170.7704,
+          "shippedMs": 13303.2765,
+          "screenMs": 9596.072600000001,
+          "ratio": 1.1403784924713847,
+          "screenRatio": 1.5809353505724828,
+          "todaySetMs": 2925.3689,
+          "shippedSetMs": 5169.9411,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 28,
+          "todayMs": 12993.689,
+          "shippedMs": 15682.532,
+          "screenMs": 8868.275099999999,
+          "ratio": 0.828545352242865,
+          "screenRatio": 1.465187858234123,
+          "todaySetMs": 916.8045,
+          "shippedSetMs": 965.0786,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 29,
+          "todayMs": 69521.32740000001,
+          "shippedMs": 15734.3539,
+          "screenMs": 7499.6278999999995,
+          "ratio": 4.418441827471543,
+          "screenRatio": 9.269970234123218,
+          "todaySetMs": 15165.5163,
+          "shippedSetMs": 1780.8136000000002,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 30,
+          "todayMs": 73691.3815,
+          "shippedMs": 24219.3921,
+          "screenMs": 10924.993,
+          "ratio": 3.042660244969567,
+          "screenRatio": 6.745210866496665,
+          "todaySetMs": 26755.4771,
+          "shippedSetMs": 7897.9533,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 31,
+          "todayMs": 62462.4772,
+          "shippedMs": 22430.4554,
+          "screenMs": 10944.01,
+          "ratio": 2.7847173000330616,
+          "screenRatio": 5.707457979296437,
+          "todaySetMs": 9314.125800000002,
+          "shippedSetMs": 8415.348100000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 32,
+          "todayMs": 38215.8047,
+          "shippedMs": 12718.8204,
+          "screenMs": 8130.1783,
+          "ratio": 3.0046658021839825,
+          "screenRatio": 4.70048789704895,
+          "todaySetMs": 10023.859,
+          "shippedSetMs": 3520.0332000000003,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 33,
+          "todayMs": 58569.708099999996,
+          "shippedMs": 14855.3558,
+          "screenMs": 7902.084699999999,
+          "ratio": 3.9426661258426403,
+          "screenRatio": 7.411931195827349,
+          "todaySetMs": 15843.615899999999,
+          "shippedSetMs": 3786.7866000000004,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 34,
+          "todayMs": 10060.4964,
+          "shippedMs": 8945.3403,
+          "screenMs": 4893.417799999999,
+          "ratio": 1.1246633512645685,
+          "screenRatio": 2.055924266266412,
+          "todaySetMs": 3701.3916000000004,
+          "shippedSetMs": 2673.2691,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 35,
+          "todayMs": 33904.4742,
+          "shippedMs": 19492.1603,
+          "screenMs": 15015.996099999998,
+          "ratio": 1.7393902819483789,
+          "screenRatio": 2.2578904505709083,
+          "todaySetMs": 15113.077200000002,
+          "shippedSetMs": 3522.8764,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 36,
+          "todayMs": 39661.7186,
+          "shippedMs": 11519.5105,
+          "screenMs": 6615.227400000001,
+          "ratio": 3.4430038151360685,
+          "screenRatio": 5.995518551637393,
+          "todaySetMs": 7271.2456999999995,
+          "shippedSetMs": 3570.0391999999997,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 37,
+          "todayMs": 18378.3841,
+          "shippedMs": 17320.0691,
+          "screenMs": 7810.3335,
+          "ratio": 1.061103393634844,
+          "screenRatio": 2.353085703702665,
+          "todaySetMs": 1412.8391000000001,
+          "shippedSetMs": 997.1220999999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 38,
+          "todayMs": 6963.7342,
+          "shippedMs": 6682.8386,
+          "screenMs": 5574.8859,
+          "ratio": 1.0420323782770993,
+          "screenRatio": 1.2491258700021106,
+          "todaySetMs": 2884.048,
+          "shippedSetMs": 2848.2262,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 39,
+          "todayMs": 65069.6921,
+          "shippedMs": 15614.6466,
+          "screenMs": 6928.3511,
+          "ratio": 4.167221568754556,
+          "screenRatio": 9.391800611836777,
+          "todaySetMs": 22531.5223,
+          "shippedSetMs": 4522.1178,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        }
+      ]
+    },
+    {
+      "cell": "20x21-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.5839811431116972,
+      "lower": 1.3792986276058001,
+      "pass": true,
+      "logSd": 0.5083360124500047,
+      "logMean": 0.45994138872017254,
+      "approximateNeeded20": 1.041139314977268,
+      "approximateFresh20PowerAtTrueParity": 0.3614144715964588,
+      "approximateNeeded40": 0.9976508233817912,
+      "approximateFresh40PowerAtTrueParity": 0.5116722208187188,
+      "medianTodayS": 29.359135800000004,
+      "medianShippedS": 18.1402828,
+      "p95TodayS": 96.2292762,
+      "p95ShippedS": 25.345622499999998,
+      "screen": {
+        "geoMean": 2.746987998172864,
+        "lower": 2.2956793717461617,
+        "medianS": 10.016329549999998
+      },
+      "pairs": [
+        {
+          "rep": 20,
+          "todayMs": 8587.3418,
+          "shippedMs": 7256.4884999999995,
+          "screenMs": 4349.7193,
+          "ratio": 1.183401834096478,
+          "screenRatio": 1.9742289577168808,
+          "todaySetMs": 503.4797,
+          "shippedSetMs": 530.0934,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 21,
+          "todayMs": 15827.772200000001,
+          "shippedMs": 11402.034000000001,
+          "screenMs": 11529.0895,
+          "ratio": 1.3881533943855981,
+          "screenRatio": 1.3728553499389524,
+          "todaySetMs": 1742.8568999999998,
+          "shippedSetMs": 1873.0879,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 22,
+          "todayMs": 14675.7405,
+          "shippedMs": 10081.0649,
+          "screenMs": 5906.135499999999,
+          "ratio": 1.4557728420139424,
+          "screenRatio": 2.4848296318294767,
+          "todaySetMs": 635.1907,
+          "shippedSetMs": 627.7437,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 23,
+          "todayMs": 28219.498900000002,
+          "shippedMs": 13986.8325,
+          "screenMs": 10861.8796,
+          "ratio": 2.017576095230997,
+          "screenRatio": 2.5980309061794427,
+          "todaySetMs": 14374.0867,
+          "shippedSetMs": 5901.478499999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 24,
+          "todayMs": 9833.6519,
+          "shippedMs": 12463.4465,
+          "screenMs": 7414.690500000001,
+          "ratio": 0.7889994071864472,
+          "screenRatio": 1.3262390250813572,
+          "todaySetMs": 5453.5531,
+          "shippedSetMs": 5311.9801,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 25,
+          "todayMs": 120000,
+          "shippedMs": 25345.622499999998,
+          "screenMs": 11125.846300000001,
+          "ratio": 4.734545383527275,
+          "screenRatio": 10.785696365408175,
+          "todaySetMs": 16945.009,
+          "shippedSetMs": 4568.1072,
+          "todayAccepted": 8,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 26,
+          "todayMs": 31844.1074,
+          "shippedMs": 23872.107,
+          "screenMs": 13560.0146,
+          "ratio": 1.3339462411089227,
+          "screenRatio": 2.348382972979985,
+          "todaySetMs": 8234.4354,
+          "shippedSetMs": 9861.303899999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 27,
+          "todayMs": 38698.2779,
+          "shippedMs": 21988.499,
+          "screenMs": 12549.8356,
+          "ratio": 1.7599326766233567,
+          "screenRatio": 3.0835685130409196,
+          "todaySetMs": 8328.975999999999,
+          "shippedSetMs": 7652.3046,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 28,
+          "todayMs": 31181.2039,
+          "shippedMs": 24167.3973,
+          "screenMs": 14393.416000000001,
+          "ratio": 1.2902177058180775,
+          "screenRatio": 2.1663518861679534,
+          "todaySetMs": 8636.576299999999,
+          "shippedSetMs": 5466.0452,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 29,
+          "todayMs": 13873.825,
+          "shippedMs": 16818.872900000002,
+          "screenMs": 10812.4945,
+          "ratio": 0.8248962390339485,
+          "screenRatio": 1.283128976389306,
+          "todaySetMs": 1235.1187,
+          "shippedSetMs": 1244.7663,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 30,
+          "todayMs": 96229.27620000001,
+          "shippedMs": 20908.6473,
+          "screenMs": 10517.8891,
+          "ratio": 4.602367375530793,
+          "screenRatio": 9.149105422684102,
+          "todaySetMs": 36197.506,
+          "shippedSetMs": 5936.7891,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 31,
+          "todayMs": 8244.7866,
+          "shippedMs": 7314.2131,
+          "screenMs": 6061.001200000001,
+          "ratio": 1.127228108789994,
+          "screenRatio": 1.3603011000888763,
+          "todaySetMs": 2697.605,
+          "shippedSetMs": 1379.2735,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 32,
+          "todayMs": 40749.8932,
+          "shippedMs": 19310.4395,
+          "screenMs": 9159.8832,
+          "ratio": 2.110251980541406,
+          "screenRatio": 4.448735023171475,
+          "todaySetMs": 11000.894400000001,
+          "shippedSetMs": 3742.0559,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 33,
+          "todayMs": 30498.7727,
+          "shippedMs": 24770.6312,
+          "screenMs": 7761.6918,
+          "ratio": 1.2312472965969474,
+          "screenRatio": 3.929397544488948,
+          "todaySetMs": 6849.345899999999,
+          "shippedSetMs": 3917.1166,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 34,
+          "todayMs": 48360.8108,
+          "shippedMs": 18077.3368,
+          "screenMs": 9457.3257,
+          "ratio": 2.6752176681246542,
+          "screenRatio": 5.113582035141287,
+          "todaySetMs": 20918.8021,
+          "shippedSetMs": 7325.599099999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 35,
+          "todayMs": 12126.613599999999,
+          "shippedMs": 10707.985499999999,
+          "screenMs": 10315.7062,
+          "ratio": 1.1324831920999519,
+          "screenRatio": 1.1755485630251856,
+          "todaySetMs": 1193.6120999999998,
+          "shippedSetMs": 2214.8006,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 36,
+          "todayMs": 13893.2005,
+          "shippedMs": 14149.2351,
+          "screenMs": 9099.097099999999,
+          "ratio": 0.9819047038097488,
+          "screenRatio": 1.5268768260534336,
+          "todaySetMs": 5282.6478,
+          "shippedSetMs": 1637.8027,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 37,
+          "todayMs": 64474.3952,
+          "shippedMs": 24372.9199,
+          "screenMs": 11648.4264,
+          "ratio": 2.6453291384262907,
+          "screenRatio": 5.535030482744004,
+          "todaySetMs": 11114.1456,
+          "shippedSetMs": 11545.0735,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 38,
+          "todayMs": 27072.9085,
+          "shippedMs": 26838.8105,
+          "screenMs": 9716.952899999998,
+          "ratio": 1.0087223686757654,
+          "screenRatio": 2.786152076542432,
+          "todaySetMs": 7196.8362,
+          "shippedSetMs": 7236.1077,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 39,
+          "todayMs": 37343.874599999996,
+          "shippedMs": 18203.2288,
+          "screenMs": 9678.544,
+          "ratio": 2.051497292612176,
+          "screenRatio": 3.8584186423081817,
+          "todaySetMs": 11084.21,
+          "shippedSetMs": 1659.5098,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        }
+      ]
+    },
+    {
+      "cell": "32x15-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.0539507622469275,
+      "lower": 0.9126590989538331,
+      "pass": true,
+      "logSd": 0.5107235699275032,
+      "logMean": 0.052545733892242305,
+      "approximateNeeded20": 1.0418519198147824,
+      "approximateFresh20PowerAtTrueParity": 0.35979240676286284,
+      "approximateNeeded40": 0.9981336152721646,
+      "approximateFresh40PowerAtTrueParity": 0.5092283103591219,
+      "medianTodayS": 10.565413399999999,
+      "medianShippedS": 14.33708805,
+      "p95TodayS": 40.0604485,
+      "p95ShippedS": 25.5973969,
+      "screen": {
+        "geoMean": 1.6934439595315933,
+        "lower": 1.464555993632626,
+        "medianS": 8.550576099999999
+      },
+      "pairs": [
+        {
+          "rep": 20,
+          "todayMs": 8414.3799,
+          "shippedMs": 16349.3742,
+          "screenMs": 8385.052,
+          "ratio": 0.5146606712322971,
+          "screenRatio": 1.0034976408017506,
+          "todaySetMs": 2613.7626,
+          "shippedSetMs": 7825.9067000000005,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 21,
+          "todayMs": 10850.643999999998,
+          "shippedMs": 25050.7733,
+          "screenMs": 6855.827,
+          "ratio": 0.4331460697861969,
+          "screenRatio": 1.5826892948144693,
+          "todaySetMs": 858.3176000000001,
+          "shippedSetMs": 2179.7743,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 22,
+          "todayMs": 40060.4485,
+          "shippedMs": 17616.8655,
+          "screenMs": 10546.0107,
+          "ratio": 2.273982763846383,
+          "screenRatio": 3.798635298179623,
+          "todaySetMs": 15438.7013,
+          "shippedSetMs": 2668.2302,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 23,
+          "todayMs": 10280.1828,
+          "shippedMs": 16278.6809,
+          "screenMs": 12247.4617,
+          "ratio": 0.6315120287172654,
+          "screenRatio": 0.8393725207566888,
+          "todaySetMs": 1169.8347,
+          "shippedSetMs": 1558.2112,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 24,
+          "todayMs": 9396.2867,
+          "shippedMs": 8334.6547,
+          "screenMs": 6348.5102,
+          "ratio": 1.127375642808574,
+          "screenRatio": 1.4800774361203675,
+          "todaySetMs": 2478.6331999999998,
+          "shippedSetMs": 2937.2064,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 25,
+          "todayMs": 19443.5833,
+          "shippedMs": 14571.0447,
+          "screenMs": 7579.7678,
+          "ratio": 1.3343987133606143,
+          "screenRatio": 2.565195110594285,
+          "todaySetMs": 4106.0487,
+          "shippedSetMs": 2956.7455999999997,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 26,
+          "todayMs": 19135.7333,
+          "shippedMs": 12373.113,
+          "screenMs": 5460.8614,
+          "ratio": 1.5465577094462808,
+          "screenRatio": 3.5041602227809703,
+          "todaySetMs": 5190.3139,
+          "shippedSetMs": 2315.8139,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 27,
+          "todayMs": 7675.3106,
+          "shippedMs": 4916.98,
+          "screenMs": 5191.4501,
+          "ratio": 1.5609806425895572,
+          "screenRatio": 1.4784521573269094,
+          "todaySetMs": 2263.9539000000004,
+          "shippedSetMs": 893.4240000000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 28,
+          "todayMs": 9155.0377,
+          "shippedMs": 9256.705399999999,
+          "screenMs": 9961.5888,
+          "ratio": 0.9890168590652136,
+          "screenRatio": 0.9190338894534575,
+          "todaySetMs": 2656.2529999999997,
+          "shippedSetMs": 3140.0648,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 29,
+          "todayMs": 7775.4655999999995,
+          "shippedMs": 9918.0435,
+          "screenMs": 7366.0602,
+          "ratio": 0.7839717178090618,
+          "screenRatio": 1.0555799693301446,
+          "todaySetMs": 1045.6117000000002,
+          "shippedSetMs": 1049.876,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 30,
+          "todayMs": 12513.151100000001,
+          "shippedMs": 17105.8262,
+          "screenMs": 10964.1597,
+          "ratio": 0.7315139855682622,
+          "screenRatio": 1.1412777123266455,
+          "todaySetMs": 588.1078,
+          "shippedSetMs": 567.6040999999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 31,
+          "todayMs": 9558.9147,
+          "shippedMs": 7241.6841,
+          "screenMs": 5485.1674,
+          "ratio": 1.3199850432581006,
+          "screenRatio": 1.7426842250976695,
+          "todaySetMs": 1306.4222,
+          "shippedSetMs": 1320.6841,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 32,
+          "todayMs": 12795.622599999999,
+          "shippedMs": 17938.4062,
+          "screenMs": 8716.100199999999,
+          "ratio": 0.7133087776772498,
+          "screenRatio": 1.4680444586903671,
+          "todaySetMs": 1923.9337,
+          "shippedSetMs": 2600.1828,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 33,
+          "todayMs": 14362.2416,
+          "shippedMs": 14671.3376,
+          "screenMs": 11299.4409,
+          "ratio": 0.9789319823163226,
+          "screenRatio": 1.2710577210948553,
+          "todaySetMs": 1374.0167000000001,
+          "shippedSetMs": 1386.5762,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 34,
+          "todayMs": 31661.123900000002,
+          "shippedMs": 33157.2788,
+          "screenMs": 9486.441799999999,
+          "ratio": 0.9548770298966754,
+          "screenRatio": 3.3375131126614836,
+          "todaySetMs": 7120.0995,
+          "shippedSetMs": 2774.0939000000003,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 35,
+          "todayMs": 9256.6484,
+          "shippedMs": 12424.4231,
+          "screenMs": 6836.3805999999995,
+          "ratio": 0.7450364757780987,
+          "screenRatio": 1.3540276560962683,
+          "todaySetMs": 621.2075,
+          "shippedSetMs": 611.1265999999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 36,
+          "todayMs": 65263.868200000004,
+          "shippedMs": 25597.3969,
+          "screenMs": 13789.058500000001,
+          "ratio": 2.549629107012831,
+          "screenRatio": 4.733018443572489,
+          "todaySetMs": 23535.029,
+          "shippedSetMs": 5007.7851,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 37,
+          "todayMs": 10255.8817,
+          "shippedMs": 14103.1314,
+          "screenMs": 9427.3826,
+          "ratio": 0.7272059948331758,
+          "screenRatio": 1.0878821975465385,
+          "todaySetMs": 1623.3102,
+          "shippedSetMs": 1593.2092,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 38,
+          "todayMs": 34162.6917,
+          "shippedMs": 12492.9164,
+          "screenMs": 10492.8409,
+          "ratio": 2.7345649811600437,
+          "screenRatio": 3.255809558686819,
+          "todaySetMs": 16722.4212,
+          "shippedSetMs": 2912.0293,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 39,
+          "todayMs": 8009.7887,
+          "shippedMs": 6139.4602,
+          "screenMs": 5784.4447,
+          "ratio": 1.304640544782748,
+          "screenRatio": 1.384711777087263,
+          "todaySetMs": 1460.3084999999999,
+          "shippedSetMs": 1478.3763,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        }
+      ]
+    },
+    {
+      "cell": "22x22-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.155386821595929,
+      "lower": 1.0388096227711745,
+      "pass": true,
+      "logSd": 0.37594063510941705,
+      "logMean": 0.14443519837642907,
+      "approximateNeeded20": 1.00237729464507,
+      "approximateFresh20PowerAtTrueParity": 0.48873281708785826,
+      "approximateNeeded40": 0.9712412616461401,
+      "approximateFresh40PowerAtTrueParity": 0.688254830169054,
+      "medianTodayS": 10.82187525,
+      "medianShippedS": 10.3102648,
+      "p95TodayS": 31.6018529,
+      "p95ShippedS": 19.1825377,
+      "screen": {
+        "geoMean": 1.5903840254744814,
+        "lower": 1.4315651389420803,
+        "medianS": 7.31645125
+      },
+      "pairs": [
+        {
+          "rep": 20,
+          "todayMs": 23512.9617,
+          "shippedMs": 18538.7289,
+          "screenMs": 9587.6862,
+          "ratio": 1.2683157419708533,
+          "screenRatio": 2.4524125226376308,
+          "todaySetMs": 8554.0349,
+          "shippedSetMs": 2574.8797,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 21,
+          "todayMs": 10719.2643,
+          "shippedMs": 7989.1709,
+          "screenMs": 6726.9342,
+          "ratio": 1.3417242457537115,
+          "screenRatio": 1.593484339418691,
+          "todaySetMs": 1232.9004,
+          "shippedSetMs": 1273.1644999999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 22,
+          "todayMs": 12869.047900000001,
+          "shippedMs": 10041.1175,
+          "screenMs": 7390.5427,
+          "ratio": 1.281635027177005,
+          "screenRatio": 1.7412859139559536,
+          "todaySetMs": 849.6940000000001,
+          "shippedSetMs": 828.7478000000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 23,
+          "todayMs": 9819.7072,
+          "shippedMs": 8725.4699,
+          "screenMs": 7242.359799999999,
+          "ratio": 1.1254072631664227,
+          "screenRatio": 1.355871217555361,
+          "todaySetMs": 1627.5341999999998,
+          "shippedSetMs": 2357.0996,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 24,
+          "todayMs": 5683.2237000000005,
+          "shippedMs": 5594.436299999999,
+          "screenMs": 5044.4673,
+          "ratio": 1.0158706606418955,
+          "screenRatio": 1.1266251443437845,
+          "todaySetMs": 2007.5481000000002,
+          "shippedSetMs": 1993.8853000000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 25,
+          "todayMs": 31875.374,
+          "shippedMs": 12217.5033,
+          "screenMs": 10094.8352,
+          "ratio": 2.6089924608409967,
+          "screenRatio": 3.157592310174613,
+          "todaySetMs": 2034.0896,
+          "shippedSetMs": 2026.1880999999998,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 26,
+          "todayMs": 7259.470700000001,
+          "shippedMs": 7524.154500000001,
+          "screenMs": 5764.8206,
+          "ratio": 0.9648221205452387,
+          "screenRatio": 1.2592708782646247,
+          "todaySetMs": 653.6197,
+          "shippedSetMs": 701.6333999999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 27,
+          "todayMs": 9113.434799999999,
+          "shippedMs": 10317.9753,
+          "screenMs": 7034.4386,
+          "ratio": 0.8832580554830364,
+          "screenRatio": 1.2955454327229465,
+          "todaySetMs": 1152.2147,
+          "shippedSetMs": 4224.709699999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 28,
+          "todayMs": 31601.8529,
+          "shippedMs": 24657.665500000003,
+          "screenMs": 13017.113000000001,
+          "ratio": 1.2816238787893361,
+          "screenRatio": 2.4277159536066097,
+          "todaySetMs": 14915.8357,
+          "shippedSetMs": 16114.075499999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 29,
+          "todayMs": 10414.6608,
+          "shippedMs": 7456.7328,
+          "screenMs": 7068.6897,
+          "ratio": 1.396678824270061,
+          "screenRatio": 1.4733509663042643,
+          "todaySetMs": 3771.0018,
+          "shippedSetMs": 2651.8268,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 30,
+          "todayMs": 10273.734,
+          "shippedMs": 7522.2135,
+          "screenMs": 5729.9186,
+          "ratio": 1.3657860149808299,
+          "screenRatio": 1.7929982460832865,
+          "todaySetMs": 807.3489000000001,
+          "shippedSetMs": 797.8782,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 31,
+          "todayMs": 18551.484399999998,
+          "shippedMs": 10302.5543,
+          "screenMs": 7181.5889,
+          "ratio": 1.8006684419998638,
+          "screenRatio": 2.5832005505077014,
+          "todaySetMs": 649.367,
+          "shippedSetMs": 655.2283,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 32,
+          "todayMs": 14293.4445,
+          "shippedMs": 14873.1441,
+          "screenMs": 12682.4668,
+          "ratio": 0.9610237353916311,
+          "screenRatio": 1.127024002932931,
+          "todaySetMs": 1526.3188,
+          "shippedSetMs": 3694.9194,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 33,
+          "todayMs": 10872.3185,
+          "shippedMs": 15603.0571,
+          "screenMs": 9564.9615,
+          "ratio": 0.6968069417627138,
+          "screenRatio": 1.1366818883693364,
+          "todaySetMs": 878.0867,
+          "shippedSetMs": 868.7375,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 34,
+          "todayMs": 22477.1596,
+          "shippedMs": 19182.5377,
+          "screenMs": 10532.999300000001,
+          "ratio": 1.171751097353506,
+          "screenRatio": 2.133975229638532,
+          "todaySetMs": 4356.0922,
+          "shippedSetMs": 3395.0701,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 35,
+          "todayMs": 11058.537,
+          "shippedMs": 10399.0281,
+          "screenMs": 8472.554100000001,
+          "ratio": 1.063420244051461,
+          "screenRatio": 1.305218812353172,
+          "todaySetMs": 4525.084000000001,
+          "shippedSetMs": 4649.2631,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 36,
+          "todayMs": 10771.431999999999,
+          "shippedMs": 15873.0807,
+          "screenMs": 11288.064999999999,
+          "ratio": 0.6785974445401767,
+          "screenRatio": 0.9542319254894439,
+          "todaySetMs": 4490.5659000000005,
+          "shippedSetMs": 3838.3686000000002,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 37,
+          "todayMs": 7095.850399999999,
+          "shippedMs": 4951.0291,
+          "screenMs": 4075.2628000000004,
+          "ratio": 1.4332071689903823,
+          "screenRatio": 1.7412006901738948,
+          "todaySetMs": 682.8122000000001,
+          "shippedSetMs": 685.8249,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 38,
+          "todayMs": 14955.999300000001,
+          "shippedMs": 8071.1322,
+          "screenMs": 5814.458,
+          "ratio": 1.8530237058934558,
+          "screenRatio": 2.572208673620138,
+          "todaySetMs": 7123.6791,
+          "shippedSetMs": 2095.5451,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 39,
+          "todayMs": 5939.1733,
+          "shippedMs": 12129.732800000002,
+          "screenMs": 7497.542,
+          "ratio": 0.48963760355875274,
+          "screenRatio": 0.7921493870924631,
+          "todaySetMs": 762.4858,
+          "shippedSetMs": 754.6874,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        }
+      ]
+    },
+    {
+      "cell": "24x24-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.2433695406496388,
+      "lower": 1.1271388877754354,
+      "pass": true,
+      "logSd": 0.3680504114806476,
+      "logMean": 0.21782506572953086,
+      "approximateNeeded20": 1.0001133431031324,
+      "approximateFresh20PowerAtTrueParity": 0.4994506006940226,
+      "approximateNeeded40": 0.9696896186800588,
+      "approximateFresh40PowerAtTrueParity": 0.701565548177962,
+      "medianTodayS": 16.42326885,
+      "medianShippedS": 15.62501035,
+      "p95TodayS": 43.568093700000006,
+      "p95ShippedS": 23.8768645,
+      "screen": {
+        "geoMean": 1.7759166987060835,
+        "lower": 1.566366997233606,
+        "medianS": 10.79687805
+      },
+      "pairs": [
+        {
+          "rep": 20,
+          "todayMs": 5923.401,
+          "shippedMs": 4817.1736,
+          "screenMs": 4814.9523,
+          "ratio": 1.229642419363919,
+          "screenRatio": 1.2302096949122425,
+          "todaySetMs": 1138.1332,
+          "shippedSetMs": 1379.6913,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 21,
+          "todayMs": 7386.3538,
+          "shippedMs": 7847.8751999999995,
+          "screenMs": 8889.0721,
+          "ratio": 0.9411915469807676,
+          "screenRatio": 0.8309476756297207,
+          "todaySetMs": 765.0888,
+          "shippedSetMs": 811.3291999999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 22,
+          "todayMs": 18613.2367,
+          "shippedMs": 22831.5415,
+          "screenMs": 11917.1207,
+          "ratio": 0.8152422253223682,
+          "screenRatio": 1.561890423749757,
+          "todaySetMs": 5242.482800000001,
+          "shippedSetMs": 16547.3835,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 23,
+          "todayMs": 37594.905199999994,
+          "shippedMs": 16399.8126,
+          "screenMs": 9191.101499999999,
+          "ratio": 2.2923984631385355,
+          "screenRatio": 4.090359050000699,
+          "todaySetMs": 10188.1118,
+          "shippedSetMs": 4661.9884,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 24,
+          "todayMs": 8396.2183,
+          "shippedMs": 6000.3009999999995,
+          "screenMs": 4934.2651,
+          "ratio": 1.3992995184741568,
+          "screenRatio": 1.7016147551537109,
+          "todaySetMs": 1067.4851,
+          "shippedSetMs": 1092.249,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 25,
+          "todayMs": 11200.6245,
+          "shippedMs": 19806.5037,
+          "screenMs": 10801.5956,
+          "ratio": 0.5655023556732024,
+          "screenRatio": 1.0369416625817762,
+          "todaySetMs": 2200.4818,
+          "shippedSetMs": 1025.0244,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 26,
+          "todayMs": 8934.9483,
+          "shippedMs": 9684.958400000001,
+          "screenMs": 8242.8091,
+          "ratio": 0.9225592853346689,
+          "screenRatio": 1.0839688498912343,
+          "todaySetMs": 947.8936000000001,
+          "shippedSetMs": 951.653,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 27,
+          "todayMs": 16733.9895,
+          "shippedMs": 13894.244200000001,
+          "screenMs": 11622.0099,
+          "ratio": 1.2043828551681852,
+          "screenRatio": 1.439853316593716,
+          "todaySetMs": 2509.0036999999998,
+          "shippedSetMs": 2587.5950000000003,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 28,
+          "todayMs": 23594.8078,
+          "shippedMs": 20354.268799999998,
+          "screenMs": 10963.2006,
+          "ratio": 1.1592068490320813,
+          "screenRatio": 2.1521824384021575,
+          "todaySetMs": 6959.0356,
+          "shippedSetMs": 3031.3446999999996,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 29,
+          "todayMs": 19922.472100000003,
+          "shippedMs": 18638.9526,
+          "screenMs": 11870.3154,
+          "ratio": 1.06886221171033,
+          "screenRatio": 1.678343955376283,
+          "todaySetMs": 8385.2534,
+          "shippedSetMs": 8195.791799999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 30,
+          "todayMs": 38238.0508,
+          "shippedMs": 15732.5489,
+          "screenMs": 9890.0912,
+          "ratio": 2.43050576502578,
+          "screenRatio": 3.86629910955725,
+          "todaySetMs": 8164.302999999999,
+          "shippedSetMs": 4280.386399999999,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 31,
+          "todayMs": 59437.965500000006,
+          "shippedMs": 28713.767,
+          "screenMs": 15024.7227,
+          "ratio": 2.0700162921848606,
+          "screenRatio": 3.9560108154275624,
+          "todaySetMs": 16020.1746,
+          "shippedSetMs": 9108.5043,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 32,
+          "todayMs": 10632.2389,
+          "shippedMs": 8698.1309,
+          "screenMs": 6647.2484,
+          "ratio": 1.2223590357785947,
+          "screenRatio": 1.599494747330339,
+          "todaySetMs": 2422.9688,
+          "shippedSetMs": 2535.0105,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 33,
+          "todayMs": 25930.8539,
+          "shippedMs": 23876.8645,
+          "screenMs": 12965.332999999999,
+          "ratio": 1.0860242516348828,
+          "screenRatio": 2.000014492493174,
+          "todaySetMs": 9595.2881,
+          "shippedSetMs": 7160.1817,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 34,
+          "todayMs": 19830.351899999998,
+          "shippedMs": 17578.5844,
+          "screenMs": 14556.660899999999,
+          "ratio": 1.128097203322015,
+          "screenRatio": 1.362287136880409,
+          "todaySetMs": 9649.604099999999,
+          "shippedSetMs": 7850.5162,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 35,
+          "todayMs": 16112.5482,
+          "shippedMs": 15517.471800000001,
+          "screenMs": 10792.1605,
+          "ratio": 1.0383487985459072,
+          "screenRatio": 1.4929863394822565,
+          "todaySetMs": 10886.5261,
+          "shippedSetMs": 11006.4631,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 36,
+          "todayMs": 14173.0095,
+          "shippedMs": 14104.143399999999,
+          "screenMs": 11287.846599999999,
+          "ratio": 1.004882685750345,
+          "screenRatio": 1.2555990528786953,
+          "todaySetMs": 4411.2116,
+          "shippedSetMs": 3753.2632,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 37,
+          "todayMs": 12792.0716,
+          "shippedMs": 9746.6011,
+          "screenMs": 6640.9011,
+          "ratio": 1.3124648755759585,
+          "screenRatio": 1.9262553992860998,
+          "todaySetMs": 7871.7625,
+          "shippedSetMs": 4083.9701,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 38,
+          "todayMs": 43568.093700000005,
+          "shippedMs": 19305.6964,
+          "screenMs": 11673.976999999999,
+          "ratio": 2.256748101560325,
+          "screenRatio": 3.7320695166694273,
+          "todaySetMs": 8641.3054,
+          "shippedSetMs": 3705.2374,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 39,
+          "todayMs": 11852.2835,
+          "shippedMs": 8338.7787,
+          "screenMs": 7102.8664,
+          "ratio": 1.421345250474149,
+          "screenRatio": 1.668662034808933,
+          "todaySetMs": 5390.5613,
+          "shippedSetMs": 3537.9647,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        }
+      ]
+    },
+    {
+      "cell": "26x26-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.0006219645915206,
+      "lower": 0.886429539656821,
+      "pass": false,
+      "logSd": 0.43861384948113685,
+      "logMean": 0.0006217712517069901,
+      "approximateNeeded20": 1.0205431817380366,
+      "approximateFresh20PowerAtTrueParity": 0.41787326929371515,
+      "approximateNeeded40": 0.9836547056690599,
+      "approximateFresh40PowerAtTrueParity": 0.5939186932967935,
+      "medianTodayS": 15.535982349999998,
+      "medianShippedS": 15.7559589,
+      "p95TodayS": 26.398446600000003,
+      "p95ShippedS": 26.1594208,
+      "screen": {
+        "geoMean": 1.4665780100036852,
+        "lower": 1.2929807789805263,
+        "medianS": 10.185888749999998
+      },
+      "pairs": [
+        {
+          "rep": 20,
+          "todayMs": 15823.9373,
+          "shippedMs": 16887.719599999997,
+          "screenMs": 9168.774000000001,
+          "ratio": 0.9370085289668122,
+          "screenRatio": 1.7258509480111515,
+          "todaySetMs": 668.4651,
+          "shippedSetMs": 695.593,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 21,
+          "todayMs": 13972.7132,
+          "shippedMs": 38919.1043,
+          "screenMs": 18277.996499999997,
+          "ratio": 0.3590193929514457,
+          "screenRatio": 0.7644554040701343,
+          "todaySetMs": 2439.0264,
+          "shippedSetMs": 25418.814599999998,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 22,
+          "todayMs": 15248.027399999999,
+          "shippedMs": 19002.1459,
+          "screenMs": 7939.3623,
+          "ratio": 0.8024371289560512,
+          "screenRatio": 1.920560723120042,
+          "todaySetMs": 3600.2912,
+          "shippedSetMs": 3782.7939,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 23,
+          "todayMs": 21661.8963,
+          "shippedMs": 23775.123099999997,
+          "screenMs": 11357.926200000002,
+          "ratio": 0.911116052223511,
+          "screenRatio": 1.9072052343499113,
+          "todaySetMs": 8739.2064,
+          "shippedSetMs": 5422.0767000000005,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 24,
+          "todayMs": 8701.8151,
+          "shippedMs": 11319.109400000001,
+          "screenMs": 11073.1517,
+          "ratio": 0.7687720643463344,
+          "screenRatio": 0.7858480887604926,
+          "todaySetMs": 3138.0305,
+          "shippedSetMs": 3277.5953,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 25,
+          "todayMs": 10242.9005,
+          "shippedMs": 7013.796399999999,
+          "screenMs": 9539.2241,
+          "ratio": 1.4603931901986777,
+          "screenRatio": 1.0737666284619523,
+          "todaySetMs": 3471.5648,
+          "shippedSetMs": 1399.8615000000002,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 26,
+          "todayMs": 9919.217400000001,
+          "shippedMs": 13592.6455,
+          "screenMs": 9434.6056,
+          "ratio": 0.7297488483753954,
+          "screenRatio": 1.0513653480120038,
+          "todaySetMs": 2060.5731,
+          "shippedSetMs": 4113.8713,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 27,
+          "todayMs": 18124.9324,
+          "shippedMs": 15906.0846,
+          "screenMs": 10588.2676,
+          "ratio": 1.1394967935729452,
+          "screenRatio": 1.711793948237576,
+          "todaySetMs": 7995.8787,
+          "shippedSetMs": 3692.4456,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 28,
+          "todayMs": 9116.776,
+          "shippedMs": 16635.7473,
+          "screenMs": 9487.1139,
+          "ratio": 0.5480232318748915,
+          "screenRatio": 0.9609641136489359,
+          "todaySetMs": 763.1988,
+          "shippedSetMs": 882.5339,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 29,
+          "todayMs": 8712.055900000001,
+          "shippedMs": 7167.4071,
+          "screenMs": 5153.897400000001,
+          "ratio": 1.2155101249934583,
+          "screenRatio": 1.6903820980215865,
+          "todaySetMs": 848.4642,
+          "shippedSetMs": 756.1704000000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 30,
+          "todayMs": 19402.8369,
+          "shippedMs": 16545.9882,
+          "screenMs": 10867.690799999998,
+          "ratio": 1.1726611106854288,
+          "screenRatio": 1.7853688752352064,
+          "todaySetMs": 3449.3183,
+          "shippedSetMs": 6041.868100000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 31,
+          "todayMs": 16643.785499999998,
+          "shippedMs": 15605.8332,
+          "screenMs": 8361.0514,
+          "ratio": 1.0665105340226242,
+          "screenRatio": 1.9906330799497294,
+          "todaySetMs": 1199.0397,
+          "shippedSetMs": 2300.959,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 32,
+          "todayMs": 26398.446600000003,
+          "shippedMs": 9525.491399999999,
+          "screenMs": 8113.3703000000005,
+          "ratio": 2.771347481348837,
+          "screenRatio": 3.2536967528771616,
+          "todaySetMs": 1979.6383,
+          "shippedSetMs": 1883.7843,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 33,
+          "todayMs": 14872.4974,
+          "shippedMs": 14161.0932,
+          "screenMs": 10132.5155,
+          "ratio": 1.0502365311740198,
+          "screenRatio": 1.4677991264854222,
+          "todaySetMs": 4723.8595,
+          "shippedSetMs": 2340.9049,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 34,
+          "todayMs": 26278.532499999998,
+          "shippedMs": 15307.5785,
+          "screenMs": 14548.4031,
+          "ratio": 1.7167008158736536,
+          "screenRatio": 1.8062829521131427,
+          "todaySetMs": 4723.558800000001,
+          "shippedSetMs": 4282.322700000001,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 35,
+          "todayMs": 16060.5435,
+          "shippedMs": 13413.5942,
+          "screenMs": 9283.2464,
+          "ratio": 1.1973333366533483,
+          "screenRatio": 1.730056793494138,
+          "todaySetMs": 6409.4514,
+          "shippedSetMs": 3575.4394,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 36,
+          "todayMs": 23257.2062,
+          "shippedMs": 18429.0558,
+          "screenMs": 14401.7754,
+          "ratio": 1.261985771403438,
+          "screenRatio": 1.6148846620674282,
+          "todaySetMs": 7333.1578,
+          "shippedSetMs": 6426.2452,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 37,
+          "todayMs": 11237.5382,
+          "shippedMs": 18990.1359,
+          "screenMs": 10840.4515,
+          "ratio": 0.5917565971710608,
+          "screenRatio": 1.0366300887006414,
+          "todaySetMs": 1774.2261999999998,
+          "shippedSetMs": 2477.1451,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 38,
+          "todayMs": 34631.3433,
+          "shippedMs": 26159.4208,
+          "screenMs": 10239.261999999999,
+          "ratio": 1.323857418892088,
+          "screenRatio": 3.3822108761354093,
+          "todaySetMs": 7398.680600000001,
+          "shippedSetMs": 7863.4066,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        },
+        {
+          "rep": 39,
+          "todayMs": 10909.074499999999,
+          "shippedMs": 12190.152800000002,
+          "screenMs": 18432.581700000002,
+          "ratio": 0.8949087578295161,
+          "screenRatio": 0.5918364924431609,
+          "todaySetMs": 3468.6591,
+          "shippedSetMs": 3312.5023,
+          "todayAccepted": 10,
+          "shippedAccepted": 10
+        }
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "n-small",
+      "cells": [
+        "3x29-nightmare",
+        "10x10-nightmare",
+        "12x12-nightmare"
+      ],
+      "geoMean": 0.9981064516435699,
+      "lower": 0.9953047082657673,
+      "verdict": "failed",
+      "decidedBy": "faster",
+      "workVerdictFromRecordedBounds": "unknown",
+      "shipped": "fr-frozen-none"
+    },
+    {
+      "id": "n-mid",
+      "cells": [
+        "14x14-nightmare",
+        "15x15b10-nightmare",
+        "16x16-nightmare"
+      ],
+      "geoMean": 2.300742673695926,
+      "lower": 2.1680299106501772,
+      "verdict": "admitted",
+      "decidedBy": null,
+      "workVerdictFromRecordedBounds": "pass",
+      "shipped": "fr-frozen"
+    },
+    {
+      "id": "n-upper",
+      "cells": [
+        "15x20-nightmare",
+        "18x18-nightmare"
+      ],
+      "geoMean": 1.790501260750378,
+      "lower": 1.6835699259721364,
+      "verdict": "inconclusive",
+      "decidedBy": "work-unknown",
+      "workVerdictFromRecordedBounds": "unknown",
+      "shipped": "fr-frozen-none"
+    },
+    {
+      "id": "n-large",
+      "cells": [
+        "18x20-nightmare",
+        "20x20-nightmare",
+        "20x21-nightmare",
+        "32x15-nightmare",
+        "22x22-nightmare",
+        "24x24-nightmare",
+        "26x26-nightmare"
+      ],
+      "geoMean": 1.586738132895369,
+      "lower": 1.5415167983432614,
+      "verdict": "inconclusive",
+      "decidedBy": "work-unknown",
+      "workVerdictFromRecordedBounds": "unknown",
+      "shipped": "fr-frozen-none"
+    },
+    {
+      "id": "hell-1",
+      "cells": [
+        "14x14-hell-1",
+        "20x20-hell-1",
+        "24x24-hell-1",
+        "26x26-hell-1"
+      ],
+      "geoMean": 0.9985545053031247,
+      "lower": 0.9958581862458629,
+      "verdict": "failed",
+      "decidedBy": "faster",
+      "workVerdictFromRecordedBounds": "unknown",
+      "shipped": "fr-frozen-none"
+    }
+  ],
+  "masters": [
+    {
+      "cell": "6x10-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "3x29-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "10x10-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "12x12-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "14x14-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "15x15b10-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "16x16-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "15x20-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "18x18-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "18x20-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "20x20-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "20x21-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "32x15-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "22x22-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "24x24-master",
+      "verdict": "pass"
+    },
+    {
+      "cell": "26x26-master",
+      "verdict": "pass"
+    }
+  ],
+  "failing": [
+    {
+      "cell": "14x14-nightmare",
+      "reachedTen": 20,
+      "recordedDeadEnds": 0,
+      "p95Ms": 12021.9407
+    },
+    {
+      "cell": "15x15b10-nightmare",
+      "reachedTen": 20,
+      "recordedDeadEnds": 0,
+      "p95Ms": 22255.9256
+    },
+    {
+      "cell": "12x12-nightmare",
+      "reachedTen": 20,
+      "recordedDeadEnds": 0,
+      "p95Ms": 37414.9908
+    },
+    {
+      "cell": "16x16-nightmare",
+      "reachedTen": 20,
+      "recordedDeadEnds": 0,
+      "p95Ms": 13842.9308
+    },
+    {
+      "cell": "15x20-nightmare",
+      "reachedTen": 20,
+      "recordedDeadEnds": 0,
+      "p95Ms": 22423.824099999998
+    }
+  ],
+  "hell1": [
+    {
+      "cell": "26x26-hell-1",
+      "requests": 20,
+      "valid": 20,
+      "reachedTen": 20,
+      "candidate": true
+    },
+    {
+      "cell": "20x20-hell-1",
+      "requests": 20,
+      "valid": 20,
+      "reachedTen": 20,
+      "candidate": true
+    },
+    {
+      "cell": "24x24-hell-1",
+      "requests": 20,
+      "valid": 20,
+      "reachedTen": 20,
+      "candidate": true
+    },
+    {
+      "cell": "14x14-hell-1",
+      "requests": 20,
+      "valid": 20,
+      "reachedTen": 10,
+      "candidate": false
+    }
+  ],
+  "proofs": [
+    {
+      "id": "fr-frozen",
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "id": "fr-frozen-none",
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "id": "fr-frozen-uncapped",
+      "status": "pass",
+      "reasons": []
+    },
+    {
+      "id": "fr-frozen-none-uncapped",
+      "status": "pass",
+      "reasons": []
+    }
+  ],
+  "phase0": {
+    "verdict": "fail",
+    "deciding": [
+      "control 26x26-nightmare: fail"
+    ]
+  },
+  "modelIllustration": {
+    "assumptions": "Hypothetical independent normal log-ratios, fixed population SD set to the observed sample SD; these are not calibrated powers of the frozen bootstrap rule.",
+    "observedMean": 1.0006219645915206,
+    "observedLower": 0.886429539656821,
+    "sd": 0.43861384948113685,
+    "needed20": 1.0205431817380366,
+    "fresh20PowerAtTrueParity": 0.41787326929371515,
+    "needed40": 0.9836547056690599,
+    "fresh40PowerAtTrueParity": 0.5939186932967935,
+    "conditionalExisting20PlusFresh20AtTrueParity": 0.6339785009027143,
+    "belowOne": 9,
+    "below08": 5,
+    "above12": 6
+  },
+  "account": {
+    "countedS": 28043.39100000001,
+    "afterLoggedS": 42514.43900000001,
+    "offLogS": 87.4,
+    "afterMinutes": 710.0306500000003,
+    "comparatorGuardMinutes": 732.0213794942938,
+    "comparatorScope": 19,
+    "comparatorRows": 380,
+    "comparatorMinimumCap": 1443,
+    "currentGrant": 1725
+  },
+  "limitations": "Class work decisions checked from recorded interval bounds, not recomputed from all raw journals. No new measurement or fitted configuration.",
+  "inputs": [
+    {
+      "path": "tools/ig-proto/plans/verdicts/V4-S4.verdict-manifest.json",
+      "sha256Lf": "80289265fc442de0913e2f6d1f15ca1d265eeb8268d256443cbb5d681e89601f",
+      "sha256Raw": "2155106087f46656cde25c0bdfeca973294b0604d1607aab05cd565a3de3ea70"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/verdicts.json",
+      "sha256Lf": "cc901b6a53acb10eae71d7c85a4fe3b3c13e79bc2a8df85d65442a3be0ca5036",
+      "sha256Raw": "555e20f4c33f2c68a8dea0397254dbbe4242fbd63ae19752c2210af3422c8475"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/class-selection.json",
+      "sha256Lf": "8392547723e71f56e98a15683c248304cb98e33e7e971d30a3eba2867c58b89f",
+      "sha256Raw": "5aec5d331349fb94697f0ee236714437fdfbab053973fc0d148c16dd1a35c254"
+    },
+    {
+      "path": "tools/ig-proto/plans/V4-S4.json",
+      "sha256Lf": "7593eec0c4e977942384289e997454146957e50d40ecde863eed01093434e64c",
+      "sha256Raw": "94a94270054521e1d4568ae4d9fba623b154ccfae30e03bf3c66c119eccbf175"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-10x10-master.runs.json",
+      "sha256Lf": "f67b9cc1b501f8ecc21f711ff8df96d934f9b0a84991221b977197261dd19b2e",
+      "sha256Raw": "f353a74ac154e43eabc717f477216afd9e0d189090a15b4fe16430e047cddec1"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-12x12-master.runs.json",
+      "sha256Lf": "b8114a9382f80e21466d2ebd186e7f79dfd7f7308e37ba5751385fa1d2477b7c",
+      "sha256Raw": "b5676aae43451f509f142ee6ee167e9f15c706a8ef569b6ad731d7c7694907fe"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-14x14-master.runs.json",
+      "sha256Lf": "b8016605965fa941498bcf475ed13504c4c00789685cbf5ef1786cc438c3daf2",
+      "sha256Raw": "0cc81dec89db1f4e80639ce92a07c9b6444f315abaa12837966419e71b577a6d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-15x15b10-master.runs.json",
+      "sha256Lf": "68f81367a5c173df6d6368248343536eb691a53bff108e30a08acba086c17f68",
+      "sha256Raw": "58bc13c82703f2a6e747596e08b636d8d3c10c34020275bb94cb9d6d7bda762b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-15x20-master.runs.json",
+      "sha256Lf": "9060add22144d232e0205ff8523a2e6b110063da0e14385773b38fded775715a",
+      "sha256Raw": "7fcde178ab04e72a7cb238adf8f4a7c87439f5d7f01d0db581e2b51ea4b13e5f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-16x16-master.runs.json",
+      "sha256Lf": "bf68c89eefd31f11012b86d7aa163e8fc79b173f7c14bcbbdf55ae8504a0b582",
+      "sha256Raw": "0f7e0d5c0a6754087695a1b7c4724a74aef3a2b20226ef07863005dbb494299a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-18x18-master.runs.json",
+      "sha256Lf": "970ca21cdfa7a4077c1d29aef93078ac23a19bf5bc75fcb3f582f7a52f2b491d",
+      "sha256Raw": "996be836d48c8e6a6d80931013e27da88fe9504d1b9d95a30e04a125d2597e53"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-18x20-master.runs.json",
+      "sha256Lf": "0f5a83b3dfbc6702754ca34d09157d8c8306ef7317001793afe412455c08ba17",
+      "sha256Raw": "d0f7222e385a812425b2062410c9e4a2ce5aafae687d66a73348fac05b858437"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-20x20-master.runs.json",
+      "sha256Lf": "16402e57a4c4b992b96f54fd37b8bf1cec4dc07c79043a5bf73dac2d3150f3f1",
+      "sha256Raw": "36770df6d7bbdf3a441aece3b5cf680556245c02926bc67a394377d724babffb"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-20x21-master.runs.json",
+      "sha256Lf": "f41879f786037a5e3ab0892c9a56171cfb7a540a8cd7e161c27e8d3383bc9df9",
+      "sha256Raw": "e49bf321c07c4c6c3b67ae64e93944b407f682d6f24fc8045d7e73ff101d9edb"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-22x22-master.runs.json",
+      "sha256Lf": "c8b989ff7e263971107f208f54b1b93ee72932cee74154f9da6b2b3ca6cfceeb",
+      "sha256Raw": "307ff288da30c710601c91e24afa5cd8df34efdaeb0f9f294daaac4a2ea17690"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-24x24-master.runs.json",
+      "sha256Lf": "b8a82effbe9d555685b726b6cba1355d0fff641b9e01941f9a0c700f118fb076",
+      "sha256Raw": "5805866250220a1142f6b2030a288f148f86ba4451b55e6ebf020b62046c5aaa"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-26x26-master.runs.json",
+      "sha256Lf": "550e9d36e705d83d1af06bf7bb0ad088a4825cf0ea9cf4add9a55899e85b9920",
+      "sha256Raw": "391f398b90cda5b013f0c052c27ca1517da41fa54c063eda6e8f369adb2bd11e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-32x15-master.runs.json",
+      "sha256Lf": "de0dbb04d78d29e7ae748d293a815ecb76c3e20b3056f61ea75af59459d6dcc8",
+      "sha256Raw": "40e2e809bff8c9295ac53876391e6fbaabc534ca18d99c94c13647c8ffed8e32"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-3x29-master.runs.json",
+      "sha256Lf": "a68fa7c06d1a7cfc1b2cf00713b5e9b65a13345154ad2a92b160684847978b6d",
+      "sha256Raw": "0a6fefcedd25ee4f07b1e4c2684747a3f8e6cee960b9e1db3775a39ca6625717"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-6x10-master.runs.json",
+      "sha256Lf": "835eebe86a891061ad8fabee6cc055397e3fca0a7f6eb47533c9603389353be0",
+      "sha256Raw": "5fe092a04e7eb88b619489d264df17481c7a7a43b6e50c7b69aa87711fbc1779"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-10x10-nightmare.runs.json",
+      "sha256Lf": "a8d0608eeef7a386c0630951666be4afecf1ec0bf048bc98670e032e9e7253c0",
+      "sha256Raw": "b619a4da206af736bda0ea1546a414116cc6ff0dfb9c3e68b3e23ca3625def0d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-12x12-nightmare.runs.json",
+      "sha256Lf": "7463dea8b12f12ff508ad29f08b18b71fa3a49284e3e36a8f813c4aeae517823",
+      "sha256Raw": "553237deeb8597a2512392e27658e5e960c07c162e88f8b59d53d6e883bfd906"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-hell-1.runs.json",
+      "sha256Lf": "23d5721c97ce55ad149a31d8788a55e5fb755290a1457104ca2e43478ba28e5a",
+      "sha256Raw": "713a99797bf6ca1541f98e25f4bfb1873391d4e7d69edf78ef30cee3ab20398a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-nightmare.runs.json",
+      "sha256Lf": "0ba800b45c53faefc74a6cc237cf003850084a45d150b7d86e2b5098f1ed410c",
+      "sha256Raw": "95395fb3e0d4187aaf1146891044d563951e2ef26fb0b19ecbb332987ad55e3a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x15b10-nightmare.runs.json",
+      "sha256Lf": "bfd897fb1bf2ad17a29540de4d1462bb716f8014e01ef870936fe24977c803b3",
+      "sha256Raw": "857807714c87361f070d5e4d7c7c7ca8e1905c1955fffb692efda8d9443276ae"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x20-nightmare.runs.json",
+      "sha256Lf": "5138cfcf9439d4f9b94ddae6c1b391a168105dc4108f58f2cf098d4800ba0cc1",
+      "sha256Raw": "95a137d38985b706717dc8aae2df151b94ec36c5514ab8026053fbaf42a6ac40"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-16x16-nightmare.runs.json",
+      "sha256Lf": "055d049120884daa93a2bd97ff672704c3ff56a66f62fc58d5f18f650e8a3d09",
+      "sha256Raw": "d42ed0cf09d4eb873b1693b9c20d557341fbe25d08f0318e83d9b0623d11b865"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-18x18-nightmare.runs.json",
+      "sha256Lf": "2390162c8973b1f2b42059512d1883cd6c2d4544796472a05b3f2cbee691ba62",
+      "sha256Raw": "7296357ab98dcac4795bcd1794e48baa77b3d73d7d2109862347536068c7ef5e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-18x20-nightmare.runs.json",
+      "sha256Lf": "abf0f42d2c8d9a4fe87d3737cf4fecb903342d8bc16ad54e21c217dae199be27",
+      "sha256Raw": "827f21ae8eced684ccf4f8c893d5cd195589518ed3a5543eed4928ceb721fb52"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x20-hell-1.runs.json",
+      "sha256Lf": "496f7e686711f066335d06a37c469302926dc74a0d08006c5949f55bc3dd6fe2",
+      "sha256Raw": "0f2d5e9689e5af569436ca66f4b82ff0fc9322036310fe89b87b90511126b255"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x20-nightmare.runs.json",
+      "sha256Lf": "3f35bb44c791b4eff54bb64c824a4993d5e1f5c22715dc1e793ba569e3fe048f",
+      "sha256Raw": "fa43191290c67602ea942924ca64a01027f7c085f82b4bb2a85a1b9be4612447"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x21-nightmare.runs.json",
+      "sha256Lf": "1b05bc25308c3326fc0733c66cd8acf0e556c39d1b70db0e3c0b64bfe838e879",
+      "sha256Raw": "a91160bde0f98a86189ef6a8baffdfdb4195fb0ea5e9e20bfde0c3873fb73305"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-22x22-nightmare.runs.json",
+      "sha256Lf": "6285f4fec995f671fc5cb18ff5dd57d7d29069b69c7bfde6002a10920bc90142",
+      "sha256Raw": "23cc303ab4ffe1c945f4e9f44ccb84b9d43e06b0c66b8c5392b92d5a0db22c53"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-24x24-hell-1.runs.json",
+      "sha256Lf": "3e9741c4fc0c3c5a4bdb117bb25d7f77a719844482e5e7aaee9c5fd25834b674",
+      "sha256Raw": "1891d84ea2c918941791a55ba42bb1c465bab5e24b137573b453c096908cfea6"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-24x24-nightmare.runs.json",
+      "sha256Lf": "0d3664b3a168f4c717ba433581cc3dc4399b9328c7888e583f99ea3afd4cc909",
+      "sha256Raw": "c6c60b74ce3600a025ead985a9edc236b2de52ddf9995e0e98e77fd4f6286fd0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-hell-1.runs.json",
+      "sha256Lf": "961fa46ce62456b6b1fb71137b20f5ad5db4b4073b286033702be9e2c6f98c68",
+      "sha256Raw": "555e700faa55bb04be1c8c807ce37f5cc90b716beeeec1fa490c5d026f23cc2a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-nightmare.runs.json",
+      "sha256Lf": "281dcb44eba08e85d8214131692ba3d62451d185524eadeee3ef1034eaa01fa2",
+      "sha256Raw": "3d9022aafd34d1ea217685395a42a50e4c87de36bccef41d8c9a88208a163610"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-32x15-nightmare.runs.json",
+      "sha256Lf": "16b8753f153f01bad4e8d3221a435718f797a4f19ba503c5837147f0fbd464bf",
+      "sha256Raw": "9740ac90137cd7c3edbf58b5723824bd784cb5fbac04e07f0800a10553e0861f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-3x29-nightmare.runs.json",
+      "sha256Lf": "d2d57c96488163c13ccc92db8348678bf896720b6e67bad41893f8015d14248e",
+      "sha256Raw": "30f281d0ca54d7698a2ac47bc65ed1ccb3849a8de6ff14a6872b0645c74fde08"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-10x10-nightmare.runs.json",
+      "sha256Lf": "e3394480ef18aaea6c2266ce0b78a5264a407e5a808571cb0b9897ff01cf0ec9",
+      "sha256Raw": "85d3543b2b001c44b3666f9c3f63d790a620436e6af500cbb6d9b71a5b5ec08b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-12x12-nightmare.runs.json",
+      "sha256Lf": "4ef97e56a6af028d837827807a531af8f3394916193109ac5a0ce712bf7d518b",
+      "sha256Raw": "18c1892d8c2ec559f9d86f1248d91fcbce3b163fd7d16bd484e37c50ea79af04"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-hell-1.runs.json",
+      "sha256Lf": "20f2fc53ff7d9fe46d82f1203eb5bfaee325376cb8c1bce9a3536159da8ecfa9",
+      "sha256Raw": "f8df1943a80fc5016d2168a0e98557eb17d2edef955abdb8a2dc6f39fa1cd1f2"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-nightmare.runs.json",
+      "sha256Lf": "eaa56f9b3bc9840c91c5489fc1d6218adb45e5639fa618fb7dafec26553002a0",
+      "sha256Raw": "af3db8f38adf0efbe04ec62c0cc462b6260ad58734b87e7f279f3b7ad1d60c00"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x15b10-nightmare.runs.json",
+      "sha256Lf": "848c30027796c31373925bc5df0b811693a61f0fdad2c77a1f6871f493b272ca",
+      "sha256Raw": "c20b47f3f0470c940c1918140f20eecb25f1d5e67ad7fa6d0dc842723ad746cb"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x20-nightmare.runs.json",
+      "sha256Lf": "3dbed064eb4f179f9360ca93fe42cf955587cde2fbdb32be34f020e12e1b1c23",
+      "sha256Raw": "7b8b4e151b5ebe3461dacf9d62ced8963cb45b1d6542ba247c490bcc432c0716"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-16x16-nightmare.runs.json",
+      "sha256Lf": "c14c4fd842c9f1504046ce0c98d576c781a824f0ce0e79ccf7a57930a1d96a7b",
+      "sha256Raw": "96587921189ea3b6b0a29e2cb6703b7ece283558cb08a033ca38f0b220998268"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x18-nightmare.runs.json",
+      "sha256Lf": "39325473dc32cc28cf7d76f7005a9c38ca497b16950da817e206683e423b4e9c",
+      "sha256Raw": "9368a4c15ea23f714bd765036736d49cf3b5ade894b28d8eb79b910b417c8110"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x20-nightmare.runs.json",
+      "sha256Lf": "6fd2011815d76f891dce343cb8b2e540b7a76a539520818d494d4d657fbe8827",
+      "sha256Raw": "d990191cbfa6935680425efbfad9ff5e65043b4bd564f32b6acba5025d3011a3"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-hell-1.runs.json",
+      "sha256Lf": "aa7d0f0e857fb3a6b2730ee3feaccd87fc574d91a88d75705628fb45c408b012",
+      "sha256Raw": "01d5360edbff095f0af5796f1681b7a2bae1177fb4279692a855708ca88c0dde"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-nightmare.runs.json",
+      "sha256Lf": "b68d0762ddfc6b5122fe5c63e360bfad2e97c0b6ad4becad0ec1c8bf8e70647c",
+      "sha256Raw": "1e3b89ed6f4a304d4155cdff945560036341bcffc963551482510cc3ae3132ee"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x21-nightmare.runs.json",
+      "sha256Lf": "602275a9621ac459aef8d74851d5f7a74249b2ed3044f46e56a3ec96ae4bf933",
+      "sha256Raw": "37a104a5934f1672fe98f93553a623b3480734cc0cc4d73d3112e336c67d7fb9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "sha256Lf": "0f2d6778536f3bc73b5e6efa6ae1c562b9ff0d16ceb01b55c9cb7aa43b7a49be",
+      "sha256Raw": "7c87a382c70864a9e13ee9cf8a9ca713636c87d1ac17f95cf36cca71f63c5bf0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-hell-1.runs.json",
+      "sha256Lf": "dc87fed3209eacd875eea2ee52dcb8aa308c8f82f19cedc360062576e8d2bcb9",
+      "sha256Raw": "b797f4a3427f841524c03d27fcca05cc92c47ce24b8d1b22587fcb916621143d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-nightmare.runs.json",
+      "sha256Lf": "643e48afff0d74570a3e829075b1e2a1f34676f1e2fd4cbd922542df49cc8361",
+      "sha256Raw": "61a32f28f22b9ce4349365e61eec78f53eab30f8fbb3b9bc76a6ba388881cb75"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-hell-1.runs.json",
+      "sha256Lf": "44cba6d34511bf245deed8970f6fbb5251087123e3eae5135d083cd1dc321a1f",
+      "sha256Raw": "0598747a64f135dbdc92632ed3f6096be5442bd25bcf6a0faa6cf93945c01e18"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-nightmare.runs.json",
+      "sha256Lf": "e5bdbc7c663165a30ad353464b545f67c09596840832c58b6ab14d7ab7d31b0e",
+      "sha256Raw": "88752ec058badb52b98c1fa0e5f649981f8d84202084265c3bc70821657ea7be"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "sha256Lf": "684911fd1fed61aff78a606ff292b202ccb0044c62ca0667aa0898e5f1ebe774",
+      "sha256Raw": "b7c67fc9119c534cc6d8ab84d99b6573e8806690a513ab0d5c566518bff20af5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "sha256Lf": "5f36a7bd8d9f5fa7c9d8b5aba60a7b3615da18f9e8a9350a9e112cdaa22af44e",
+      "sha256Raw": "0a9c30c441ac330151ba5bfe0c9fccb859fc73ca3b84f49b16b11f94f7a85ea4"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-10x10-master.runs.json",
+      "sha256Lf": "ba715a8eb8e902dbcc52ab84bb671aa09e90f85179e300bfb15ac4c5b7e25429",
+      "sha256Raw": "50456212c1b94a5efb4ab5dc782ce93de8ac2024a9951dc24d4ef25d283aa9b5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-12x12-master.runs.json",
+      "sha256Lf": "3886b5c9d73d66441f9253b7c4f353457867d11c207dfb4e894ea646fb6b308c",
+      "sha256Raw": "0bcd12982713232ca24b24ae9ce7b5ebbad0d37c5b6b7cbeaae95909f007709b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-14x14-master.runs.json",
+      "sha256Lf": "724ae6786958600520ba565553f9b6fdd5ca74ed69f5fe966c39fcef77f501d4",
+      "sha256Raw": "454e8d5bd4e18bf11f9fa718d7756a48e967c981d9d49d22d269908163798fe5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x15b10-master.runs.json",
+      "sha256Lf": "a3ca53feed62a8c7259daa9675954ede75d0bd6313aac2e8cc2d4493986a36ba",
+      "sha256Raw": "6a5e16e7956a49085b6da95d8c937c933e9ca762effeda6147794dfc9789b9bd"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x20-master.runs.json",
+      "sha256Lf": "ac6949b43d86eaf7791fb807a4463e8281f838d8bff718a5e9d77c2efef030e0",
+      "sha256Raw": "c119de51df5ed950f0a8e007d1ce2da8ff5c4388054e66e8977ab362e36a6ea9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-16x16-master.runs.json",
+      "sha256Lf": "c49cab2610ad529fad43a818b6c22d567cf0262e4fd80eac54d12660ad251e0f",
+      "sha256Raw": "b089a5c5a67f7e083b905faaeef21881f052f18b905a5e2550ac8d0fc56469df"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x18-master.runs.json",
+      "sha256Lf": "7516878ba833de342460fcf7f0b5a34759f768721797fdf00d8ed33651cfa634",
+      "sha256Raw": "14d6893db1833dc674534547a39cbf2cad86295f5e580320b37d1b1704603365"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x20-master.runs.json",
+      "sha256Lf": "34e75ed6acbe4b6ade58fb33b347af1ce78d2948a88441a6acfc9f9cdf8b9f7f",
+      "sha256Raw": "2b1d612a00ee7a9976bd56d39d20f1169fa141c31b36b76b8d65126379edb366"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x20-master.runs.json",
+      "sha256Lf": "4aaa08d44c44b8d16dd0d515d1b86685c95b229f4ac8fb7a8eab11167a4e417e",
+      "sha256Raw": "921d6a03b447cf7b5a9380509eda994dca898aa9d616ae22f6fb9c324700e046"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x21-master.runs.json",
+      "sha256Lf": "6c7f414c95ad0b0e1d32b1d59723962aecf361a1f8e80d449fc472d06fddf840",
+      "sha256Raw": "4f2c2b959e896067ba045cc5e7c2e6838da9b26699fbd3ab77486251356463a7"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-22x22-master.runs.json",
+      "sha256Lf": "5a90e5a44fdd828f2fba978751545cfa6738263282bfa51c42e6823c8c03d691",
+      "sha256Raw": "01ec360c03209a018989a9590293f1e30f409b4c0f2964c93378d43ecf79a64d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-24x24-master.runs.json",
+      "sha256Lf": "c55b861d8552aedb908d5080f0b2f8d790c27afcea4bc578d4af1eb5f7aace19",
+      "sha256Raw": "985cfed4a572db65e2f4fde3f9049875fab05e71caee6a0f8ce6f7504fba8215"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-26x26-master.runs.json",
+      "sha256Lf": "4581f393821677f647a7da31e387b4c6b205ccac7e6efee75f56036f1b946ed6",
+      "sha256Raw": "43344696a0aaf8645f649dd031610a6bb2524b0a9515af957b14ce94a2722627"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-32x15-master.runs.json",
+      "sha256Lf": "13831cbd5556052134558e32f2acf91e1d0b04bc0cf1d0699672983cc8af50c1",
+      "sha256Raw": "d9dc4a93889b674252a5b2206141faf2c3ebefd443d302e842941b23c48b9c08"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-3x29-master.runs.json",
+      "sha256Lf": "637f9af058fd0f34a33702962bb0bf853524d5327e1af521c83f36687bbb6423",
+      "sha256Raw": "37ffb6507471d35a05e6493fcdb914efa88b66945864cc165d67491cd0ed9003"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-6x10-master.runs.json",
+      "sha256Lf": "37d69916e5f4cd51bb356745fb2f22652b553415fe386ac4c3855b5b040f62a9",
+      "sha256Raw": "b10343d45743b4e3e5f18d5bd1c8d607f353339eb4be5f6e935edaa9b9093b25"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-10x10-nightmare.runs.json",
+      "sha256Lf": "a2b2f147fcb936be1de16838f89478b83c153db28d450d816f2d190952361c64",
+      "sha256Raw": "77d0f3a957285075c46119d4ea07ded6475924150f056a1a4e51ab6adbbbc776"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x18-nightmare.runs.json",
+      "sha256Lf": "ef641499368987f1f6008aaca608cf8361ac726181507a78dad24c224cb17842",
+      "sha256Raw": "57007695e9201133a28543d391fe4bf22b78ec5d71fa88bbe85b19769b7a1bb5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x20-nightmare.runs.json",
+      "sha256Lf": "a091aeff0280bf48043fb9e3b952db209c660d29976ccd231e062fce30f1d9d3",
+      "sha256Raw": "bea316aca556396c5b3f180a56b6af0a30162b77641bdd4168b22d2f7c8cde24"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x20-nightmare.runs.json",
+      "sha256Lf": "d59d2f372be2ccb14899ee50f471215cf7b052c22d9ea9aa828d664b5e11299e",
+      "sha256Raw": "5a51b0105817e0a0a13d15c7fb02b836758097ba24d500c4fbe0999e13d4614f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x21-nightmare.runs.json",
+      "sha256Lf": "1531ed6156759c57a68306b52849c2a77eff378468592fde92efd7409e094b75",
+      "sha256Raw": "7f0f0c89c359e439af914de1a1422567984fc6ed30cb35deabdd89be93a213b0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "sha256Lf": "7abdf3bf687d4c7f435a9407f75d2336f6eaeb396e71f2d339988c35d304a33a",
+      "sha256Raw": "bdfd32ab6a8b05b3b9b053c27feb7e72604d190cf44044aeb7da4ae4190e8eb4"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-24x24-nightmare.runs.json",
+      "sha256Lf": "b77192bf44179801d4383f486c3c4aaee597bfb893dbf391cc58b35cfc266e97",
+      "sha256Raw": "81800c42cabcbd828f15716cba63963b27ef4bc167e5f5e17bfee7fb8fb8df0b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-26x26-nightmare.runs.json",
+      "sha256Lf": "3892ef49ab6159c30419ed7f10018ff91dccf7a811c222d9d53a1f11fcef00dd",
+      "sha256Raw": "28a95990420146788f1d199d0d66e1b24fca7a9aac074a63630c14397dc9ac33"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "sha256Lf": "29cf2f9c25d77b88a135e915c324594595189c5bf4c0b82b50c4481718e000bc",
+      "sha256Raw": "dfc0ff4ba770a4facea992438164cc3961db7c22018b475dbc41356c0e481ce8"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "sha256Lf": "5daaa11582da4c2d988ee522713160a9c7f16b1abeae1cc214d9dc1759e7afc5",
+      "sha256Raw": "2087884c487f71703aabdacbacd1698bd3c7731d0af2e2a05c3ee288e61f994b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/fr-frozen/ig-tree.json",
+      "sha256Lf": "f954fad71c63e5056b7ac4233fae7e17d4192d1ae34b6283f63de0431b537e54",
+      "sha256Raw": "eb3abf2aacbb26d46ac03fba6e6f3cadb034a979d701b0b67fd3b1fd97d3b09b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen.accepted.json",
+      "sha256Lf": "3cfabbebff1881c24f7c66229f491957a245bb69d84858f58dbbfae61d1ec27f",
+      "sha256Raw": "c9d393f2a078abd9b91ae0da11303e8fd15bdb4d51c4375dfbdfcf16ad19ea1f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen.receipt.json",
+      "sha256Lf": "6ff4f2eb9fce48884162e611c2a911e56aa39192a9380da0831c60f806b6dba6",
+      "sha256Raw": "e3c592f0e73fcacbe5f65eaf413a3068bf5b06711bea4e6093a6ccbfdd8e3866"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen/items.jsonl",
+      "sha256Lf": "6d5dd5c4f7defc166fa8e46852e9c708e995fbdb359ec85e860d4aa2cc3d07be",
+      "sha256Raw": "6d5dd5c4f7defc166fa8e46852e9c708e995fbdb359ec85e860d4aa2cc3d07be"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen/state.json",
+      "sha256Lf": "d9cefb7eb26d582a526c722c674812c18a67266ba7d6f5f70b09a116ce15840b",
+      "sha256Raw": "aba5eda9a5fca3d976e252c5f0e90a268e85354956ae36c274d2c228b451819c"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S4P.parity-fr-frozen.json",
+      "sha256Lf": "0727d389b9bbd17f1496b2983abc091e26186425c75fc2bc43c426d1db75ab35",
+      "sha256Raw": "ec977633589a6f811efce4ab5928e87dbae9b75e1d0622a3cc41d0f4036764b0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen/fr-frozen.ig-tree.json",
+      "sha256Lf": "f954fad71c63e5056b7ac4233fae7e17d4192d1ae34b6283f63de0431b537e54",
+      "sha256Raw": "eb3abf2aacbb26d46ac03fba6e6f3cadb034a979d701b0b67fd3b1fd97d3b09b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen/harness.json",
+      "sha256Lf": "cc35eb9fa03d06842bb469144bde2aba4142fd9472d0ccfa57ed404b996e394b",
+      "sha256Raw": "c1627ac150838cae78808ac00114999995544dca2f9b1c7037a70dc340bebd91"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none/ig-tree.json",
+      "sha256Lf": "51937e9989d0ea3a6c739ce3e21001f94c215430bbfebc30f436ae9c2de965ce",
+      "sha256Raw": "909d810357371c6bb87bfff144bd6ab033282e83f80f6978734a35128999c1e9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none.accepted.json",
+      "sha256Lf": "0f94f195635512934efc1c316cbead8c8f8de54b78ca19922a1ec448f9981235",
+      "sha256Raw": "73f10eaadc1e16a2472140a05cb8d20039b409d4e231c6747a42e9b6da98773c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none.receipt.json",
+      "sha256Lf": "ca7031321121a2172bbae98f2af40af283b8c3cb3c15377d8bb7d447c0c64fea",
+      "sha256Raw": "4b1a13a4a1a264abd5e8bac82bdc2781effc25bd114320c743236f55ebe0f24b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-none/items.jsonl",
+      "sha256Lf": "fc43a160566115f54e83c8f88e0b61d0ab5ced23f23eb4b0d8a98adcd3d62438",
+      "sha256Raw": "fc43a160566115f54e83c8f88e0b61d0ab5ced23f23eb4b0d8a98adcd3d62438"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-none/state.json",
+      "sha256Lf": "4b5b9e222358843255eba3ff087e64858f3677910d1c2a69f86c05311741764b",
+      "sha256Raw": "04c6b4720964f164dad27b1615336297ed7b028a0b051367468a2651ce71adbb"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S4P.parity-fr-frozen-none.json",
+      "sha256Lf": "31973f3704ffd781b1371fa5bec783005ae31c03e50b374af5865edb00dce2a9",
+      "sha256Raw": "4bec4f55d3ea10fa9438928847b86848a766c2e148147e918c2f7c2188d8f569"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-none/fr-frozen-none.ig-tree.json",
+      "sha256Lf": "51937e9989d0ea3a6c739ce3e21001f94c215430bbfebc30f436ae9c2de965ce",
+      "sha256Raw": "909d810357371c6bb87bfff144bd6ab033282e83f80f6978734a35128999c1e9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-none/harness.json",
+      "sha256Lf": "cc35eb9fa03d06842bb469144bde2aba4142fd9472d0ccfa57ed404b996e394b",
+      "sha256Raw": "c1627ac150838cae78808ac00114999995544dca2f9b1c7037a70dc340bebd91"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/fr-frozen-uncapped/ig-tree.json",
+      "sha256Lf": "c19405082bb7cc98ba84ae4bb553394008b111d4b9ee3cfb3c9bb1f3d5fd980a",
+      "sha256Raw": "f9dbf31d02658bd267a0ed23563f768a0e473b123f7352ab43b9b42aceab0c59"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-uncapped.accepted.json",
+      "sha256Lf": "8d9dd83bbea2a40c937ef4dfffd08489331024e26d41bd733b3c9de6c33078b4",
+      "sha256Raw": "6216e16dc068d7f7a290ab5206a61e6e40ec5937ee94b33768a1cd9e88e8f11a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-uncapped.receipt.json",
+      "sha256Lf": "13cbdb8d92b2188b5b889526c6a4b2c0765b31d8343783d9a1b271d9aa4b7ef4",
+      "sha256Raw": "1bc541d29a126067d974717dcb924f51d8d9e1c352849eb8976d5a909cc89a83"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-uncapped/items.jsonl",
+      "sha256Lf": "addf1566e23fd4d710c048a292af0364ad7bfc941b33f45096de3ac171ec18f5",
+      "sha256Raw": "addf1566e23fd4d710c048a292af0364ad7bfc941b33f45096de3ac171ec18f5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-uncapped/state.json",
+      "sha256Lf": "bbe4b4c3083162b3888dddc6cd1f6225be9e162389b229d5a6515eae5bc1fa5d",
+      "sha256Raw": "148a795437a4f710d0d1b7e61790297200bb5c898b71dfe7f9fea011261609d1"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S4P.parity-fr-frozen-uncapped.json",
+      "sha256Lf": "e0f7b213f5e973e31e8ca589b2c3141e63d515d57c5fb3db30b423b701d93e98",
+      "sha256Raw": "ec76d1a14208c1f09c0b32714a7d671fc356fdda5bc9525a6de6bc7685fc48de"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-uncapped/fr-frozen-uncapped.ig-tree.json",
+      "sha256Lf": "c19405082bb7cc98ba84ae4bb553394008b111d4b9ee3cfb3c9bb1f3d5fd980a",
+      "sha256Raw": "f9dbf31d02658bd267a0ed23563f768a0e473b123f7352ab43b9b42aceab0c59"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-uncapped/harness.json",
+      "sha256Lf": "cc35eb9fa03d06842bb469144bde2aba4142fd9472d0ccfa57ed404b996e394b",
+      "sha256Raw": "c1627ac150838cae78808ac00114999995544dca2f9b1c7037a70dc340bebd91"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none-uncapped/ig-tree.json",
+      "sha256Lf": "beaeaf3fba6da17439bb15171851162f28c4d21444f0ac901d7a17e09f29c432",
+      "sha256Raw": "c21435517c203efb81197e316f5d99fb0e48d7aba03538a334594e411854f07c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none-uncapped.accepted.json",
+      "sha256Lf": "62a882b1cda646a1d3624412981eba337c128e4121f5123c4a3120182e523d1b",
+      "sha256Raw": "dbc87c7bd912c5bdd3c9db581f0a867d0a81f9e09b9819eb4a588cbd132d3ae9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none-uncapped.receipt.json",
+      "sha256Lf": "c2e898e5f98a9c38b5bf0e294b506e82d4f378a1495843c4090cb793635d92a7",
+      "sha256Raw": "6038d4808b4904afb1e7caafe4238832e2a62e178763de783810bebbf15985fa"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-none-uncapped/items.jsonl",
+      "sha256Lf": "cc560186151fb302a90dad22d063d9d5b6d95cb6fcbc6bbc90f3dd9daf52a9a2",
+      "sha256Raw": "cc560186151fb302a90dad22d063d9d5b6d95cb6fcbc6bbc90f3dd9daf52a9a2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-none-uncapped/state.json",
+      "sha256Lf": "a3425cafc3b1da5627ff964dca1204485b888afc18a8a53a58e7edf6a7dcbc5d",
+      "sha256Raw": "ea653a4c5dc8bac0c8afd4219e0e0972a010c59ceed9202e0f0a56897ac5d94b"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S4P.parity-fr-frozen-none-uncapped.json",
+      "sha256Lf": "24597488d1ddb940eca83954d4204822f477baab14445859bbddc795b71abdc1",
+      "sha256Raw": "3882f64091827383216290eea038674da33916abfa90de65eef4e6eebe72769e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-none-uncapped/fr-frozen-none-uncapped.ig-tree.json",
+      "sha256Lf": "beaeaf3fba6da17439bb15171851162f28c4d21444f0ac901d7a17e09f29c432",
+      "sha256Raw": "c21435517c203efb81197e316f5d99fb0e48d7aba03538a334594e411854f07c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-none-uncapped/harness.json",
+      "sha256Lf": "cc35eb9fa03d06842bb469144bde2aba4142fd9472d0ccfa57ed404b996e394b",
+      "sha256Raw": "c1627ac150838cae78808ac00114999995544dca2f9b1c7037a70dc340bebd91"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/s06-numbers.json",
+      "sha256Lf": "afafb273803ff1ebe374ab34277abfb4261239e93ed43f8254d17859bac3c012",
+      "sha256Raw": "6604fbe1de65c391a7f113d1e9658738a99b9c2b3299a238da5229da9feab5b0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4/invocations.jsonl",
+      "sha256Lf": "994768a79c53d7e279962baa8753dbb064017fde6a1e202d0f8e40aee9b52992",
+      "sha256Raw": "994768a79c53d7e279962baa8753dbb064017fde6a1e202d0f8e40aee9b52992"
+    },
+    {
+      "path": "tools/ig-proto/plans/V4-S4C.json",
+      "sha256Lf": "489f89e2c9dd78c04ce93c37e90f12107623400379e5fe7da0680ae13a96e3d7",
+      "sha256Raw": "8081f78e31d4e8bad906cb07f9046a206336d4c299e95faa2c015b6099700ca0"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/s06-reading.md",
+      "sha256Lf": "8bb3342874d428521c8298ff7a2b44a71e040e9391de45759d30ae72d8b7f55e",
+      "sha256Raw": "9faafe06ff1ac22f5984cb461c24657fb06ca805528300819b73abbd92be2ed0"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/plan.md",
+      "sha256Lf": "2fa90684e990179debe55eed21066d46f0cbd71d4a0bd41b3d150f7bb6499838",
+      "sha256Raw": "8391ae2afcdfc82e3d9479615b1d43f123034465b9a498d3c3c9e6bf988f2c7a"
+    },
+    {
+      "path": "docs/improve-generating/plan.md",
+      "sha256Lf": "ce6170b8f927a5f8681794a2aad714b4637374b04841e55fe2063f20e705b708",
+      "sha256Raw": "2b25a7e93a93ac4ea9b8a55559ddc0a2751e344856c8928fa7409a622401c008"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S07-run-v4-s4c.md",
+      "sha256Lf": "767feda2c92f4ccb2590f7283c1d74c96f7e2545a3c2940ed28fad77e073fdbf",
+      "sha256Raw": "97b12e3cfa8e97d6c81ec89e1b34a62d1295e902f7fb0bfde4fee1e6f29e7b57"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T16-stage4-report-and-phase0.md",
+      "sha256Lf": "e57ddbddc147798c10ff3eb2fe5b0ac9c034b29e2583d883d961a17d9e7fe863",
+      "sha256Raw": "1027ab664479d7e45a17be5464d78c55352e52c638e2fe557fa99b448ea76b53"
+    },
+    {
+      "path": "tools/ig-proto/verdicts.mjs",
+      "sha256Lf": "6eb4c7c5f2e93e96192800040585a89c6805192f8bf50db87ed1f2b8a326f43a",
+      "sha256Raw": "e4a37c5a3acd5202c89e3c47d643fb343e2bcaf5667053466408d19a3e1ed195"
+    },
+    {
+      "path": "tools/ig-proto/manifest.mjs",
+      "sha256Lf": "e7547558a1172825db6aaac87b0c72d619cf5d864e9477e68e69a32a06cd24e2",
+      "sha256Raw": "b53ac0949094bdfeaa4d39070e49205fe108038a77da73a8824f6aede98de2a3"
+    },
+    {
+      "path": "tools/ig-proto/lib/proof.mjs",
+      "sha256Lf": "db22a68a3aac1d14f08db9abec1e1f3d114f938ee0c69b9b0beda738fa0a778a",
+      "sha256Raw": "20150b8d78c79a9b211f91b956b03d0ec931260734cad0be817a67cef6f18c9c"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/s06-numbers.mjs",
+      "sha256Lf": "3e8881a2595c3e65c72ddb7006e8716493634923316c061923d536fdf2fc2275",
+      "sha256Raw": "dd7d6474d7c886acec9d1952765bf93358ac3530bbe15a418211f13260f7f6f3"
+    }
+  ]
+}

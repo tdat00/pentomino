@@ -4,7 +4,7 @@
 |---|---|
 | Feature, plan | improve-generating-stages-2-4, `docs/improve-generating-stages-2-4/plan.md` §1 (goal), §6 (B1-B6, T7, T8), §7, §8.2 T16, §8.4 (what follows), §9 (N-V4-16, N-V4-17); N-V4-06 of the v4 pack |
 | Repository, branch, base | `Q:\git\pentomino`, `improve-generating`, the commit of S07 |
-| Depends on | S07 (the final verdict record) |
+| Depends on | S07 (the final verdict record; if the owner declined S07, `V4-S4`'s selection record, ruling R-P24-19) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | SA-Opus drafts, SA-Astra reviews; one joint report (no code, no test, no harness edit) |
 | Estimate | SAs; machine 0 min (unlocked reads; scratch scripts in the SAs' evidence folders) |
@@ -18,7 +18,14 @@ arms can answer (N-V4-16, N-V4-17), and state what follows.
 
 - The verdicts are the records' (`docs/improve-generating/evidence/frozen/V4-S4F/verdicts.json` and `.md`, its phase-0
   line verbatim; `V4-S4/class-selection.json`); the report restates and explains them, never recomputes a verdict with
-  another rule.
+  another rule. If S07 did not run (the owner's (b)), the record is `V4-S4/verdicts.json` and `.md` (purpose
+  `selection`), and the report says that the final-purpose record and P5's comparisons were not measured.
+- The SAs' joint reading of `V4-S4` (`docs/improve-generating-stages-2-4/s06-reading.md`, ruling R-P24-19): the
+  control failure of 26x26 Nightmare (point estimates near parity, the lower bound 0.8864 below 0.9), the options for
+  the failing item and the SAs' provisional recommendation. The legacy route is a provisional option to be reconsidered
+  with the final record and P5 results, not an accepted production configuration. Any owner-approved exception must
+  state its scope and remaining implementation, compatibility/replay, N-V4-15 and production-validation gates. Current
+  class selections, the recorded FAIL and Hell 1 offer/qualification rules remain unchanged.
 - Plan §6: B1 (the five failing Nightmare cells at least 18 of 20, no dead end), B2 (controls 18 of 20 and lower bound
   at least 0.9, 18x18 included; Master identity), B3 (each class's rule (c5) verdict with its deciding condition), B4
   (the reserve and deadline frozen and proved), B5 (Hell 1 per board, the population two-sided per cell, P5's lost
@@ -39,10 +46,14 @@ arms can answer (N-V4-16, N-V4-17), and state what follows.
 
 ## Steps
 
-1. **The verdicts** (from `V4-S4F/verdicts.json`): the phase-0 line verbatim; per class, its (c5) verdict and deciding
+1. **The verdicts** (from `V4-S4F/verdicts.json`; without S07, from `V4-S4/verdicts.json`): the phase-0 line verbatim; per class, its (c5) verdict and deciding
    condition and the shipped arm; B1's five cells (reached ten of 20, the arm, dead ends); B2's controls (reached ten,
    the lower bound, pass) and the Master identity per cell with its timing; B5's Hell 1 table per board, the population
-   per cell (both sides) and the `p5` records (false stops, lost completions, unknown pairs) per cell.
+   per cell (both sides) and the `p5` records (false stops, lost completions, unknown pairs) per cell. Without S07, the
+   selection record's empty `p5` array means **not measured**, not zero false stops or lost completions. List the 19
+   resolved comparator cells as unmeasured/unknown (380 uncapped rows if none ran). Do not claim a `V4-S4F`
+   final-purpose record or a closed harness window. N-V4-16/N-V4-17 and the deadline reading may still use the existing
+   bounded-arm records, with their limitations (ruling R-P24-19).
 2. **B4 and the deadline in stage 4** (SA-Opus's scratch `t16-deadline.mjs`): `deadlineViolation(run, {
    responseBoundMs: 120000 })` (`verdicts.mjs:196`) over every published row of `fr-frozen` and `fr-frozen-none` in
    `V4-S4`; the rows by `partialReason` (`set:reserve-cut`, `time-limit`, `response-bound`, `set:no-window-*`, others);
@@ -66,7 +77,11 @@ arms can answer (N-V4-16, N-V4-17), and state what follows.
    passed (N-V4-05), phase 2's `gen-v4` in production (N-V4-07, with N-V4-15 measured first and the validation repeated
    on the production code), phase 3's offers after the blind play comparison (N-V4-08, N-V4-09), phase 4 (N-V4-11),
    N-V4-01, N-V4-04 and N-V4-10 when the owner asks; on a fail or an incomplete result, the failing item and its joint
-   decision before any refit. Both SAs sign it.
+   decision before any refit (for the 26x26 Nightmare control: the options and the recommendation of
+   `s06-reading.md` §4, re-read with the final record and P5's results, and the owner's question with those options).
+   Approval or deferral of S07 is not the 26x26 scope/admission decision. Keep phase 2 blocked until that decision is
+   recorded and its required gates are specified; preserve the original FAIL rather than recomputing it on a reduced
+   control set (ruling R-P24-19). Both SAs sign it.
 7. **The owner's answer**: the orchestrator relays the summary and the decision on Discord and records his answer in the
    check-list's register.
 

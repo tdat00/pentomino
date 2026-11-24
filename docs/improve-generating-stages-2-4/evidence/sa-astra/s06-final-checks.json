@@ -1,0 +1,536 @@
+{
+  "base": "96f231e",
+  "disposition": "accept",
+  "register": "R-P24-19 as relayed by the orchestrator on 2026-11-24 19:52 +07:00; pending sign-off may be changed to signed by both.",
+  "boundaries": "FAIL and phase-2 block retained; S07 scope approval still belongs to the owner and is measurement only. Legacy routing remains provisional. No refit, waiver, offer or deployment approval.",
+  "earlierAudit": {
+    "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/s06-review-checks.json",
+    "sha256Raw": "de99a0d517a28706f37fae9101836786a300a1309e3101c2083f54ee7504086f",
+    "unchangedInputs": 125,
+    "changedInputs": [
+      "docs/improve-generating-stages-2-4/s06-reading.md",
+      "tasks/improve-generating-stages-2-4/S07-run-v4-s4c.md",
+      "tasks/improve-generating-stages-2-4/T16-stage4-report-and-phase0.md"
+    ]
+  },
+  "signoff": {
+    "path": "docs/improve-generating-stages-2-4/s06-reading.md",
+    "beforeSha256Raw": "d6af4a7dae5fc75091c645228da395f0355781eed60f35b8edd3e7b91845b1d2",
+    "expectedAfterSha256Raw": "7e36205a3a7024c4dc963681f9c5c0fae644b74c43609ee517d0629a5e8bf9dc",
+    "text": "- SA-Astra (reviewer): the joint reading and the recommendations above, 2026-11-24."
+  },
+  "inputs": [
+    {
+      "path": "tools/ig-proto/plans/verdicts/V4-S4.verdict-manifest.json",
+      "sha256Raw": "2155106087f46656cde25c0bdfeca973294b0604d1607aab05cd565a3de3ea70"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/verdicts.json",
+      "sha256Raw": "555e20f4c33f2c68a8dea0397254dbbe4242fbd63ae19752c2210af3422c8475"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/class-selection.json",
+      "sha256Raw": "5aec5d331349fb94697f0ee236714437fdfbab053973fc0d148c16dd1a35c254"
+    },
+    {
+      "path": "tools/ig-proto/plans/V4-S4.json",
+      "sha256Raw": "94a94270054521e1d4568ae4d9fba623b154ccfae30e03bf3c66c119eccbf175"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-10x10-master.runs.json",
+      "sha256Raw": "f353a74ac154e43eabc717f477216afd9e0d189090a15b4fe16430e047cddec1"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-12x12-master.runs.json",
+      "sha256Raw": "b5676aae43451f509f142ee6ee167e9f15c706a8ef569b6ad731d7c7694907fe"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-14x14-master.runs.json",
+      "sha256Raw": "0cc81dec89db1f4e80639ce92a07c9b6444f315abaa12837966419e71b577a6d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-15x15b10-master.runs.json",
+      "sha256Raw": "58bc13c82703f2a6e747596e08b636d8d3c10c34020275bb94cb9d6d7bda762b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-15x20-master.runs.json",
+      "sha256Raw": "7fcde178ab04e72a7cb238adf8f4a7c87439f5d7f01d0db581e2b51ea4b13e5f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-16x16-master.runs.json",
+      "sha256Raw": "0f7e0d5c0a6754087695a1b7c4724a74aef3a2b20226ef07863005dbb494299a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-18x18-master.runs.json",
+      "sha256Raw": "996be836d48c8e6a6d80931013e27da88fe9504d1b9d95a30e04a125d2597e53"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-18x20-master.runs.json",
+      "sha256Raw": "d0f7222e385a812425b2062410c9e4a2ce5aafae687d66a73348fac05b858437"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-20x20-master.runs.json",
+      "sha256Raw": "36770df6d7bbdf3a441aece3b5cf680556245c02926bc67a394377d724babffb"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-20x21-master.runs.json",
+      "sha256Raw": "e49bf321c07c4c6c3b67ae64e93944b407f682d6f24fc8045d7e73ff101d9edb"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-22x22-master.runs.json",
+      "sha256Raw": "307ff288da30c710601c91e24afa5cd8df34efdaeb0f9f294daaac4a2ea17690"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-24x24-master.runs.json",
+      "sha256Raw": "5805866250220a1142f6b2030a288f148f86ba4451b55e6ebf020b62046c5aaa"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-26x26-master.runs.json",
+      "sha256Raw": "391f398b90cda5b013f0c052c27ca1517da41fa54c063eda6e8f369adb2bd11e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-32x15-master.runs.json",
+      "sha256Raw": "40e2e809bff8c9295ac53876391e6fbaabc534ca18d99c94c13647c8ffed8e32"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-3x29-master.runs.json",
+      "sha256Raw": "0a6fefcedd25ee4f07b1e4c2684747a3f8e6cee960b9e1db3775a39ca6625717"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-6x10-master.runs.json",
+      "sha256Raw": "5fe092a04e7eb88b619489d264df17481c7a7a43b6e50c7b69aa87711fbc1779"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-10x10-nightmare.runs.json",
+      "sha256Raw": "b619a4da206af736bda0ea1546a414116cc6ff0dfb9c3e68b3e23ca3625def0d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-12x12-nightmare.runs.json",
+      "sha256Raw": "553237deeb8597a2512392e27658e5e960c07c162e88f8b59d53d6e883bfd906"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-hell-1.runs.json",
+      "sha256Raw": "713a99797bf6ca1541f98e25f4bfb1873391d4e7d69edf78ef30cee3ab20398a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-nightmare.runs.json",
+      "sha256Raw": "95395fb3e0d4187aaf1146891044d563951e2ef26fb0b19ecbb332987ad55e3a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x15b10-nightmare.runs.json",
+      "sha256Raw": "857807714c87361f070d5e4d7c7c7ca8e1905c1955fffb692efda8d9443276ae"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x20-nightmare.runs.json",
+      "sha256Raw": "95a137d38985b706717dc8aae2df151b94ec36c5514ab8026053fbaf42a6ac40"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-16x16-nightmare.runs.json",
+      "sha256Raw": "d42ed0cf09d4eb873b1693b9c20d557341fbe25d08f0318e83d9b0623d11b865"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-18x18-nightmare.runs.json",
+      "sha256Raw": "7296357ab98dcac4795bcd1794e48baa77b3d73d7d2109862347536068c7ef5e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-18x20-nightmare.runs.json",
+      "sha256Raw": "827f21ae8eced684ccf4f8c893d5cd195589518ed3a5543eed4928ceb721fb52"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x20-hell-1.runs.json",
+      "sha256Raw": "0f2d5e9689e5af569436ca66f4b82ff0fc9322036310fe89b87b90511126b255"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x20-nightmare.runs.json",
+      "sha256Raw": "fa43191290c67602ea942924ca64a01027f7c085f82b4bb2a85a1b9be4612447"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x21-nightmare.runs.json",
+      "sha256Raw": "a91160bde0f98a86189ef6a8baffdfdb4195fb0ea5e9e20bfde0c3873fb73305"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-22x22-nightmare.runs.json",
+      "sha256Raw": "23cc303ab4ffe1c945f4e9f44ccb84b9d43e06b0c66b8c5392b92d5a0db22c53"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-24x24-hell-1.runs.json",
+      "sha256Raw": "1891d84ea2c918941791a55ba42bb1c465bab5e24b137573b453c096908cfea6"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-24x24-nightmare.runs.json",
+      "sha256Raw": "c6c60b74ce3600a025ead985a9edc236b2de52ddf9995e0e98e77fd4f6286fd0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-hell-1.runs.json",
+      "sha256Raw": "555e700faa55bb04be1c8c807ce37f5cc90b716beeeec1fa490c5d026f23cc2a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-nightmare.runs.json",
+      "sha256Raw": "3d9022aafd34d1ea217685395a42a50e4c87de36bccef41d8c9a88208a163610"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-32x15-nightmare.runs.json",
+      "sha256Raw": "9740ac90137cd7c3edbf58b5723824bd784cb5fbac04e07f0800a10553e0861f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-3x29-nightmare.runs.json",
+      "sha256Raw": "30f281d0ca54d7698a2ac47bc65ed1ccb3849a8de6ff14a6872b0645c74fde08"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-10x10-nightmare.runs.json",
+      "sha256Raw": "85d3543b2b001c44b3666f9c3f63d790a620436e6af500cbb6d9b71a5b5ec08b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-12x12-nightmare.runs.json",
+      "sha256Raw": "18c1892d8c2ec559f9d86f1248d91fcbce3b163fd7d16bd484e37c50ea79af04"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-hell-1.runs.json",
+      "sha256Raw": "f8df1943a80fc5016d2168a0e98557eb17d2edef955abdb8a2dc6f39fa1cd1f2"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-nightmare.runs.json",
+      "sha256Raw": "af3db8f38adf0efbe04ec62c0cc462b6260ad58734b87e7f279f3b7ad1d60c00"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x15b10-nightmare.runs.json",
+      "sha256Raw": "c20b47f3f0470c940c1918140f20eecb25f1d5e67ad7fa6d0dc842723ad746cb"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x20-nightmare.runs.json",
+      "sha256Raw": "7b8b4e151b5ebe3461dacf9d62ced8963cb45b1d6542ba247c490bcc432c0716"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-16x16-nightmare.runs.json",
+      "sha256Raw": "96587921189ea3b6b0a29e2cb6703b7ece283558cb08a033ca38f0b220998268"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x18-nightmare.runs.json",
+      "sha256Raw": "9368a4c15ea23f714bd765036736d49cf3b5ade894b28d8eb79b910b417c8110"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x20-nightmare.runs.json",
+      "sha256Raw": "d990191cbfa6935680425efbfad9ff5e65043b4bd564f32b6acba5025d3011a3"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-hell-1.runs.json",
+      "sha256Raw": "01d5360edbff095f0af5796f1681b7a2bae1177fb4279692a855708ca88c0dde"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-nightmare.runs.json",
+      "sha256Raw": "1e3b89ed6f4a304d4155cdff945560036341bcffc963551482510cc3ae3132ee"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x21-nightmare.runs.json",
+      "sha256Raw": "37a104a5934f1672fe98f93553a623b3480734cc0cc4d73d3112e336c67d7fb9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "sha256Raw": "7c87a382c70864a9e13ee9cf8a9ca713636c87d1ac17f95cf36cca71f63c5bf0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-hell-1.runs.json",
+      "sha256Raw": "b797f4a3427f841524c03d27fcca05cc92c47ce24b8d1b22587fcb916621143d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-nightmare.runs.json",
+      "sha256Raw": "61a32f28f22b9ce4349365e61eec78f53eab30f8fbb3b9bc76a6ba388881cb75"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-hell-1.runs.json",
+      "sha256Raw": "0598747a64f135dbdc92632ed3f6096be5442bd25bcf6a0faa6cf93945c01e18"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-nightmare.runs.json",
+      "sha256Raw": "88752ec058badb52b98c1fa0e5f649981f8d84202084265c3bc70821657ea7be"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "sha256Raw": "b7c67fc9119c534cc6d8ab84d99b6573e8806690a513ab0d5c566518bff20af5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "sha256Raw": "0a9c30c441ac330151ba5bfe0c9fccb859fc73ca3b84f49b16b11f94f7a85ea4"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-10x10-master.runs.json",
+      "sha256Raw": "50456212c1b94a5efb4ab5dc782ce93de8ac2024a9951dc24d4ef25d283aa9b5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-12x12-master.runs.json",
+      "sha256Raw": "0bcd12982713232ca24b24ae9ce7b5ebbad0d37c5b6b7cbeaae95909f007709b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-14x14-master.runs.json",
+      "sha256Raw": "454e8d5bd4e18bf11f9fa718d7756a48e967c981d9d49d22d269908163798fe5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x15b10-master.runs.json",
+      "sha256Raw": "6a5e16e7956a49085b6da95d8c937c933e9ca762effeda6147794dfc9789b9bd"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x20-master.runs.json",
+      "sha256Raw": "c119de51df5ed950f0a8e007d1ce2da8ff5c4388054e66e8977ab362e36a6ea9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-16x16-master.runs.json",
+      "sha256Raw": "b089a5c5a67f7e083b905faaeef21881f052f18b905a5e2550ac8d0fc56469df"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x18-master.runs.json",
+      "sha256Raw": "14d6893db1833dc674534547a39cbf2cad86295f5e580320b37d1b1704603365"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x20-master.runs.json",
+      "sha256Raw": "2b1d612a00ee7a9976bd56d39d20f1169fa141c31b36b76b8d65126379edb366"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x20-master.runs.json",
+      "sha256Raw": "921d6a03b447cf7b5a9380509eda994dca898aa9d616ae22f6fb9c324700e046"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x21-master.runs.json",
+      "sha256Raw": "4f2c2b959e896067ba045cc5e7c2e6838da9b26699fbd3ab77486251356463a7"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-22x22-master.runs.json",
+      "sha256Raw": "01ec360c03209a018989a9590293f1e30f409b4c0f2964c93378d43ecf79a64d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-24x24-master.runs.json",
+      "sha256Raw": "985cfed4a572db65e2f4fde3f9049875fab05e71caee6a0f8ce6f7504fba8215"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-26x26-master.runs.json",
+      "sha256Raw": "43344696a0aaf8645f649dd031610a6bb2524b0a9515af957b14ce94a2722627"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-32x15-master.runs.json",
+      "sha256Raw": "d9dc4a93889b674252a5b2206141faf2c3ebefd443d302e842941b23c48b9c08"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-3x29-master.runs.json",
+      "sha256Raw": "37ffb6507471d35a05e6493fcdb914efa88b66945864cc165d67491cd0ed9003"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-6x10-master.runs.json",
+      "sha256Raw": "b10343d45743b4e3e5f18d5bd1c8d607f353339eb4be5f6e935edaa9b9093b25"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-10x10-nightmare.runs.json",
+      "sha256Raw": "77d0f3a957285075c46119d4ea07ded6475924150f056a1a4e51ab6adbbbc776"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x18-nightmare.runs.json",
+      "sha256Raw": "57007695e9201133a28543d391fe4bf22b78ec5d71fa88bbe85b19769b7a1bb5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x20-nightmare.runs.json",
+      "sha256Raw": "bea316aca556396c5b3f180a56b6af0a30162b77641bdd4168b22d2f7c8cde24"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x20-nightmare.runs.json",
+      "sha256Raw": "5a51b0105817e0a0a13d15c7fb02b836758097ba24d500c4fbe0999e13d4614f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x21-nightmare.runs.json",
+      "sha256Raw": "7f0f0c89c359e439af914de1a1422567984fc6ed30cb35deabdd89be93a213b0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "sha256Raw": "bdfd32ab6a8b05b3b9b053c27feb7e72604d190cf44044aeb7da4ae4190e8eb4"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-24x24-nightmare.runs.json",
+      "sha256Raw": "81800c42cabcbd828f15716cba63963b27ef4bc167e5f5e17bfee7fb8fb8df0b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-26x26-nightmare.runs.json",
+      "sha256Raw": "28a95990420146788f1d199d0d66e1b24fca7a9aac074a63630c14397dc9ac33"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "sha256Raw": "dfc0ff4ba770a4facea992438164cc3961db7c22018b475dbc41356c0e481ce8"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "sha256Raw": "2087884c487f71703aabdacbacd1698bd3c7731d0af2e2a05c3ee288e61f994b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/fr-frozen/ig-tree.json",
+      "sha256Raw": "eb3abf2aacbb26d46ac03fba6e6f3cadb034a979d701b0b67fd3b1fd97d3b09b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen.accepted.json",
+      "sha256Raw": "c9d393f2a078abd9b91ae0da11303e8fd15bdb4d51c4375dfbdfcf16ad19ea1f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen.receipt.json",
+      "sha256Raw": "e3c592f0e73fcacbe5f65eaf413a3068bf5b06711bea4e6093a6ccbfdd8e3866"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen/items.jsonl",
+      "sha256Raw": "6d5dd5c4f7defc166fa8e46852e9c708e995fbdb359ec85e860d4aa2cc3d07be"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen/state.json",
+      "sha256Raw": "aba5eda9a5fca3d976e252c5f0e90a268e85354956ae36c274d2c228b451819c"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S4P.parity-fr-frozen.json",
+      "sha256Raw": "ec977633589a6f811efce4ab5928e87dbae9b75e1d0622a3cc41d0f4036764b0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen/fr-frozen.ig-tree.json",
+      "sha256Raw": "eb3abf2aacbb26d46ac03fba6e6f3cadb034a979d701b0b67fd3b1fd97d3b09b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen/harness.json",
+      "sha256Raw": "c1627ac150838cae78808ac00114999995544dca2f9b1c7037a70dc340bebd91"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none/ig-tree.json",
+      "sha256Raw": "909d810357371c6bb87bfff144bd6ab033282e83f80f6978734a35128999c1e9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none.accepted.json",
+      "sha256Raw": "73f10eaadc1e16a2472140a05cb8d20039b409d4e231c6747a42e9b6da98773c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none.receipt.json",
+      "sha256Raw": "4b1a13a4a1a264abd5e8bac82bdc2781effc25bd114320c743236f55ebe0f24b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-none/items.jsonl",
+      "sha256Raw": "fc43a160566115f54e83c8f88e0b61d0ab5ced23f23eb4b0d8a98adcd3d62438"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-none/state.json",
+      "sha256Raw": "04c6b4720964f164dad27b1615336297ed7b028a0b051367468a2651ce71adbb"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S4P.parity-fr-frozen-none.json",
+      "sha256Raw": "4bec4f55d3ea10fa9438928847b86848a766c2e148147e918c2f7c2188d8f569"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-none/fr-frozen-none.ig-tree.json",
+      "sha256Raw": "909d810357371c6bb87bfff144bd6ab033282e83f80f6978734a35128999c1e9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-none/harness.json",
+      "sha256Raw": "c1627ac150838cae78808ac00114999995544dca2f9b1c7037a70dc340bebd91"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/fr-frozen-uncapped/ig-tree.json",
+      "sha256Raw": "f9dbf31d02658bd267a0ed23563f768a0e473b123f7352ab43b9b42aceab0c59"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-uncapped.accepted.json",
+      "sha256Raw": "6216e16dc068d7f7a290ab5206a61e6e40ec5937ee94b33768a1cd9e88e8f11a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-uncapped.receipt.json",
+      "sha256Raw": "1bc541d29a126067d974717dcb924f51d8d9e1c352849eb8976d5a909cc89a83"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-uncapped/items.jsonl",
+      "sha256Raw": "addf1566e23fd4d710c048a292af0364ad7bfc941b33f45096de3ac171ec18f5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-uncapped/state.json",
+      "sha256Raw": "148a795437a4f710d0d1b7e61790297200bb5c898b71dfe7f9fea011261609d1"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S4P.parity-fr-frozen-uncapped.json",
+      "sha256Raw": "ec76d1a14208c1f09c0b32714a7d671fc356fdda5bc9525a6de6bc7685fc48de"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-uncapped/fr-frozen-uncapped.ig-tree.json",
+      "sha256Raw": "f9dbf31d02658bd267a0ed23563f768a0e473b123f7352ab43b9b42aceab0c59"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-uncapped/harness.json",
+      "sha256Raw": "c1627ac150838cae78808ac00114999995544dca2f9b1c7037a70dc340bebd91"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none-uncapped/ig-tree.json",
+      "sha256Raw": "c21435517c203efb81197e316f5d99fb0e48d7aba03538a334594e411854f07c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none-uncapped.accepted.json",
+      "sha256Raw": "dbc87c7bd912c5bdd3c9db581f0a867d0a81f9e09b9819eb4a588cbd132d3ae9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none-uncapped.receipt.json",
+      "sha256Raw": "6038d4808b4904afb1e7caafe4238832e2a62e178763de783810bebbf15985fa"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-none-uncapped/items.jsonl",
+      "sha256Raw": "cc560186151fb302a90dad22d063d9d5b6d95cb6fcbc6bbc90f3dd9daf52a9a2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4P/parity-fr-frozen-none-uncapped/state.json",
+      "sha256Raw": "ea653a4c5dc8bac0c8afd4219e0e0972a010c59ceed9202e0f0a56897ac5d94b"
+    },
+    {
+      "path": "tools/ig-proto/plans/items/V4-S4P.parity-fr-frozen-none-uncapped.json",
+      "sha256Raw": "3882f64091827383216290eea038674da33916abfa90de65eef4e6eebe72769e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-none-uncapped/fr-frozen-none-uncapped.ig-tree.json",
+      "sha256Raw": "c21435517c203efb81197e316f5d99fb0e48d7aba03538a334594e411854f07c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4P/inputs/parity-fr-frozen-none-uncapped/harness.json",
+      "sha256Raw": "c1627ac150838cae78808ac00114999995544dca2f9b1c7037a70dc340bebd91"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/s06-numbers.json",
+      "sha256Raw": "6604fbe1de65c391a7f113d1e9658738a99b9c2b3299a238da5229da9feab5b0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S4/invocations.jsonl",
+      "sha256Raw": "994768a79c53d7e279962baa8753dbb064017fde6a1e202d0f8e40aee9b52992"
+    },
+    {
+      "path": "tools/ig-proto/plans/V4-S4C.json",
+      "sha256Raw": "8081f78e31d4e8bad906cb07f9046a206336d4c299e95faa2c015b6099700ca0"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/s06-reading.md",
+      "sha256Raw": "7e36205a3a7024c4dc963681f9c5c0fae644b74c43609ee517d0629a5e8bf9dc"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/plan.md",
+      "sha256Raw": "8391ae2afcdfc82e3d9479615b1d43f123034465b9a498d3c3c9e6bf988f2c7a"
+    },
+    {
+      "path": "docs/improve-generating/plan.md",
+      "sha256Raw": "2b25a7e93a93ac4ea9b8a55559ddc0a2751e344856c8928fa7409a622401c008"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S07-run-v4-s4c.md",
+      "sha256Raw": "e852047a17feb502186e2a8aa3f9e4003c79beb409bf7ace91bbd6812fe30e85"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T16-stage4-report-and-phase0.md",
+      "sha256Raw": "564ce5394740350820bb5fe1ac5d3a47cb87b03a4af33a32b6253d85d81601d9"
+    },
+    {
+      "path": "tools/ig-proto/verdicts.mjs",
+      "sha256Raw": "e4a37c5a3acd5202c89e3c47d643fb343e2bcaf5667053466408d19a3e1ed195"
+    },
+    {
+      "path": "tools/ig-proto/manifest.mjs",
+      "sha256Raw": "b53ac0949094bdfeaa4d39070e49205fe108038a77da73a8824f6aede98de2a3"
+    },
+    {
+      "path": "tools/ig-proto/lib/proof.mjs",
+      "sha256Raw": "20150b8d78c79a9b211f91b956b03d0ec931260734cad0be817a67cef6f18c9c"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/s06-numbers.mjs",
+      "sha256Raw": "dd7d6474d7c886acec9d1952765bf93358ac3530bbe15a418211f13260f7f6f3"
+    }
+  ]
+}

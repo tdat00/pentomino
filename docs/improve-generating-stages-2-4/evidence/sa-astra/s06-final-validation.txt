@@ -1,0 +1,19 @@
+SA-Astra final S06/R-P24-19 review: only the corrected interpretation and measurement-only amendment are accepted.
+COMMAND: node docs\improve-generating-stages-2-4\evidence\sa-astra\s06-final-checks.mjs
+PASS: 125 prior observation/source hashes unchanged; permitted amended inputs: docs/improve-generating-stages-2-4/s06-reading.md, tasks/improve-generating-stages-2-4/S07-run-v4-s4c.md, tasks/improve-generating-stages-2-4/T16-stage4-report-and-phase0.md
+PASS: all ten control numbers unchanged; S06-R1..R3, S07/T16 boundaries and file formats verified.
+ACCEPT: joint reading and proposed R-P24-19; S07 remains an owner scope decision, not production approval.
+COMMAND: npm run check
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+PASS: all current input hashes stable before sign-off; original review evidence preserved.
+PASS: signed reading equals the precomputed one-line change; every other current input is unchanged.
+PASS: 125 prior observation/source hashes unchanged; permitted amended inputs: docs/improve-generating-stages-2-4/s06-reading.md, tasks/improve-generating-stages-2-4/S07-run-v4-s4c.md, tasks/improve-generating-stages-2-4/T16-stage4-report-and-phase0.md
+PASS: all ten control numbers unchanged; S06-R1..R3, S07/T16 boundaries and file formats verified.
+ACCEPT: joint reading and proposed R-P24-19; S07 remains an owner scope decision, not production approval.
+FINAL: accept. SA-Astra signed the joint S06 reading and proposed R-P24-19. Original Phase 0 FAIL, phase-2 block and owner authority preserved.
+No code, compiled plan, run record or original review evidence changed. No engine/measured command or commit.

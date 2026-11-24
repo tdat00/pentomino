@@ -44,7 +44,12 @@ record `docs/improve-generating/evidence/frozen/V4-S4F/verdicts.json` and `.md`,
    cells, the same search without its safety limits, to show what the limits cost. It takes about `<proxy>` counted
    minutes (up to `<guard>` by the formal guard); the cap on the account is `<cap>`, `<within | above>` your grant of `G`.
    (a) Approve (recommended: the final verdict and phase 0's answer need it); (b) not now." If the cap exceeds `G`, the
-   question asks for the raise to at least `<cap>`. Record the answer and the message id.
+   question asks for the raise to at least `<cap>`. Record the answer and the message id. When `V4-S4`'s selection
+   record already reads `Phase 0: FAIL (...)`, as it does (control 26x26 Nightmare; ruling R-P24-19), relay instead the
+   text of `docs/improve-generating-stages-2-4/s06-reading.md` §6: it states the result first, then asks the same
+   question, its recommendation (a) resting on completion of the predeclared comparisons and final-purpose evidence,
+   not on assumed deployment of the other boards. Approval of S07 is measurement approval only; the recorded FAIL and
+   phase-2 block remain.
 3. **Pre-checks.** Check-list §3.2's run checks, the first block (no runner is active); `git status --short -- core
    generator` empty; `node tools\ig-proto\manifest.mjs
    check-prerequisites --plan V4-S4C --label frozen --source-label "frozen 3fc65f4"` prints `prerequisites: pass` (the
