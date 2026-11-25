@@ -143,14 +143,14 @@ deviations.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w3, 203f5ca727301df0a7b1a976748c571189d60db4 (rebased onto gen-v4 after P2-01) |
+| Start, end, duration | dispatched 2026-11-25 22:01 +07:00; developer 22:01:53 to 22:05:26; accepted 22:24; about 23 min |
+| Waiting for rulings | none |
+| Agent id, model | 6a24813c-8721-4c6d-bf89-f9e2e1ce24ac, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 15; 889,564 / 9,356 / 810,090 |
+| AI credits | 37.32 |
+| Questions and rulings | none; three minor deviations accepted by the orchestrator (non-behavioural): RangeError check placed first as the task text requires; the cap case skips recipes with main work <= 1 (none occurred); G-PROTECTED base 97a6326 as the pack writes |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | static guards in the slot; merge gate after rebase: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT and the locked focused gate tests/screen-rating.test.js + tests/difficulty.test.js + tests/difficulty-v3.test.js (results in the bookkeeping); developer run 39/39, 106.75 s |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | none; W 190,000,000 and screen-v4-v1 are documented only, applied by later tasks |
