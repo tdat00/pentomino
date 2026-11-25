@@ -132,8 +132,10 @@ None.
 - **A port defect** stops before any ratio; the pack author rules.
 - **The ledger refusing** a group of 1 to 26 stops the stage. A refused overflow group ends the overflow, with the P5
   endpoint `incomplete`, and the owner is told.
-- **(c5) failing or inconclusive:** stop the publication, and present the no-screen fallback and its new table identity
-  to the owner before the selected configuration changes (P2-B05, R5). No refit, and no relabelling of measured rows.
+- **(c5) failing or inconclusive** (the gate `B4` of `E/report-B/report.json` has a `status` other than `pass`; its
+  `detail.verdict` is `failed` or `inconclusive` and `detail.decidedBy` names the deciding condition): stop the
+  publication, and present the no-screen fallback and its new table identity to the owner before the selected
+  configuration changes (P2-B05, R5). No refit, and no relabelling of measured rows.
 
 ## Acceptance criteria
 
