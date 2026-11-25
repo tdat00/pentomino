@@ -5,7 +5,9 @@ import { describe, test } from 'node:test';
 import { boardFromRows, rectangle } from '../core/engine/board.js';
 import { carveFlatSet, carveMacro, finalizeSet } from '../core/engine/carve.js';
 import { selectClues, selectCluesV3 } from '../core/engine/clues.js';
+import { SkipReplayError } from '../core/engine/clue-primitives.js';
 import { IncompleteRatingError, inBand } from '../core/engine/difficulty.js';
+import { clueKey } from '../core/engine/keys.js';
 import { level } from '../core/engine/levels.js';
 import { BUDGETS, DEDUCE, pieceCountRange } from '../core/engine/policy.js';
 import { createRng, normalizeSeedText } from '../core/engine/rng.js';
@@ -128,7 +130,8 @@ function fromCount(fn, clues, log, kind) {
 /**
  * Runs one call on the K = 15 set with synthetic ratings.
  * `spec.observers`: `'none'`, `'charge'` or `'both'` (the default); `spec.throwCharge` and `spec.throwRecord`:
- * `{ at, error }`, the observer call that throws.
+ * `{ at, error }`, the observer call that throws; `spec.captureScreen(clues)` sees the clues of every screened
+ * rating.
  * @param {string} name
  * @param {Record<string, any>} spec
  */
@@ -149,7 +152,10 @@ function run(name, spec) {
       uniqueness: spec.uniqueness ?? 'any', rng: createRng(normalizeSeedText('ig-selftest/proto/p1'), `selftest/${name}`),
       excludeClueKeys: spec.exclude ?? new Set(), ws: createWorkspace(MAIN_WORKSPACE_BYTES),
       igPrior: spec.prior ?? null, screenW: 190000000,
-      rateScreen: (/** @type {any[]} */ clues) => fromCount(spec.screen, clues, log, 'screen'),
+      rateScreen: (/** @type {any[]} */ clues) => {
+        spec.captureScreen?.(clues);
+        return fromCount(spec.screen, clues, log, 'screen');
+      },
       rate: (/** @type {any} */ _b, /** @type {any} */ _p, /** @type {any[]} */ clues) => fromCount(spec.canon ?? spec.screen, clues, log, 'canon'),
       ...(spec.budget === undefined ? {} : { budget: spec.budget }),
       ...(spec.replaySkips === undefined ? {} : { replaySkips: spec.replaySkips }),
@@ -464,5 +470,132 @@ describe('gen-v4 frozen vectors (K = 15)', () => {
     assert.deepEqual(r.charges, [760000000, 760000000]);
     assert.deepEqual(observables(r).kinds, s('locate:7:unrateable:screen-capped locate:13:unrateable:screen-capped'));
     assert.deepEqual(r.log, ['screen:7', 'screen:13']);
+  });
+});
+
+// P5's budget, the two production events (`no-window` and `budget`) and the skips. The expected values are the
+// frozen selector's outputs on the same inputs (evidence/sa-opus/p2-05-vectors.jsonl).
+describe('gen-v4 budget, events and skips', () => {
+  const NIGHTMARE = level('nightmare');
+  const sum = (/** @type {number[]} */ charges) => charges.reduce((total, u) => total + u, 0);
+  const noSkips = { subsets: [], repairs: [] };
+
+  test('any mode: the budget stops before the fourth rating and returns the best waiting candidate', () => {
+    const r = run('budget-any-54', { target: NIGHTMARE, screen: () => synthetic(54, { work: 100 }), budget: 250 });
+    assert.equal(r.error, null);
+    const res = r.result;
+    assert.equal(res.ok, true);
+    assert.equal(res.clues.length, 7);
+    assert.equal(res.rating.score, 54);
+    assert.deepEqual(res.igWindow, { c0: 7, wc: 7, hit: 7, hiBelow: null, loAbove: null, probes: 1, result: 'hit', proof: null });
+    assert.deepEqual(res.skips, noSkips);
+    assert.deepEqual(r.log, ['screen:7', 'screen:7', 'screen:7']);
+    assert.deepEqual(r.charges, [100, 100, 100]);
+    assert.equal(res.counters.budgetStops, 1);
+    assert.deepEqual(observables(r).other, ['budget', 'selected']);
+  });
+
+  test('require mode: the stop returns no unfinished candidate', () => {
+    const r = run('budget-require-54', {
+      target: NIGHTMARE, uniqueness: 'require', screen: () => synthetic(54, { work: 100 }), budget: 250,
+    });
+    assert.equal(r.error, null);
+    assert.equal(r.result.ok, false);
+    assert.equal(r.result.reason, 'not-in-band');
+    assert.deepEqual(r.charges, [100, 100, 100]);
+    assert.equal(r.result.counters.budgetStops, 1);
+    assert.deepEqual(observables(r).other, ['budget']);
+  });
+
+  test('require mode: a central candidate finishes inside the budget', () => {
+    const r = run('budget-require-65', {
+      target: NIGHTMARE, uniqueness: 'require', screen: () => synthetic(65, { work: 100 }), budget: 150,
+    });
+    assert.equal(r.error, null);
+    assert.equal(r.result.ok, true);
+    assert.equal(r.result.clues.length, 7);
+    assert.equal(r.result.rating.score, 65);
+    assert.deepEqual(r.charges, [100, 33]);
+    assert.equal(r.result.counters.budgetStops, 0);
+  });
+
+  test('a count that starts below the budget runs to its end', () => {
+    const r = run('budget-require-overshoot', { uniqueness: 'require', screen: DOWN, budget: 760000003 });
+    assert.equal(r.error, null);
+    assert.equal(r.result.ok, true);
+    assert.equal(r.result.clues.length, 4);
+    assert.deepEqual(r.charges, [1, 760000000, 1, 515]);
+    assert.equal(sum(r.charges), 760000517);
+    assert.equal(r.result.counters.budgetStops, 0);
+  });
+
+  test('the stop comes before a primitive at the budget', () => {
+    const r = run('budget-require-overshoot', { uniqueness: 'require', screen: DOWN, budget: 760000002 });
+    assert.equal(r.error, null);
+    assert.equal(r.result.ok, false);
+    assert.equal(r.result.reason, 'not-in-band');
+    assert.deepEqual(r.charges, [1, 760000000, 1]);
+    assert.equal(r.result.counters.budgetStops, 1);
+    assert.deepEqual(observables(r).other, ['budget']);
+  });
+
+  test('a no-window end names its side in the event', () => {
+    for (const [name, side] of [['below1', 'below'], ['above13', 'above']]) {
+      const score = name === 'below1' ? 30 : 90;
+      const spec = { screen: () => synthetic(score) };
+      const withEvents = run(name, spec);
+      const bare = run(name, { ...spec, observers: 'none' });
+      assert.equal(withEvents.error, null);
+      assert.deepEqual(withEvents.events.at(-1), { stage: 'clues', kind: 'no-window', source: 'candidate', side });
+      assert.deepEqual(withEvents.result, bare.result);
+    }
+  });
+
+  test('the events are observers only', () => {
+    const cases = /** @type {[string, Record<string, any>][]} */ ([
+      ['budget-any-54', { target: NIGHTMARE, screen: () => synthetic(54, { work: 100 }), budget: 250 }],
+      ['below1', { screen: () => synthetic(30) }],
+    ]);
+    for (const [name, spec] of cases) {
+      const bare = run(name, { ...spec, observers: 'none' });
+      const metered = run(name, { ...spec, observers: 'charge' });
+      const full = run(name, { ...spec, observers: 'both' });
+      assert.deepEqual(full.result, bare.result);
+      assert.deepEqual(metered.result, bare.result);
+      assert.deepEqual(full.charges, metered.charges);
+      assert.ok(full.events.length > 0);
+      assert.equal(full.result.counters.budgetStops, bare.result.counters.budgetStops);
+    }
+  });
+
+  test('an excluded first probe is skipped and replays exactly', () => {
+    /** @type {any[][]} */
+    const screened = [];
+    const first = run('skip', { screen: DOWN, captureScreen: (/** @type {any[]} */ clues) => screened.push(clues) });
+    assert.equal(first.error, null);
+    const { board: board15, set } = /** @type {{ board: any, set: any }} */ (k15());
+    const r = run('skip', { screen: DOWN, exclude: new Set([clueKey(board15, set.pieces, screened[0])]) });
+    assert.equal(r.error, null);
+    assert.equal(r.result.ok, true);
+    assert.equal(r.result.clues.length, 4);
+    assert.deepEqual(r.result.skips, { subsets: [0], repairs: [] });
+    assert.deepEqual(observables(r).other, ['skip', 'selected']);
+    assert.deepEqual(r.charges, [1, 760000000, 1]);
+  });
+
+  test('the recorded skips replay the same result', () => {
+    const r = run('skip', { screen: DOWN, replaySkips: { subsets: [0], repairs: [] } });
+    assert.equal(r.error, null);
+    assert.equal(r.result.ok, true);
+    assert.equal(r.result.clues.length, 4);
+    assert.deepEqual(r.result.skips, { subsets: [0], repairs: [] });
+    assert.deepEqual(observables(r).other, ['skip', 'selected']);
+    assert.deepEqual(r.charges, [1, 760000000, 1]);
+  });
+
+  test('an unused replay entry throws', () => {
+    const r = run('skip', { screen: DOWN, replaySkips: { subsets: [0, 2000], repairs: [] } });
+    assert.ok(r.error instanceof SkipReplayError);
+    assert.equal(/** @type {Error} */ (r.error).message, 'recorded subsets skip 2000 is unused');
   });
 });
