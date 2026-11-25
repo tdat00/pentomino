@@ -160,14 +160,14 @@ other exit, or a kill, stops for the pack author's ruling before P2-18:
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w2, 6c039dec1f04072b0e8bcdf52b0c2347ab58485b |
+| Start, end, duration | dispatched 2026-11-26 01:46 +07:00 (developer 01:46:45 to 01:50:35); accepted 01:56 |
+| Waiting for rulings | about 6 min (ten deviations and the pre-seal rehearsal, SA-Opus) |
+| Agent id, model | d3c9abf7-fcd7-41fd-af32-5315119ca6f0, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 21; 1,798,187 / 34,658 / 1,677,346 |
+| AI credits | 81.64 |
+| Questions and rulings | no QUESTION; ten deviations accepted by SA-Opus, pack amendment eb1e6c4 (P2-14b commands table and C15): extra runProbes options; sources.trees a folder path; a thrown item error is failed with reason error and detail, never re-run (C15); extra receipt fields; margin null when nothing was measured (C15); --all exits 2 before .started when a tree is missing; a stale receipt deleted; --item writes only its item; an unreadable or foreign .json is no result; the real client reuses openCopy and moduleOf. Pre-seal rehearsal: after the merge, one locked, uncharged replay-probe --all (900 s) from the main worktree on the merged head into tests/artifacts/ig-proto/phase2/rehearsal/replay-probes (never E/replay-probes) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with every phase-2 test file and G-COPIES; then the uncharged rehearsal on the merged head (results, item statuses, seconds and maxima in the bookkeeping); developer: unlocked replay-probe.test.mjs 7/7 (0.36 s), G-PROTECTED, G-WORKTREE, G-FORMAT (2 files), G-CHECK OK, copies 195 and 32 edits |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-19 runs --all once, locked; P2-17 writes the README section |
