@@ -1,0 +1,8 @@
+{
+  "id": "p2-gen4-diag",
+  "extends": ["p2-gen4", "p2-diag"],
+  "description": "The gen-v4 candidate with the Hell 1 diagnostic offer layer, identified separately from the candidate itself (R2).",
+  "edits": [],
+  "files": [],
+  "params": {}
+}

@@ -1,0 +1,27 @@
+{
+  "id": "p2-none",
+  "extends": ["p2-gen4"],
+  "description": "The counterfactual without the screen, with its own algorithm id gen-v4-proto:p2-none and screen table screen-p2-none-v1, never published as the shipping build (R2).",
+  "edits": [
+    {
+      "id": "nn-1",
+      "file": "core/engine/gen-v4.js",
+      "find": "export const SCREEN_TABLE_ID = 'screen-v4-v1';",
+      "replace": "export const SCREEN_TABLE_ID = 'screen-p2-none-v1';"
+    },
+    {
+      "id": "nn-2",
+      "file": "core/engine/gen-v4.js",
+      "find": "export const SCREEN_AREAS = Object.freeze([196, 256]);",
+      "replace": "export const SCREEN_AREAS = Object.freeze([1, 0]);"
+    },
+    {
+      "id": "nn-3",
+      "file": "core/engine/version.js",
+      "find": "export const ALGO_ID = 'gen-v4';",
+      "replace": "export const ALGO_ID = 'gen-v4-proto:p2-none';"
+    }
+  ],
+  "files": [],
+  "params": { "p2": "p2-none" }
+}

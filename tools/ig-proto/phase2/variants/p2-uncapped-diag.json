@@ -1,0 +1,8 @@
+{
+  "id": "p2-uncapped-diag",
+  "extends": ["p2-uncapped", "p2-diag"],
+  "description": "The uncapped counterfactual with the Hell 1 diagnostic offer layer, identified separately from the counterfactual itself (R2).",
+  "edits": [],
+  "files": [],
+  "params": {}
+}

@@ -1,0 +1,15 @@
+{
+  "id": "p2-today",
+  "extends": ["base"],
+  "description": "Today's search as an identified copy of the phase-1 head 6b94ffb, whose bench accepts require rows as the gen-v4 bench does (R2).",
+  "edits": [
+    {
+      "id": "td-1",
+      "file": "tools/bench/runner.js",
+      "find": "  if (c.uniqueness !== 'any') {",
+      "replace": "  if (c.uniqueness !== 'any' && c.uniqueness !== 'require') {"
+    }
+  ],
+  "files": [],
+  "params": { "p2": "today", "source": "today" }
+}

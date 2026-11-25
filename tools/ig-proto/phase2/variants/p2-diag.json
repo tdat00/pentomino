@@ -1,0 +1,20 @@
+{
+  "id": "p2-diag",
+  "extends": [],
+  "description": "The Hell 1 diagnostic offer as a separately identified layer: the two instr edits diag-1 and diag-2 with the parameter diagnosticOffers (R2); never published as the shipping build.",
+  "edits": [
+    {
+      "id": "diag-1",
+      "file": "core/engine/policy.js",
+      "find": "  if (area < lv.areas[0] || area > lv.areas[1]) return null;\n",
+      "replace": "  if (IG.diagnosticOffers !== true && (area < lv.areas[0] || area > lv.areas[1])) return null;\n"
+    },
+    {
+      "id": "diag-2",
+      "file": "core/engine/policy.js",
+      "append": "\nimport { IG } from './ig-params.js';\n"
+    }
+  ],
+  "files": [],
+  "params": { "diagnosticOffers": true }
+}
