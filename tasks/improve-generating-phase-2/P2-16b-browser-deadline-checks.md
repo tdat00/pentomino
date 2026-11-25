@@ -176,14 +176,14 @@ In the merge gate, the orchestrator runs the six checks again on a tree holding 
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w1, 3b06cbccfb48180325f1e61d347a50c6bb78320e |
+| Start, end, duration | dispatched 2026-11-26 00:20 +07:00 (developer 00:19:57 to 00:32:42, QUESTION 1; resumed to 00:48:43); accepted 00:50 |
+| Waiting for rulings | about 6 min (QUESTION 1 and four deviations, SA-Opus) |
+| Agent id, model | 3684e930-6e4c-46c2-aed1-ab3ec3010e1d, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 47; 5,447,090 / 37,977 / 5,170,316 |
+| AI credits | 158.87 |
+| Questions and rulings | QUESTION 1 (the task expected an empty score cell for the unrateable row; stepScore returns replay.table.unrateable): SA-Opus ruled option (c), pack amendment 703f03f: the cell, trimmed, equals t('replay.table.unrateable') in the active language, is not the bare key and has no digit, in English and Vietnamese; no production change (N-P2-09-CELL). Four deviations accepted (inner 60-s race and CSP fail; DEADLINE helper lines; the wrapped worker forwards error and messageerror; late replies delivered after terminate) |
+| Fix rounds | 1 (the ruled sixth-check assertion; all six checks re-run on the final deadline.js) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with a focused sanity run of tests/generation-deadline.test.js and G-COPIES (results in the bookkeeping); the six locked browser checks re-run in P2-15's merge gate, the second of the pair (check-list 3.7); developer: six locked checks pass (set-bound 8.568 s, batch-prefix 8.478 s, late-fence 10.544 s, fresh-after-pause 11.586 s, no-window-texts 2.125 s, screen-capped-step 2.147 s; longest CHECK-END 9.3 s; cleanup null), G-PROTECTED, G-WORKTREE, G-FORMAT (14 files), G-CHECK OK, G-COPIES 195 and 32 edits |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-17 lists deadline.html in both developer guides; the six checks re-run on a tree holding P2-15 and P2-16b in P2-15's merge gate; the receipts here were produced without GEN_V4_LIVE |

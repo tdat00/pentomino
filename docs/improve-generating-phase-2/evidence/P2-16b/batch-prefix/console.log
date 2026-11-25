@@ -1,0 +1,3 @@
+CHECK-START batch-prefix
+DEADLINE batch-prefix elapsed 5978 ms (119554 ms virtual)
+CHECK-END PASS 6.4 s batch-prefix
