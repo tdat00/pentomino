@@ -15,6 +15,8 @@ worktree.
 
 - **File and identity.** The file is `<IG_LOG_DIR>/<IG_ROW>.<pid>.<threadId>.jsonl`. Each line is one JSON object,
   appended with `appendFileSync`. Nothing is written without `IG_LOG_DIR`.
+  - `IG_LOG_DIR` is an absolute path; every producer sets it so (P2-13d, P2-12c, P2-12d, P2-16c). The trace keys its
+    per-destination headers by that path as given (ruling on P2-12d, 2026-11-25).
   - A call id is `<IG_ROW>:<pid>:<threadId>:<sequence>`; `sequence` counts the calls of that thread from 1.
 - **Format.** It is the format that `rowLedger(lines, linkLines)` of `tools/ig-proto/verdicts.mjs` (lines 696-850)
   reads, unchanged. The phase-2 additions are marked "added".

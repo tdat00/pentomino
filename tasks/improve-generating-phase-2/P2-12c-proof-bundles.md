@@ -70,8 +70,8 @@ Each bundle is one locked invocation with a durable pass or fail record, written
      - (b) the same with `charge`, collecting the units;
      - (c) the same with `record` and `charge`;
      - (d) the copy `p2-gen4`'s `clues.selectClues` (the traced dispatcher), with `charge`, and with
-       `ctx.igStage = 'set'`, `ctx.igAttempt = 0`. Before the call, `process.env.IG_LOG_DIR` is set to
-       `<out>/journal/<case>` (a new folder) and `IG_ROW` to `<case>`.
+       `ctx.igStage = 'set'`, `ctx.igAttempt = 0`. Before the call, `process.env.IG_LOG_DIR` is set to the absolute
+       path `resolve(out, 'journal', <case>)` (a new folder; `contracts.md` C1) and `IG_ROW` to `<case>`.
    - **Equal across (a) to (d):** `ok`, the clue piece ids, `rating` (deep), `skips`, `igWindow` and `counters`.
    - **Equal across (b) to (d):** the summed `charge` units.
    - **The journal of (d)** is read with `readRowFolder` (P2-13r). Then `rowLedger(lines, [])` must be `complete`,

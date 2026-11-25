@@ -78,7 +78,7 @@ never pass as zero reach (N-V4-16).
      `tests/artifacts/ig-proto/phase2/self-test/glue-<ms>/`, rehearsed while `version.js` says `gen-v3`. It imports each
      copy's `createGenerationClient`, `createPool` and the `nodeWorkerFactory` of its `tools/node-worker.mjs`.
    - **Each case:**
-     - sets `P2_GLUE_SCRIPT`, `IG_LOG_DIR` (its own folder) and `IG_ROW`;
+     - sets `P2_GLUE_SCRIPT`, `IG_LOG_DIR` (its own folder, as an absolute path; `contracts.md` C1) and `IG_ROW`;
      - creates `createPool({ size: 4, workerFactory })` and `createGenerationClient(pool, { maxSetAttempts: 8 })`;
      - runs `generateSet({ boardRows: rectRows(10, 10), rotation: 0, levelId: 'nightmare', seedText: 'p2-16c/<case>', uniqueness: 'any', maxActive: 676 })`;
      - closes the pool.
