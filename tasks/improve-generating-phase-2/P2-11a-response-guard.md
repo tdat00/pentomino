@@ -216,6 +216,6 @@ set failure, the batch prefix without a held assembly, and that only one termina
 | AI credits | 66.69 |
 | Questions and rulings | none; five minor deviations accepted by the orchestrator (the client tests advance 118,000 ms because the fake clock starts at 1000, the guard fires at absolute 119,000; edits by anchor text after P2-10; four extra deadline cases; two extra client cases; prefixSnapshot and clock doc comments written by the developer) |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 117/117 (36.258 s), link-9 check no removed line, G-PROTECTED, G-WORKTREE, G-FORMAT (6 files), G-CHECK OK, anchors 22 of 22 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 7 files); rebased onto 2cae434 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked focused `IG P2-11a merge exit=0 seconds=35.518 quiet=45`, 117/117 pass, 0 fail/cancelled/todo; link anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | rebased abdf82a; gen-v4 abdf82a722621ea95f839fc9531b3faadaecb355 |
 | Issues and named items | the module tree (design-detail.md line 175) and the generation-client.js API entry (line 711) do not list generation-deadline.js, prefixSnapshot or clock (task limits the doc change to 8.4; for P2-11b or P2-17); P2-11b wires the guard; assemblyGate is tests only |

@@ -157,6 +157,6 @@ deviations.
 | AI credits | 114.55 |
 | Questions and rulings | none; six minor deviations accepted by the orchestrator (the reserve-cut failure returns ...telemetry(), copies of counters and trail, like the loop's other failures; reserve-cut named in the SetJobResult, RequestScope and scope doc comments; separate describe blocks, an answerAttempt helper and an rectRows import in tests/cli.test.js, extra NaN/Infinity/undefined origins; edits by anchor text after line drift; stray CR and one bare-LF line fixed, byte scan 0 bare LFs; a briefly duplicated design-detail line corrected, final diff 4 inserted lines) |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 134/134 (33.659 s), G-PROTECTED, G-WORKTREE, G-FORMAT (8 files), G-CHECK OK, anchors 22 of 22 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 9 files); rebased onto 17b3de0 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked focused `IG P2-10 merge exit=0 seconds=33.891 quiet=45`, 134/134 pass, 0 fail/cancelled/todo; link anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | rebased e807adf; gen-v4 e807adfae84a0db3bdc803da9155f08f5939086b |
 | Issues and named items | P2-16a asserts the live-route cliScope (a 46,000 cut once GEN_V4_LIVE is true); P2-11b makes the Generator call client.newScope(false) for each action; in the bench runner boardFromRows now runs before the try, as the task's line says (matrix validation refuses bad boardRows earlier) |

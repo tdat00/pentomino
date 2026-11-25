@@ -41,7 +41,7 @@ order and the merges.
 - [x] P2-02 Shared clue primitives, the retained `gen-v3` selector and the dispatcher (starts when P2-01 is merged)
 - [x] P2-04 `select-v4.js`: the port of the frozen selector, with its two observer events (P2-02, P2-03)
 - [x] P2-05a `select-v4.js`: the frozen synthetic vectors (P2-04)
-- [ ] P2-05b `select-v4.js`: budget stops, no-window events, skips and the frozen parity check (P2-05a)
+- [x] P2-05b `select-v4.js`: budget stops, no-window events, skips and the frozen parity check (P2-05a)
 - [ ] P2-14a Replay fixture modes and the refusal check (P2-01)
 
 ### Lane C (client and records)
@@ -49,8 +49,8 @@ order and the merges.
 - [x] P2-06 No-window reasons, counters in results and the bounded set stage (P2-01)
 - [x] P2-07 The per-set prior: transport and the serial path (P2-06)
 - [x] P2-08 Provenance per algorithm family, `made.igPrior`, replay and the saved-steps key (P2-07)
-- [ ] P2-10 Monotonic request scopes, the set-stage reserve and the pool clock (P2-06)
-- [ ] P2-11a The response guard and the assembly hooks of the client (P2-10)
+- [x] P2-10 Monotonic request scopes, the set-stage reserve and the pool clock (P2-06)
+- [x] P2-11a The response guard and the assembly hooks of the client (P2-10)
 - [ ] P2-11b The guard in the Generator, the CLI and the bench, with its lifetime rules (P2-11a)
 - [ ] P2-09 Generation-steps events, texts and notices in English and Vietnamese (P2-08, P2-11b)
 - [ ] P2-12a Validation telemetry in the bench rows (P2-06)
@@ -62,7 +62,7 @@ order and the merges.
 - [x] P2-13v The binding verifiers: rows, proofs, replay probes and browser checks (starts at the pack commit)
 - [x] P2-16e The browser runner (starts at the pack commit)
 - [x] P2-13a The driver: plan, seal, ledger and the locked wrapper (P2-13r)
-- [ ] P2-13d The driver: rows, resume and publication (P2-13a)
+- [x] P2-13d The driver: rows, resume and publication (P2-13a)
 - [ ] P2-13e The driver's source and row binding (P2-13d, P2-13v)
 - [ ] P2-13b The comparator: cohorts, equality and the stage gates (P2-13e)
 - [ ] P2-13c P5's trigger, coverage and the activation of the twins (P2-13b)
@@ -582,13 +582,13 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-03 | w3, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:09 | about 8 min | 37.32 | ec8c583 |
 | P2-04 | w1, df72615 | 2026-11-25 22:27 | 2026-11-25 22:55 | about 28 min | 241.42 | 6c35eda |
 | P2-05a | w1, 6c35eda | 2026-11-25 22:53 | 2026-11-25 23:02 | about 9 min | 65.10 | c701d1a |
-| P2-05b | | | | | | |
+| P2-05b | w1, c701d1a | 2026-11-25 23:02 | 2026-11-25 23:11 | about 9 min | 69.28 | 17b3de0 |
 | P2-06 | w2, fb67ba0 | 2026-11-25 22:13 | 2026-11-25 22:39 | about 26 min | 175.81 | 85f5c46 |
 | P2-07 | w2, 85f5c46 | 2026-11-25 22:43 | 2026-11-25 22:52 | about 9 min | 74.28 | 0183938 |
 | P2-08 | w2, 6c35eda | 2026-11-25 22:53 | 2026-11-25 23:00 | about 7 min | 88.62 | a53cb60 |
 | P2-09 | | | | | | |
-| P2-10 | | | | | | |
-| P2-11a | | | | | | |
+| P2-10 | w2, c701d1a | 2026-11-25 23:02 | 2026-11-25 23:12 | about 10 min | 114.55 | e807adf |
+| P2-11a | w2, e807adf | 2026-11-25 23:14 | 2026-11-25 23:22 | about 8 min | 66.69 | abdf82a |
 | P2-11b | | | | | | |
 | P2-12a | | | | | | |
 | P2-12b | | | | | | |
@@ -600,7 +600,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-13a | w3, 85f5c46 | 2026-11-25 22:43 | 2026-11-25 23:06 | about 23 min | 176.39 | 6267e86 |
 | P2-13b | | | | | | |
 | P2-13c | | | | | | |
-| P2-13d | | | | | | |
+| P2-13d | w3, 6267e86 | 2026-11-25 23:07 | 2026-11-25 23:23 | about 16 min | 155.75 | fe9e120 |
 | P2-13e | | | | | | |
 | P2-13f | | | | | | |
 | P2-14a | | | | | | |

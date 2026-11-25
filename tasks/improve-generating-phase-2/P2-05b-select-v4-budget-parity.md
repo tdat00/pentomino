@@ -163,6 +163,6 @@ None (P2-04 wrote §6.10).
 | AI credits | 69.28 |
 | Questions and rulings | none; four minor deviations accepted by the orchestrator (P2-05a's run helper takes replaySkips, used for the spec's replay; optional spec.captureScreen(clues) hook in run, no existing case changed; no-window and observer cases compare whole results against observers 'none'; port-parity.mjs resolves the frozen trees from its own file URL) |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | parity.log read: 9 of 9 equal (units 353,206,810 to 2,175,581,115); slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 30/30 (1.688 s), locked parity 9 of 9 equal (47.664 s), G-PROTECTED, G-WORKTREE, G-FORMAT (4 files), G-CHECK OK, anchors 22 of 22 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 5 files); rebased onto c895382 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked focused `IG P2-05b merge exit=0 seconds=1.776 quiet=45`, 30/30 pass, 0 fail/cancelled/todo; link anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | rebased 17b3de0; gen-v4 17b3de00fc48929439794c4a1deda95ebd4155b5 |
 | Issues and named items | none; no select-v4.js defect; parity.log does not list each call's ok (format as specified) |
