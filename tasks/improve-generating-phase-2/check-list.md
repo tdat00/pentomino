@@ -65,7 +65,7 @@ order and the merges.
 - [x] P2-13d The driver: rows, resume and publication (P2-13a)
 - [x] P2-13e The driver's source and row binding (P2-13d, P2-13v)
 - [x] P2-13b The comparator: cohorts, equality and the stage gates (P2-13e)
-- [ ] P2-13c P5's trigger, coverage and the activation of the twins (P2-13b)
+- [x] P2-13c P5's trigger, coverage and the activation of the twins (P2-13b)
 - [ ] P2-13f N-V4-16's glue and the reach readings (P2-13c)
 
 ### Joins
@@ -75,9 +75,9 @@ order and the merges.
 - [ ] P2-12c Proof bundles 1 and 2: observers and certificates (P2-12d)
 - [ ] P2-12e Proof bundles 3 and 4: prior and replay, legacy route (P2-12d)
 - [ ] P2-14b The replay-resource probes (P2-12b)
-- [ ] P2-15 The cutover: `gen-v4` live, fixtures re-recorded, living specification (P2-09, P2-12a, P2-12b, P2-14a)
+- [x] P2-15 The cutover: `gen-v4` live, fixtures re-recorded, living specification (P2-09, P2-12a, P2-12b, P2-14a)
 - [ ] P2-16c The real no-window glue on a scripted-rating copy (P2-12d, P2-09)
-- [ ] P2-16b The browser deadline page and its six checks (P2-09, P2-11b, P2-16e)
+- [x] P2-16b The browser deadline page and its six checks (P2-09, P2-11b, P2-16e)
 - [ ] P2-16a Integrated worker cases and the pre-seal gate list (P2-15, P2-13a)
 - [ ] P2-17 Guides, README, tools README and the release-notes text (P2-15, P2-12c, P2-12e, P2-13f, P2-14b, P2-16b, P2-16c)
 
@@ -572,6 +572,8 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | D-P2-16 rewording | The owner may reword the approved texts later | ordinary text task, no behaviour change | when the owner asks |
 | Developer hours | The pack's estimate is 85.75 h against the plan's "about 46", round 0's 59 and revision 1's 78.25 | the review-1 contracts and proofs (R2 to R7, R11 to R13); review-2's binding, coverage and glue tasks (P2-13v, P2-13e, P2-13f) | informational; no credit forecast |
 | N-P2-09-CELL | The score cell of a screen-capped or re-rating-capped step shows `replay.table.unrateable` ("the deduction path was capped"), while the step text says it reached its work limit | one new EN/VI cell string; no behaviour change | the owner's text pass (D-P2-16 rewording) |
+| N-P2-15-K8 | On 15x20 Nightmare, seed `t18-big-a`, K = 24, the calibration under `gen-v4` has 5 clues and score 69, still in band; under `gen-v3` it had 3 clues and score 70 | one seed; not population evidence | P2-21, as a deviation note |
+| INC-P2-11b | `tests/generator-import.test.js:512` failed on `gen-v4` from P2-11b (`df15064`) to P2-15: its fake client lacked `newScope`; P2-11b's gate was focused | repaired by P2-15's K12 | closed |
 | Merge, release | Not authorized | neither PR merged | a later explicit owner instruction |
 
 ## 6. Execution summary (orchestrator)
@@ -600,15 +602,15 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-13v | w3, fb67ba0 | 2026-11-25 22:13 | 2026-11-25 22:21 | about 8 min | 61.28 | 030475d |
 | P2-13a | w3, 85f5c46 | 2026-11-25 22:43 | 2026-11-25 23:06 | about 23 min | 176.39 | 6267e86 |
 | P2-13b | w3, 953f3b2 | 2026-11-25 23:55 | 2026-11-26 00:46 | about 51 min | 459.62 | 478eca3 |
-| P2-13c | | | | | | |
+| P2-13c | w3, 478eca3 | 2026-11-26 00:48 | 2026-11-26 01:16 | about 28 min | 258.28 | 3c77a46 |
 | P2-13d | w3, 6267e86 | 2026-11-25 23:07 | 2026-11-25 23:23 | about 16 min | 155.75 | fe9e120 |
 | P2-13e | w3, fe9e120 | 2026-11-25 23:31 | 2026-11-25 23:53 | about 22 min | 298.38 | 953f3b2 |
 | P2-13f | | | | | | |
 | P2-14a | w1, 17b3de0 | 2026-11-25 23:12 | 2026-11-25 23:36 | about 24 min | 103.37 | 0bdfd04 |
 | P2-14b | | | | | | |
-| P2-15 | | | | | | |
+| P2-15 | w2, 9bc10e6 | 2026-11-25 23:59 | 2026-11-26 01:13 | about 74 min | 268.12 | de37517 |
 | P2-16a | | | | | | |
-| P2-16b | | | | | | |
+| P2-16b | w1, 3b06cbc | 2026-11-26 00:20 | 2026-11-26 00:51 | about 31 min | 158.87 | cf24d85 |
 | P2-16c | | | | | | |
 | P2-16e | w3, df72615 | 2026-11-25 22:27 | 2026-11-25 22:36 | about 9 min | 54.34 | e14e7a4 |
 | P2-17 | | | | | | |
