@@ -188,14 +188,14 @@ None (P2-04 wrote §6.10).
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w1, 6c35edaffecc374665d48f949c3e258c0aea2800 |
+| Start, end, duration | dispatched 2026-11-25 22:53 +07:00 (developer 22:53:38 to 22:58:23); accepted 23:00 |
+| Waiting for rulings | none |
+| Agent id, model | 58b50d6f-194d-4478-949b-b35d3a9a79b2, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 19; 1,501,915 / 29,186 / 1,414,833 |
+| AI credits | 65.10 |
+| Questions and rulings | none; five minor deviations accepted by the orchestrator (literal helpers s, x, kU, kR, kJ, scr, can; failures assert igWindow and skips as ?? null; run() spec keys observers, throwCharge, throwRecord; G-PROTECTED against 97a6326 as 3.2 says; one deleted scratch reader under tests/artifacts) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 20/20 (1.678 s), G-PROTECTED, G-WORKTREE, G-FORMAT (1 file), G-CHECK OK, anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | none; no select-v4.js defect found; literals checked by the passing cases and the recomputed counters, not by a mechanical diff against the JSONL |
