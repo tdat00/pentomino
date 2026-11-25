@@ -1588,3 +1588,108 @@ describe('bounded set stage and counters', () => {
     assert.deepEqual(plain.counters, counters());
   });
 });
+
+describe('request scopes', () => {
+  /** @param {number} origin @param {number | null} setCutAt */
+  const scopeOf = (origin, setCutAt) => ({ origin, setCutAt });
+  /** @param {ReturnType<typeof harness>} h @param {number} n @param {unknown} value */
+  const answerAttempt = (h, n, value) => h.answer(/** @type {Task} */ (h.held.find((t) => attemptOf(t) === n)), { value });
+  const noWindow = { ok: false, reason: 'no-window-below' };
+
+  test('newScope reads the client clock', () => {
+    const h = harness();
+    h.clock.advance(4000);
+    const client = clientOf(h);
+    assert.deepEqual(client.newScope(true), { origin: 5000, setCutAt: 51000 });
+    assert.deepEqual(client.newScope(false), { origin: 5000, setCutAt: null });
+  });
+
+  test('the reserve cuts the set stage at its scope\'s cut', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput({ scope: scopeOf(0, 46000) })));
+    await settle();
+    assert.equal(h.held.length, 4);
+    h.clock.advance(44999);
+    await settle();
+    assert.equal(h.clock.now(), 45999);
+    assert.equal(result.state, 'pending');
+    h.clock.advance(1);
+    await settle();
+    assert.equal(h.clock.now(), 46000);
+    assert.deepEqual([result.value.status, result.value.reason], ['failed', 'reserve-cut']);
+    assert.ok(h.held.every((t) => t.worker.terminated), 'the workers are aborted');
+  });
+
+  test('the cut comes after the bound and the winner scan', async () => {
+    const h = harness();
+    const won = track(clientOf(h).generateSet(setInput({ scope: scopeOf(0, 46000) })));
+    await settle();
+    h.clock.advance(44999);
+    answerAttempt(h, 0, setSuccess(0));
+    await settle();
+    assert.equal(won.value.status, 'complete');
+
+    const b = harness();
+    // The four no-window replies and the cut arrive together: the clock passes the cut while the fourth is recorded.
+    const onProgress = (/** @type {{ stage?: string, attempt?: number }} */ p) => {
+      if (p.stage === 'carving' && p.attempt === 3) {
+        b.clock.advance(45000);
+      }
+    };
+    const bound = track(clientOf(b).generateSet(setInput({ scope: scopeOf(0, 46000) }), { onProgress }));
+    await settle();
+    for (let j = 0; j < 4; j += 1) {
+      answerAttempt(b, j, noWindow);
+      await settle();
+    }
+    assert.equal(b.clock.now(), 46000);
+    assert.deepEqual([bound.value.status, bound.value.reason], ['failed', 'no-window-below']);
+    assert.equal(bound.value.trail.boundFired, true);
+  });
+
+  test('without a scope there is no reserve and a fresh 115-s stop', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput()));
+    await settle();
+    h.clock.advance(60000);
+    await settle();
+    assert.equal(result.state, 'pending', 'no cut at 46 s');
+    h.clock.advance(54999);
+    await settle();
+    assert.equal(result.state, 'pending');
+    h.clock.advance(1);
+    await settle();
+    assert.deepEqual([result.value.status, result.value.reason], ['failed', 'time-limit']);
+  });
+
+  test('set and batch share one origin', async () => {
+    const h = harness({ handler: (t) => (t.kind === 'setAttempt' ? { value: setSuccess(0) } : undefined) });
+    const client = clientOf(h);
+    const scope = scopeOf(0, 46000);
+    h.clock.advance(29000);
+    const set = await client.generateSet(setInput({ scope }));
+    assert.equal(set.status, 'complete');
+    assert.equal(h.clock.now(), 30000);
+    const batch = track(client.generateBatch(batchInput({ scope, calibration: set.calibration })));
+    await settle();
+    assert.equal(batch.state, 'pending');
+    h.clock.advance(84999);
+    await settle();
+    assert.equal(h.clock.now(), 114999);
+    assert.equal(batch.state, 'pending');
+    h.clock.advance(1);
+    await settle();
+    assert.equal(batch.value.reason, 'time-limit', 'the stop is 115 s after the origin, not after the batch start');
+  });
+
+  test('an invalid scope is refused', async () => {
+    const h = harness();
+    const client = clientOf(h);
+    const refused = (/** @type {unknown} */ e) => e instanceof GenerationError && e.code === 'invalid-input';
+    for (const scope of [scopeOf(5000, null), scopeOf(500, 400), scopeOf(Number.NaN, null), scopeOf(0, Number.NaN), { origin: 0 }]) {
+      await assert.rejects(client.generateSet(setInput({ scope })), refused);
+      await assert.rejects(client.generateBatch(batchInput({ scope })), refused);
+    }
+    assert.equal(h.tasks.length, 0, 'nothing is dispatched');
+  });
+});

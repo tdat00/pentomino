@@ -25,6 +25,7 @@ import { createGenerationClient, GenerationError } from '../core/browser/generat
 import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { createPool, MAX_POOL_SIZE } from '../core/browser/worker-pool.js';
 import { boardFromRows, boardToRows, MAX_SIDE, preset } from '../core/engine/board.js';
+import { usesGenV4 } from '../core/engine/gen-v4.js';
 import { canonicalKey } from '../core/engine/geometry.js';
 import { level } from '../core/engine/levels.js';
 import { parsePack, serializePack } from '../core/engine/pack.js';
@@ -502,6 +503,18 @@ function arrangementDetail(found, label) {
  */
 
 /**
+ * The request scope of an automatic request: one scope with the set-stage reserve for a `gen-v4`-route level and board,
+ * none (each call keeps its own timer) for the legacy routes.
+ * @param {import('../core/browser/generation-client.js').GenerationClient} client
+ * @param {string} levelId
+ * @param {string[]} boardRows
+ * @returns {import('../core/browser/generation-client.js').RequestScope | undefined}
+ */
+export function cliScope(client, levelId, boardRows) {
+  return usesGenV4(levelId, boardFromRows(boardRows)) ? client.newScope(true) : undefined;
+}
+
+/**
  * Runs the CLI and returns the exit code.
  * @param {string[]} argv
  * @param {Partial<Io>} [overrides]
@@ -545,6 +558,7 @@ export async function run(argv, overrides = {}) {
       io.stderr(`seed: ${config.seedText}\n`);
     }
     io.stderr(`generating a ${label} piece set for seed ${config.seedText}\n`);
+    const scope = cliScope(client, config.levelId, config.boardRows);
     const set = await client.generateSet({
       boardRows: config.boardRows,
       rotation: config.rotation,
@@ -552,6 +566,7 @@ export async function run(argv, overrides = {}) {
       seedText: config.seedText,
       uniqueness: config.uniqueness,
       maxActive: config.maxActive,
+      scope,
     }, hooks);
     if (set.status !== 'complete' || set.set === undefined) {
       io.stderr(set.status === 'cancelled'
@@ -574,6 +589,7 @@ export async function run(argv, overrides = {}) {
       setLevel: config.levelId,
       setAttempt: set.attempt,
       setOrigin: set.setOrigin,
+      scope,
     }, hooks);
     if (config.expected !== undefined) {
       const differences = compareExpected(config.expected, {

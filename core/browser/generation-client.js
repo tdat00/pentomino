@@ -37,6 +37,14 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
 /** @typedef {import('./worker-pool.js').Pool} Pool */
 
 /**
+ * One monotonic request clock: `origin` is the request's start on the client clock; `setCutAt` the instant that ends the
+ * set stage with `reserve-cut`, or null when the request has no reserve.
+ * @typedef {object} RequestScope
+ * @property {number} origin
+ * @property {number | null} setCutAt
+ */
+
+/**
  * @typedef {object} SetInput
  * @property {string[]} boardRows `#` active, `.` blocked; never changed implicitly.
  * @property {number} rotation Presentation only: 0, 45, ... 315 counter-clockwise degrees.
@@ -45,6 +53,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {'any' | 'require'} uniqueness
  * @property {number} maxActive Enabled active-cell cap of the device (the board minimum is 30).
  * @property {string} [revision] Owner tag echoed by every hook; defaults to `g<requestId>`.
+ * @property {RequestScope} [scope] From `newScope`; without it the request starts its own 115-s stop and has no reserve.
  */
 
 /**
@@ -65,6 +74,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {number} [setAttempt] Provenance only.
  * @property {SetOrigin} [setOrigin] Origin of the set, as its set result gave it; written into the pack unchanged.
  * @property {string} [revision]
+ * @property {RequestScope} [scope] The scope of the set request of the same automatic request, when there is one.
  */
 
 /**
@@ -107,8 +117,9 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  */
 
 /**
- * `failed` carries `reason` `time-limit`, `attempts-exhausted` (only with `maxSetAttempts`), `no-window-below` or
- * `no-window-above` (the first four attempts all ended without a window on that side).
+ * `failed` carries `reason` `time-limit`, `reserve-cut` (the scope's set-stage cut passed), `attempts-exhausted` (only
+ * with `maxSetAttempts`), `no-window-below` or `no-window-above` (the first four attempts all ended without a window on
+ * that side).
  * @typedef {object} SetJobResult
  * @property {'complete' | 'failed' | 'cancelled'} status
  * @property {PieceSet} [set]
@@ -171,6 +182,8 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @typedef {object} GenerationClient
  * @property {(input: SetInput, hooks?: GenerationHooks) => Promise<SetJobResult>} generateSet
  * @property {(input: BatchInput, hooks?: GenerationHooks) => Promise<BatchJobResult>} generateBatch
+ * @property {(reserve: boolean) => RequestScope} newScope A scope that starts now; with `reserve` true its set stage is
+ *   cut `DEADLINE.setStageCapMs` after the origin.
  * @property {(input: { boardRows: string[], pieces: Piece[], clues: Pose[], revision?: string }) => Promise<Pose[] | null>} solveWitness
  *   One arrangement of a piece set that keeps the given clues (the solver's first solution within its row limit), or
  *   null when none was found, the search was cancelled or it ran out of time.
@@ -522,8 +535,12 @@ export function createGenerationClient(pool, options = {}) {
     kinds: ['rate', 'replayPuzzle'],
   });
 
-  /** @param {string | undefined} revision @returns {Job} */
-  function begin(revision) {
+  /**
+   * @param {string | undefined} revision
+   * @param {RequestScope} [scope]
+   * @returns {Job}
+   */
+  function begin(revision, scope) {
     const requestId = lastRequestId + 1;
     const tag = revisionOf(revision, requestId);
     /** @type {Job} */
@@ -533,6 +550,7 @@ export function createGenerationClient(pool, options = {}) {
       pool.beginRequest({
         requestId,
         revision: tag,
+        origin: scope?.origin,
         onTimeout: () => {
           job.timedOut = true;
           job.wake?.();
@@ -606,6 +624,28 @@ export function createGenerationClient(pool, options = {}) {
     throw toFault(error, detail);
   }
 
+  /** @param {unknown} scope */
+  function checkScope(scope) {
+    if (scope === undefined) {
+      return;
+    }
+    const valid = isObject(scope)
+      && typeof scope.origin === 'number' && Number.isFinite(scope.origin) && scope.origin <= clock.now()
+      && (scope.setCutAt === null || (typeof scope.setCutAt === 'number' && Number.isFinite(scope.setCutAt) && scope.setCutAt >= scope.origin));
+    if (!valid) {
+      throw new GenerationError('invalid-input', 'scope is invalid');
+    }
+  }
+
+  /**
+   * @param {boolean} reserve
+   * @returns {RequestScope}
+   */
+  function newScope(reserve) {
+    const origin = clock.now();
+    return { origin, setCutAt: reserve === true ? origin + DEADLINE.setStageCapMs : null };
+  }
+
   /**
    * @param {SetInput} input
    * @returns {{ board: Board, rotation: number, seedText: string, levelId: string, uniqueness: 'any' | 'require' }}
@@ -614,6 +654,7 @@ export function createGenerationClient(pool, options = {}) {
     if (!isObject(input)) {
       throw new GenerationError('invalid-input', 'The set request must be an object');
     }
+    checkScope(input.scope);
     const cap = input.maxActive;
     if (!Number.isInteger(cap) || cap < MIN_ACTIVE_CAP || cap > MAX_ACTIVE_CAP) {
       throw new GenerationError('invalid-input', `maxActive must be an integer from ${MIN_ACTIVE_CAP} to ${MAX_ACTIVE_CAP}`);
@@ -651,7 +692,9 @@ export function createGenerationClient(pool, options = {}) {
   async function generateSet(input, hooks = {}) {
     const request = checkSet(input);
     const maxAttempts = options.maxSetAttempts ?? Infinity;
-    const job = begin(input.revision);
+    const job = begin(input.revision, input.scope);
+    const cutAt = typeof input.scope?.setCutAt === 'number' ? input.scope.setCutAt : null;
+    const cutTimer = cutAt === null ? null : clock.setTimeout(() => job.wake?.(), Math.max(0, cutAt - clock.now()));
     const { board, levelId, seedText, uniqueness, rotation } = request;
     const boardRows = boardToRows(board);
     const size = pool.size;
@@ -794,6 +837,9 @@ export function createGenerationClient(pool, options = {}) {
             break;
           }
         }
+        if (cutAt !== null && clock.now() >= cutAt) {
+          return { status: 'failed', reason: 'reserve-cut', failures: tally(), ...telemetry() };
+        }
         while (winner < 0 && inflight.size < size && next < maxAttempts) {
           launch(next);
           next += 1;
@@ -804,6 +850,9 @@ export function createGenerationClient(pool, options = {}) {
         await waitEvent(job);
       }
     } finally {
+      if (cutTimer !== null) {
+        clock.clearTimeout(cutTimer);
+      }
       for (const c of inflight.values()) {
         c.abort();
       }
@@ -878,6 +927,7 @@ export function createGenerationClient(pool, options = {}) {
     const history = { seenLayouts: Array.isArray(input.seenLayouts) ? input.seenLayouts.slice() : [], seenClues: Array.isArray(input.seenClues) ? input.seenClues.slice() : [] };
     try {
       const { set } = input;
+      checkScope(input.scope);
       boardToRows(set.board);
       const setSeed = checkedSeed(input.setSeed, 'setSeed');
       const seenLayouts = checkedKeys(input.seenLayouts);
@@ -961,7 +1011,7 @@ export function createGenerationClient(pool, options = {}) {
       }
       throw new GenerationError('invalid-input', e instanceof Error ? e.message : 'The batch request is invalid', detail);
     }
-    const job = begin(input.revision);
+    const job = begin(input.revision, input.scope);
     const frozen = candidateContext(ctx, state);
     const base = {
       set: wireSet(set),
@@ -1412,6 +1462,7 @@ export function createGenerationClient(pool, options = {}) {
   return {
     generateSet,
     generateBatch,
+    newScope,
     solveWitness,
     submitAuxiliary: (kind, payload, submitOptions) => aux.submit(kind, payload, submitOptions ?? {}),
     replayPuzzle,

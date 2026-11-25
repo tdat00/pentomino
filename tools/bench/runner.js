@@ -8,6 +8,7 @@ import { createGenerationClient, GenerationError } from '../../core/browser/gene
 import { isAbortError } from '../../core/browser/worker-pool.js';
 import { activeCount, boardFromRows, validateForGeneration } from '../../core/engine/board.js';
 import { inBand } from '../../core/engine/difficulty.js';
+import { DEADLINE, usesGenV4 } from '../../core/engine/gen-v4.js';
 import { canonicalJson, sha256Hex } from '../../core/engine/hash.js';
 import { clueKey, layoutKey } from '../../core/engine/keys.js';
 import { level } from '../../core/engine/levels.js';
@@ -534,6 +535,7 @@ const newState = () => ({
  */
 async function generate(s, spec, caseDef, host, clock, client) {
   s.t0 = clock.now();
+  const scope = usesGenV4(caseDef.levelId, boardFromRows(caseDef.boardRows)) ? { origin: s.t0, setCutAt: s.t0 + DEADLINE.setStageCapMs } : undefined;
   try {
     const set = await client.generateSet({
       boardRows: caseDef.boardRows,
@@ -542,6 +544,7 @@ async function generate(s, spec, caseDef, host, clock, client) {
       seedText: spec.seed,
       uniqueness: caseDef.uniqueness,
       maxActive: caseDef.maxActive,
+      scope,
     });
     s.set = set;
     s.tSet = clock.now();
@@ -562,6 +565,7 @@ async function generate(s, spec, caseDef, host, clock, client) {
       calibration: set.calibration,
       setLevel: caseDef.levelId,
       setAttempt: set.attempt,
+      scope,
     }, {
       onAccepted: (event) => {
         s.accepted.push(event.puzzle);

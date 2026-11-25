@@ -2251,6 +2251,10 @@ All budgets live in `policy.js` (`BUDGETS`, `TIME`). Node budgets are determinis
   1. at `TIME.dispatchStopMs` (115 s) the scheduler stops dispatching and terminates busy workers;
   2. it validates and packages the accepted results within the remaining 5 s;
   3. it returns them with reason `time-limit` no later than `TIME.responseMs` (120 s).
+- **Request scopes** (D-P2-08). A request runs on one monotonic clock scope: `RequestScope = { origin, setCutAt }`, made by `client.newScope(reserve)` from the client's clock (`setCutAt` is `origin + DEADLINE.setStageCapMs`, 46 s, with `reserve`, else `null`). `generateSet` and `generateBatch` take an optional `scope` (a scope whose `origin` is later than the clock or whose `setCutAt` is not `null` or a number from `origin` on is refused with `invalid-input`), and the pool's `beginRequest` takes its `origin`: the 115-s stop counts from an `origin` that is not later than now, and from now otherwise. Without a scope a request starts its own 115-s stop and has no reserve, as before.
+  - The Generator's two actions (set, New Puzzles) each get a fresh scope without a reserve, so no clock spans the user's pause.
+  - An automatic request on the `gen-v4` route (the CLI, `tools/generate.mjs`, and the bench runner) makes its set and its batch under one scope with the reserve: the set stage ends with `reserve-cut` at 46 s, and generation stops 115 s after the origin, so the batch gets what the set left. The legacy routes (Master and below, the 26 by 26 Nightmare exception) have no scope and keep their two timers.
+  - The set loop checks, in this order: cancellation, the time limit, the same-side bound (§6.5), the ordered scan for a winner, the reserve cut, and a new dispatch. A winner found before the cut therefore completes, and the bound wins over the cut.
 - **No cooperative slicing.** Workers never use `setTimeout(0)` slicing; the HTML Standard clamps nested timers to ≥ 4 ms, including in workers.
 - **Progress UI** (generator, §10.6).
   - The button that started the job shows a spinner and "Elapsed: m:ss" under it; after 30 s it turns into Cancel. The page shows no stage text or progress count.

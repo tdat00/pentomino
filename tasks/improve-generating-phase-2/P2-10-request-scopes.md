@@ -149,14 +149,14 @@ deviations.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w2, c701d1ab6b187e2ffae6ed9acc0527643c4ed2a8 |
+| Start, end, duration | dispatched 2026-11-25 23:02 +07:00 (developer 23:03:10 to 23:10:38); accepted 23:12 |
+| Waiting for rulings | none |
+| Agent id, model | be5292a3-ca01-422a-86de-e4d2e15dc31d, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 53; 5,229,801 / 32,744 / 5,106,822 |
+| AI credits | 114.55 |
+| Questions and rulings | none; six minor deviations accepted by the orchestrator (the reserve-cut failure returns ...telemetry(), copies of counters and trail, like the loop's other failures; reserve-cut named in the SetJobResult, RequestScope and scope doc comments; separate describe blocks, an answerAttempt helper and an rectRows import in tests/cli.test.js, extra NaN/Infinity/undefined origins; edits by anchor text after line drift; stray CR and one bare-LF line fixed, byte scan 0 bare LFs; a briefly duplicated design-detail line corrected, final diff 4 inserted lines) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 134/134 (33.659 s), G-PROTECTED, G-WORKTREE, G-FORMAT (8 files), G-CHECK OK, anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-16a asserts the live-route cliScope (a 46,000 cut once GEN_V4_LIVE is true); P2-11b makes the Generator call client.newScope(false) for each action; in the bench runner boardFromRows now runs before the try, as the task's line says (matrix validation refuses bad boardRows earlier) |
