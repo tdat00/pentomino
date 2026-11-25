@@ -145,6 +145,6 @@ sealing is written once, with exact commands.
 | AI credits | 92.93 |
 | Questions and rulings | none; six minor deviations accepted by the orchestrator (layoutKey and clueKey from batch.seenLayouts and seenClues, scores from accepted; the gen-v4 version assertion on candidate records only, at least one per run; the width case passes no scope as step 1 lists; one cut message per cut run; gates.md expected outputs from the code and the copy checks; cases placed in the existing describe blocks) |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked full suite (full-suite point) and G-COPIES (results in the bookkeeping); developer: locked focused 60/60 (123.592 s), locked full suite 1629/1629 (138.641 s), G-PROTECTED, G-WORKTREE, G-FORMAT (4 files), G-CHECK OK, copies 195 and 32 edits; slow cases: fold sizes 95.7 s, real pool widths 23.5 s |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 5 files); rebased onto 035a632 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked full suite `IG P2-16a full exit=0 seconds=136.917 quiet=45`, 1629/1629 pass, 0 fail/cancelled/todo; G-COPIES 195 and 32 edits |
+| Commit (slot), commit on `gen-v4` | rebased 80a7699; gen-v4 80a7699eec6117abf8e37936730f5e68290ecb9a |
 | Issues and named items | the fold case takes about 95 s against the 120-s stop point (load sensitive); gate 2 of gates.md runs only when all ten phase-2 test files exist (P2-12c's proofs test) |

@@ -72,13 +72,13 @@ order and the merges.
 
 - [x] P2-12b Measurement copies, their source binding and the common proof runner (P2-05b, P2-11b, P2-13r)
 - [x] P2-12d The copies' trace layer (P2-12b, P2-08)
-- [ ] P2-12c Proof bundles 1 and 2: observers and certificates (P2-12d)
+- [x] P2-12c Proof bundles 1 and 2: observers and certificates (P2-12d)
 - [x] P2-12e Proof bundles 3 and 4: prior and replay, legacy route (P2-12d)
-- [ ] P2-14b The replay-resource probes (P2-12b)
+- [x] P2-14b The replay-resource probes (P2-12b)
 - [x] P2-15 The cutover: `gen-v4` live, fixtures re-recorded, living specification (P2-09, P2-12a, P2-12b, P2-14a)
 - [x] P2-16c The real no-window glue on a scripted-rating copy (P2-12d, P2-09)
 - [x] P2-16b The browser deadline page and its six checks (P2-09, P2-11b, P2-16e)
-- [ ] P2-16a Integrated worker cases and the pre-seal gate list (P2-15, P2-13a)
+- [x] P2-16a Integrated worker cases and the pre-seal gate list (P2-15, P2-13a)
 - [ ] P2-17 Guides, README, tools README and the release-notes text (P2-15, P2-12c, P2-12e, P2-13f, P2-14b, P2-16b, P2-16c)
 
 ### After development (serial)
@@ -574,6 +574,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | N-P2-09-CELL | The score cell of a screen-capped or re-rating-capped step shows `replay.table.unrateable` ("the deduction path was capped"), while the step text says it reached its work limit | one new EN/VI cell string; no behaviour change | the owner's text pass (D-P2-16 rewording) |
 | N-P2-15-K8 | On 15x20 Nightmare, seed `t18-big-a`, K = 24, the calibration under `gen-v4` has 5 clues and score 69, still in band; under `gen-v3` it had 3 clues and score 70 | one seed; not population evidence | P2-21, as a deviation note |
 | INC-P2-11b | `tests/generator-import.test.js:512` failed on `gen-v4` from P2-11b (`df15064`) to P2-15: its fake client lacked `newScope`; P2-11b's gate was focused | repaired by P2-15's K12 | closed |
+| N-P2-14b-REQ | Early warning for stage A (P2-B07): in the pre-seal replay-probe rehearsal under `require`, 3 of 4 sets hit the 115-s stop (22x22 Hell 1, 22x22 Nightmare, 32x15 Nightmare, seed index 0); 32x15 Hell 1's batch ended partial with one ordinary puzzle besides the calibration | seed index 0 only; not population evidence | stage A's 50 require rows; the stage-A readout reads them first (SA-Opus ruling, 6cf7e8c) |
 | Merge, release | Not authorized | neither PR merged | a later explicit owner instruction |
 
 ## 6. Execution summary (orchestrator)
@@ -595,7 +596,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-11b | w2, abdf82a | 2026-11-25 23:26 | 2026-11-25 23:33 | about 7 min | 54.28 | df15064 |
 | P2-12a | w2, 944669d | 2026-11-25 23:47 | 2026-11-25 23:58 | about 11 min | 54.42 | 9bc10e6 |
 | P2-12b | w1, 0bdfd04 | 2026-11-25 23:37 | 2026-11-25 23:52 | about 15 min | 121.56 | 5314b2d |
-| P2-12c | | | | | | |
+| P2-12c | w1, 6c039de | 2026-11-26 01:46 | 2026-11-26 02:33 | about 47 min | 111.93 | f8e1f93 |
 | P2-12d | w1, 953f3b2 | 2026-11-25 23:55 | 2026-11-26 00:18 | about 23 min | 226.15 | 3b06cbc |
 | P2-12e | w1, cf24d85 | 2026-11-26 00:52 | 2026-11-26 01:41 | about 49 min | 205.90 | 86813c6 |
 | P2-13r | w2, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:12 | about 11 min | 62.36 | fb67ba0 |
@@ -607,9 +608,9 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-13e | w3, fe9e120 | 2026-11-25 23:31 | 2026-11-25 23:53 | about 22 min | 298.38 | 953f3b2 |
 | P2-13f | w3, 3c77a46 | 2026-11-26 01:18 | 2026-11-26 01:45 | about 27 min | 178.14 | 6c039de |
 | P2-14a | w1, 17b3de0 | 2026-11-25 23:12 | 2026-11-25 23:36 | about 24 min | 103.37 | 0bdfd04 |
-| P2-14b | | | | | | |
+| P2-14b | w2, 6c039de | 2026-11-26 01:46 | 2026-11-26 02:04 | about 18 min | 81.64 | 035a632 |
 | P2-15 | w2, 9bc10e6 | 2026-11-25 23:59 | 2026-11-26 01:13 | about 74 min | 268.12 | de37517 |
-| P2-16a | | | | | | |
+| P2-16a | w3, 6c039de | 2026-11-26 01:46 | 2026-11-26 02:08 | about 22 min | 92.93 | 80a7699 |
 | P2-16b | w1, 3b06cbc | 2026-11-26 00:20 | 2026-11-26 00:51 | about 31 min | 158.87 | cf24d85 |
 | P2-16c | w2, 3c77a46 | 2026-11-26 01:18 | 2026-11-26 01:26 | about 8 min | 71.43 | 1369fd2 |
 | P2-16e | w3, df72615 | 2026-11-25 22:27 | 2026-11-25 22:36 | about 9 min | 54.34 | e14e7a4 |
