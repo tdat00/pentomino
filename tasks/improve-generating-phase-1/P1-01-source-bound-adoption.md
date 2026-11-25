@@ -187,13 +187,13 @@ counts/peaks; each AC's evidence; joint approvals, questions/rulings/deviations.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | dispatched 11:08 +07:00; SA-Astra 11:08:45 to 11:15:18; SA-Opus review to 11:27; accepted 11:29; about 21 min |
+| Waiting for rulings | none |
+| Agent id, model | SA-Astra 56d9faa7 (gpt-6-astra), executor per plan §8; SA-Opus a607e081 (claude-opus-5.5), reviewer |
+| Calls; input, output and cache-read tokens | SA-Astra since 11:08: 9; 2,045,180 / 29,388 / 1,978,409 |
+| AI credits | 428.24 (SA-Astra) |
+| Questions and rulings | none; SA-Opus: accept, both SAs approve the adoption reading; his review evidence committed separately (4e4f10f) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | second `node docs\improve-generating-phase-1\evidence\adoption-reader.mjs` refused (exit 1); reader sha256 9130200b..., adoption.json dbc8b1b9... unchanged; `npm run check` OK; `git diff --stat eca0f94 -- core generator tests docs/design-detail.md` empty |
+| Commit | this task's commit |
+| Issues and named items | none; record: 70 rows, 35/35 equal pairs, 14/14 memory side-cells, 58 input bindings |
