@@ -45,11 +45,13 @@ Two more scripted proofs run before any timed row (P2-18):
 
 - **Create** under `tools/ig-proto/phase2/`: `proof-prior-replay.mjs`, `proof-legacy.mjs` and
   `proofs-prior-legacy.test.mjs`.
-- **Do not change:** anything else, `proofs.mjs` included. Guard: G-PROTECTED, and G-WORKTREE with
+- **Change:** `tools/ig-proto/phase2/proofs.mjs`, its last block only (step 4; ruling on P2-12e, 2026-11-26).
+- **Do not change:** anything else. Guard: G-PROTECTED, and G-WORKTREE with
 
   ```powershell
   $Allowed = @('tools/ig-proto/phase2/proof-prior-replay.mjs', 'tools/ig-proto/phase2/proof-legacy.mjs',
-    'tools/ig-proto/phase2/proofs-prior-legacy.test.mjs', 'tasks/improve-generating-phase-2/P2-12e-proof-bundles-prior-legacy.md')
+    'tools/ig-proto/phase2/proofs-prior-legacy.test.mjs', 'tools/ig-proto/phase2/proofs.mjs',
+    'tasks/improve-generating-phase-2/P2-12e-proof-bundles-prior-legacy.md')
   ```
 
 ## Steps
@@ -69,6 +71,9 @@ Two more scripted proofs run before any timed row (P2-18):
      `screenTable: 'screen-v4-v1'`.
    - **Replay.** `client.replayPuzzle` of every accepted puzzle returns `status: 'matched'`, and each seed has at least
      one replayed ordinary candidate (the nonempty rule).
+   - **A Hell 1 seed whose calibration gives no per-set prior** (`perSetPrior` returns no `igPrior`) is `not-measured`,
+     and the bundle fails: R8 needs a transported prior on every Hell 1 seed (ruling on P2-12e, 2026-11-26).
+   - **`--quick`** runs the first seed of `14x14-hell-1` and of `14x14-nightmare`.
 2. **`proof-legacy.mjs`**, on the copies `p2-gen4` and `p2-today`, each through its own client.
    - **Requests:** `10x10-master`, `26x26-master`, `26x26-nightmare`, and the 10x6 Hard board of
      `tests/fixtures/generation-case.json`; two seeds each, `quantity` 3.
@@ -77,7 +82,26 @@ Two more scripted proofs run before any timed row (P2-18):
    - **Replay (R11).** On the `p2-gen4` copy, `client.replayPuzzle` of the accepted `26x26-nightmare` puzzles with
      `made.kind === 'candidate'` must return `matched`. At least one such puzzle per seed is required; otherwise the
      case is `not-measured`.
+   - **`--quick`** runs the first seed of each of the four cells.
 3. **`proofs-prior-legacy.test.mjs`:** the synthetic cases below.
+4. **The runner guard (ruling on P2-12e, 2026-11-26).** `proofs.mjs` awaited `main` at its top level, so a bundle that
+   imports `compare` from it waited on itself (`unsettled top-level await`, exit 13). Its last block becomes:
+
+   ```js
+   if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+     // No top-level await: a bundle imports `compare` from this module, which must finish evaluating first.
+     main(process.argv.slice(2)).then((code) => {
+       process.exitCode = code;
+     }, (error) => {
+       console.error(`proofs: ${error instanceof Error ? error.message : String(error)}`);
+       process.exitCode = 2;
+     });
+   }
+   ```
+
+   Every bundle imports `compare` statically, `import { compare } from './proofs.mjs';`; the `?as-bundle` form is
+   removed. A bundle may import the helpers of `proof-prior-replay.mjs` (`bundleStatus`, `caseStatus`, `openCopy`,
+   `moduleOf`, `squareRows`) instead of duplicating them.
 
 ## Tests
 
@@ -99,6 +123,7 @@ None here; P2-17 writes the README section.
 | the rehearsal copies: `node tools\ig-proto\phase2\copies.mjs build --source gen-v4 @flag` and `... build --source today --root Q:\git\pentomino-p2-today` | slot root, unlocked | one line per copy | 3 min |
 | locked focused gate: `-NodeArgs @('--test', 'tools/ig-proto/phase2/proofs-prior-legacy.test.mjs')` | §3.3 | `# fail 0`, `# cancelled 0` | 300 s |
 | locked rehearsal, each of `prior-replay` and `legacy`: `Invoke-IgNode -Repo pentomino -Task 'P2-12e <bundle> quick' -LimitSeconds 300 -QuietSeconds 45 -NodeArgs @('tools\ig-proto\phase2\proofs.mjs', '<bundle>', '--out', 'tests\artifacts\ig-proto\phase2\rehearsal\<bundle>', '--quick')` | §3.3 | exit 0; `result.json` `status: 'pass'` | 300 s each |
+| the merge gate's full runs (the orchestrator, on the merged tree; ruling on P2-12e, 2026-11-26): the same command without `--quick` (task `'P2-12e <bundle> full'`), `-LimitSeconds 600` for `prior-replay` and `300` for `legacy` | §3.3 | exit 0; `status: 'pass'`; no case `not-measured`; the helper's node seconds recorded in the execution log as P2-18's expected cost. The seeds are fixed, so this is P2-18's work. A kill or a `not-measured` case stops for a ruling before P2-18 | 600 s; 300 s |
 | G-CHECK, G-PROTECTED, G-WORKTREE, G-FORMAT | §3.4 | OK lines | 2 min |
 
 ## Stop points and questions
