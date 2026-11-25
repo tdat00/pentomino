@@ -245,14 +245,14 @@ None here; P2-17 documents `tools/ig-proto/phase2/` in `tools/ig-proto/README.md
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w3, fb67ba0aba87ed85c8e85b677b0ef66ededbe2e2 |
+| Start, end, duration | dispatched 2026-11-25 22:37 +07:00 (developer clock 22:13:26 to 22:16:27); accepted 22:52; about 15 min |
+| Waiting for rulings | about 8 min (SA-Opus) |
+| Agent id, model | 4648b0bf-c0b3-40c7-8a7b-344d19a4e2a1, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 20; 1,416,043 / 28,816 / 1,339,766 |
+| AI credits | 61.28 |
+| Questions and rulings | no QUESTION; SA-Opus accepted deviations 1-8 with no code fix (gates classify from every problem); item 7 added one C16 line (consoleLines: array of strings, one per Runtime.consoleAPICalled event, in arrival order), committed in the main worktree as 237a2bc |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards and the merge gate with every phase-2 test file (results in the bookkeeping); developer run 13/13 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | none new; rowMatrix use (P2-13d/13e), consoleLines strings (P2-16e) and C15 receipt fields (P2-14b) already covered by their tasks |
