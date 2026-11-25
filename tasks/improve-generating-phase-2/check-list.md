@@ -53,7 +53,7 @@ order and the merges.
 - [x] P2-11a The response guard and the assembly hooks of the client (P2-10)
 - [x] P2-11b The guard in the Generator, the CLI and the bench, with its lifetime rules (P2-11a)
 - [x] P2-09 Generation-steps events, texts and notices in English and Vietnamese (P2-08, P2-11b)
-- [ ] P2-12a Validation telemetry in the bench rows (P2-06)
+- [x] P2-12a Validation telemetry in the bench rows (P2-06)
 
 ### Lane T (tooling)
 
@@ -64,14 +64,14 @@ order and the merges.
 - [x] P2-13a The driver: plan, seal, ledger and the locked wrapper (P2-13r)
 - [x] P2-13d The driver: rows, resume and publication (P2-13a)
 - [x] P2-13e The driver's source and row binding (P2-13d, P2-13v)
-- [ ] P2-13b The comparator: cohorts, equality and the stage gates (P2-13e)
+- [x] P2-13b The comparator: cohorts, equality and the stage gates (P2-13e)
 - [ ] P2-13c P5's trigger, coverage and the activation of the twins (P2-13b)
 - [ ] P2-13f N-V4-16's glue and the reach readings (P2-13c)
 
 ### Joins
 
 - [x] P2-12b Measurement copies, their source binding and the common proof runner (P2-05b, P2-11b, P2-13r)
-- [ ] P2-12d The copies' trace layer (P2-12b, P2-08)
+- [x] P2-12d The copies' trace layer (P2-12b, P2-08)
 - [ ] P2-12c Proof bundles 1 and 2: observers and certificates (P2-12d)
 - [ ] P2-12e Proof bundles 3 and 4: prior and replay, legacy route (P2-12d)
 - [ ] P2-14b The replay-resource probes (P2-12b)
@@ -591,15 +591,15 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-10 | w2, c701d1a | 2026-11-25 23:02 | 2026-11-25 23:12 | about 10 min | 114.55 | e807adf |
 | P2-11a | w2, e807adf | 2026-11-25 23:14 | 2026-11-25 23:22 | about 8 min | 66.69 | abdf82a |
 | P2-11b | w2, abdf82a | 2026-11-25 23:26 | 2026-11-25 23:33 | about 7 min | 54.28 | df15064 |
-| P2-12a | | | | | | |
+| P2-12a | w2, 944669d | 2026-11-25 23:47 | 2026-11-25 23:58 | about 11 min | 54.42 | 9bc10e6 |
 | P2-12b | w1, 0bdfd04 | 2026-11-25 23:37 | 2026-11-25 23:52 | about 15 min | 121.56 | 5314b2d |
 | P2-12c | | | | | | |
-| P2-12d | | | | | | |
+| P2-12d | w1, 953f3b2 | 2026-11-25 23:55 | 2026-11-26 00:18 | about 23 min | 226.15 | 3b06cbc |
 | P2-12e | | | | | | |
 | P2-13r | w2, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:12 | about 11 min | 62.36 | fb67ba0 |
 | P2-13v | w3, fb67ba0 | 2026-11-25 22:13 | 2026-11-25 22:21 | about 8 min | 61.28 | 030475d |
 | P2-13a | w3, 85f5c46 | 2026-11-25 22:43 | 2026-11-25 23:06 | about 23 min | 176.39 | 6267e86 |
-| P2-13b | | | | | | |
+| P2-13b | w3, 953f3b2 | 2026-11-25 23:55 | 2026-11-26 00:46 | about 51 min | 459.62 | 478eca3 |
 | P2-13c | | | | | | |
 | P2-13d | w3, 6267e86 | 2026-11-25 23:07 | 2026-11-25 23:23 | about 16 min | 155.75 | fe9e120 |
 | P2-13e | w3, fe9e120 | 2026-11-25 23:31 | 2026-11-25 23:53 | about 22 min | 298.38 | 953f3b2 |
