@@ -116,14 +116,14 @@ deviations.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w2, 944669d9e49f5ea39a12d29404951f8b439c4dd0 |
+| Start, end, duration | dispatched 2026-11-25 23:47 +07:00 (developer 23:47:33 to 23:50:08, QUESTIONs 1 and 2; re-run 23:55:02 to 23:55:58); accepted 23:57 |
+| Waiting for rulings | about 5 min (QUESTIONs 1 and 2, SA-Opus) |
+| Agent id, model | fda48b8b-6684-4453-9a48-6f09a9c34ecd, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 28; 1,900,859 / 17,528 / 1,826,313 |
+| AI credits | 54.42 |
+| Questions and rulings | QUESTION 1 (tests/benchmark-matrix.test.js:61 asserts a require case is refused; step 1 makes it valid): SA-Opus ruled option (a), change only the value to 'maybe' with the same regex. QUESTION 2 (calibration.test.js has no scripted host): option (a) accepted as implemented (a real Node host run of d7x5-easy through runCase; an inline scripted host whose pool rejects with PoolAbortError('deadline')). Typedefs widened here by ruling: runner.js BenchCase uniqueness 'any' | 'require'; report.js RunRecord gains the optional telemetry property after samples; $Allowed gains tools/bench/report.js for that line only. trail.attempts length 1 to 4 accepted (C6). No pack amendment |
+| Fix rounds | 1 (the ruled edits) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards with tools/bench/report.js added to $Allowed (ruling); merge gate with the locked focused gate and G-COPIES (results in the bookkeeping); developer: locked focused 76/76 (8.115 s), link-10 line unchanged, G-PROTECTED, G-WORKTREE, G-FORMAT (6 files), G-CHECK OK, anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | none; no full suite or browser run (focused gate only, as the task says) |

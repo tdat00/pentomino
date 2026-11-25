@@ -38,7 +38,7 @@ import { newRunRecord, QUANTITY, runKey } from './report.js';
  * @property {string} levelId
  * @property {number} maxActive Candidate cap being qualified; passed to generation validation only.
  * @property {10} quantity
- * @property {'any'} uniqueness
+ * @property {'any' | 'require'} uniqueness
  * @property {string} seedPrefix
  * @property {number} repetitions
  * @property {string[]} [seeds] Explicit set seeds, one per repetition.
@@ -173,8 +173,8 @@ function checkCase(c, at, ids, add) {
   if (c.quantity !== QUANTITY) {
     add(`${at}.quantity`, `quantity must be ${QUANTITY}`);
   }
-  if (c.uniqueness !== 'any') {
-    add(`${at}.uniqueness`, 'uniqueness must be "any"');
+  if (c.uniqueness !== 'any' && c.uniqueness !== 'require') {
+    add(`${at}.uniqueness`, 'uniqueness must be "any" or "require"');
   }
   try {
     const counts = area > 0 ? pieceCountRange(level(c.levelId).id, area) : [];
@@ -628,6 +628,9 @@ function waitForCertificates(s, host, timeoutMs) {
 
 /**
  * Copies the outcome of a finished run into its record (everything after the timed interval).
+ * Every record, a failed set's too, gets `run.telemetry = { setCounters, batchCounters, trail }`: the clue-selection
+ * counters of the set and batch jobs and the set stage's ordered trail, each `null` when its job has none
+ * (`tasks/improve-generating-phase-2/contracts.md` C6). It is not provenance and is not stored in packs.
  * @param {RunRecord} run
  * @param {RunState} s
  * @param {RunSpec} spec
@@ -642,6 +645,7 @@ function fillRecord(run, s, spec, caseDef, certificatesAwaited) {
   run.acceptedCount = kept.length;
   run.ratingSaturatedCount = kept.filter((v) => v.puzzle.rating?.saturated === true).length;
   run.ratingCensoredCount = kept.filter((v) => isCensored(v.puzzle.rating)).length;
+  run.telemetry = { setCounters: s.set?.counters ?? null, batchCounters: s.batch?.counters ?? null, trail: s.set?.trail ?? null };
   if (kept.length >= QUANTITY) {
     run.tenthReadyMs = s.acceptedAt[kept[QUANTITY - 1].index] - s.t0;
   }

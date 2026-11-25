@@ -98,6 +98,7 @@ export const SOURCE_FILES = Object.freeze([
  * @property {boolean} interrupted Stopped by the user or an interrupt; excluded from the rates.
  * @property {Record<string, any> | null} details Set summary, policy check, result digest.
  * @property {Record<string, any>[]} samples Landscape profile samples (diagnostics, not accepted puzzles).
+ * @property {{ setCounters: Record<string, number> | null, batchCounters: Record<string, number> | null, trail: Record<string, any> } | null} [telemetry] Selection counters of the set and batch stages and the set-attempt trail of a generation run.
  */
 
 /** @param {Partial<RunRecord>} init @returns {RunRecord} */
