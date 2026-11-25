@@ -39,7 +39,7 @@ order and the merges.
 
 - [x] P2-01 `gen-v4.js`: the frozen values, the route, the per-set rule and the family predicate (starts at the pack commit)
 - [x] P2-02 Shared clue primitives, the retained `gen-v3` selector and the dispatcher (starts when P2-01 is merged)
-- [ ] P2-04 `select-v4.js`: the port of the frozen selector, with its two observer events (P2-02, P2-03)
+- [x] P2-04 `select-v4.js`: the port of the frozen selector, with its two observer events (P2-02, P2-03)
 - [ ] P2-05a `select-v4.js`: the frozen synthetic vectors (P2-04)
 - [ ] P2-05b `select-v4.js`: budget stops, no-window events, skips and the frozen parity check (P2-05a)
 - [ ] P2-14a Replay fixture modes and the refusal check (P2-01)
@@ -47,7 +47,7 @@ order and the merges.
 ### Lane C (client and records)
 
 - [x] P2-06 No-window reasons, counters in results and the bounded set stage (P2-01)
-- [ ] P2-07 The per-set prior: transport and the serial path (P2-06)
+- [x] P2-07 The per-set prior: transport and the serial path (P2-06)
 - [ ] P2-08 Provenance per algorithm family, `made.igPrior`, replay and the saved-steps key (P2-07)
 - [ ] P2-10 Monotonic request scopes, the set-stage reserve and the pool clock (P2-06)
 - [ ] P2-11a The response guard and the assembly hooks of the client (P2-10)
@@ -515,7 +515,7 @@ runtime file or a test helper forces them into order.
 | File | Tasks and regions (lines at `97a6326`) |
 |---|---|
 | `tools/bench/report.js` `SOURCE_FILES` | in-line insertions only: P2-02 line 38, P2-04 line 43, P2-11a line 46 (P2-01's line 39 is merged before P2-02 starts) |
-| `docs/design-detail.md` | each task's own named section or lines, kept as the task says (API and module-tree edits included). Concurrent pairs are always in different sections: P2-02 (line 169, lines 555-590), P2-03 (§7.9), P2-04 (§6.10), P2-06 and P2-07 (§6.5, §6.9), P2-08 (§7.7), P2-09 (§6.12), P2-10 and P2-11b (§8.4). A paragraph added at a section's end goes after the section's last text line and before the blank line preceding the next heading. |
+| `docs/design-detail.md` | each task's own named section or lines, kept as the task says (API and module-tree edits included). Concurrent pairs are always in different sections: P2-02 (line 169, lines 555-590), P2-03 (§7.9), P2-04 (§6.10), P2-06 and P2-07 (§6.5, §6.9), P2-08 (§7.7), P2-09 (§6.12), P2-10 and P2-11b (§8.4). A paragraph added at a section's end goes after the section's last text line and before the blank line preceding the next heading. P2-04 also updates line 169 and the `clues.js` API entry (555-567), after P2-02's merge (ruling 2026-11-25). |
 | `core/browser/generation-client.js` | P2-07 (one line after `const base = { ... };` in `generateBatch`, lines 852-860; the dispatch at line 903); P2-10 (typedefs, `checkSet` and `checkBatch`, `begin` 470-497, `newScope`, `generateSet`, line 850, the client object); P2-11a (the options typedef line 450, `finishSet`'s `assemblePack` 735, after `detail` 879, the batch assembly 1185-1204, the client object, typedefs, the `pack.js` import line 14). The import from `../engine/gen-v4.js` is written once by P2-06. The lines of the copies' link edits (`link-3` to `link-15`) and the batch's `catch`/`finally` (1170-1175, `link-9`) stay byte for byte. |
 | `tests/generation-client.test.js` | P2-07 inserts its cases directly after the test `a full history fails preflight without eviction or dispatch` (line 740); P2-06, P2-10 and P2-11a append at the end of the file, in their order |
 | `tests/generate.test.js` | P2-06 and P2-08 add their cases directly after the test `lazy certification gives a proof status without changing the accepted fold` (it ends at line 689), before the nested `describe('completion pass'`; P2-07 at the end of `describe('calibration reuse and history capacity')` (lines 335-391); P2-14a stays inside the record-fixtures test (lines 901-921) |
@@ -580,11 +580,11 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-01 | w1, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:07 | about 6 min | 43.69 | c4d74b4 |
 | P2-02 | w1, fb67ba0 | 2026-11-25 22:13 | 2026-11-25 22:24 | about 11 min | 70.10 | df72615 |
 | P2-03 | w3, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:09 | about 8 min | 37.32 | ec8c583 |
-| P2-04 | | | | | | |
+| P2-04 | w1, df72615 | 2026-11-25 22:27 | 2026-11-25 22:55 | about 28 min | 241.42 | 6c35eda |
 | P2-05a | | | | | | |
 | P2-05b | | | | | | |
 | P2-06 | w2, fb67ba0 | 2026-11-25 22:13 | 2026-11-25 22:39 | about 26 min | 175.81 | 85f5c46 |
-| P2-07 | | | | | | |
+| P2-07 | w2, 85f5c46 | 2026-11-25 22:43 | 2026-11-25 22:52 | about 9 min | 74.28 | 0183938 |
 | P2-08 | | | | | | |
 | P2-09 | | | | | | |
 | P2-10 | | | | | | |

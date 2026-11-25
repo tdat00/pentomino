@@ -181,6 +181,6 @@ Nightmare and every other level use the table; the completion pass never takes t
 | AI credits | 74.28 |
 | Questions and rulings | none; four minor deviations accepted by the orchestrator (test helpers hellCalibration and hellRun at module level; small local constants in the runFold case; shifted line numbers in generation-client.js after P2-06; the Puzzle.igWindow JSDoc typed { wc: number } | null, optional) |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 168/168 (30.151 s), G-PROTECTED, G-WORKTREE, G-FORMAT (10 files), G-CHECK OK, anchors 22 of 22 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 11 files); rebased onto 7740536 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked focused `IG P2-07 merge exit=0 seconds=30.478 quiet=45`, 168/168 pass, 0 fail/cancelled/todo; link anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | rebased 0183938; gen-v4 01839385f12fdc349d965e74240446ce615e6e7f |
 | Issues and named items | made.igPrior (pv-6) is P2-08; the worker-side proof (T06) is P2-12e; no Generator change (Hell 1 is not offered there before phase 3); the selectClues JSDoc context in clues.js does not declare igPrior (out of scope, ignored at runtime) |
