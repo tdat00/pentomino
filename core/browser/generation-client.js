@@ -12,7 +12,7 @@ import {
 } from '../engine/generate.js';
 import { puzzleId } from '../engine/keys.js';
 import { level } from '../engine/levels.js';
-import { createPack, provenanceProblem, validatePackSliced } from '../engine/pack.js';
+import { createPack, provenanceProblem, validatePack, validatePackSliced } from '../engine/pack.js';
 import { BUDGETS, ENUMERATION, pieceCountRange, POLICY_ID } from '../engine/policy.js';
 import { batchSeedFor, normalizeSeedText, RNG_ID, SEED_SCHEME } from '../engine/rng.js';
 import { isValidLayout } from '../engine/tiling.js';
@@ -117,7 +117,8 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  */
 
 /**
- * `failed` carries `reason` `time-limit`, `reserve-cut` (the scope's set-stage cut passed), `attempts-exhausted` (only
+ * `failed` carries `reason` `time-limit`, `reserve-cut` (the scope's set-stage cut passed), `response-bound` (the
+ * response guard's bound passed; the guard writes it, never the client), `attempts-exhausted` (only
  * with `maxSetAttempts`), `no-window-below` or `no-window-above` (the first four attempts all ended without a window on
  * that side).
  * @typedef {object} SetJobResult
@@ -173,7 +174,8 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {string[]} seenClues
  * @property {import('../engine/types.js').SelectCounters} counters Request total of the candidates' selection
  *   counters, every candidate and completion result received (validation telemetry, never stored).
- * @property {'layouts-not-found' | 'difficulty-not-found' | 'uniqueness-not-proved' | 'time-limit'} [reason]
+ * @property {'layouts-not-found' | 'difficulty-not-found' | 'uniqueness-not-proved' | 'time-limit' | 'response-bound'} [reason]
+ *   `response-bound`: the response guard returned the consumed, validated prefix (`prefixSnapshot`).
  * @property {ArrangementReport} [arrangements] Present whenever the batch stopped with `layouts-not-found`, also
  *   when the completion pass then filled it (`status` `complete`, no `reason`).
  */
@@ -199,6 +201,9 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  *   `PoolAbortError('cancelled' | 'closed')`, `WorkerTaskError` (for example `invalid-request`) or `PoolError`
  *   (`invalid-task` for a payload the protocol refuses, `worker-unavailable`).
  * @property {() => void} cancel
+ * @property {() => BatchJobResult | null} prefixSnapshot The latest request's batch prefix as a `partial` /
+ *   `response-bound` result (with a validated `pack` when it has puzzles), or null when that request has no snapshot.
+ * @property {() => Clock} clock The clock this client reads.
  * @property {() => void} recycle
  */
 
@@ -211,6 +216,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {boolean} cancelled Cancel, supersession or a closed pool.
  * @property {boolean} timedOut
  * @property {(() => void) | null} wake
+ * @property {(() => BatchJobResult) | undefined} [snapshot] A batch's prefix snapshot for the response guard.
  */
 
 export const MAX_BATCH = 10;
@@ -516,8 +522,10 @@ function addCounters(total, reply) {
 
 /**
  * @param {Pool} pool
- * @param {{ clock?: Clock, createdAt?: () => string, maxSetAttempts?: number }} [options] `createdAt` supplies the
- *   metadata timestamp; `maxSetAttempts` (default unbounded) ends a set request as `attempts-exhausted`.
+ * @param {{ clock?: Clock, createdAt?: () => string, maxSetAttempts?: number,
+ *   assemblyGate?: (phase: 'set' | 'batch') => Promise<void> }} [options] `createdAt` supplies the
+ *   metadata timestamp; `maxSetAttempts` (default unbounded) ends a set request as `attempts-exhausted`;
+ *   `assemblyGate` is tests only: awaited directly before a pack assembly.
  * @returns {GenerationClient}
  */
 export function createGenerationClient(pool, options = {}) {
@@ -893,6 +901,7 @@ export function createGenerationClient(pool, options = {}) {
       uniqueness: request.uniqueness,
       versions: provenanceVersions(),
     };
+    await options.assemblyGate?.('set');
     const pack = await assemblePack({
       board,
       rotation: request.rotation,
@@ -1043,6 +1052,45 @@ export function createGenerationClient(pool, options = {}) {
     let searched = false;
     let totalSeen = 0;
     const detail = () => ({ accepted: accepted.slice(), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] });
+    const packParts = () => ({
+      board: set.board,
+      rotation: request.rotation,
+      pieces: set.pieces,
+      witness: set.witness,
+      puzzles: accepted.slice(),
+      generation: generationMeta({
+        setSeed: request.setSeed,
+        setLevel: input.setLevel,
+        setAttempt: input.setAttempt,
+        set,
+        uniqueness,
+        createdAt: createdAt(),
+        batch: { batchSeed, batchLevel: levelId, batchIndex: input.batchIndex },
+        setOrigin: request.setOrigin,
+        made,
+      }),
+    });
+    // The response guard's prefix (lv-16, lv-19): the consumed, validated fold prefix, never waiting for an assembly.
+    job.snapshot = () => {
+      /** @type {BatchJobResult} */
+      const snapshot = {
+        status: 'partial',
+        reason: 'response-bound',
+        accepted: accepted.slice(),
+        made: structuredClone(made),
+        seenLayouts: [...state.seenLayouts],
+        seenClues: [...state.seenClues],
+        counters: { ...counters },
+      };
+      if (accepted.length > 0) {
+        const checked = validatePack(createPack(packParts()));
+        if (!checked.ok) {
+          throw new GenerationError('internal', 'The generated pack failed validation', { ...detail(), issues: checked.issues });
+        }
+        snapshot.pack = checked.value;
+      }
+      return snapshot;
+    };
     const elapsed = () => clock.now() - job.startedAt;
     /** @param {Partial<GenerationProgress>} extra */
     const progress = (extra) => emit(hooks.onProgress, {
@@ -1354,24 +1402,8 @@ export function createGenerationClient(pool, options = {}) {
       result.arrangements = arrangements;
     }
     if (accepted.length > 0) {
-      result.pack = await assemblePack({
-        board: set.board,
-        rotation: request.rotation,
-        pieces: set.pieces,
-        witness: set.witness,
-        puzzles: accepted,
-        generation: generationMeta({
-          setSeed: request.setSeed,
-          setLevel: input.setLevel,
-          setAttempt: input.setAttempt,
-          set,
-          uniqueness,
-          createdAt: createdAt(),
-          batch: { batchSeed, batchLevel: levelId, batchIndex: input.batchIndex },
-          setOrigin: request.setOrigin,
-          made,
-        }),
-      }, detail());
+      await options.assemblyGate?.('batch');
+      result.pack = await assemblePack(packParts(), detail());
     }
     if (hooks.onCertificate !== undefined && status !== 'cancelled' && reason !== 'time-limit' && !job.timedOut) {
       queueCertificates(job, set, accepted, hooks);
@@ -1463,6 +1495,8 @@ export function createGenerationClient(pool, options = {}) {
     generateSet,
     generateBatch,
     newScope,
+    prefixSnapshot: () => latest?.snapshot?.() ?? null,
+    clock: () => clock,
     solveWitness,
     submitAuxiliary: (kind, payload, submitOptions) => aux.submit(kind, payload, submitOptions ?? {}),
     replayPuzzle,

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 
 import { createGenerationClient, GenerationError } from '../core/browser/generation-client.js';
+import { createResponseGuard } from '../core/browser/generation-deadline.js';
 import { createPool, PoolAbortError } from '../core/browser/worker-pool.js';
 import { boardFromRows } from '../core/engine/board.js';
 import { firstSetAttempt, provenanceVersions, puzzleCandidate } from '../core/engine/generate.js';
@@ -1691,5 +1692,103 @@ describe('request scopes', () => {
       await assert.rejects(client.generateBatch(batchInput({ scope })), refused);
     }
     assert.equal(h.tasks.length, 0, 'nothing is dispatched');
+  });
+});
+
+describe('response guard with the client', () => {
+  // The fake clock starts at 1000 and the guard's origin is 0, so the bound is at 119,000 on the clock.
+  const TO_BOUND = 118000;
+  /** @param {'set' | 'batch'} held @returns {(phase: 'set' | 'batch') => Promise<void>} */
+  const holding = (held) => (phase) => (phase === held ? new Promise(() => {}) : Promise.resolve());
+  /** A batch of three scripted puzzles whose pack assembly is held; the guard has not fired yet. */
+  const heldBatch = async () => {
+    const h = harness({ handler: (t) => scripted(t) });
+    const client = clientOf(h, { assemblyGate: holding('batch') });
+    const guard = createResponseGuard({ clock: h.clock, client, origin: 0 });
+    const raw = client.generateBatch(batchInput({ quantity: 3 }));
+    const rawOut = track(raw);
+    const out = track(guard.batch(raw));
+    await settle();
+    return { h, client, out, rawOut };
+  };
+
+  test('a held set assembly does not delay the bound', async () => {
+    const h = harness({ handler: (t) => ({ value: setSuccess(t.payload.attempt) }) });
+    const client = clientOf(h, { assemblyGate: (p) => (p === 'set' ? new Promise(() => {}) : Promise.resolve()) });
+    const g = createResponseGuard({ clock: h.clock, client, origin: 0 });
+    const raw = client.generateSet(setInput());
+    const rawOut = track(raw);
+    const out = track(g.set(raw));
+    await settle();
+    assert.equal(out.state, 'pending');
+    h.clock.advance(TO_BOUND - 1);
+    await settle();
+    assert.equal(out.state, 'pending');
+    h.clock.advance(1);
+    await settle();
+    assert.deepEqual(out.value, { status: 'failed', reason: 'response-bound', failures: {} });
+    assert.equal(rawOut.state, 'pending', 'no set result is delivered');
+  });
+
+  test('a held batch assembly returns the validated prefix', async () => {
+    const reference = await clientOf(harness({ handler: (t) => scripted(t) })).generateBatch(batchInput({ quantity: 3 }));
+    assert.equal(reference.accepted.length, 3);
+    const { h, out, rawOut } = await heldBatch();
+    assert.equal(out.state, 'pending');
+    h.clock.advance(TO_BOUND);
+    await settle();
+    const { value } = out;
+    assert.equal(out.state, 'resolved');
+    assert.deepEqual([value.status, value.reason], ['partial', 'response-bound']);
+    assert.equal(value.accepted.length, 3);
+    assert.deepEqual(value.accepted.map((/** @type {{ id: string }} */ p) => p.id), reference.accepted.map((p) => p.id), 'fold order');
+    assert.deepEqual(value.made, reference.made);
+    assert.deepEqual(Object.keys(value.made), value.accepted.map((/** @type {{ id: string }} */ p) => p.id));
+    assert.deepEqual([value.seenLayouts, value.seenClues], [reference.seenLayouts, reference.seenClues]);
+    assert.equal(value.pack.puzzles.length, 3);
+    assert.equal(validatePack(value.pack).ok, true);
+    assert.deepEqual(value.pack, reference.pack);
+    assert.equal(rawOut.state, 'pending', 'the held assembly delivers nothing');
+  });
+
+  test('an empty prefix has no pack', async () => {
+    const h = harness({ handler: () => undefined });
+    const client = clientOf(h);
+    assert.equal(client.prefixSnapshot(), null, 'no request yet');
+    const raw = track(client.generateBatch(batchInput({ quantity: 3 })));
+    await settle();
+    h.clock.advance(1000);
+    const snapshot = client.prefixSnapshot();
+    assert.ok(snapshot !== null);
+    assert.deepEqual([snapshot.status, snapshot.reason, snapshot.accepted, snapshot.made], ['partial', 'response-bound', [], {}]);
+    assert.equal('pack' in snapshot, false);
+    client.cancel();
+    await settle();
+    assert.equal(raw.value.status, 'cancelled');
+  });
+
+  test('a set request has no batch prefix', async () => {
+    const h = harness({ handler: (t) => ({ value: setSuccess(t.payload.attempt) }) });
+    const client = clientOf(h);
+    await client.generateSet(setInput());
+    assert.equal(client.prefixSnapshot(), null);
+  });
+
+  test('repeated cancel is harmless', async () => {
+    const { h, client, out, rawOut } = await heldBatch();
+    assert.doesNotThrow(() => client.cancel());
+    h.clock.advance(TO_BOUND);
+    await settle();
+    assert.doesNotThrow(() => client.cancel());
+    assert.doesNotThrow(() => client.cancel());
+    await settle();
+    assert.deepEqual([out.state, out.value.status, out.value.reason], ['resolved', 'partial', 'response-bound']);
+    assert.equal(out.value.accepted.length, 3);
+    assert.equal(rawOut.state, 'pending', 'only the guard delivers a terminal result');
+  });
+
+  test('the client exposes its clock', () => {
+    const h = harness();
+    assert.equal(clientOf(h).clock(), h.clock);
   });
 });
