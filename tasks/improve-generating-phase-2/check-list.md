@@ -478,6 +478,7 @@ The orchestrator merges one task at a time. When several are accepted together, 
      `tools/ig-proto/phase2/` adds every phase-2 test file that exists on the rebased branch (the list of gate 2 of
      `E/P2-16a/gates.md`, as far as merged), with a 600-s limit;
    - the full suite instead, at a full-suite point;
+   - until P2-12b is merged, statically in the main worktree: `node docs\improve-generating-phase-2\evidence\sa-opus\p2-link-anchors.mjs --root <slot>`; expected `<slot>: 22 of 22 edits apply`, exit 0 (SA-Opus ruling on P2-06, 2026-11-25); after that G-COPIES covers the anchors;
    - G-COPIES from P2-12b's merge on;
    - the task's conditional re-runs below.
 5. **Fast-forward.** `git -C Q:\git\pentomino merge --ff-only "p2/$id"`; the SHA on `gen-v4` goes into the execution
