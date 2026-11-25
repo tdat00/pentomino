@@ -166,7 +166,7 @@ pentomino/                     repository root = site root /pentomino/
 │  ├─ engine/                  pure ES modules: no DOM, no storage, no clock; run in page, worker and Node
 │  │  ├─ hash.js  rng.js  geometry.js  board.js  view.js  policy.js  levels.js  qualification.js
 │  │  ├─ workspace.js  placements.js  dlx.js  tiling.js  deduce.js  enumerate.js  carve.js  keys.js  difficulty.js
-│  │  ├─ clues.js  generate.js  replay.js  tasks.js  hints.js
+│  │  ├─ clues.js  generate.js  gen-v4.js  replay.js  tasks.js  hints.js
 │  │  ├─ puzzlecode.js  puzzlecode-input.js  puzzlecode-v1.js
 │  │  └─ pack.js  sharecode.js  game.js  palette.js  protocol.js  types.js  version.js
 │  ├─ workers/
@@ -1887,6 +1887,8 @@ Band edges: e_0 = 0 and e_L = round(10 · 1.45^(L − 1.5)) for L ≥ 1. Level L
 2. **Level → initial G.** The initial share g_L sets the first number of pre-placed pieces (§6.10).
 3. **Acceptance.** Only in-band ratings are accepted, for both the set calibration and every puzzle (§7.3); among them the clue search aims at the centre of the band (§6.10). Hard or above also needs a proved decisive guess: a candidate whose rating has `Gproved === 0` is refused (AR1, §7.9). Ratings without `Gproved` (`difficulty-v2`) are never refused; imported puzzles and stored claims are not filtered.
 4. **Labels.** Every card shows `levelForScore(D)`, worded as an estimate.
+
+Phase 2 (`gen-v4`), not yet live. `core/engine/gen-v4.js` is a pure, DOM-free module that holds the frozen values and rules of the next generator; nothing calls it yet, and `GEN_V4_LIVE` stays `false` until the cutover (P2-15), so no puzzle, record or text changes. It carries the table ids (`prior-s3-v1`, `screen-v4-v1`, `budget-s3-v1`, `deadline-s3-v1`) and the values: the start-count prior by level and active cell count; the screen (a work bound of 190 M on Nightmare boards of 196 to 256 active cells, `DEDUCE.work` elsewhere); the call budgets (`any`: Nightmare 10 G, Hell 1 40 G; `require`: Nightmare 32 G, Hell 1 40 G); the set-attempt bound 4 and the re-rate maximum 4; the skip bounds (2192 subsets, 64 repairs); and the deadline (reserve 0.6, set stage cap 46 s, generation stop 115 s, response bound 120 s, host margin 1 s). The route predicate sends Hell 1, and Nightmare except the full 26 by 26 board (676 active cells), to `gen-v4`; every other level keeps `gen-v3`. The per-set rule applies on Hell 1 only: for a usable calibration whose rating names the target level (and, in `require` mode, whose certificate is `unique`), a valid `igWindow.wc` is the start count; otherwise the table is used. The family predicate accepts `gen-v4` and the prototype ids `gen-v4-proto:<name>`.
 
 ### 7.7 Determinism and versioning
 

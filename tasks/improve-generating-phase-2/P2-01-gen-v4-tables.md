@@ -205,14 +205,14 @@ No other document.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w1, 203f5ca727301df0a7b1a976748c571189d60db4 |
+| Start, end, duration | dispatched 2026-11-25 22:01 +07:00; developer 22:01:53 to 22:06:04; accepted 22:20; about 19 min |
+| Waiting for rulings | none |
+| Agent id, model | d48d683a-a92f-4948-a18a-82fb670ab40d, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 17; 987,882 / 15,277 / 910,634 |
+| AI credits | 43.69 |
+| Questions and rulings | none; no deviations |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | static guards in the slot (G-PROTECTED, G-WORKTREE, G-FORMAT, G-CHECK); merge gate after rebase: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT and the locked focused gate tests/gen-v4.test.js + tests/benchmark-report.test.js (results in the bookkeeping) |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | none; developer note: hostMarginMs 1000 follows the task text (not in freeze.json deadline; consistent with P2-10/P2-11a) |
