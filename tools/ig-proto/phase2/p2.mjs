@@ -14,6 +14,7 @@ import { rectRows } from '../../bench/calibration-reference.js';
 import { verifySnapshot as realVerifySnapshot } from '../snapshot.mjs';
 import { BROWSER_CHECKS, rowMatrix, sha256Hex, verifyRow } from './binding.mjs';
 import { B1_CELLS, equalityOf, historicalOf, PROOF_BUNDLES, readingsOf, readJsonOrNull, smokeGate as defaultSmokeGate, stageGates } from './gates.mjs';
+import { glue, reach } from './glue-reach.mjs';
 import { assignTwins, ELIGIBLE, isEligible, PREDICATE_VERSION, triggered } from './p5.mjs';
 import { readRowFolder, rowWork } from './trace-reader.mjs';
 
@@ -1249,8 +1250,44 @@ function reportMarkdown(report) {
     for (const p of Array.isArray(g.detail?.problems) ? g.detail.problems : []) lines.push(`- ${p}`);
     if (g.rows.length > 0) lines.push('', '| Row |', '|---|', ...g.rows.map((/** @type {string} */ key) => `| ${mdCell(key)} |`));
   }
+  if (report.readings) lines.push(...readingsMarkdown(report.readings));
   lines.push('', '## Ledger', '', ...String(report.ledger).split('\n').filter((l) => l !== '').map((l) => `    ${l}`));
   return toCrlf(lines.join('\n'));
+}
+
+/** @param {{ glue: ReturnType<typeof glue>, reach: ReturnType<typeof reach> }} readings @returns {string[]} The two reading tables of stage B (P2-13f); they are not gates. */
+function readingsMarkdown({ glue: glued, reach: reached }) {
+  const lines = [
+    '', '## Glue (N-V4-16)', '',
+    '| Component | Arm | Cell | Rows | Raw matches | Client sameSide | Bound firings | Public no-window | Status |', '|---|---|---|---|---|---|---|---|---|',
+    ...glued.map((g) => `| ${[g.component, g.arm, g.cell, g.rows, g.rawMatches, g.clientSameSide, g.firings, g.publicNoWindow, g.status === 'unknown' ? `unknown (${g.incomplete.length + g.refused.length} rows)` : g.status].map(mdCell).join(' | ')} |`),
+  ];
+  const transport = glued.flatMap((g) => g.transport.map((t) => ({ g, ...t })));
+  if (transport.length > 0) {
+    lines.push('', '### Transport discrepancies', '', '| Component | Arm | Cell | Row | Attempt | Arrival | Raw | Transported | Class |', '|---|---|---|---|---|---|---|---|---|',
+      ...transport.map((t) => `| ${[t.g.component, t.g.arm, t.g.cell, t.key, t.attempt, t.arrival ?? '-', t.raw, t.transported ?? '-', t.class].map(mdCell).join(' | ')} |`));
+  }
+  const reconcile = glued.flatMap((g) => g.reconcile.map((r) => ({ g, ...r })));
+  if (reconcile.length > 0) {
+    lines.push('', '### Reconciliation mismatches', '', '| Component | Arm | Cell | Row | Raw | Expected | Actual | Class |', '|---|---|---|---|---|---|---|---|',
+      ...reconcile.map((r) => `| ${[r.g.component, r.g.arm, r.g.cell, r.key, r.raw, JSON.stringify(r.expected), JSON.stringify(r.actual), r.class].map(mdCell).join(' | ')} |`));
+  }
+  const open = glued.flatMap((g) => [...g.incomplete.map((key) => ({ key, why: 'raw evidence incomplete' })), ...g.refused.map((r) => ({ key: r.key, why: `refused: ${r.problems.join('; ')}` }))]);
+  if (open.length > 0) lines.push('', '### Rows without complete evidence', '', '| Row | Why |', '|---|---|', ...open.map((o) => `| ${mdCell(o.key)} | ${mdCell(o.why)} |`));
+  lines.push(
+    '', '## Reach (F4, F7)', '',
+    '| Component | Arm | Cell | Rows | Budget stops | Re-rating starts close | rescue | rerate | Rescue re-ratings | Tail re-ratings | Screen-capped |', '|---|---|---|---|---|---|---|---|---|---|---|',
+    ...reached.map((r) => `| ${[r.component, r.arm, r.cell, r.rows, r.budgetStops.print, r.rerateStarts.close.print, r.rerateStarts.rescue.print, r.rerateStarts.rerate.print, r.rescueReratings.print, r.tailReratings.print, r.screenCapped.print].map(mdCell).join(' | ')} |`),
+  );
+  const unknown = reached.flatMap((r) => {
+    const fields = /** @type {[string, { unknown: string[], print: string }][]} */ ([
+      ['budget stops', r.budgetStops], ['re-rating starts close', r.rerateStarts.close], ['re-rating starts rescue', r.rerateStarts.rescue], ['re-rating starts rerate', r.rerateStarts.rerate],
+      ['rescue re-ratings', r.rescueReratings], ['tail re-ratings', r.tailReratings], ['screen-capped', r.screenCapped],
+    ]);
+    return fields.flatMap(([name, v]) => (v.print.startsWith('n/a') ? [] : v.unknown.map((key) => ({ key, name }))));
+  });
+  if (unknown.length > 0) lines.push('', '### Rows with unknown reach fields', '', '| Row | Field |', '|---|---|', ...unknown.map((u) => `| ${mdCell(u.key)} | ${mdCell(u.name)} |`));
+  return lines;
 }
 
 /**
@@ -1282,11 +1319,14 @@ export async function reportCommand(P, a) {
   const refused = [];
   /** @type {Record<string, any>[]} */
   const bound = [];
+  /** @type {Record<string, any>[]} */
+  const readingRows = [];
   for (const { binding, ...row } of everyRow) {
     // Every line of a repeated key is refused, not only the later ones.
     const problems = [...binding.problems, ...((occurrences.get(row.key) ?? 0) > 1 ? ['duplicate key'] : [])];
     if (problems.length > 0) refused.push({ key: row.key, stage: row.stage, problems });
     else bound.push(row);
+    readingRows.push({ ...row, binding: { ok: problems.length === 0, problems } });
   }
   const snapshots = loaded.map(({ path, sha256 }) => ({ path, sha256 }));
   const bindings = refused.map(({ key, problems }) => ({ key, problems }));
@@ -1322,7 +1362,7 @@ export async function reportCommand(P, a) {
   });
   const status = gates.filter((g) => g.status !== 'not-due').every((g) => g.status !== 'incomplete') ? 'complete' : 'incomplete';
   const ledgerStatus = await main(['ledger', '--status', ...(P.state ? ['--state', P.state] : [])]);
-  const report = { stage, status, snapshots, bindings, equality, gates, ledger: ledgerStatus };
+  const report = { stage, status, snapshots, bindings, equality, gates, ledger: ledgerStatus, ...(stage === 'B' ? { readings: { glue: glue(readingRows), reach: reach(readingRows) } } : {}) };
   writeFileSync(join(out, 'report.json'), jsonText(report));
   writeFileSync(join(out, 'report.md'), reportMarkdown(report));
   return `report: ${stage} ${status} (${gates.filter((g) => g.status !== 'not-due').map((g) => `${g.id} ${g.status}`).join(', ')})`;

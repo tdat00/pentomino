@@ -168,14 +168,14 @@ None here; P2-17 writes the README section.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w3, 3c77a46af08b12cdcbcbc840f8a10fff44aa4d8e |
+| Start, end, duration | dispatched 2026-11-26 01:18 +07:00 (developer 01:18:18 to about 01:25:10; fix round to about 01:43); accepted 01:43 |
+| Waiting for rulings | about 9 min (eight deviations and the gaps, SA-Opus) |
+| Agent id, model | 4d9df110-7386-48a4-af68-c7a365aaa4b6, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 45; 5,589,703 / 50,418 / 5,290,418 |
+| AI credits | 178.14 |
+| Questions and rulings | no QUESTION; SA-Opus ruled (pack amendment 40d7730, P2-13f task file): deviations 1 to 8 accepted (fake partialReason null; transport check on attempts 0 to 3 (C6); missing or not-ok binding refused; refused rows make a group unknown; clientSameSide counts a string; null counters a known zero; duplicate keys refused for the readings; extras); declared reasons: the four accepted; fixes: an absent or malformed igNoWindow makes the row incomplete; disagreeing repeats make the row incomplete; groups of only p2-today rows are not-applicable and their reach prints n/a (today's search); two test inputs and one new case |
+| Fix rounds | 1 (the three ruled fixes and their tests) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with every phase-2 test file and G-COPIES (results in the bookkeeping); developer: unlocked p2.test.mjs 97/97 (64.7 s), G-PROTECTED, G-WORKTREE, G-FORMAT (3 files), G-CHECK OK |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-17 documents the readings; the report.md cell for an unknown glue status gives a row count (report.json lists the keys); verified on synthetic rows and the fake calibrate only |

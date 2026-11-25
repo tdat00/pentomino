@@ -10,6 +10,7 @@ import { matrixDigest, rectRows } from '../../bench/calibration-reference.js';
 import { newRunRecord, SOURCE_FILES } from '../../bench/report.js';
 import { BROWSER_CHECKS, BROWSER_GENERATOR_SOURCES, BROWSER_PAGE, REPLAY_ITEMS, rowMatrix, sha256Hex, verifyRow } from './binding.mjs';
 import { cohorts, equality, memory, oracleOf, smokeGate, stageGates } from './gates.mjs';
+import { glue, reach } from './glue-reach.mjs';
 import { coverage, isEligible, triggered } from './p5.mjs';
 import { buildPlan, buildSeal, checkReadout, checkSeal, COPIES, loadSnapshot, pathsOf, rowContextOf, runGroup, STAGE_MAP } from './p2.mjs';
 
@@ -617,7 +618,7 @@ describe('the seal', () => {
 });
 
 /** The journal of one complete row (C1 to C3), written by the fake calibrate and by the resume case. */
-function writeJournal(/** @type {string} */ dir, /** @type {string} */ row, /** @type {string} */ seed, /** @type {number} */ pid) {
+function writeJournal(/** @type {string} */ dir, /** @type {string} */ row, /** @type {string} */ seed, /** @type {number} */ pid, /** @type {boolean} */ noWindow = false) {
   mkdirSync(dir, { recursive: true });
   const call = `${row}:${pid}:1:1`;
   const put = (/** @type {string} */ name, /** @type {object[]} */ lines) => writeFileSync(join(dir, name), lines.map((l) => `${JSON.stringify(l)}\n`).join(''));
@@ -627,7 +628,8 @@ function writeJournal(/** @type {string} */ dir, /** @type {string} */ row, /** 
     { t: 'caps', call, count: true },
     { t: 'begin', call, kind: 'rate', bound: 1000 },
     { t: 'p', call, i: 0, tuple: ['call', 5, 'rated', 60, 90, 10] },
-    { t: 'end', call, result: 'ok', work: 100, profiles: 1, locate: { countWork: 0 }, igNoWindow: null, budgetStop: false, clueCount: null, at: 2 },
+    ...(noWindow ? [{ t: 'rerate', call, phase: 'rescue', at: 1 }] : []),
+    { t: 'end', call, result: 'ok', work: 100, profiles: 1, locate: { countWork: 0 }, igNoWindow: noWindow ? 'below' : null, budgetStop: false, clueCount: null, at: 2 },
   ]);
   put(`${row}.link.jsonl`, [
     { t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' },
@@ -651,9 +653,9 @@ const FAKE_CALIBRATE = [
   "appendFileSync(process.env.P2_FAKE_MARKER, `${process.env.IG_ROW} ${process.env.IG_SOURCE_LABEL} ${process.env.IG_SEED} ${process.cwd()}\\n`);",
   "if (process.env.P2_FAKE_CALIBRATE === 'noreport') process.exit(1);",
   'const args = process.argv.slice(2);',
-  'writeJournal(process.env.IG_LOG_DIR, process.env.IG_ROW, process.env.IG_SEED, process.pid);',
+  "writeJournal(process.env.IG_LOG_DIR, process.env.IG_ROW, process.env.IG_SEED, process.pid, process.env.P2_FAKE_CALIBRATE === 'nowindow');",
   "const matrix = JSON.parse(readFileSync(args[args.indexOf('--matrix') + 1], 'utf8'));",
-  `const run = { probeKind: 'generation', acceptedCount: 10, caseId: matrix.cases[0].id, seed: process.env.IG_SEED, sourceDigest: 'rd-' + process.env.IG_SOURCE_LABEL.split(' ')[0], sourceCommit: process.env.P2_FAKE_CALIBRATE === 'badlabel' ? 'other' : process.env.IG_SOURCE_LABEL, telemetry: ${JSON.stringify(TELEMETRY)} };`,
+  `const run = { probeKind: 'generation', acceptedCount: 10, partialReason: null, caseId: matrix.cases[0].id, seed: process.env.IG_SEED, sourceDigest: 'rd-' + process.env.IG_SOURCE_LABEL.split(' ')[0], sourceCommit: process.env.P2_FAKE_CALIBRATE === 'badlabel' ? 'other' : process.env.IG_SOURCE_LABEL, telemetry: ${JSON.stringify(TELEMETRY)} };`,
   "writeFileSync(args[args.indexOf('--output') + 1] + '.json', JSON.stringify({ meta: { matrixDigest: matrixDigest(matrix) }, runs: [run] }));",
   '',
 ].join('\n');
@@ -1571,6 +1573,14 @@ describe('the report', () => {
     const one = first.read();
     assert.deepEqual(one.snapshots.map((/** @type {any} */ s) => s.path), ['rows/A.jsonl', 'rows/B.jsonl']);
     assert.deepEqual(one.bindings, []);
+    assert.deepEqual(Object.keys(one.readings), ['glue', 'reach']);
+    const cellOf = (/** @type {any[]} */ list, /** @type {string} */ c) => list.find((g) => g.component === 'shipped' && g.arm === 'gen-v4' && g.cell === c);
+    assert.equal(cellOf(one.readings.glue, '12x12-nightmare').status, 'unexercised');
+    assert.equal(cellOf(one.readings.reach, '12x12-nightmare').budgetStops.print, 'unknown', 'rows without telemetry add no zero');
+    const md = readFileSync(join(first.out, 'report.md'), 'utf8');
+    assert.match(md, /## Glue \(N-V4-16\)\r\n/);
+    assert.match(md, /## Reach \(F4, F7\)\r\n/);
+    assert.match(md, /\| shipped \| gen-v4 \| 12x12-nightmare \| 20 \| 0 \| 0 \| 0 \| 0 \| unexercised \|\r\n/);
     assert.equal(one.gates.find((/** @type {any} */ g) => g.id === 'B1').status, 'fail');
     assert.equal(entry(one, '12x12-nightmare').deadEnds, 1);
     assert.deepEqual(entry(one, '12x12-nightmare').reasons, ['dead-end entry: row shipped~gen-v4~12x12-nightmare~20 has 1 call(s) in phase p2']);
@@ -2011,5 +2021,180 @@ describe('P5 coverage in the report and the twins command', () => {
     const status = p2(['status', '--stage', 'B', '--state', w.dir]);
     assert.equal(status.status, 0, status.out);
     assert.deepEqual(status.out.trim().split('\n'), [1, 2, 3, 4].map((n) => `group o${n}: done 0 interrupted 0 inactive 0 pending 3`));
+  });
+});
+
+/**
+ * A published row line with a raw set side per attempt (`null`: a set call that ended without a window outcome) and the
+ * client trail on top of the fake one.
+ * @param {string} variant @param {(string | null)[]} sides @param {Record<string, any>} [trail] @param {Record<string, any>} [run] @param {Record<string, any>} [extra]
+ */
+function glued(variant, sides, trail = {}, run = {}, extra = {}) {
+  const outcomes = sides.map((igNoWindow, attempt) => OUTCOME(attempt, { result: igNoWindow === null ? 'ok' : 'fail', igNoWindow }));
+  return settled(run, {
+    variant,
+    ledger: { ...LEDGER, calls: outcomes.length, ended: outcomes.length, outcomes },
+    telemetry: { ...TELEMETRY, trail: { ...TELEMETRY.trail, sameSide: null, ...trail } },
+    ...extra,
+  });
+}
+
+/** The client entries of attempts 0 to 3 in the given arrival order, each with the reason `reasonOf` gives. @param {number[]} order @param {(attempt: number) => string | null} reasonOf */
+const entriesIn = (order, reasonOf) => order.map((attempt, arrival) => ({ attempt, outcome: 'fail', reason: reasonOf(attempt), arrival }));
+const NO_WINDOW_BELOW = (/** @type {number} */ _attempt) => 'no-window-below';
+
+describe('N-V4-16 glue and reach', () => {
+  it('a raw match survives a broken transport', () => {
+    const row = glued('p2-gen4', ['below', 'below', 'below', 'below'], { sameSide: 'below', attempts: entriesIn([2, 0, 3, 1], () => 'not-in-band') }, { partialReason: 'set:no-window-below' });
+    const [group] = glue([row]);
+    assert.equal(group.rawMatches, 1);
+    assert.deepEqual(group.transport.map((t) => [t.attempt, t.transported, t.class]), [[2, 'not-in-band', 'unexplained'], [0, 'not-in-band', 'unexplained'], [3, 'not-in-band', 'unexplained'], [1, 'not-in-band', 'unexplained']],
+      'the client arrival order is kept');
+    assert.notEqual(group.status, 'unexercised');
+    assert.equal(group.status, 'exercised');
+    assert.deepEqual([group.clientSameSide, group.firings, group.publicNoWindow], [1, 0, 1], 'the columns stay separate');
+    assert.equal(group.reconcile.length, 1, 'the bound did not fire');
+  });
+
+  it('an uncapped row that continues is no missing-bound defect', () => {
+    const row = glued('p2-uncapped', ['below', 'below', 'below', 'below', null], { sameSide: 'below', attempts: entriesIn([0, 1, 2, 3], NO_WINDOW_BELOW) });
+    const [group] = glue([row]);
+    assert.equal(group.rawMatches, 1);
+    assert.deepEqual([group.reconcile, group.transport], [[], []]);
+    assert.deepEqual([group.clientSameSide, group.firings, group.publicNoWindow, group.status], [1, 0, 0, 'exercised']);
+  });
+
+  it('a bound-enabled row that matches the raw evidence has no discrepancy', () => {
+    const row = glued('p2-none', ['above', 'above', 'above', 'above'], { sameSide: 'above', boundFired: true, attempts: entriesIn([0, 1, 2, 3], () => 'no-window-above') }, { partialReason: 'set:no-window-above' });
+    const [group] = glue([row]);
+    assert.deepEqual([group.rawMatches, group.clientSameSide, group.firings, group.publicNoWindow, group.reconcile, group.transport], [1, 1, 1, 1, [], []]);
+  });
+
+  it('the glue names a discrepancy by attempt', () => {
+    const sides = [null, 'above', null, null];
+    // The entry of attempt 1 is not at index 1 of the array.
+    const attempts = [3, 2, 1, 0].map((attempt, arrival) => ({ attempt, outcome: 'fail', reason: attempt === 1 ? 'not-in-band' : null, arrival }));
+    const [group] = glue([glued('p2-gen4', sides, { attempts })]);
+    assert.deepEqual(group.transport, [{ key: 'shipped/gen-v4/10x10-nightmare/20', attempt: 1, raw: 'above', transported: 'not-in-band', arrival: 2, class: 'unexplained' }]);
+    assert.equal(group.rawMatches, 0);
+    const mixed = glue([glued('p2-gen4', sides, { attempts: attempts.filter((a) => a.attempt !== 1) })])[0];
+    assert.deepEqual(mixed.transport.map((t) => [t.attempt, t.transported, t.class]), [[1, null, 'unresolved']], 'a missing entry is unresolved');
+    const cut = glue([glued('p2-gen4', sides, { attempts: attempts.filter((a) => a.attempt !== 1) }, { partialReason: 'cancelled' })])[0];
+    assert.deepEqual(cut.transport.map((t) => t.class), ['declared']);
+  });
+
+  it('the glue classifies an unexpected public reason', () => {
+    const sides = ['below', 'below', 'below', 'below'];
+    const trail = { sameSide: 'below', boundFired: false, attempts: entriesIn([0, 1, 2, 3], NO_WINDOW_BELOW) };
+    const [cut] = glue([glued('p2-gen4', sides, trail, { partialReason: 'set:time-limit' })]);
+    assert.deepEqual(cut.reconcile.map((r) => [r.class, r.raw, r.expected.partialReason, r.actual.partialReason]), [['declared', 'below', 'set:no-window-below', 'set:time-limit']]);
+    const [plain] = glue([glued('p2-gen4', sides, trail, { partialReason: null })]);
+    assert.deepEqual(plain.reconcile.map((r) => r.class), ['unexplained']);
+    const [wrongSide] = glue([glued('p2-gen4-diag', sides, { ...trail, sameSide: 'above', boundFired: true }, { partialReason: 'set:no-window-below' })]);
+    assert.deepEqual(wrongSide.reconcile.map((r) => r.class), ['unexplained'], 'the client condition names the other side');
+    assert.deepEqual(glue([glued('p2-today', sides, trail, { partialReason: null })])[0].reconcile, [], 'only the bound-enabled routes reconcile');
+  });
+
+  it('a mixed or short raw sequence is no match', () => {
+    const attempts = entriesIn([0, 1, 2, 3], NO_WINDOW_BELOW);
+    assert.equal(glue([glued('p2-gen4', ['below', 'below', 'above', 'below'], { attempts })])[0].rawMatches, 0);
+    assert.equal(glue([glued('p2-gen4', ['below', 'below', 'below'], { attempts })])[0].rawMatches, 0);
+    assert.equal(glue([glued('p2-gen4', ['below', 'below', 'below', null], { attempts })])[0].rawMatches, 0);
+  });
+
+  it('unexercised needs complete raw evidence', () => {
+    const rows = [20, 21].map((rep) => ({ ...glued('p2-gen4', [null], {}), rep, key: `shipped/gen-v4/10x10-nightmare/${rep}` }));
+    assert.deepEqual(glue(rows).map((g) => [g.status, g.incomplete]), [['unexercised', []]]);
+    const open = { ...rows[1], ledger: { ...rows[1].ledger, complete: false } };
+    const [group] = glue([rows[0], open]);
+    assert.deepEqual([group.status, group.incomplete], ['unknown', [open.key]]);
+    const noOutcomes = { ...rows[1], ledger: { ...rows[1].ledger, outcomes: undefined } };
+    assert.equal(glue([rows[0], noOutcomes])[0].status, 'unknown');
+    const withOutcomes = (/** @type {Record<string, any>[]} */ outcomes) => ({ ...rows[1], ledger: { ...rows[1].ledger, calls: outcomes.length, ended: outcomes.length, outcomes } });
+    const { igNoWindow: _absent, ...noField } = OUTCOME(2);
+    const bad = {
+      'a set outcome without igNoWindow': withOutcomes([OUTCOME(0), OUTCOME(1), noField]),
+      'a malformed igNoWindow': withOutcomes([OUTCOME(0), OUTCOME(1, { igNoWindow: 'sideways' })]),
+      'two disagreeing outcomes of one attempt': withOutcomes([OUTCOME(0), OUTCOME(1, { result: 'fail', igNoWindow: 'below' }), OUTCOME(1)]),
+    };
+    for (const [name, row] of Object.entries(bad)) {
+      const [g] = glue([rows[0], row]);
+      assert.deepEqual([g.status, g.incomplete], ['unknown', [row.key]], name);
+    }
+    const four = (/** @type {Record<string, any>[]} */ extra) => withOutcomes([0, 1, 2, 3].map((a) => OUTCOME(a, { result: 'fail', igNoWindow: 'below' })).concat(extra));
+    assert.equal(glue([four([])])[0].status, 'exercised');
+    const disagreeing = glue([four([OUTCOME(3)])])[0];
+    assert.deepEqual([disagreeing.rawMatches, disagreeing.status, disagreeing.incomplete], [0, 'unknown', [rows[1].key]], 'repeats that disagree make no match');
+    const agreeing = glue([four([OUTCOME(3, { result: 'fail', igNoWindow: 'below' })])])[0];
+    assert.deepEqual([agreeing.rawMatches, agreeing.incomplete], [1, []], 'agreeing repeats still match');
+    const refused = { ...rows[1], binding: { ok: false, problems: ['receipt hash'] } };
+    const left = glue([rows[0], refused])[0];
+    assert.deepEqual([left.rows, left.refused, left.status], [1, [{ key: refused.key, problems: ['receipt hash'] }], 'unknown']);
+  });
+
+  it('today\'s search is not applicable', () => {
+    const rows = [20, 21].map((rep) => ({ ...glued('p2-today', [null, null]), rep, key: `baseline-control/today/10x10-nightmare/${rep}`, component: 'baseline-control', arm: 'today', telemetry: null }));
+    const [g] = glue(rows);
+    assert.deepEqual([g.status, g.rawMatches, g.incomplete], ['not-applicable', 0, []]);
+    const [r] = reach(rows);
+    const printed = [r.budgetStops, r.rerateStarts.close, r.rerateStarts.rescue, r.rerateStarts.rerate, r.rescueReratings, r.tailReratings, r.screenCapped].map((x) => x.print);
+    assert.deepEqual(printed, Array(7).fill("n/a (today's search)"));
+    const gen4 = { ...glued('p2-gen4', [null]), component: 'baseline-control', arm: 'today', key: 'baseline-control/today/10x10-nightmare/22' };
+    assert.equal(glue([...rows, gen4])[0].status, 'unexercised', 'a group that is not all today keeps its computed status');
+    assert.equal(reach([...rows, gen4])[0].budgetStops.print, 'unknown');
+  });
+
+  it('rows are grouped by component, arm and cell', () => {
+    const groups = glue([glued('p2-gen4', [null]), { ...glued('p2-gen4', [null]), cell: '12x12-nightmare', key: 'shipped/gen-v4/12x12-nightmare/20' }, { ...glued('p2-uncapped', [null]), component: 'conditional-twin', arm: 'uncapped', key: 'conditional-twin/uncapped/10x10-nightmare/20' }]);
+    assert.deepEqual(groups.map((g) => [g.component, g.arm, g.cell, g.rows]), [['conditional-twin', 'uncapped', '10x10-nightmare', 1], ['shipped', 'gen-v4', '10x10-nightmare', 1], ['shipped', 'gen-v4', '12x12-nightmare', 1]]);
+  });
+
+  const COUNTERS = { budgetStops: 0, screenCapped: 0, rescueReratings: 0, tailReratings: 0 };
+
+  it('zero reach is unexercised', () => {
+    const rows = [20, 21].map((rep) => ({ ...settled({}, { telemetry: { ...TELEMETRY, setCounters: COUNTERS, batchCounters: null }, ledger: { ...LEDGER, rerateStarts: { close: 0, rescue: 0, rerate: 0 } } }), rep, key: `k${rep}` }));
+    const [group] = reach(rows);
+    const printed = [group.budgetStops, group.rerateStarts.close, group.rerateStarts.rescue, group.rerateStarts.rerate, group.rescueReratings, group.tailReratings, group.screenCapped].map((r) => r.print);
+    assert.deepEqual(printed, Array(7).fill('0 (unexercised)'));
+    const missing = { ...rows[1], telemetry: null, ledger: { ...LEDGER, rerateStarts: undefined } };
+    const [open] = reach([rows[0], missing]);
+    assert.deepEqual([open.budgetStops.print, open.budgetStops.unknown, open.rerateStarts.rescue.unknown, open.screenCapped.print], ['unknown', ['k21'], ['k21'], 'unknown'], 'a missing field adds no zero');
+    const incomplete = { ...rows[1], ledger: { ...LEDGER, complete: false, rerateStarts: { close: 0, rescue: 0, rerate: 0 } } };
+    assert.deepEqual([reach([incomplete])[0].rerateStarts.close.print, reach([incomplete])[0].budgetStops.print], ['unknown', '0 (unexercised)'], 'an incomplete ledger does not settle the starts');
+  });
+
+  it('reach sums both stages and the phases', () => {
+    const row = settled({}, {
+      telemetry: { ...TELEMETRY, setCounters: { budgetStops: 2, screenCapped: 1, rescueReratings: 3, tailReratings: 0 }, batchCounters: { budgetStops: 1, screenCapped: 4, rescueReratings: 0, tailReratings: 5 } },
+      ledger: { ...LEDGER, rerateStarts: { close: 1, rescue: 2, rerate: 0 } },
+    });
+    const refused = { ...row, key: 'bad', binding: { ok: false, problems: ['x'] } };
+    const [group] = reach([row, refused]);
+    assert.deepEqual([group.rows, group.budgetStops.total, group.screenCapped.total, group.rescueReratings.total, group.tailReratings.total], [1, 3, 5, 3, 5]);
+    assert.deepEqual([group.rerateStarts.close.print, group.rerateStarts.rescue.print, group.rerateStarts.rerate.print], ['1', '2', '0 (unexercised)']);
+    assert.deepEqual(group.refused, [{ key: 'bad', problems: ['x'] }]);
+  });
+
+  it('raw outcomes and rescue starts survive to the readings', async () => {
+    const K = 'shipped/gen-v4/10x10-nightmare/20';
+    const w = runWorld('glue-e2e', { rows: [planRow(K)], groups: [{ stage: 'A', group: 2, keys: [K] }] });
+    assert.deepEqual(await go(w, {}, {}, 'nowindow'), { code: 0, lines: [`row ${K} done`] });
+    const rowsDir = join(w.dir, 'rows-copy');
+    const out = join(w.dir, 'out');
+    mkdirSync(rowsDir, { recursive: true });
+    writeFileSync(join(rowsDir, 'A.jsonl'), readFileSync(join(w.dir, 'RAW', 'rows', 'A.jsonl')));
+    const published = p2(['publish', '--stage', 'A', '--out', out, '--rows', rowsDir, '--state', w.dir]);
+    assert.equal(published.status, 0, published.out);
+    const { rows } = loadSnapshot(out, 'A', rowContextOf(w.P));
+    assert.equal(rows.length, 1);
+    const [row] = rows;
+    assert.equal(row.binding.ok, true, JSON.stringify(row.binding.problems));
+    assert.deepEqual(row.ledger.outcomes, [{ stage: 'set', attempt: 0, result: 'ok', igNoWindow: 'below', budgetStop: false }]);
+    assert.deepEqual(row.ledger.rerateStarts, { close: 0, rescue: 1, rerate: 0 });
+    assert.deepEqual(triggered(row, PRODUCTION), { triggered: true, reasons: ['no-window'], unknown: [] });
+    const [reading] = reach(rows);
+    assert.deepEqual([reading.rerateStarts.close.print, reading.rerateStarts.rescue.print, reading.rerateStarts.rescue.total, reading.rerateStarts.rerate.print], ['0 (unexercised)', '1', 1, '0 (unexercised)']);
+    const [g] = glue(rows);
+    assert.deepEqual([g.rawMatches, g.status, g.transport], [0, 'unexercised', [{ key: K, attempt: 0, raw: 'below', transported: null, arrival: null, class: 'unresolved' }]], 'one raw end is no match, and its transport is listed');
   });
 });
