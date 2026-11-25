@@ -145,6 +145,6 @@ evidence; questions and deviations.
 | AI credits | 70.10 |
 | Questions and rulings | none; six minor deviations accepted by the orchestrator (no behaviour change): clueKey not imported by clue-primitives.js (unused), unused imports dropped from clues.js, two extra ranked-order assertions, dispatcher test on normal/any, a Candidate typedef import, the API-block annotations in design-detail.md |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate after rebase with the locked full suite (full-suite point; results in the bookkeeping); developer runs: focused 120/120 (56.254 s), full 1531/1531 (125.442 s) |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 6 files); rebased onto 030475d cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked full suite `IG P2-02 full exit=0 seconds=120.365 quiet=45`, 1531/1531 pass, 0 fail/cancelled/todo |
+| Commit (slot), commit on `gen-v4` | slot ad3244a, rebased df72615; gen-v4 df7261576074fa267aab660b023ad6971b5f61fd |
 | Issues and named items | none; P2-04 adds the gen-v4 branch to selectClues; P2-12d anchors on the preserved countSolutions line |

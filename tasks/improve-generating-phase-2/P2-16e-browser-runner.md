@@ -162,6 +162,6 @@ None here; P2-17 documents the runner in `tools/ig-proto/README.md`.
 | AI credits | 54.34 |
 | Questions and rulings | no QUESTION; SA-Opus accepted deviations 1-9 and the three gaps with no code fix; C16 now pins consoleLines text (arguments joined by spaces), startedAt/endedAt/durationMs and cleanup (null or a string); P2-19 step 3 checks a non-null cleanup receipt's Edge PID before stage B (55774d4) |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards and the merge gate with every phase-2 test file plus the link-anchor check (results in the bookkeeping); developer: unit 3/3, locked self-check pass 0 / fail 1 / hang 2 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 5 files); rebased onto 55774d4 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked `IG P2-16e merge exit=0 seconds=0.355 quiet=45`, every phase-2 test file 31/31 pass; link anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | slot 556f320, rebased e14e7a4; gen-v4 e14e7a437bee4ec6e15825cd9b84768e4bd4fa3f |
 | Issues and named items | none; P2-17 documents the runner; P2-16b and P2-19 use one invocation per check |

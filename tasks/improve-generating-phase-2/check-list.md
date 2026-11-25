@@ -38,7 +38,7 @@ order and the merges.
 ### Lane S (selector)
 
 - [x] P2-01 `gen-v4.js`: the frozen values, the route, the per-set rule and the family predicate (starts at the pack commit)
-- [ ] P2-02 Shared clue primitives, the retained `gen-v3` selector and the dispatcher (starts when P2-01 is merged)
+- [x] P2-02 Shared clue primitives, the retained `gen-v3` selector and the dispatcher (starts when P2-01 is merged)
 - [ ] P2-04 `select-v4.js`: the port of the frozen selector, with its two observer events (P2-02, P2-03)
 - [ ] P2-05a `select-v4.js`: the frozen synthetic vectors (P2-04)
 - [ ] P2-05b `select-v4.js`: budget stops, no-window events, skips and the frozen parity check (P2-05a)
@@ -46,7 +46,7 @@ order and the merges.
 
 ### Lane C (client and records)
 
-- [ ] P2-06 No-window reasons, counters in results and the bounded set stage (P2-01)
+- [x] P2-06 No-window reasons, counters in results and the bounded set stage (P2-01)
 - [ ] P2-07 The per-set prior: transport and the serial path (P2-06)
 - [ ] P2-08 Provenance per algorithm family, `made.igPrior`, replay and the saved-steps key (P2-07)
 - [ ] P2-10 Monotonic request scopes, the set-stage reserve and the pool clock (P2-06)
@@ -59,8 +59,8 @@ order and the merges.
 
 - [x] P2-03 The screen rating with its certificate, composed with P6 (starts at the pack commit)
 - [x] P2-13r The trace reader on the frozen work-ledger rules (starts at the pack commit)
-- [ ] P2-13v The binding verifiers: rows, proofs, replay probes and browser checks (starts at the pack commit)
-- [ ] P2-16e The browser runner (starts at the pack commit)
+- [x] P2-13v The binding verifiers: rows, proofs, replay probes and browser checks (starts at the pack commit)
+- [x] P2-16e The browser runner (starts at the pack commit)
 - [ ] P2-13a The driver: plan, seal, ledger and the locked wrapper (P2-13r)
 - [ ] P2-13d The driver: rows, resume and publication (P2-13a)
 - [ ] P2-13e The driver's source and row binding (P2-13d, P2-13v)
@@ -578,12 +578,12 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | ID | Slot, base | Start | End | Duration | AI credits | Commit on `gen-v4` |
 |---|---|---|---|---|---|---|
 | P2-01 | w1, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:20 | about 19 min | 43.69 | c4d74b4 |
-| P2-02 | | | | | | |
+| P2-02 | w1, fb67ba0 | 2026-11-25 22:37 | 2026-11-25 23:00 | about 23 min | 70.10 | df72615 |
 | P2-03 | w3, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:27 | about 26 min | 37.32 | ec8c583 |
 | P2-04 | | | | | | |
 | P2-05a | | | | | | |
 | P2-05b | | | | | | |
-| P2-06 | | | | | | |
+| P2-06 | w2, fb67ba0 | 2026-11-25 22:37 | 2026-11-25 23:22 | about 45 min | 175.81 | 85f5c46 |
 | P2-07 | | | | | | |
 | P2-08 | | | | | | |
 | P2-09 | | | | | | |
@@ -596,7 +596,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-12d | | | | | | |
 | P2-12e | | | | | | |
 | P2-13r | w2, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:35 | about 34 min | 62.36 | fb67ba0 |
-| P2-13v | | | | | | |
+| P2-13v | w3, fb67ba0 | 2026-11-25 22:37 | 2026-11-25 22:54 | about 17 min | 61.28 | 030475d |
 | P2-13a | | | | | | |
 | P2-13b | | | | | | |
 | P2-13c | | | | | | |
@@ -609,7 +609,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-16a | | | | | | |
 | P2-16b | | | | | | |
 | P2-16c | | | | | | |
-| P2-16e | | | | | | |
+| P2-16e | w3, df72615 | 2026-11-25 22:58 | 2026-11-25 23:16 | about 18 min | 54.34 | e14e7a4 |
 | P2-17 | | | | | | |
 | P2-18 | main | | | | | |
 | P2-19 | main | | | | | |

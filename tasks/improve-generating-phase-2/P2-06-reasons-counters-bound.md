@@ -205,6 +205,6 @@ deviations.
 | AI credits | 175.81 |
 | Questions and rulings | QUESTION 1 (three existing tests pin { fail: 'layout' }): SA-Opus ruled Option B: the three pre-selection { fail: 'layout' } returns stay unchanged (the log-6 anchor); the client counts a missing counters as ZERO_COUNTERS; counters? stays optional; the three tests unchanged; the link-anchor check must give 22 of 22 (added to the merge gate, 9b566a2). Other deviations accepted (imports, telemetry()/settled() helpers, time-out via onProgress, extra batch-counter case). Step 2's last sentence reads: `{ fail: 'layout' }` returns before a selection stay unchanged (the `log-6` anchor); the client counts a missing `counters` as `ZERO_COUNTERS`. |
 | Fix rounds | 0 (the ruling was applied before the first report) |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked full suite (full-suite point) and the link-anchor check (results in the bookkeeping); developer: focused 101/101 (30.18 s), full 1538/1538 (119.401 s), anchors 22 of 22 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 7 files); rebased onto e14e7a4 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked full suite `IG P2-06 full exit=0 seconds=120.503 quiet=45`, 1541/1541 pass, 0 fail/cancelled/todo; link anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | slot 2e1bb5b, rebased 85f5c46; gen-v4 85f5c46526ed46d59b5b590c0a9a8838dc64f2ad |
 | Issues and named items | none; the bound cannot fire on real workers before P2-15 (gen-v3 returns no igNoWindow); P2-07/P2-10 use the imported names |

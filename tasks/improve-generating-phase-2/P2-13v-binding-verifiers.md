@@ -253,6 +253,6 @@ None here; P2-17 documents `tools/ig-proto/phase2/` in `tools/ig-proto/README.md
 | AI credits | 61.28 |
 | Questions and rulings | no QUESTION; SA-Opus accepted deviations 1-8 with no code fix (gates classify from every problem); item 7 added one C16 line (consoleLines: array of strings, one per Runtime.consoleAPICalled event, in arrival order), committed in the main worktree as 237a2bc |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards and the merge gate with every phase-2 test file (results in the bookkeeping); developer run 13/13 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 3 files); rebased onto 237a2bc cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked `IG P2-13v merge exit=0 seconds=0.336 quiet=45`, every phase-2 test file 28/28 pass |
+| Commit (slot), commit on `gen-v4` | slot 6a87f46, rebased 030475d; gen-v4 030475d73aa4e5f4c891a06d1f6879fe2a6c5b86 |
 | Issues and named items | none new; rowMatrix use (P2-13d/13e), consoleLines strings (P2-16e) and C15 receipt fields (P2-14b) already covered by their tasks |
