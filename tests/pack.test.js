@@ -1429,3 +1429,69 @@ test('writer: a base that is too large on its own keeps the existing failures', 
   const base = good(validatePack(packWith({}))).value;
   assert.throws(() => serializePack({ ...base, generation: { made: MADE, series } }), { code: 'invalid-json' });
 });
+
+const V4_VERSIONS = { ...VERSIONS, algo: 'gen-v4', priorTable: 'prior-s3-v1', screenTable: 'screen-v4-v1' };
+const V4_CANDIDATE = {
+  schema: 1, kind: 'candidate', batchSeed: 'fixture-set-0#1', targetLevel: 'hard', uniqueness: 'any', slot: 2, attempt: 3,
+  start: 'restart', skips: { subsets: [1, 9, 2191], repairs: [0, 63] }, igPrior: 7, versions: V4_VERSIONS,
+};
+/** `v4Candidate` keeps the family's key order: `igPrior` sits between `skips` and `versions`. */
+const v4Candidate = (/** @type {object} */ patch = {}) => ({ ...V4_CANDIDATE, ...patch });
+
+test('a gen-v4 record has seven keys and igPrior', () => {
+  for (const igPrior of [7, null, 1, 128]) {
+    const made = { ...MADE, 'p-cand': v4Candidate({ igPrior }) };
+    const generation = { app: 'test', setOrigin: { ...SET_ORIGIN, versions: V4_VERSIONS }, made };
+    assert.equal(provenanceProblem('made', made['p-cand']), null);
+    assert.equal(provenanceProblem('setOrigin', generation.setOrigin), null);
+    const pack = writtenPack(generation);
+    const again = good(parsePack(serializePack(pack)));
+    assert.deepEqual(again.warnings, []);
+    assert.deepEqual(again.value.generation, generation);
+    assert.deepEqual(Object.keys(again.value.generation.made['p-cand']), Object.keys(V4_CANDIDATE));
+    assert.deepEqual(Object.keys(again.value.generation.made['p-cand'].versions), Object.keys(V4_VERSIONS));
+    assert.equal(again.value.generation.made['p-cand'].igPrior, igPrior);
+  }
+});
+
+test('family shapes are enforced', () => {
+  const withoutPrior = Object.fromEntries(Object.entries(V4_CANDIDATE).filter(([key]) => key !== 'igPrior'));
+  const cases = /** @type {[string, unknown][]} */ ([
+    ['gen-v4 with five keys', { ...V4_CANDIDATE, versions: { ...VERSIONS, algo: 'gen-v4' } }],
+    ['gen-v3 with seven keys', { ...CANDIDATE, versions: { ...V4_VERSIONS, algo: 'gen-v3' } }],
+    ['gen-v3 with igPrior', { ...CANDIDATE, igPrior: 7 }],
+    ['gen-v4 without igPrior', withoutPrior],
+    ['igPrior 0', v4Candidate({ igPrior: 0 })],
+    ['igPrior 129', v4Candidate({ igPrior: 129 })],
+    ['igPrior 7.5', v4Candidate({ igPrior: 7.5 })],
+  ]);
+  for (const [name, bad] of cases) {
+    assert.notEqual(provenanceProblem('made', bad), null, name);
+    const { pack, warnings } = readBack({ app: 'test', made: { ...MADE, 'p-cand': bad } });
+    assert.deepEqual(Object.keys(pack.generation.made), ['p-cal', 'p-comp'], name);
+    assert.deepEqual(warnings.map((w) => [w.code, w.path]), [['provenance-ignored', 'generation.made.p-cand']], name);
+    assert.equal(pack.puzzles.length, 3, name);
+  }
+  const badOrigin = { ...SET_ORIGIN, versions: { ...VERSIONS, algo: 'gen-v4' } };
+  assert.notEqual(provenanceProblem('setOrigin', badOrigin), null);
+  assert.notEqual(provenanceProblem('setOrigin', { ...SET_ORIGIN, versions: { ...V4_VERSIONS, algo: 'gen-v3' } }), null);
+});
+
+test('subset ordinals by family', () => {
+  const skips = { subsets: [2150], repairs: [] };
+  assert.notEqual(provenanceProblem('made', { ...CANDIDATE, skips }), null);
+  assert.equal(provenanceProblem('made', v4Candidate({ skips })), null);
+  assert.equal(provenanceProblem('made', v4Candidate({ skips: { subsets: [2191], repairs: [] } })), null);
+  assert.notEqual(provenanceProblem('made', v4Candidate({ skips: { subsets: [2192], repairs: [] } })), null);
+  assert.notEqual(provenanceProblem('made', v4Candidate({ skips: { subsets: [], repairs: [64] } })), null);
+});
+
+test('gen-v4-proto records are the family', () => {
+  const versions = { ...V4_VERSIONS, algo: 'gen-v4-proto:p2-uncapped' };
+  const made = v4Candidate({ versions });
+  assert.equal(provenanceProblem('made', made), null);
+  assert.equal(provenanceProblem('setOrigin', { ...SET_ORIGIN, versions }), null);
+  assert.notEqual(provenanceProblem('made', { ...made, versions: { ...versions, algo: 'gen-v4-proto:' } }), null);
+  const generation = { app: 'test', made: { ...MADE, 'p-cand': made } };
+  assert.deepEqual(good(parsePack(serializePack(writtenPack(generation)))).value.generation, generation);
+});

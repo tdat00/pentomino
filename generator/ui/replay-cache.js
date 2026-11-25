@@ -5,7 +5,8 @@
 // generator's version makes another key: a saved replay is never shown for something it was not made from.
 
 import { boardToRows } from '../../core/engine/board.js';
-import { ALGO_ID, APP_VERSION } from '../../core/engine/version.js';
+import { provenanceVersions } from '../../core/engine/generate.js';
+import { APP_VERSION } from '../../core/engine/version.js';
 import { PoolAbortError } from '../../core/browser/worker-pool.js';
 import { presented } from './replay-model.js';
 
@@ -64,14 +65,24 @@ function hash53(text, seed) {
 
 /**
  * The key is made of what the replay request carries (the generation client's `replayPuzzle`) and nothing else, so it
- * does not change when a certificate, a title or a display rating is added to the puzzle later.
+ * does not change when a certificate, a title or a display rating is added to the puzzle later. It holds the running
+ * provenance tuple, so steps saved under another tuple are recomputed.
  * @param {ReplaySource} source
  * @returns {string} The storage key of the source's replay: two hashes and the length of what they are made from.
  */
 export function replayKeyOf(source) {
+  return replayKeyFor(source, provenanceVersions());
+}
+
+/**
+ * @param {ReplaySource} source
+ * @param {import('../../core/engine/types.js').ProvenanceVersions} versions The provenance tuple the key holds.
+ * @returns {string} The storage key of the source's replay under that tuple.
+ */
+export function replayKeyFor(source, versions) {
   const { set, puzzle } = source;
   const text = canonical([
-    ALGO_ID, APP_VERSION, boardToRows(set.board), set.pieces, set.witness, set.carving, set.macroRegion,
+    versions, APP_VERSION, boardToRows(set.board), set.pieces, set.witness, set.carving, set.macroRegion,
     { id: puzzle.id, clues: puzzle.clues, solution: puzzle.solution, rating: puzzle.rating }, source.setOrigin, source.made,
   ]);
   return `r${hash53(text, 0).toString(36)}${hash53(text, 1).toString(36)}${text.length.toString(36)}`;

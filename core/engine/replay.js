@@ -177,9 +177,9 @@ function ownProvenance(generation, id) {
  * @param {ProvenanceVersions} b
  * @returns {boolean}
  */
-function sameVersions(a, b) {
+export function sameVersions(a, b) {
   return a.algo === b.algo && a.policy === b.policy && a.rng === b.rng && a.seedScheme === b.seedScheme
-    && a.ratingModel === b.ratingModel;
+    && a.ratingModel === b.ratingModel && a.priorTable === b.priorTable && a.screenTable === b.screenTable;
 }
 
 /**
@@ -434,6 +434,7 @@ export function runReplay(input, workspaces, limits = REPLAY, isCancelled = () =
           quantity: 1,
           batchSeed: m.batchSeed,
           uniqueness: m.uniqueness,
+          ...(m.igPrior === null || m.igPrior === undefined ? {} : { igPrior: m.igPrior }),
           seenLayouts: new Set(),
           seenClues: new Set(),
           execution,

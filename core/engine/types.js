@@ -265,6 +265,8 @@
  * @property {string} rng
  * @property {string} seedScheme
  * @property {string} ratingModel
+ * @property {string} [priorTable] The gen-v4 family only.
+ * @property {string} [screenTable] The gen-v4 family only.
  */
 
 /**
@@ -288,7 +290,7 @@
  * One entry of `generation.made`, by puzzle id (RES-27).
  * @typedef {{ schema: 1, kind: 'calibration' }
  *   | { schema: 1, kind: 'candidate', batchSeed: string, targetLevel: string, uniqueness: 'any' | 'require',
- *       slot: number, attempt: number, start: 'witness' | 'restart', skips: Skips,
+ *       slot: number, attempt: number, start: 'witness' | 'restart', skips: Skips, igPrior?: number | null,
  *       versions: ProvenanceVersions }
  *   | { schema: 1, kind: 'completion' }} Made
  */

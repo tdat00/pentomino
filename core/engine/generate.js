@@ -7,7 +7,7 @@ import { activeCount } from './board.js';
 import { certify, countRowLimit, selectClues } from './clues.js';
 import { carveFlatSet, carveMacro, finalizeSet, validateSet } from './carve.js';
 import { MODEL } from './difficulty.js';
-import { PER_SET_LEVELS, perSetPrior } from './gen-v4.js';
+import { isV4Family, PER_SET_LEVELS, perSetPrior, PRIOR_TABLE_ID, SCREEN_TABLE_ID } from './gen-v4.js';
 import { clueKey, layoutKey, minLayoutDistance, puzzleId } from './keys.js';
 import { level } from './levels.js';
 import { PROVENANCE } from './pack.js';
@@ -293,6 +293,7 @@ export function puzzleCandidate(ctx, slot, attempt, observe = {}) {
       attempt,
       start: startKind,
       skips: capSkips(sel.skips),
+      ...(isV4Family(ALGO_ID) ? { igPrior: ctx.igPrior ?? null } : {}),
       versions: provenanceVersions(),
     },
   };
@@ -302,7 +303,8 @@ export function puzzleCandidate(ctx, slot, attempt, observe = {}) {
  * @returns {import('./types.js').ProvenanceVersions} The running code's version ids (RES-27).
  */
 export function provenanceVersions() {
-  return { algo: ALGO_ID, policy: POLICY_ID, rng: RNG_ID, seedScheme: SEED_SCHEME, ratingModel: MODEL };
+  const versions = { algo: ALGO_ID, policy: POLICY_ID, rng: RNG_ID, seedScheme: SEED_SCHEME, ratingModel: MODEL };
+  return isV4Family(ALGO_ID) ? { ...versions, priorTable: PRIOR_TABLE_ID, screenTable: SCREEN_TABLE_ID } : versions;
 }
 
 /**

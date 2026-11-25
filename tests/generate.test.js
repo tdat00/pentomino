@@ -726,6 +726,15 @@ describe('set attempts and puzzle candidates', () => {
     assert.equal(summary(runFold(ctx)), before);
   });
 
+  test('provenanceVersions follows ALGO_ID\'s family', () => {
+    assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel']);
+    assert.equal(provenanceVersions().algo, 'gen-v3');
+    const c = puzzleCandidate(realCtx(), 1, 0);
+    assert.ok('made' in c);
+    assert.ok(!('igPrior' in c.made));
+    assert.deepEqual(c.made.versions, provenanceVersions());
+  });
+
   test('failureOf transports the no-window side', () => {
     const counters = { budgetStops: 1, screenCapped: 2, rescueReratings: 3, tailReratings: 4 };
     assert.deepEqual(failureOf({ reason: 'not-in-band', igNoWindow: 'above', counters }), { ok: false, reason: 'no-window-above', counters });

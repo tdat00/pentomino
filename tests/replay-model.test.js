@@ -1315,6 +1315,17 @@ test('replay cache: the key follows what the replay reads and survives the saved
   assert.doesNotThrow(() => broken?.save(source, /** @type {any} */ (RESULT)));
 });
 
+test('replay cache: the key holds the running provenance tuple', async () => {
+  const { replayKeyFor, replayKeyOf } = await import('../generator/ui/replay-cache.js');
+  const { provenanceVersions } = await import('../core/engine/generate.js');
+  const source = src('pKey', SET, { schema: 1, kind: 'candidate' });
+  const key = replayKeyFor(source, provenanceVersions());
+  assert.equal(key, replayKeyOf(source));
+  assert.notEqual(replayKeyFor(source, { ...provenanceVersions(), rng: 'other' }), key, 'another rng');
+  assert.notEqual(replayKeyFor(source, { ...provenanceVersions(), priorTable: 'prior-s3-v1', screenTable: 'screen-v4-v1' }), key,
+    'the table ids of the gen-v4 family');
+});
+
 test('replay cache: a prefetch makes and saves a replay once; the section waits for it; a cancelled one is asked again', async () => {
   const { createReplayCache } = await import('../generator/ui/replay-cache.js');
   /** @type {Map<string, any>} */

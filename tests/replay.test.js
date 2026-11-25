@@ -14,7 +14,7 @@ import { poseCells } from '../core/engine/geometry.js';
 import { level } from '../core/engine/levels.js';
 import { parsePack, serializePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS, pieceCountRange, REPLAY } from '../core/engine/policy.js';
-import { finalStep, ReplayCancelledError, replayPuzzle, runReplay, utf8Length } from '../core/engine/replay.js';
+import { finalStep, ReplayCancelledError, replayPuzzle, runReplay, sameVersions, utf8Length } from '../core/engine/replay.js';
 import { normalizeSeedText } from '../core/engine/rng.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 
@@ -1648,4 +1648,24 @@ test('a puzzle without a rating claim: matched, and a final step without rating,
     assert.equal(res.steps.length, run.events.length + 1);
     assert.ok(res.steps.slice(0, -1).every((s, i) => s.kind === run.events[i].kind));
   }
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 11. The provenance tuple of the gen-v4 family.
+
+test('sameVersions compares the table ids', () => {
+  const seven = { ...provenanceVersions(), priorTable: 'prior-s3-v1', screenTable: 'screen-v4-v1' };
+  assert.equal(sameVersions(seven, { ...seven }), true);
+  assert.equal(sameVersions(seven, { ...seven, screenTable: 'screen-v4-v2' }), false);
+  assert.equal(sameVersions(seven, { ...seven, priorTable: 'prior-s3-v2' }), false);
+  assert.equal(sameVersions(seven, provenanceVersions()), false);
+  assert.equal(sameVersions(provenanceVersions(), provenanceVersions()), true);
+});
+
+test('the fixture still replays while ALGO_ID is gen-v3', () => {
+  assert.equal(provenanceVersions().algo, 'gen-v3');
+  assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel']);
+  const res = replayPuzzle(INPUTS[0], workspaces, REPLAY);
+  assert.equal(res.status, 'matched');
+  assert.equal(res.reason, null);
 });

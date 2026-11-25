@@ -166,14 +166,14 @@ is keyed on the algorithm id, not on a flag.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w2, 6c35edaffecc374665d48f949c3e258c0aea2800 |
+| Start, end, duration | dispatched 2026-11-25 22:53 +07:00 (developer 22:53:38 to 22:59:04); accepted 23:00 |
+| Waiting for rulings | none |
+| Agent id, model | 2a3498ec-0d12-4cd6-a9f5-9edb1471281c, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 41; 3,795,456 / 24,776 / 3,687,555 |
+| AI credits | 88.62 |
+| Questions and rulings | none; eight minor deviations accepted by the orchestrator (one focused re-run after the developer's own new test had the wrong key order, code unchanged; extra refusal cases; JSDoc of replayKeyOf and replayKeyFor; isV4Versions delegates to isV4Family; provenanceVersions built with a conditional spread in the five-keys, priorTable, screenTable order; the 7.7 paragraph on one line; contracts.md not read; unfiltered gate output) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 167/167 (26.3 s; first run 166/167 on its own new test), G-PROTECTED with the replay-case blob, G-WORKTREE, G-FORMAT (10 files), G-CHECK OK, anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-15 switches ALGO_ID; P2-09 and P2-12d depend on this task; saved replays miss the cache once after merge (R8); no real gen-v4 run exercises the family branches before P2-15 |
