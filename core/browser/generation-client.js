@@ -972,6 +972,7 @@ export function createGenerationClient(pool, options = {}) {
       seenLayouts: [...frozen.seenLayouts],
       seenClues: [...frozen.seenClues],
     };
+    const prior = PER_SET_LEVELS.includes(levelId) ? perSetPrior(request.calibration, levelId, uniqueness) : {};
     /** @type {Map<string, { done: boolean, ok?: boolean, value?: unknown, error?: unknown }>} */
     const cache = new Map();
     const controller = new AbortController();
@@ -1015,7 +1016,7 @@ export function createGenerationClient(pool, options = {}) {
       const onWorker = (/** @type {{ stage: string, rowTrials: number, bytes: number }} */ p) => progress({
         stage: p.stage, slot, attempt, bytes: p.bytes, rowTrials: p.rowTrials,
       });
-      runTask(job, 'puzzleCandidate', { ...base, slot, attempt }, controller.signal, onWorker).then((value) => {
+      runTask(job, 'puzzleCandidate', { ...base, ...prior, slot, attempt }, controller.signal, onWorker).then((value) => {
         Object.assign(entry, { done: true, ok: true, value });
         inflight -= 1;
         addCounters(counters, value);

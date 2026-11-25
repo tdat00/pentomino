@@ -90,6 +90,22 @@ describe('executeTask returns exact engine results', () => {
     }, 1, 0));
   });
 
+  test('an igPrior payload is accepted and today\'s search ignores it', () => {
+    const set = /** @type {any} */ (setAttempt({ board, rotation: 0, levelId: 'hard', seedText: 'fixture-set-0', uniqueness: 'any', execution: execution() }, 0)).set;
+    const payload = {
+      set: wireSet(set),
+      targetLevelId: 'hard',
+      quantity: 10,
+      batchSeed: 'fixture-set-0#1',
+      uniqueness: 'any',
+      seenLayouts: ['x'],
+      seenClues: [],
+      slot: 1,
+      attempt: 0,
+    };
+    assert.deepEqual(executeTask('puzzleCandidate', { ...payload, igPrior: 5 }, execution()), executeTask('puzzleCandidate', payload, execution()));
+  });
+
   test('certify, rate and solveFirst', () => {
     const ws = createWorkspace(MAIN_WORKSPACE_BYTES);
     const clues = cluesOf('LUNFX');

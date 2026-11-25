@@ -161,6 +161,7 @@
  * @property {Pose[] | null} solution
  * @property {Rating | null} rating
  * @property {Certificate | null} certificate
+ * @property {{ wc: number } | null} [igWindow] A session calibration may carry the window count of its set (gen-v4); it is never stored in a pack.
  */
 
 /**
@@ -252,6 +253,7 @@
  * @property {ReadonlySet<string>} seenLayouts
  * @property {ReadonlySet<string>} seenClues
  * @property {Puzzle} [calibration]
+ * @property {number} [igPrior] The per-set override of P4 (gen-v4, Hell 1).
  * @property {EngineExecution} execution
  */
 

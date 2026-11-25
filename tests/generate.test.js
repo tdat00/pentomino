@@ -390,6 +390,42 @@ describe('calibration reuse and history capacity', () => {
       assert.throws(() => foldStart(ctxFor({ quantity })), RangeError);
     }
   });
+
+  test('runFold applies the per-set prior on Hell 1, as the client does', () => {
+    /** @param {BatchContext} ctx */
+    const priors = (ctx) => {
+      /** @type {(number | undefined)[]} */
+      const seen = [];
+      runFold(ctx, (c) => {
+        seen.push(c.igPrior);
+        return { fail: 'not-in-band' };
+      });
+      return seen;
+    };
+    const hell = (/** @type {object} */ over = {}) => ctxFor({
+      targetLevelId: 'hell-1',
+      quantity: 2,
+      calibration: calibration({ rating: { ...FAKE_RATING, level: 'hell-1' }, igWindow: { wc: 6 } }),
+      ...over,
+    });
+    const unique = { status: /** @type {const} */ ('unique'), model: /** @type {const} */ ('dlx-v1'), rowLimit: 10000, verified: true };
+    const nightmare = hell({
+      targetLevelId: 'nightmare',
+      calibration: calibration({ rating: { ...FAKE_RATING, level: 'nightmare' }, igWindow: { wc: 6 } }),
+    });
+    const applied = [
+      priors(hell()),
+      priors(hell({ seenLayouts: new Set([layoutKey(board, pieces, base)]) })),
+      priors(hell({ uniqueness: 'require', calibration: calibration({ rating: { ...FAKE_RATING, level: 'hell-1' }, igWindow: { wc: 6 }, certificate: unique }) })),
+    ];
+    const table = [priors(hell({ uniqueness: 'require' })), priors(nightmare), priors(hell({ calibration: undefined }))];
+    for (const seen of [applied[0], applied[1], applied[2]]) {
+      assert.ok(seen.length > 0 && seen.every((p) => p === 6), String(seen));
+    }
+    for (const seen of table) {
+      assert.ok(seen.length > 0 && seen.every((p) => p === undefined), String(seen));
+    }
+  });
 });
 
 describe('dispatch priority and scheduler simulation', () => {

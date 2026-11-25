@@ -651,9 +651,10 @@ const PAYLOADS = {
     const seenClues = readHistory(ctx, o.seenClues, 'payload.seenClues');
     const slot = readInt(ctx, o.slot, 'payload.slot', 1, 10);
     const attempt = readInt(ctx, o.attempt, 'payload.attempt', 0, Number.MAX_SAFE_INTEGER);
-    return [set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, slot, attempt].includes(undefined)
+    const igPrior = o.igPrior === undefined ? null : readInt(ctx, o.igPrior, 'payload.igPrior', 1, 128);
+    return [set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, slot, attempt, igPrior].includes(undefined)
       ? undefined
-      : { set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, slot, attempt };
+      : { set, targetLevelId, quantity, batchSeed, uniqueness, seenLayouts, seenClues, slot, attempt, ...(igPrior === null ? {} : { igPrior }) };
   },
   certify(ctx, o) {
     const boardRows = readBoardRows(ctx, o.boardRows, 'payload.boardRows');
@@ -728,6 +729,7 @@ const PAYLOAD_FIELDS = /** @type {Record<TaskKind, { required: string[], optiona
   setAttempt: { required: ['boardRows', 'rotation', 'levelId', 'seedText', 'uniqueness', 'attempt'] },
   puzzleCandidate: {
     required: ['set', 'targetLevelId', 'quantity', 'batchSeed', 'uniqueness', 'seenLayouts', 'seenClues', 'slot', 'attempt'],
+    optional: ['igPrior'],
   },
   certify: { required: ['boardRows', 'pieces', 'clues', 'rowLimit'] },
   rate: { required: ['boardRows', 'pieces', 'clues'] },

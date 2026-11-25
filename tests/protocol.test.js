@@ -262,6 +262,23 @@ describe('task messages', () => {
     assert.ok(!task('puzzleCandidate', { ...c, seenLayouts: ['0'.repeat(2049)] }).ok);
   });
 
+  test('puzzleCandidate accepts an optional igPrior from 1 to 128', () => {
+    const c = PAYLOADS.puzzleCandidate();
+    for (const igPrior of [1, 128]) {
+      const parsed = /** @type {any} */ (task('puzzleCandidate', { ...c, igPrior }));
+      assert.ok(parsed.ok, String(igPrior));
+      assert.equal(parsed.value.payload.igPrior, igPrior);
+    }
+    const absent = /** @type {any} */ (task('puzzleCandidate', c));
+    assert.ok(absent.ok);
+    assert.equal(Object.hasOwn(absent.value.payload, 'igPrior'), false);
+    for (const igPrior of [0, 129, 1.5, '3']) {
+      const parsed = /** @type {any} */ (task('puzzleCandidate', { ...c, igPrior }));
+      assert.ok(!parsed.ok, String(igPrior));
+      assert.deepEqual(parsed.issues.map((/** @type {any} */ i) => i.path), ['payload.igPrior'], String(igPrior));
+    }
+  });
+
   test('validatePayload reports unknown kinds and verifyPack accepts any pack value', () => {
     assert.ok(!validatePayload('nope', {}).ok);
     assert.ok(validatePayload('verifyPack', { pack: 5 }).ok);

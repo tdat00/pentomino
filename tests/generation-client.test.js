@@ -8,7 +8,7 @@ import { createPool, PoolAbortError } from '../core/browser/worker-pool.js';
 import { boardFromRows } from '../core/engine/board.js';
 import { firstSetAttempt, provenanceVersions, puzzleCandidate } from '../core/engine/generate.js';
 import { canonicalKey } from '../core/engine/geometry.js';
-import { layoutDistance } from '../core/engine/keys.js';
+import { clueKey, layoutDistance, layoutKey } from '../core/engine/keys.js';
 import { provenanceProblem, validatePack } from '../core/engine/pack.js';
 import { replayPuzzle } from '../core/engine/replay.js';
 import { createTaskHandler } from '../core/engine/tasks.js';
@@ -193,6 +193,18 @@ const setSuccess = (n) => ({ ok: true, set: fixture().set, calibration: fixture(
 const scripted = (t, offset = 0) => (t.payload.attempt === 0
   ? { value: fixture().chosen[t.payload.slot - 1 + offset] }
   : { value: { fail: 'layout' } });
+
+/** The fixture calibration shown as Hell 1 with a window count of 6. @param {object} [over] */
+const hellCalibration = (over = {}) => {
+  const { calibration } = fixture();
+  return { ...calibration, rating: { ...calibration.rating, level: 'hell-1' }, igWindow: { wc: 6 }, ...over };
+};
+/** A Hell 1 batch whose candidates all fail; the completion pass never starts. @param {object} over */
+const hellRun = async (over) => {
+  const h = harness({ handler: (t) => (t.kind === 'puzzleCandidate' ? { value: { fail: 'not-in-band' } } : undefined) });
+  const result = await clientOf(h).generateBatch(batchInput({ targetLevelId: 'hell-1', quantity: 2, ...over }));
+  return { h, result, candidates: h.tasks.filter((t) => t.kind === 'puzzleCandidate') };
+};
 
 /** @param {Promise<unknown>} promise */
 function track(promise) {
@@ -757,6 +769,47 @@ describe('batch requests', () => {
     assert.equal(await invalid({ batchIndex: 0 }), 'invalid-input');
     assert.equal(await invalid({ setSeed: 'a\u0000'.repeat(40) }), 'invalid-input');
     assert.equal(await invalid({ targetLevelId: 'nope' }), 'invalid-input');
+  });
+
+  test('Hell 1 candidates carry the calibration\'s window count; the completion pass does not', async () => {
+    const { h, result, candidates } = await hellRun({ calibration: hellCalibration() });
+    assert.deepEqual([result.status, result.reason], ['partial', 'difficulty-not-found']);
+    assert.equal(result.accepted.length, 1);
+    assert.equal(result.accepted[0].id, fixture().calibration.id);
+    assert.ok(candidates.length >= 12);
+    assert.ok(candidates.every((t) => t.payload.igPrior === 6));
+    assert.ok(h.tasks.filter((t) => t.kind !== 'puzzleCandidate').every((t) => !('igPrior' in t.payload)));
+  });
+
+  test('the prior applies when the calibration\'s keys are already seen', async () => {
+    const { set, calibration } = fixture();
+    const { result, candidates } = await hellRun({
+      calibration: hellCalibration(),
+      seenLayouts: [layoutKey(set.board, set.pieces, calibration.solution)],
+      seenClues: [clueKey(set.board, set.pieces, calibration.clues)],
+    });
+    assert.ok(result.accepted.every((p) => p.id !== calibration.id));
+    assert.ok(candidates.length >= 12);
+    assert.ok(candidates.every((t) => t.payload.igPrior === 6));
+  });
+
+  test('require needs a unique certificate today, whatever mode made the set', async () => {
+    const certificate = { status: 'unique', model: 'dlx-v1', rowLimit: 10000, verified: true };
+    const unique = await hellRun({ uniqueness: 'require', calibration: hellCalibration({ certificate }) });
+    assert.ok(unique.candidates.length >= 12);
+    assert.ok(unique.candidates.every((t) => t.payload.igPrior === 6));
+    const multiple = await hellRun({ uniqueness: 'require', calibration: hellCalibration({ certificate: { ...certificate, status: 'multiple' } }) });
+    assert.ok(multiple.candidates.length >= 12);
+    assert.ok(multiple.candidates.every((t) => !('igPrior' in t.payload)));
+  });
+
+  test('Nightmare uses the table', async () => {
+    const { candidates } = await hellRun({
+      targetLevelId: 'nightmare',
+      calibration: hellCalibration({ rating: { ...fixture().calibration.rating, level: 'nightmare' } }),
+    });
+    assert.ok(candidates.length >= 12);
+    assert.ok(candidates.every((t) => !('igPrior' in t.payload)));
   });
 
   test('a newer request supersedes the old one and its late replies are ignored', async () => {

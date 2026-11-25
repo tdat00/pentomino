@@ -7,6 +7,7 @@ import { activeCount } from './board.js';
 import { certify, countRowLimit, selectClues } from './clues.js';
 import { carveFlatSet, carveMacro, finalizeSet, validateSet } from './carve.js';
 import { MODEL } from './difficulty.js';
+import { PER_SET_LEVELS, perSetPrior } from './gen-v4.js';
 import { clueKey, layoutKey, minLayoutDistance, puzzleId } from './keys.js';
 import { level } from './levels.js';
 import { PROVENANCE } from './pack.js';
@@ -177,6 +178,7 @@ export function setAttempt(req, attempt, observe = {}) {
       solution: witness,
       rating: cal.rating,
       certificate: cal.certificate,
+      igWindow: cal.igWindow ?? null,
     },
     attempt,
     counters: cal.counters ?? ZERO_COUNTERS,
@@ -266,6 +268,7 @@ export function puzzleCandidate(ctx, slot, attempt, observe = {}) {
     record,
     recordSource: 'candidate',
     replaySkips,
+    ...(ctx.igPrior === undefined ? {} : { igPrior: ctx.igPrior }),
     charge,
   });
   const counters = sel.counters ?? ZERO_COUNTERS;
@@ -698,7 +701,10 @@ export function dispatchOrder(s, have, limit) {
  */
 export function runFold(ctx, candidate = puzzleCandidate) {
   let s = foldStart(ctx);
-  const frozen = candidateContext(ctx, s);
+  const frozen = {
+    ...candidateContext(ctx, s),
+    ...(PER_SET_LEVELS.includes(ctx.targetLevelId) ? perSetPrior(ctx.calibration, ctx.targetLevelId, ctx.uniqueness) : {}),
+  };
   for (let next = foldNext(s); next !== null; next = foldNext(s)) {
     s = foldAccept(s, candidate(frozen, next.slot, next.attempt));
   }
