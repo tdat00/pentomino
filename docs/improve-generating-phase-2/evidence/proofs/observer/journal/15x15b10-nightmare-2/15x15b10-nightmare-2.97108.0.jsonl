@@ -1,0 +1,8 @@
+{"t":"worker","pid":97108,"threadId":0,"at":1795638081981.3438}
+{"t":"start","call":"15x15b10-nightmare-2:97108:0:6","stage":"set","attempt":0,"level":"nightmare","A":215,"at":1795638081981.3267}
+{"t":"caps","call":"15x15b10-nightmare-2:97108:0:6","count":true}
+{"t":"begin","call":"15x15b10-nightmare-2:97108:0:6","kind":"screen","bound":2369188769}
+{"t":"p","call":"15x15b10-nightmare-2:97108:0:6","i":0,"tuple":["call",4,"capped",null,190083357,0]}
+{"t":"begin","call":"15x15b10-nightmare-2:97108:0:6","kind":"screen","bound":2092263743}
+{"t":"p","call":"15x15b10-nightmare-2:97108:0:6","i":1,"tuple":["call",5,"rated",68,32922784,8981593]}
+{"t":"end","call":"15x15b10-nightmare-2:97108:0:6","result":"ok","work":231987734,"profiles":2,"locate":{"countWork":0},"igNoWindow":null,"budgetStop":false,"clueCount":5,"at":1795638082845.809}

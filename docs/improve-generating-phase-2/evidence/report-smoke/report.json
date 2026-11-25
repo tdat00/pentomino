@@ -1,0 +1,197 @@
+{
+  "stage": "smoke",
+  "status": "complete",
+  "snapshots": [
+    {
+      "path": "rows-smoke/A.jsonl",
+      "sha256": "5cfd937b5e9f3a92af1b51b13c5f2939c1219a4c1dea16c2b49bab1d018f6999"
+    }
+  ],
+  "bindings": [],
+  "equality": [
+    {
+      "key": "smoke/gen-v4/10x10-master/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-10x10-master.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/10x10-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-10x10-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/14x14-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/15x20-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x20-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/18x18-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x18-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/20x20-hell-1/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-hell-1.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/22x22-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/26x26-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-26x26-nightmare.runs.json",
+      "verdict": "equal"
+    }
+  ],
+  "gates": [
+    {
+      "id": "S1",
+      "stage": "smoke",
+      "status": "pass",
+      "rows": [],
+      "detail": {
+        "bundles": [
+          "observer",
+          "certificate",
+          "prior-replay",
+          "legacy"
+        ],
+        "problems": []
+      }
+    },
+    {
+      "id": "S2",
+      "stage": "smoke",
+      "status": "pass",
+      "rows": [
+        "smoke/gen-v4/14x14-nightmare/20",
+        "smoke/gen-v4/10x10-nightmare/20",
+        "smoke/gen-v4/18x18-nightmare/20",
+        "smoke/gen-v4/22x22-nightmare/20",
+        "smoke/gen-v4/26x26-nightmare/20",
+        "smoke/gen-v4/20x20-hell-1/20",
+        "smoke/gen-v4/15x20-nightmare/20",
+        "smoke/gen-v4/10x10-master/20"
+      ],
+      "detail": {
+        "verdicts": [
+          "equal",
+          "equal",
+          "equal",
+          "equal",
+          "equal",
+          "equal",
+          "equal",
+          "equal"
+        ],
+        "problems": []
+      }
+    },
+    {
+      "id": "A1",
+      "stage": "A",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "A2",
+      "stage": "A",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "A3",
+      "stage": "A",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "A4",
+      "stage": "A",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "A5",
+      "stage": "A",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "A6",
+      "stage": "A",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B1",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B2",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B3",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B4",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B5",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B6",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B7",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B8",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    }
+  ],
+  "ledger": "A spent 1700.617 s (28.344 min) authorization 24600.000 s (410.000 min) remaining 22899.383 s (381.656 min)\nB spent 0.000 s (0.000 min) authorization 24120.000 s (402.000 min) remaining 24120.000 s (402.000 min)"
+}

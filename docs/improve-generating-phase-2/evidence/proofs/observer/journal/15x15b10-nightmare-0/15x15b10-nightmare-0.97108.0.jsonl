@@ -1,0 +1,10 @@
+{"t":"worker","pid":97108,"threadId":0,"at":1795638057671.9973}
+{"t":"start","call":"15x15b10-nightmare-0:97108:0:4","stage":"set","attempt":0,"level":"nightmare","A":215,"at":1795638057671.9822}
+{"t":"caps","call":"15x15b10-nightmare-0:97108:0:4","count":true}
+{"t":"begin","call":"15x15b10-nightmare-0:97108:0:4","kind":"screen","bound":2672833567}
+{"t":"p","call":"15x15b10-nightmare-0:97108:0:4","i":0,"tuple":["call",4,"capped",null,190117518,0]}
+{"t":"begin","call":"15x15b10-nightmare-0:97108:0:4","kind":"screen","bound":2333418333}
+{"t":"p","call":"15x15b10-nightmare-0:97108:0:4","i":1,"tuple":["call",5,"capped",null,190073026,0]}
+{"t":"begin","call":"15x15b10-nightmare-0:97108:0:4","kind":"screen","bound":1753544143}
+{"t":"p","call":"15x15b10-nightmare-0:97108:0:4","i":2,"tuple":["call",7,"rated",61,86022779,22000483]}
+{"t":"end","call":"15x15b10-nightmare-0:97108:0:4","result":"ok","work":488213806,"profiles":3,"locate":{"countWork":0},"igNoWindow":null,"budgetStop":false,"clueCount":7,"at":1795638059162.5293}

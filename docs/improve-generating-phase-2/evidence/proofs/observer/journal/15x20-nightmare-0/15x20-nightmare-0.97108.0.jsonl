@@ -1,0 +1,6 @@
+{"t":"worker","pid":97108,"threadId":0,"at":1795638127688.5708}
+{"t":"start","call":"15x20-nightmare-0:97108:0:10","stage":"set","attempt":0,"level":"nightmare","A":300,"at":1795638127688.553}
+{"t":"caps","call":"15x20-nightmare-0:97108:0:10","count":true}
+{"t":"begin","call":"15x20-nightmare-0:97108:0:10","kind":"rate","bound":8082256844}
+{"t":"p","call":"15x20-nightmare-0:97108:0:10","i":0,"tuple":["call",5,"rated",60,17782823,15537490]}
+{"t":"end","call":"15x20-nightmare-0:97108:0:10","result":"ok","work":33320313,"profiles":1,"locate":{"countWork":0},"igNoWindow":null,"budgetStop":false,"clueCount":5,"at":1795638127852.0916}
