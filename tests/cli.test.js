@@ -287,4 +287,9 @@ describe('request scope', () => {
       );
     }
   });
+
+  test('the CLI scope is off on the full 26x26 board', () => {
+    const client = { newScope: (/** @type {boolean} */ r) => ({ origin: 0, setCutAt: r ? 46000 : null }) };
+    assert.equal(cliScope(/** @type {any} */ (client), 'nightmare', rectRows(26, 26)), undefined);
+  });
 });

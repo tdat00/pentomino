@@ -137,14 +137,14 @@ sealing is written once, with exact commands.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w3, 6c039dec1f04072b0e8bcdf52b0c2347ab58485b |
+| Start, end, duration | dispatched 2026-11-26 01:46 +07:00 (developer 01:46:45 to 01:54:43); accepted 01:56 |
+| Waiting for rulings | none |
+| Agent id, model | 73574cdc-c3d8-4795-93ec-ccf12c82f701, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 40; 3,489,873 / 28,457 / 3,366,634 |
+| AI credits | 92.93 |
+| Questions and rulings | none; six minor deviations accepted by the orchestrator (layoutKey and clueKey from batch.seenLayouts and seenClues, scores from accepted; the gen-v4 version assertion on candidate records only, at least one per run; the width case passes no scope as step 1 lists; one cut message per cut run; gates.md expected outputs from the code and the copy checks; cases placed in the existing describe blocks) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked full suite (full-suite point) and G-COPIES (results in the bookkeeping); developer: locked focused 60/60 (123.592 s), locked full suite 1629/1629 (138.641 s), G-PROTECTED, G-WORKTREE, G-FORMAT (4 files), G-CHECK OK, copies 195 and 32 edits; slow cases: fold sizes 95.7 s, real pool widths 23.5 s |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | the fold case takes about 95 s against the 120-s stop point (load sensitive); gate 2 of gates.md runs only when all ten phase-2 test files exist (P2-12c's proofs test) |

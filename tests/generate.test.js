@@ -898,6 +898,26 @@ describe('deterministic parallel simulation', () => {
       }
     });
   }
+
+  test('slow: gen-v4 fold sizes 1, 2, 4 and 8 agree on 10x10 Nightmare', () => {
+    const seedText = 'p2-16a/fold';
+    const r = setAttempt({ board: rectangle(10, 10), rotation: 0, levelId: 'nightmare', seedText, uniqueness: 'any', execution }, 0);
+    assert.ok(r.ok);
+    /** @type {BatchContext} */
+    const ctx = {
+      set: r.set, targetLevelId: 'nightmare', quantity: 3, batchSeed: `${seedText}#1`, uniqueness: 'any',
+      seenLayouts: new Set(), seenClues: new Set(), calibration: r.calibration, execution,
+    };
+    const serial = runFold(ctx);
+    assert.ok(serial.accepted.length >= 1, 'the serial reference produces puzzles');
+    const want = summary(serial);
+    const memo = /** @type {Map<string, PuzzleCandidate | { fail: string }>} */ (new Map());
+    for (const width of [1, 2, 4, 8]) {
+      for (const order of ['a', 'b']) {
+        assert.equal(summary(simulate(ctx, memo, width, `${order}${width}`)), want, `width ${width} order ${order}`);
+      }
+    }
+  });
 });
 
 describe('recorded generation fixture', () => {
