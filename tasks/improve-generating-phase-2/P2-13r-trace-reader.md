@@ -146,10 +146,10 @@ None here; P2-17 documents `tools/ig-proto/phase2/` in `tools/ig-proto/README.md
 | Start, end, duration | dispatched 2026-11-25 22:01 +07:00; developer 22:01:54 to about 22:05, fix round to about 22:31; accepted 22:33; about 32 min |
 | Waiting for rulings | about 10 min (SA-Opus ruling on the deviations) |
 | Agent id, model | 6b40a2d0-7019-410f-917d-bc774ce32d9a, claude-sonnet-5.5 |
-| Calls; input, output and cache-read tokens | see the bookkeeping (usage read after the fix round) |
-| AI credits | see the bookkeeping |
+| Calls; input, output and cache-read tokens | 17; 1,232,241 / 27,349 / 1,137,710 |
+| AI credits | 62.36 |
 | Questions and rulings | no QUESTION; SA-Opus ruling: deviations 1-5 and the two gaps accepted; one fix: a row file with more than one parsed line adds `row line mismatch` (case `a second row line is a mismatch`); no contract change (C3, C9) |
 | Fix rounds | 1 |
-| Gates re-run by the orchestrator (merge gate) | static guards in the slot; merge gate after rebase: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT and the locked gate with every phase-2 test file (trace-reader.test.mjs), 600-s limit; developer run 15/15 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 3 files); rebased onto ec8c583 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked `IG P2-13r merge exit=0 seconds=0.341 quiet=45`, every phase-2 test file (trace-reader.test.mjs) 15/15 pass |
+| Commit (slot), commit on `gen-v4` | slot 0cbf896, rebased fb67ba0; gen-v4 fb67ba0aba87ed85c8e85b677b0ef66ededbe2e2 |
 | Issues and named items | none; P2-13b, P2-13c and P2-13f read rows only through rowWork; P2-17 documents the module |

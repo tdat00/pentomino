@@ -213,6 +213,6 @@ No other document.
 | AI credits | 43.69 |
 | Questions and rulings | none; no deviations |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | static guards in the slot (G-PROTECTED, G-WORKTREE, G-FORMAT, G-CHECK); merge gate after rebase: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT and the locked focused gate tests/gen-v4.test.js + tests/benchmark-report.test.js (results in the bookkeeping) |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (G-PROTECTED, G-WORKTREE, format OK 5 files, G-CHECK); no rebase needed; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked `IG P2-01 merge exit=0 seconds=0.26 quiet=45`, tests/gen-v4.test.js + tests/benchmark-report.test.js 38/38 pass, 0 fail/cancelled/todo |
+| Commit (slot), commit on `gen-v4` | slot c4d74b4 (no rebase needed); gen-v4 c4d74b4aff5be78a87cf131a629eba2195ae45a8 |
 | Issues and named items | none; developer note: hostMarginMs 1000 follows the task text (not in freeze.json deadline; consistent with P2-10/P2-11a) |

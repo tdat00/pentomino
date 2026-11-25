@@ -151,6 +151,6 @@ deviations.
 | AI credits | 37.32 |
 | Questions and rulings | none; three minor deviations accepted by the orchestrator (non-behavioural): RangeError check placed first as the task text requires; the cap case skips recipes with main work <= 1 (none occurred); G-PROTECTED base 97a6326 as the pack writes |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | static guards in the slot; merge gate after rebase: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT and the locked focused gate tests/screen-rating.test.js + tests/difficulty.test.js + tests/difficulty-v3.test.js (results in the bookkeeping); developer run 39/39, 106.75 s |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 4 files); rebased onto c4d74b4 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked `IG P2-03 merge exit=0 seconds=105.928 quiet=45`, screen-rating + difficulty + difficulty-v3 39/39 pass, 0 fail/cancelled/todo |
+| Commit (slot), commit on `gen-v4` | slot 5b5f13e, rebased ec8c583; gen-v4 ec8c5830ddf586acdae0e089a9b3d56905472af8 |
 | Issues and named items | none; W 190,000,000 and screen-v4-v1 are documented only, applied by later tasks |

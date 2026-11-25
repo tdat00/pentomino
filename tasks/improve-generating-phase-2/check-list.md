@@ -37,7 +37,7 @@ order and the merges.
 
 ### Lane S (selector)
 
-- [ ] P2-01 `gen-v4.js`: the frozen values, the route, the per-set rule and the family predicate (starts at the pack commit)
+- [x] P2-01 `gen-v4.js`: the frozen values, the route, the per-set rule and the family predicate (starts at the pack commit)
 - [ ] P2-02 Shared clue primitives, the retained `gen-v3` selector and the dispatcher (starts when P2-01 is merged)
 - [ ] P2-04 `select-v4.js`: the port of the frozen selector, with its two observer events (P2-02, P2-03)
 - [ ] P2-05a `select-v4.js`: the frozen synthetic vectors (P2-04)
@@ -57,8 +57,8 @@ order and the merges.
 
 ### Lane T (tooling)
 
-- [ ] P2-03 The screen rating with its certificate, composed with P6 (starts at the pack commit)
-- [ ] P2-13r The trace reader on the frozen work-ledger rules (starts at the pack commit)
+- [x] P2-03 The screen rating with its certificate, composed with P6 (starts at the pack commit)
+- [x] P2-13r The trace reader on the frozen work-ledger rules (starts at the pack commit)
 - [ ] P2-13v The binding verifiers: rows, proofs, replay probes and browser checks (starts at the pack commit)
 - [ ] P2-16e The browser runner (starts at the pack commit)
 - [ ] P2-13a The driver: plan, seal, ledger and the locked wrapper (P2-13r)
@@ -576,9 +576,9 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 
 | ID | Slot, base | Start | End | Duration | AI credits | Commit on `gen-v4` |
 |---|---|---|---|---|---|---|
-| P2-01 | | | | | | |
+| P2-01 | w1, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:20 | about 19 min | 43.69 | c4d74b4 |
 | P2-02 | | | | | | |
-| P2-03 | | | | | | |
+| P2-03 | w3, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:27 | about 26 min | 37.32 | ec8c583 |
 | P2-04 | | | | | | |
 | P2-05a | | | | | | |
 | P2-05b | | | | | | |
@@ -594,7 +594,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-12c | | | | | | |
 | P2-12d | | | | | | |
 | P2-12e | | | | | | |
-| P2-13r | | | | | | |
+| P2-13r | w2, 203f5ca | 2026-11-25 22:01 | 2026-11-25 22:35 | about 34 min | 62.36 | fb67ba0 |
 | P2-13v | | | | | | |
 | P2-13a | | | | | | |
 | P2-13b | | | | | | |
