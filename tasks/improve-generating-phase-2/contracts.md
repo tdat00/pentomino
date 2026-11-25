@@ -324,7 +324,12 @@ Stage B: PROCEED
   `{ format: 'p2-browser', version: 1, page, check, status, durationMs, startedAt, endedAt, edgePid, consoleLines, cleanup, sources: [{ path, sha256 }] }`,
   with `status` `pass`, `fail`, `timeout` or `error`.
 - `consoleLines` is an array of strings: the text of each `Runtime.consoleAPICalled` event, one string per event, in
-  arrival order (ruling on P2-13v, 2026-11-25). A non-string entry is not a reading.
+  arrival order (ruling on P2-13v, 2026-11-25). A non-string entry is not a reading. An event's text is its arguments
+  joined by one space: a string argument's value, otherwise its `description` (ruling on P2-16e).
+- `startedAt` is the run's start, before Edge launches, and the `--timeout-s` watchdog runs from it; `endedAt` is the
+  moment the status is decided, before cleanup; `durationMs` is `endedAt` minus `startedAt` (ruling on P2-16e).
+- `cleanup` is `null` when Edge exited and the profile folder was removed; otherwise a string naming what was left (a
+  profile folder, or an Edge still running after `taskkill`).
 - The page's own reading is its console line `CHECK-END PASS|FAIL <s> s <name>` (the `tests/browser/watchdog.js`
   convention).
 - `sources` hash each text after `lf`: the page, every file of `tests/browser/` whose name starts with the page's base

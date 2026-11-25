@@ -80,6 +80,10 @@ Every block starts with P2-18's preamble.
    }
    ```
 
+   Then, for each receipt whose `cleanup` is not `null` (`contracts.md` C16), the orchestrator runs
+   `Get-Process -Id <edgePid> -ErrorAction SilentlyContinue`. A process still found is ended with
+   `taskkill /PID <edgePid> /T /F`, its own tree only, before stage B, and the readout lists it.
+
 4. **Publish and report:**
 
    ```powershell
