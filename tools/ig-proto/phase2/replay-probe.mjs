@@ -54,6 +54,7 @@ import { parseArgs } from '../lib/paths.mjs';
  * @property {'ok' | 'exceeded' | null} margin
  * @property {string[]} exceeded The limits named by an exceeded margin.
  * @property {number | null} seconds
+ * @property {number | null} setSeconds Seconds from the item's start to the set's answer, when a set was made.
  */
 
 /**
@@ -67,13 +68,16 @@ import { parseArgs } from '../lib/paths.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..', '..');
 const DEFAULT_TREES = join(ROOT, 'tests', 'artifacts', 'ig-proto', 'phase2', 'trees');
-const USAGE = 'usage: node tools\\ig-proto\\phase2\\replay-probe.mjs --all --out <dir> [--trees <dir>] | --item <n> --out <dir> [--trees <dir>]';
+const USAGE = 'usage: node tools\\ig-proto\\phase2\\replay-probe.mjs --all --out <dir> [--trees <dir>] | --item <n> --out <dir> [--trees <dir>] [--seed-index <0 to 3>]';
 
 /** The original horizon, the price proxy of one item and the admission reserve (R1), in seconds. */
 export const HORIZON_S = 885;
 export const ITEM_PRICE_S = 120;
 export const RESERVE_S = 10;
 export const QUANTITY = 4;
+
+/** The seed index of the items whose index 0 made no set within the stop (the seed rule of the ruling of 2026-11-26); every other item keeps 0. */
+const SEED_INDEX = Object.freeze(/** @type {Record<number, number>} */ ({ 5: 1, 7: 3, 8: 1 }));
 
 /** @type {readonly Item[]} */
 export const ITEMS = Object.freeze([
@@ -91,9 +95,21 @@ export const ITEMS = Object.freeze([
   cell,
   uniqueness: /** @type {'any' | 'require'} */ (uniqueness),
   copy,
-  seed: `p2-replay/${cell}/0`,
+  seed: `p2-replay/${cell}/${SEED_INDEX[i + 1] ?? 0}`,
   quantity: QUANTITY,
 })));
+
+/**
+ * @param {Item} item
+ * @param {number} index 0 to 3.
+ * @returns {Item} The item with the seed `p2-replay/<cell>/<index>` (the seed rule's search; `--item` only).
+ */
+export function withSeedIndex(item, index) {
+  if (!Number.isInteger(index) || index < 0 || index > 3) {
+    throw new RangeError(`seed index ${index} is not 0 to 3`);
+  }
+  return { ...item, seed: `p2-replay/${item.cell}/${index}` };
+}
 
 /**
  * @param {{ steps: number, bytes: number, work: number }} maxima
@@ -153,9 +169,10 @@ export function parseCell(cell) {
  * accepted puzzle (R10).
  * @param {Item} item
  * @param {Handle} handle
- * @returns {Promise<Pick<ItemRecord, 'status' | 'reason' | 'detail' | 'batchStatus' | 'puzzles' | 'maxima' | 'margin' | 'exceeded'>>}
+ * @param {() => number} since Seconds since the item's start.
+ * @returns {Promise<Pick<ItemRecord, 'status' | 'reason' | 'detail' | 'batchStatus' | 'puzzles' | 'maxima' | 'margin' | 'exceeded' | 'setSeconds'>>}
  */
-async function measure(item, handle) {
+async function measure(item, handle, since) {
   const { client, utf8Length } = handle;
   const { cols, rows, levelId } = parseCell(item.cell);
   const none = { puzzles: [], maxima: null, margin: null, exceeded: [] };
@@ -164,9 +181,10 @@ async function measure(item, handle) {
   });
   if (made.status !== 'complete' || made.set === undefined) {
     return {
-      status: 'not-measured', reason: 'no set', detail: `the set request ended ${made.status}${made.reason === undefined ? '' : ` (${made.reason})`}`, batchStatus: null, ...none,
+      status: 'not-measured', reason: 'no set', detail: `the set request ended ${made.status}${made.reason === undefined ? '' : ` (${made.reason})`}`, batchStatus: null, setSeconds: null, ...none,
     };
   }
+  const setSeconds = Math.round(since() * 1000) / 1000;
   const batch = await client.generateBatch({
     set: made.set,
     rotation: 0,
@@ -186,7 +204,7 @@ async function measure(item, handle) {
   const batchStatus = typeof batch.status === 'string' ? batch.status : null;
   if (accepted.length === 0) {
     return {
-      status: 'not-measured', reason: 'no puzzle', detail: `the batch ended ${batchStatus}${batch.reason === undefined ? '' : ` (${batch.reason})`} with no accepted puzzle`, batchStatus, ...none,
+      status: 'not-measured', reason: 'no puzzle', detail: `the batch ended ${batchStatus}${batch.reason === undefined ? '' : ` (${batch.reason})`}       with no accepted puzzle`, batchStatus, setSeconds, ...none,
     };
   }
   /** @type {Puzzle[]} */
@@ -196,7 +214,7 @@ async function measure(item, handle) {
     const steps = Array.isArray(result.steps) ? result.steps : [];
     return { id: puzzle.id, kind: record?.kind ?? 'unknown', status: result.status, steps: steps.length, bytes: utf8Length(JSON.stringify(steps)), work: result.work };
   }));
-  return { batchStatus, puzzles, ...judgePuzzles(puzzles) };
+  return { batchStatus, setSeconds, puzzles, ...judgePuzzles(puzzles) };
 }
 
 /** @param {string} path @param {unknown} value */
@@ -264,6 +282,7 @@ export async function runProbes(o) {
     margin: null,
     exceeded: [],
     seconds: null,
+    setSeconds: null,
   });
 
   /** @param {Item} item @returns {ItemRecord | null} The recorded result of the item, or null when there is none. */
@@ -307,7 +326,7 @@ export async function runProbes(o) {
     let handle = null;
     try {
       handle = await makeClient(item, lane);
-      const result = await measure(item, handle);
+      const result = await measure(item, handle, () => (now() - started) / 1000);
       record = { ...unmeasured(item, lane, 'failed', ''), ...result, copy: { id: item.copy, treeId: handle.treeId } };
     } catch (e) {
       record = { ...unmeasured(item, lane, 'failed', 'error'), detail: e instanceof Error ? `${e.name}: ${e.message}`.replace(/\s+/g, ' ').slice(0, 300) : String(e) };
@@ -356,17 +375,20 @@ async function main(argv) {
   /** @type {ReturnType<typeof parseArgs>} */
   let parsed;
   try {
-    parsed = parseArgs(argv, { values: ['out', 'trees', 'item'], switches: ['all'] });
+    parsed = parseArgs(argv, { values: ['out', 'trees', 'item', 'seed-index'], switches: ['all'] });
   } catch {
     console.error(USAGE);
     return 2;
   }
   const { args, on, rest } = parsed;
-  const one = args.item === undefined ? null : ITEMS.find((i) => String(i.n) === args.item);
-  if (rest.length > 0 || args.out === undefined || on.has('all') === (args.item !== undefined) || one === undefined) {
+  const found = args.item === undefined ? null : ITEMS.find((i) => String(i.n) === args.item);
+  const seedIndex = args['seed-index'];
+  if (rest.length > 0 || args.out === undefined || on.has('all') === (args.item !== undefined) || found === undefined
+    || (seedIndex !== undefined && (found === null || !/^[0-3]$/.test(seedIndex)))) {
     console.error(USAGE);
     return 2;
   }
+  const one = found !== null && seedIndex !== undefined ? withSeedIndex(found, Number(seedIndex)) : found;
   const out = resolve(args.out);
   const trees = resolve(args.trees ?? DEFAULT_TREES);
   const chosen = one === null ? ITEMS : [one];

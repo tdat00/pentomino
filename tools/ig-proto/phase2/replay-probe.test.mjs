@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 import { REPLAY } from '../../../core/engine/policy.js';
 import { REPLAY_ITEMS } from './binding.mjs';
-import { ITEMS, judgePuzzles, marginOf, runProbes } from './replay-probe.mjs';
+import { ITEMS, judgePuzzles, marginOf, runProbes, withSeedIndex } from './replay-probe.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const RUN = join(REPO, 'tests', 'artifacts', 'ig-proto', 'phase2', 'self-test', `replay-probe-${Date.now()}`);
@@ -34,7 +34,10 @@ function fakes(o = {}) {
       await tick();
       const behave = o.behave?.(item) ?? {};
       const client = {
-        generateSet: async () => ({ status: 'complete', set: { pieces: [] }, calibration: {}, attempt: 1, setOrigin: {}, ...behave.set }),
+        generateSet: async () => {
+          behave.onSet?.();
+          return { status: 'complete', set: { pieces: [] }, calibration: {}, attempt: 1, setOrigin: {}, ...behave.set };
+        },
         generateBatch: async () => ({
           status: 'complete',
           accepted: [{ id: 'a' }, { id: 'b' }],
@@ -64,14 +67,31 @@ describe('the replay-resource probes', () => {
         [2, 'any', '20x20-hell-1', 'any', 'p2-gen4-diag', 'p2-replay/20x20-hell-1/0', 4],
         [3, 'any', '24x24-nightmare', 'any', 'p2-gen4', 'p2-replay/24x24-nightmare/0', 4],
         [4, 'any', '22x22-nightmare', 'any', 'p2-gen4', 'p2-replay/22x22-nightmare/0', 4],
-        [5, 'require', '22x22-hell-1', 'require', 'p2-gen4-diag', 'p2-replay/22x22-hell-1/0', 4],
+        [5, 'require', '22x22-hell-1', 'require', 'p2-gen4-diag', 'p2-replay/22x22-hell-1/1', 4],
         [6, 'require', '32x15-hell-1', 'require', 'p2-gen4-diag', 'p2-replay/32x15-hell-1/0', 4],
-        [7, 'require', '22x22-nightmare', 'require', 'p2-gen4', 'p2-replay/22x22-nightmare/0', 4],
-        [8, 'require', '32x15-nightmare', 'require', 'p2-gen4', 'p2-replay/32x15-nightmare/0', 4],
+        [7, 'require', '22x22-nightmare', 'require', 'p2-gen4', 'p2-replay/22x22-nightmare/3', 4],
+        [8, 'require', '32x15-nightmare', 'require', 'p2-gen4', 'p2-replay/32x15-nightmare/1', 4],
       ],
     );
     assert.ok(ITEMS.every((i) => !i.seed.startsWith('landscape/')));
     assert.deepEqual(ITEMS.map(({ n, cell, uniqueness, copy }) => ({ n, cell, uniqueness, copy })), REPLAY_ITEMS.map((i) => ({ ...i })));
+  });
+
+  it('a seed index overrides one item\'s seed', () => {
+    const item = withSeedIndex(ITEMS[4], 2);
+    assert.equal(item.seed, 'p2-replay/22x22-hell-1/2');
+    assert.deepEqual({ ...item, seed: ITEMS[4].seed }, ITEMS[4]);
+    assert.throws(() => withSeedIndex(ITEMS[4], 4), RangeError);
+    assert.throws(() => withSeedIndex(ITEMS[4], -1), RangeError);
+  });
+
+  it('the set time is recorded', async () => {
+    const clock = { ms: 0 };
+    const answered = await runProbes({ out: outOf('set-time'), items: [ITEMS[0]], ...fakes({ behave: () => ({ onSet: () => { clock.ms = 30000; } }) }), now: () => clock.ms });
+    assert.equal(answered.items[0].setSeconds, 30);
+    const none = await runProbes({ out: outOf('set-none'), items: [ITEMS[0]], ...fakes({ behave: () => ({ set: { status: 'failed', reason: 'time-limit', set: undefined } }) }), now: () => 0 });
+    assert.equal(none.items[0].setSeconds, null);
+    assert.equal(none.items[0].reason, 'no set');
   });
 
   it('two lanes, two groups', async () => {
