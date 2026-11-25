@@ -87,6 +87,7 @@ This task is the documentation.
 |---|---|---|---|
 | the two sentence checks | root | one hit each | 30 s |
 | G-CHECK, G-PROTECTED, G-WORKTREE, G-FORMAT | §3.4 | OK lines | 2 min |
+| the merge order and the usage check (the orchestrator; ruling on P2-17, 2026-11-26) | main worktree | P2-17 merges after the P2-14b fix round, on the rebased branch. `tools/ig-proto/README.md` is a sealed input (`tools/ig-proto/`, C13), so its two `replay-probe.mjs` command lines must equal the merged script's usage. Run `node tools\ig-proto\phase2\replay-probe.mjs` with no argument: exit 2, and it prints the usage. A difference is a doc fix round before the seal | 1 min |
 
 ## Stop points and questions
 

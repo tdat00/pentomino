@@ -323,9 +323,13 @@ foreach ($line in $wt) {
 ```powershell
 $FormatFiles = @(git --no-pager -c core.quotepath=false status --porcelain=v1 --untracked-files=all | ForEach-Object { $_.Substring(3) } | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
 if ($FormatFiles.Count -eq 0) { throw 'QUESTION: G-FORMAT: no changed files' }
-node --input-type=module -e "import { readFileSync } from 'node:fs'; import { checkText } from './tools/check-conventions.mjs'; let bad = 0; for (const f of process.argv.slice(1)) { const b = readFileSync(f); const t = b.toString('utf8'); const p = checkText(f, b); if (b.includes(10) && !t.includes('\r\n')) p.push(f + ': LF line endings, not CRLF'); if (b[0] === 0xef && b[1] === 0xbb && b[2] === 0xbf) p.push(f + ': BOM'); t.replace(/\r\n/g, '\n').split('\n').forEach((l, i) => { const m = f + ':' + (i + 1) + ': trailing whitespace'; if (/[ \t]+$/.test(l) && !p.includes(m)) p.push(m); }); for (const x of p) { console.error(x); bad += 1; } } console.log(bad ? 'format: ' + bad + ' problem(s)' : 'format: OK (' + (process.argv.length - 1) + ' files)'); process.exitCode = bad ? 1 : 0;" @FormatFiles
+node --input-type=module -e "import { readFileSync } from 'node:fs'; import { checkText } from './tools/check-conventions.mjs'; let bad = 0; for (const f of process.argv.slice(1)) { const b = readFileSync(f); const t = b.toString('utf8'); const p = checkText(f, b); if (b.includes(10) && !t.includes('\r\n')) p.push(f + ': LF line endings, not CRLF'); if (b[0] === 0xef && b[1] === 0xbb && b[2] === 0xbf) p.push(f + ': BOM'); t.replace(/\r\n/g, '\n').split('\n').forEach((l, i) => { const m = f + ':' + (i + 1) + ': trailing whitespace'; if (/[ \t]+$/.test(l) && !(/\.md$/i.test(f) && /\S  $/.test(l)) && !p.includes(m)) p.push(m); }); for (const x of p) { console.error(x); bad += 1; } } console.log(bad ? 'format: ' + bad + ' problem(s)' : 'format: OK (' + (process.argv.length - 1) + ' files)'); process.exitCode = bad ? 1 : 0;" @FormatFiles
 if ($LASTEXITCODE -ne 0) { throw 'QUESTION: G-FORMAT failed' }
 ```
+
+A Markdown line that ends in exactly two spaces after text is a hard line break. The repository's own check allows it
+(`tools/check-conventions.mjs`, the `hardBreak` rule), so G-FORMAT allows it too; any other trailing whitespace is a
+problem (ruling on P2-17, 2026-11-26).
 
 **G-FORMAT-COMMIT** (the merge gate, §3.7): the same `node` one-liner over the task commit's files,
 `$FormatFiles = @(git --no-pager -c core.quotepath=false diff --name-only --diff-filter=AM gen-v4 HEAD)`; an empty
