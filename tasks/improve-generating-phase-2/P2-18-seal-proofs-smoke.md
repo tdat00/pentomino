@@ -33,6 +33,11 @@ validation as a port defect before the expensive stages.
 - The orchestrator writes `E/plan/`, `E/seal/`, `E/proofs/<bundle>/`, `E/ledger/ledger.jsonl`, `E/rows-smoke/` and
   `E/report-smoke/`, fills this task's log, and commits once.
 - No source file changes. A needed change is a new source epoch (check-list §3.5).
+- **One configuration line (ruling on P2-18, 2026-11-26).** The observer's worker journals
+  (`E/proofs/observer/journal/<case>/*.jsonl`) are raw trace output with LF line ends. Under `core.autocrlf=true` and
+  `core.safecrlf=true`, git refuses to add them. Step 6 therefore appends one line to `.gitattributes` so that git
+  stores and checks them out byte for byte. `.gitattributes` is neither a source file nor a sealed input, and changes
+  no sealed hash: `seal --check` and every reader see the same bytes.
 
 ## Steps
 
@@ -95,7 +100,10 @@ $rg = Join-Path $root 'tools\ig-proto\phase2\run-group.ps1'
 6. **One commit**, after both reply "proceed":
 
    ```powershell
-   git add -- docs/improve-generating-phase-2/evidence/plan docs/improve-generating-phase-2/evidence/seal docs/improve-generating-phase-2/evidence/proofs docs/improve-generating-phase-2/evidence/ledger docs/improve-generating-phase-2/evidence/rows-smoke docs/improve-generating-phase-2/evidence/report-smoke tasks/improve-generating-phase-2/P2-18-seal-proofs-smoke.md
+   # The observer's worker journals keep their LF bytes (ruling on P2-18, 2026-11-26); .gitattributes ends in CRLF.
+   Add-Content -LiteralPath .gitattributes -Value 'docs/improve-generating-phase-2/evidence/proofs/*/journal/** -text' -Encoding utf8NoBOM
+   git check-attr text -- docs/improve-generating-phase-2/evidence/proofs/observer/journal/14x14-nightmare-0/14x14-nightmare-0.97108.0.jsonl
+   git add -- .gitattributes docs/improve-generating-phase-2/evidence/plan docs/improve-generating-phase-2/evidence/seal docs/improve-generating-phase-2/evidence/proofs docs/improve-generating-phase-2/evidence/ledger docs/improve-generating-phase-2/evidence/rows-smoke docs/improve-generating-phase-2/evidence/report-smoke tasks/improve-generating-phase-2/P2-18-seal-proofs-smoke.md
    if ($LASTEXITCODE -ne 0) { throw 'STOP: git add' }
    git commit -m "improve-generating-phase-2 P2-18: seal, proofs and stage A's first group" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`nCopilot-Session: 7e6bf34f-be87-427e-9bec-bb2d049b46cc"
    if ($LASTEXITCODE -ne 0) { throw 'STOP: commit' }
@@ -162,13 +170,13 @@ None.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | the orchestrator |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-26 03:09 +07:00 (gates) to 03:54 (both SAs: proceed); about 46 min |
+| Waiting for rulings | about 5 min (the SAs' reading, step 5) |
+| Agent id, model | the orchestrator (main session); readers SA-Opus a607e081 (claude-opus-5.5) and SA-Astra 56d9faa7 (gpt-6-astra) |
+| Calls; input, output and cache-read tokens | orchestrator session; not separated per task |
+| AI credits | orchestrator session; not separated per task |
+| Questions and rulings | none during the task. SA-Astra, verbatim: "proceed". SA-Opus: "proceed"; verified the seal (bca8cfd2..., commit fa0bda2, plan 8f3834e9..., six copies verified, no rehearsal build; seal --check OK), the four proofs (status pass, quick false, source digest 9bacb125... and tree ids match the seal; observer units equal with complete journals; prior-replay priors 15, 12, 13, 14 dispatched, stored and started equal, 24/24 matched; legacy equal, 4 replays matched), the smoke report (8 rows equal, no prefix rule; S1, S2 pass; smoke gate ok), the three require rows (complete, sealed, retained uninterpreted per R1) and the ledger (5 lines, sum 1,700.617 s, no pending reservation). Readout correction (SA-Opus): certificate screenCapped 0 means only the sub-branch "a screened rating completes with main work above W" had no case (0 of 54); the IncompleteRatingError-at-W branch occurred 28 times (counted capped) and was checked against the canonical rating; the readout must say this |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | pre-seal gates of E/P2-16a/gates.md: 1 full suite `IG P2-18 full exit=0 seconds=140.913 quiet=45`, 1629/1629; 2 phase-2 tests (ten files) `IG P2-18 phase2 exit=0 seconds=60.274 quiet=45`, 182/182; 3 `record-fixtures: OK` (0.575 s), hard `replay case OK` (1.218 s), screen `replay case OK` (16.853 s), `refusal case OK` (0.154 s) (the orchestrator's script misread the captured refusal line and stopped after gate 3; gates 4 to 7 then ran separately); 4 check-conventions OK, check-site OK; 5 G-PROTECTED OK; 6 copies 195 and 32 edits; 7 six copies built. Plan `plan: 8f3834e91c9d61a4c636de599dc3cfb1f4cc6996683f9f5413d25ac09705f41c (1013 rows)`; seal `seal: bca8cfd2db491e686fb37f5ed2bf640e4eac3c93513c005f775f971bf4979f5b` at fa0bda2, `seal: OK`. Proofs (charged, 900 s each): observer pass 322.041 s node / 367.041 counted (15/15); certificate pass 106.436 / 151.436 (9/9; certified 26, screenCapped 0, capped 28); prior-replay pass 427.71 / 472.71 (6/6; 24/24 matched); legacy pass 55.168 / 100.168 (10/10). A group 1 `IG P2 A-1.5 exit=0 seconds=564.262 quiet=45`, 8 smoke rows then 3 require rows; `publish: A 11 rows 5cfd937b...`; `report: smoke complete (S1 pass, S2 pass)`. Ledger after the task: A spent 1,700.617 s (28.344 min) of 24,600 s, remaining 22,899.383 s (381.656 min); B unspent (24,120 s) |
+| Commit | this commit |
+| Issues and named items | the certificate's "completes above W" sub-branch unexercised in the proof corpus (synthetic tests only; SA-Opus's readout wording); the three require rows are interpreted in P2-19's readout |
