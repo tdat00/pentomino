@@ -1323,6 +1323,12 @@ A discarded partition (a failed part or a `beforePart` hook) and a failed flat p
 
 **Failure.** "Couldn't create a <level> piece set within the time limit" — never "impossible", unless an exhaustive argument exists.
 
+**Bounded set stage (`gen-v4`'s route; not yet live).**
+- A selection that finds no window reports its side, and `setAttempt` carries it as the failure reason `no-window-below` or `no-window-above` (`failureOf`); a budget stop has no side. The client's set loop checks, in this order: cancellation, the time limit, the bound, the lowest-`j` scan, a new dispatch.
+- The bound (`SET_ATTEMPTS_BOUND` = 4): when attempts 0 to 3 have all failed with the same `no-window-<side>` reason, the request ends at once as `failed` with that reason, instead of running to its time limit. It is read before the ordered scan, so a later success never overrides it; a success among attempts 0 to 3 prevents it, and cancellation or the time limit come first.
+- `gen-v3` never reports a window side, so the bound cannot fire before the cutover.
+- The result carries the selection counters and a `trail` (validation telemetry, never stored; §6.9).
+
 ### 6.6 Exact cover and DLX
 
 **Model** for (board, pieces, clues). All columns are primary.
@@ -1516,6 +1522,11 @@ The generator page also rejects any streamed or final puzzle whose id, clue key 
 **Invariants** (D16):
 - New puzzle never changes the board, the shapes, the colors or K.
 - Every accepted puzzle has a new layout key and a new clue key. Clue-only variants of an existing layout are never generated and never count toward q.
+
+**Counters and the set trail (validation telemetry, never stored).**
+- Every worker result of a selection call (`setAttempt`, `puzzleCandidate`, `completionCandidate`, ok or failed) carries `counters = { budgetStops, screenCapped, rescueReratings, tailReratings }`; every `gen-v3` call reports zeros. A candidate that fails before a selection ran (`{ fail: 'layout' }`) has no `counters`, and the client counts it as zeros. The fold ignores the field.
+- The batch result carries `counters`, the sum over every candidate and completion result the client received, consumed or not.
+- The piece-set result carries `counters` (the sum over every settled attempt) and `trail = { attempts, sameSide, boundFired, noWindow }`: `attempts` lists attempts 0 to 3 as `{ attempt, outcome, reason, arrival }` in order of arrival (`outcome` is `ok`, `fail`, `fault` or `skipped`); `sameSide` is the common no-window side of attempts 0 to 3 (also when a cancellation or the time limit returned first); `boundFired` tells whether the bound ended the request (§6.5); `noWindow` counts every settled attempt with a no-window reason, whatever its index.
 
 ### 6.10 Clue selection
 

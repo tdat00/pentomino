@@ -14,6 +14,7 @@ import {
   certifyTask,
   completionCandidate,
   dispatchOrder,
+  failureOf,
   firstSetAttempt,
   foldAccept,
   foldNext,
@@ -24,6 +25,7 @@ import {
   runCompletion,
   runFold,
   setAttempt,
+  ZERO_COUNTERS,
 } from '../core/engine/generate.js';
 import { poseCells } from '../core/engine/geometry.js';
 import { clueKey, layoutDistance, layoutKey, minLayoutDistance } from '../core/engine/keys.js';
@@ -686,6 +688,20 @@ describe('set attempts and puzzle candidates', () => {
     }
     assert.equal(summary(fold), before);
     assert.equal(summary(runFold(ctx)), before);
+  });
+
+  test('failureOf transports the no-window side', () => {
+    const counters = { budgetStops: 1, screenCapped: 2, rescueReratings: 3, tailReratings: 4 };
+    assert.deepEqual(failureOf({ reason: 'not-in-band', igNoWindow: 'above', counters }), { ok: false, reason: 'no-window-above', counters });
+    assert.deepEqual(failureOf({ reason: 'not-in-band' }), { ok: false, reason: 'not-in-band', counters: ZERO_COUNTERS });
+  });
+
+  test('results carry zero counters on today\'s route', () => {
+    const r = setAttempt(request(), 0);
+    assert.ok(r.ok);
+    assert.deepEqual(r.counters, ZERO_COUNTERS);
+    const c = puzzleCandidate(realCtx(), 1, 0);
+    assert.deepEqual(c.counters, ZERO_COUNTERS);
   });
 
   describe('completion pass', () => {

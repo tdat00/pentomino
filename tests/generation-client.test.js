@@ -1398,3 +1398,140 @@ describe('real engine through the pool', () => {
     }
   });
 });
+
+/** The bounded set stage of P5 (the first four attempts, one side) and the counters of the results. */
+describe('bounded set stage and counters', () => {
+  const counters = (/** @type {object} */ over = {}) => ({ budgetStops: 0, screenCapped: 0, rescueReratings: 0, tailReratings: 0, ...over });
+  const failed = (/** @type {string} */ reason, /** @type {object} */ over = {}) => ({ ok: false, reason, counters: counters(over) });
+  /** Answers attempts below `n` at once from `replies`; later attempts are held. @param {Record<number, any>} replies */
+  const scriptedSet = (replies) => (/** @type {Task} */ t) => (replies[attemptOf(t)] === undefined ? undefined : { value: replies[attemptOf(t)] });
+  /** @param {ReturnType<typeof harness>} h @param {number} n @param {unknown} value */
+  const answerAttempt = (h, n, value) => h.answer(/** @type {Task} */ (h.held.find((t) => attemptOf(t) === n)), { value });
+
+  test('the bound ends the set on four same-side no-window attempts', async () => {
+    const reply = failed('no-window-below', { budgetStops: 1 });
+    const h = harness({ handler: scriptedSet({ 0: reply, 1: reply, 2: reply, 3: reply }) });
+    const result = await clientOf(h).generateSet(setInput());
+    assert.equal(result.status, 'failed');
+    assert.equal(result.reason, 'no-window-below');
+    assert.deepEqual(result.failures, { 'no-window-below': 4 });
+    assert.equal(result.trail.boundFired, true);
+    assert.equal(result.trail.sameSide, 'below');
+    assert.deepEqual(result.trail.attempts, [0, 1, 2, 3].map((j) => ({ attempt: j, outcome: 'fail', reason: 'no-window-below', arrival: j })));
+    assert.deepEqual(result.trail.noWindow, { below: 4, above: 0 });
+    assert.deepEqual(result.counters, counters({ budgetStops: 4 }));
+  });
+
+  test('mixed sides or a budget-stop reason do not fire the bound', async () => {
+    for (const fourth of [failed('no-window-above'), failed('not-in-band', { budgetStops: 1 })]) {
+      const below = failed('no-window-below');
+      const h = harness({ handler: scriptedSet({ 0: below, 1: below, 2: below, 3: fourth }) });
+      const result = track(clientOf(h).generateSet(setInput()));
+      await settle();
+      assert.equal(result.state, 'pending', 'the request continues');
+      assert.ok(h.held.some((t) => attemptOf(t) === 4), 'attempt 4 is dispatched');
+      answerAttempt(h, 4, setSuccess(4));
+      await settle();
+      assert.equal(result.value.status, 'complete');
+      assert.equal(result.value.attempt, 4);
+      assert.equal(result.value.trail.boundFired, false);
+      assert.equal(result.value.trail.sameSide, null);
+    }
+  });
+
+  test('the bound is read before the winner scan', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput()));
+    await settle();
+    answerAttempt(h, 0, failed('no-window-above'));
+    await settle();
+    answerAttempt(h, 4, setSuccess(4));
+    await settle();
+    for (const j of [1, 2, 3]) {
+      answerAttempt(h, j, failed('no-window-above'));
+      await settle();
+    }
+    assert.equal(result.value.status, 'failed');
+    assert.equal(result.value.reason, 'no-window-above');
+    assert.equal(result.value.trail.boundFired, true);
+    assert.equal(result.value.trail.sameSide, 'above');
+    assert.equal(result.value.pack, undefined);
+  });
+
+  test('a success among the first four wins as today', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput()));
+    await settle();
+    for (const j of [0, 1, 3]) {
+      answerAttempt(h, j, failed('no-window-below'));
+      await settle();
+    }
+    answerAttempt(h, 2, setSuccess(2));
+    await settle();
+    assert.equal(result.value.status, 'complete');
+    assert.equal(result.value.attempt, 2);
+    assert.equal(result.value.trail.boundFired, false);
+    assert.deepEqual(result.value.trail.attempts.map((a) => [a.attempt, a.outcome, a.arrival]), [[0, 'fail', 0], [1, 'fail', 1], [3, 'fail', 2], [2, 'ok', 3]]);
+  });
+
+  test('a time-out before the bound is reported', async () => {
+    const h = harness();
+    // The deadline passes while the fourth no-window reply is being recorded, before the request reads it.
+    const onProgress = (/** @type {{ stage?: string, attempt?: number }} */ p) => {
+      if (p.stage === 'carving' && p.attempt === 3) {
+        h.clock.advance(115000);
+      }
+    };
+    const result = track(clientOf(h).generateSet(setInput(), { onProgress }));
+    await settle();
+    for (let j = 0; j < 4; j += 1) {
+      answerAttempt(h, j, failed('no-window-below'));
+      await settle();
+    }
+    assert.equal(result.value.status, 'failed');
+    assert.equal(result.value.reason, 'time-limit');
+    assert.equal(result.value.trail.sameSide, 'below');
+    assert.equal(result.value.trail.boundFired, false);
+  });
+
+  test('counters are summed per request', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput()));
+    await settle();
+    answerAttempt(h, 1, failed('not-in-band', { budgetStops: 1, screenCapped: 2 }));
+    await settle();
+    answerAttempt(h, 0, failed('not-in-band', { budgetStops: 1, tailReratings: 3 }));
+    await settle();
+    answerAttempt(h, 2, { ...setSuccess(2), counters: counters({ rescueReratings: 4, tailReratings: 1 }) });
+    await settle();
+    assert.equal(result.value.status, 'complete');
+    assert.deepEqual(result.value.counters, { budgetStops: 2, screenCapped: 2, rescueReratings: 4, tailReratings: 4 });
+  });
+
+  test('every no-window attempt is counted, beyond the first four too', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput()));
+    await settle();
+    for (const j of [0, 1, 2, 3]) {
+      answerAttempt(h, j, failed('not-in-band'));
+      await settle();
+    }
+    answerAttempt(h, 4, failed('no-window-above'));
+    await settle();
+    answerAttempt(h, 5, setSuccess(5));
+    await settle();
+    assert.equal(result.value.status, 'complete');
+    assert.equal(result.value.attempt, 5);
+    assert.deepEqual(result.value.trail.noWindow, { below: 0, above: 1 });
+    assert.deepEqual(result.value.trail.attempts.map((a) => a.attempt), [0, 1, 2, 3]);
+  });
+
+  test('a batch totals the counters of every candidate it receives', async () => {
+    const reply = (/** @type {Task} */ t) => ({ value: { ...scripted(t).value, counters: counters({ budgetStops: 1, screenCapped: 2 }) } });
+    const result = await clientOf(harness({ size: 1, handler: reply })).generateBatch(batchInput({ quantity: 1 }));
+    assert.equal(result.status, 'complete');
+    assert.deepEqual(result.counters, counters({ budgetStops: 1, screenCapped: 2 }));
+    const plain = await clientOf(harness({ size: 1, handler: (t) => scripted(t) })).generateBatch(batchInput({ quantity: 1 }));
+    assert.deepEqual(plain.counters, counters());
+  });
+});

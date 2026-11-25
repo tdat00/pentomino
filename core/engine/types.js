@@ -230,9 +230,15 @@
  */
 
 /**
- * Invalid request arguments are typed control errors, not a failed-search result.
- * @typedef {{ ok: true, set: PieceSet, calibration: Puzzle, attempt: number }
- *   | { ok: false, reason: 'carve' | 'internal' | 'not-in-band' | 'uniqueness-not-proved' }} SetAttemptResult
+ * @typedef {{ budgetStops: number, screenCapped: number, rescueReratings: number, tailReratings: number }} SelectCounters
+ */
+
+/**
+ * Invalid request arguments are typed control errors, not a failed-search result. `counters` are the selection
+ * counters of the call (all zero for a `gen-v3` selection or a call that never selected).
+ * @typedef {{ ok: true, set: PieceSet, calibration: Puzzle, attempt: number, counters: SelectCounters }
+ *   | { ok: false, reason: 'carve' | 'internal' | 'not-in-band' | 'uniqueness-not-proved' | 'no-window-below'
+ *     | 'no-window-above', counters: SelectCounters }} SetAttemptResult
  */
 
 /**
@@ -293,6 +299,7 @@
  * @property {Pose[]} clues
  * @property {Rating} rating
  * @property {Certificate | null} certificate
+ * @property {SelectCounters} [counters] The selection counters of the call.
  * @property {Made} made Origin of the candidate (RES-27); set by every engine candidate function and carried
  *   unchanged by the fold.
  */

@@ -197,14 +197,14 @@ deviations.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w2, fb67ba0aba87ed85c8e85b677b0ef66ededbe2e2 |
+| Start, end, duration | dispatched 2026-11-25 22:37 +07:00 (developer clock 22:13:29 to 22:36:52, with QUESTION 1); accepted 23:18; about 41 min |
+| Waiting for rulings | about 12 min (QUESTION 1, SA-Opus) |
+| Agent id, model | 04b71d47-7176-4299-a222-6ac2dc9b1f56, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 61; 6,460,218 / 45,410 / 6,186,014 |
+| AI credits | 175.81 |
+| Questions and rulings | QUESTION 1 (three existing tests pin { fail: 'layout' }): SA-Opus ruled Option B: the three pre-selection { fail: 'layout' } returns stay unchanged (the log-6 anchor); the client counts a missing counters as ZERO_COUNTERS; counters? stays optional; the three tests unchanged; the link-anchor check must give 22 of 22 (added to the merge gate, 9b566a2). Other deviations accepted (imports, telemetry()/settled() helpers, time-out via onProgress, extra batch-counter case). Step 2's last sentence reads: `{ fail: 'layout' }` returns before a selection stay unchanged (the `log-6` anchor); the client counts a missing `counters` as `ZERO_COUNTERS`. |
+| Fix rounds | 0 (the ruling was applied before the first report) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked full suite (full-suite point) and the link-anchor check (results in the bookkeeping); developer: focused 101/101 (30.18 s), full 1538/1538 (119.401 s), anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | none; the bound cannot fire on real workers before P2-15 (gen-v3 returns no igNoWindow); P2-07/P2-10 use the imported names |

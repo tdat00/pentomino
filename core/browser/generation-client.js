@@ -5,9 +5,10 @@
 
 import { activeCount, boardFromRows, boardToRows, validateForGeneration } from '../engine/board.js';
 import { countRowLimit } from '../engine/clues.js';
+import { DEADLINE, PER_SET_LEVELS, perSetPrior, SET_ATTEMPTS_BOUND } from '../engine/gen-v4.js';
 import {
   candidateContext, completionAccept, dispatchOrder, foldAccept, foldNext, foldStart, GenerationError as HistoryError,
-  provenanceVersions,
+  provenanceVersions, ZERO_COUNTERS,
 } from '../engine/generate.js';
 import { puzzleId } from '../engine/keys.js';
 import { level } from '../engine/levels.js';
@@ -106,7 +107,8 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  */
 
 /**
- * `failed` carries `reason` `time-limit`, `attempts-exhausted` (only with `maxSetAttempts`).
+ * `failed` carries `reason` `time-limit`, `attempts-exhausted` (only with `maxSetAttempts`), `no-window-below` or
+ * `no-window-above` (the first four attempts all ended without a window on that side).
  * @typedef {object} SetJobResult
  * @property {'complete' | 'failed' | 'cancelled'} status
  * @property {PieceSet} [set]
@@ -116,6 +118,13 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {Pack} [pack] Kind `piece-set`, no puzzles.
  * @property {string} [reason]
  * @property {Record<string, number>} [failures] Failed attempts by engine reason.
+ * @property {import('../engine/types.js').SelectCounters} counters Request total of the attempts' selection
+ *   counters (validation telemetry, never stored).
+ * @property {{ attempts: { attempt: number, outcome: string, reason: string | null, arrival: number }[],
+ *   sameSide: 'below' | 'above' | null, boundFired: boolean, noWindow: { below: number, above: number } }} trail
+ *   The first `SET_ATTEMPTS_BOUND` attempts in their order of arrival; `sameSide` the common no-window side of
+ *   them (also when a cancellation or the time limit returned first); `boundFired` whether the bound ended the
+ *   request; `noWindow` every settled attempt with a no-window reason, whatever its index.
  */
 
 /**
@@ -151,6 +160,8 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {Record<string, Made>} made Origin record of each accepted puzzle, by puzzle id.
  * @property {string[]} seenLayouts
  * @property {string[]} seenClues
+ * @property {import('../engine/types.js').SelectCounters} counters Request total of the candidates' selection
+ *   counters, every candidate and completion result received (validation telemetry, never stored).
  * @property {'layouts-not-found' | 'difficulty-not-found' | 'uniqueness-not-proved' | 'time-limit'} [reason]
  * @property {ArrangementReport} [arrangements] Present whenever the batch stopped with `layouts-not-found`, also
  *   when the completion pass then filled it (`status` `complete`, no `reason`).
@@ -446,6 +457,51 @@ function usableCalibration(set, cal) {
 }
 
 /**
+ * P5's bound (plan v4 P5): the common `no-window-<side>` reason when the first SET_ATTEMPTS_BOUND attempts all
+ * failed without a window on the same side, else null. A budget stop or any other reason has no side.
+ * @param {Map<number, { kind: string, reason?: string }>} results
+ * @returns {'no-window-below' | 'no-window-above' | null}
+ */
+export function setBound(results) {
+  const n = SET_ATTEMPTS_BOUND;
+  if (!Number.isInteger(n) || n < 1) {
+    return null;
+  }
+  /** @type {string | null} */
+  let side = null;
+  for (let j = 0; j < n; j += 1) {
+    const r = results.get(j);
+    if (r === undefined || r.kind !== 'fail' || typeof r.reason !== 'string' || !r.reason.startsWith('no-window-')) {
+      return null;
+    }
+    if (side !== null && side !== r.reason) {
+      return null;
+    }
+    side = r.reason;
+  }
+  return /** @type {'no-window-below' | 'no-window-above' | null} */ (side);
+}
+
+/**
+ * Adds the selection counters of a worker reply (a candidate or a set attempt, ok or failed) to a request total.
+ * A reply without counters (a `gen-v3` worker, an invalid reply) adds nothing.
+ * @param {Record<string, number>} total
+ * @param {unknown} reply
+ */
+function addCounters(total, reply) {
+  const c = isObject(reply) && isObject(reply.counters) ? reply.counters : null;
+  if (c === null) {
+    return;
+  }
+  for (const name of Object.keys(ZERO_COUNTERS)) {
+    const n = c[name];
+    if (typeof n === 'number' && Number.isFinite(n)) {
+      total[name] += n;
+    }
+  }
+}
+
+/**
  * @param {Pool} pool
  * @param {{ clock?: Clock, createdAt?: () => string, maxSetAttempts?: number }} [options] `createdAt` supplies the
  *   metadata timestamp; `maxSetAttempts` (default unbounded) ends a set request as `attempts-exhausted`.
@@ -605,6 +661,49 @@ export function createGenerationClient(pool, options = {}) {
     const inflight = new Map();
     let next = 0;
     let winner = -1;
+    const counters = { ...ZERO_COUNTERS };
+    /** @type {NonNullable<SetJobResult['trail']>} */
+    const trail = { attempts: [], sameSide: null, boundFired: false, noWindow: { below: 0, above: 0 } };
+    let arrivals = 0;
+
+    /**
+     * Counts a settled attempt: its counters, its place in the trail (attempts below the bound only) and its
+     * no-window side (every attempt).
+     * @param {number} j
+     * @param {unknown} [value] The worker's reply; none for a rejection.
+     */
+    const settled = (j, value) => {
+      const r = results.get(j);
+      const arrival = arrivals;
+      arrivals += 1;
+      addCounters(counters, value);
+      const reason = r?.kind === 'fail' ? r.reason : null;
+      if (j < SET_ATTEMPTS_BOUND && r !== undefined) {
+        trail.attempts.push({ attempt: j, outcome: r.kind, reason, arrival });
+      }
+      if (reason === 'no-window-below') {
+        trail.noWindow.below += 1;
+      } else if (reason === 'no-window-above') {
+        trail.noWindow.above += 1;
+      }
+    };
+
+    /**
+     * The request totals as a copy: attempts that settle after the request returned do not change a result.
+     * @returns {{ counters: SetJobResult['counters'], trail: SetJobResult['trail'] }}
+     */
+    const telemetry = () => {
+      const bound = setBound(results);
+      return {
+        counters: { ...counters },
+        trail: {
+          attempts: trail.attempts.map((a) => ({ ...a })),
+          sameSide: trail.boundFired ? trail.sameSide : bound === null ? null : bound === 'no-window-below' ? 'below' : 'above',
+          boundFired: trail.boundFired,
+          noWindow: { ...trail.noWindow },
+        },
+      };
+    };
 
     /** @param {number} j */
     const launch = (j) => {
@@ -632,6 +731,7 @@ export function createGenerationClient(pool, options = {}) {
         } else {
           results.set(j, { kind: 'fail', reason: String(value.reason) });
         }
+        settled(j, value);
         emit(hooks.onProgress, {
           revision: job.revision, job: /** @type {const} */ ('set'), stage: 'carving', attempt: j, elapsedMs: clock.now() - job.startedAt,
         });
@@ -643,6 +743,7 @@ export function createGenerationClient(pool, options = {}) {
         } else {
           results.set(j, { kind: 'fault', error });
         }
+        settled(j);
         job.wake?.();
       });
     };
@@ -662,10 +763,16 @@ export function createGenerationClient(pool, options = {}) {
     try {
       for (;;) {
         if (job.cancelled) {
-          return { status: 'cancelled' };
+          return { status: 'cancelled', ...telemetry() };
         }
         if (job.timedOut) {
-          return { status: 'failed', reason: 'time-limit', failures: tally() };
+          return { status: 'failed', reason: 'time-limit', failures: tally(), ...telemetry() };
+        }
+        const bound = setBound(results);
+        if (bound !== null) {
+          trail.sameSide = bound === 'no-window-below' ? 'below' : 'above';
+          trail.boundFired = true;
+          return { status: 'failed', reason: bound, failures: tally(), ...telemetry() };
         }
         // The lowest successful attempt wins: scan the resolved prefix in order.
         for (let j = 0; ; j += 1) {
@@ -675,10 +782,13 @@ export function createGenerationClient(pool, options = {}) {
           }
           if (r.kind === 'fault') {
             const reason = stopReason(job, r.error, {});
-            return reason === 'cancelled' ? { status: 'cancelled' } : { status: 'failed', reason, failures: tally() };
+            return reason === 'cancelled'
+              ? { status: 'cancelled', ...telemetry() }
+              : { status: 'failed', reason, failures: tally(), ...telemetry() };
           }
           if (r.kind === 'ok') {
-            return await finishSet(request, r.value);
+            const { counters: total, trail: record } = telemetry();
+            return await finishSet(request, r.value, total, record);
           }
           if (r.kind === 'skipped') {
             break;
@@ -689,7 +799,7 @@ export function createGenerationClient(pool, options = {}) {
           next += 1;
         }
         if (inflight.size === 0 && winner < 0 && next >= maxAttempts) {
-          return { status: 'failed', reason: 'attempts-exhausted', failures: tally() };
+          return { status: 'failed', reason: 'attempts-exhausted', failures: tally(), ...telemetry() };
         }
         await waitEvent(job);
       }
@@ -704,9 +814,11 @@ export function createGenerationClient(pool, options = {}) {
   /**
    * @param {{ board: Board, rotation: number, seedText: string, levelId: string, uniqueness: 'any' | 'require' }} request
    * @param {any} value Successful setAttempt result.
+   * @param {SetJobResult['counters']} total The request's selection counters.
+   * @param {SetJobResult['trail']} trail The request's attempt trail.
    * @returns {Promise<SetJobResult>}
    */
-  async function finishSet(request, value) {
+  async function finishSet(request, value, total, trail) {
     const { board } = request;
     const raw = value.set;
     if (!isObject(raw) || !Array.isArray(raw.pieces) || !isObject(value.calibration)) {
@@ -748,7 +860,9 @@ export function createGenerationClient(pool, options = {}) {
         setOrigin,
       }),
     }, {});
-    return { status: 'complete', set, calibration: value.calibration, attempt: value.attempt, setOrigin, pack };
+    return {
+      status: 'complete', set, calibration: value.calibration, attempt: value.attempt, setOrigin, pack, counters: total, trail,
+    };
   }
 
   /**
@@ -866,6 +980,7 @@ export function createGenerationClient(pool, options = {}) {
     /** @type {Record<string, Made>} */
     const made = {};
     let inflight = 0;
+    const counters = { ...ZERO_COUNTERS };
     /** @type {'complete' | 'partial' | 'cancelled'} */
     let status = 'partial';
     /** @type {BatchJobResult['reason']} */
@@ -903,6 +1018,7 @@ export function createGenerationClient(pool, options = {}) {
       runTask(job, 'puzzleCandidate', { ...base, slot, attempt }, controller.signal, onWorker).then((value) => {
         Object.assign(entry, { done: true, ok: true, value });
         inflight -= 1;
+        addCounters(counters, value);
         job.wake?.();
       }, (error) => {
         Object.assign(entry, { done: true, ok: false, error });
@@ -1050,6 +1166,7 @@ export function createGenerationClient(pool, options = {}) {
             runTask(job, 'completionCandidate', { ...payloadBase, layout }, passController.signal, (p) => progress({
               stage: p.stage, slot: accepted.length + 1, bytes: p.bytes, rowTrials: p.rowTrials,
             })).then((value) => {
+              addCounters(counters, value);
               Object.assign(entry, { done: true, ok: true, value });
               job.wake?.();
             }, (error) => {
@@ -1175,7 +1292,10 @@ export function createGenerationClient(pool, options = {}) {
     }
 
     /** @type {BatchJobResult} */
-    const result = { status, accepted, made: structuredClone(made), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] };
+    const result = {
+      status, accepted, made: structuredClone(made), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues],
+      counters: { ...counters },
+    };
     if (reason !== undefined) {
       result.reason = reason;
     }
