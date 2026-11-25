@@ -166,7 +166,7 @@ pentomino/                     repository root = site root /pentomino/
 │  ├─ engine/                  pure ES modules: no DOM, no storage, no clock; run in page, worker and Node
 │  │  ├─ hash.js  rng.js  geometry.js  board.js  view.js  policy.js  levels.js  qualification.js
 │  │  ├─ workspace.js  placements.js  dlx.js  tiling.js  deduce.js  enumerate.js  carve.js  keys.js  difficulty.js
-│  │  ├─ clues.js  generate.js  gen-v4.js  replay.js  tasks.js  hints.js
+│  │  ├─ clue-primitives.js  clues.js  generate.js  gen-v4.js  replay.js  tasks.js  hints.js
 │  │  ├─ puzzlecode.js  puzzlecode-input.js  puzzlecode-v1.js
 │  │  └─ pack.js  sharecode.js  game.js  palette.js  protocol.js  types.js  version.js
 │  ├─ workers/
@@ -552,7 +552,7 @@ export class IncompleteRatingError extends Error {   // thrown by `measureV3` an
 }
 ```
 
-**`clues.js`** (§6.10, §6.11)
+**`clues.js`** (§6.10, §6.11): `selectClues` dispatches to `selectCluesV3`, today's search (`gen-v3`); `certify`, `makeUnique`, `countRowLimit` and `SkipReplayError` live in `clue-primitives.js` (the primitives shared by the selectors) and are re-exported by `clues.js`.
 
 ```ts
 export function selectClues(ctx: { board: Board; pieces: Piece[]; layout: Pose[]; target: Level; rng: Rng;
@@ -563,9 +563,10 @@ export function selectClues(ctx: { board: Board; pieces: Piece[]; layout: Pose[]
                                    charge?: (units: number) => void }):                  // observers and replay control (§6.10)
   { ok: true; clues: Pose[]; rating: Rating; certificate: Certificate | null;         // certificate only in 'require' mode
     skips: { subsets: number[]; repairs: number[] } }
-  | { ok: false; reason: 'not-in-band' | 'uniqueness-not-proved' };
+  | { ok: false; reason: 'not-in-band' | 'uniqueness-not-proved' };   // dispatcher: calls `selectCluesV3`, today's search (`gen-v3`)
+export function selectCluesV3(ctx: SelectContext): SelectResult;   // today's search, same argument and result as `selectClues`
 export const SKIP_BOUNDS: { subsets: 2128; repairs: 64 };                              // exclusive bounds of the skip ordinals (§6.10)
-export class SkipReplayError extends Error {              // `replaySkips` does not fit the run (§6.10)
+export class SkipReplayError extends Error {              // defined in `clue-primitives.js`, re-exported; `replaySkips` does not fit the run (§6.10)
   code: 'replay-skips'; reason: 'unreachable' | 'unused'; list: 'subsets' | 'repairs'; ordinal: number;
 }
 export function makeUnique(board: Board, pieces: Piece[], layout: Pose[], clues: Pose[], rng: Rng, ws: Workspace,

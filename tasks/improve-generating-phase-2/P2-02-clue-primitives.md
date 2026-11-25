@@ -137,14 +137,14 @@ evidence; questions and deviations.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w1, fb67ba0aba87ed85c8e85b677b0ef66ededbe2e2 |
+| Start, end, duration | dispatched 2026-11-25 22:37 +07:00 (developer clock 22:13:29 to 22:21:46); accepted 22:55; about 18 min |
+| Waiting for rulings | none |
+| Agent id, model | fae9082c-6919-4247-98ac-668f781cdc75, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 34; 2,843,134 / 22,358 / 2,762,654 |
+| AI credits | 70.10 |
+| Questions and rulings | none; six minor deviations accepted by the orchestrator (no behaviour change): clueKey not imported by clue-primitives.js (unused), unused imports dropped from clues.js, two extra ranked-order assertions, dispatcher test on normal/any, a Candidate typedef import, the API-block annotations in design-detail.md |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate after rebase with the locked full suite (full-suite point; results in the bookkeeping); developer runs: focused 120/120 (56.254 s), full 1531/1531 (125.442 s) |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | none; P2-04 adds the gen-v4 branch to selectClues; P2-12d anchors on the preserved countSolutions line |
