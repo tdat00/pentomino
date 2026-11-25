@@ -151,14 +151,14 @@ None here; P2-17 writes the README section.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w1, 6c039dec1f04072b0e8bcdf52b0c2347ab58485b |
+| Start, end, duration | dispatched 2026-11-26 01:46 +07:00 (developer 01:46:45 to about 02:00); accepted 02:13 |
+| Waiting for rulings | about 5 min (six deviations and the full-run limits, SA-Opus) |
+| Agent id, model | 1a612289-3f84-4731-8d89-f9938b858dc5, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 32; 3,458,195 / 40,329 / 3,303,946 |
+| AI credits | 111.93 |
+| Questions and rulings | no QUESTION; six deviations accepted by SA-Opus (pack amendment f8039d7, P2-12c task file: require seeds p2-proof/10x10-nightmare/0 and /1 with distinct case ids; quick runs the first case of each kind, record-throws always; clue piece ids from pose.piece; folder problems and an empty journal are missing evidence; makeSet shared from proof-observer.mjs; boards from boards-v1.json). Full runs at the merge gate with -LimitSeconds 900 (P2-18's own limit); a kill or a bundle above 720 s stops for a ruling; no sealed step runs --quick; the quick limit raised to 300 s |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with every phase-2 test file and G-COPIES, then the two full bundles on the rebased tree (results, node seconds and certificate counts in the bookkeeping); developer: locked focused 8/8 (0.243 s), quick observer pass 108.586 s (14x14-nightmare-0 936,174,519 units and 10x10-nightmare-require-0 6,531,371,497 units equal across charge runs and trace, lo = hi; record-throws pass), quick certificate pass 12.576 s (6 screen ratings: 3 certified, 0 screen-capped, 3 capped), G-PROTECTED, G-WORKTREE, G-FORMAT (3 files), G-CHECK OK, copies 195 and 32 edits |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | the screen-capped branch has synthetic evidence only unless the full run records one; if it stays 0, P2-18's readout reports it as unexercised in the proof corpus |
