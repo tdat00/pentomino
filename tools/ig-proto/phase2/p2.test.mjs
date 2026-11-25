@@ -6,9 +6,11 @@ import { spawnSync } from 'node:child_process';
 import { after, before, describe, it } from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { rectRows } from '../../bench/calibration-reference.js';
-import { sha256Hex, verifyRow } from './binding.mjs';
-import { buildSeal, checkReadout, checkSeal, COPIES, loadSnapshot, pathsOf, rowContextOf, runGroup, STAGE_MAP } from './p2.mjs';
+import { matrixDigest, rectRows } from '../../bench/calibration-reference.js';
+import { newRunRecord, SOURCE_FILES } from '../../bench/report.js';
+import { BROWSER_CHECKS, BROWSER_GENERATOR_SOURCES, BROWSER_PAGE, REPLAY_ITEMS, rowMatrix, sha256Hex, verifyRow } from './binding.mjs';
+import { cohorts, equality, memory, oracleOf, smokeGate, stageGates } from './gates.mjs';
+import { buildPlan, buildSeal, checkReadout, checkSeal, COPIES, loadSnapshot, pathsOf, rowContextOf, runGroup, STAGE_MAP } from './p2.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..', '..');
@@ -650,7 +652,7 @@ const FAKE_CALIBRATE = [
   'const args = process.argv.slice(2);',
   'writeJournal(process.env.IG_LOG_DIR, process.env.IG_ROW, process.env.IG_SEED, process.pid);',
   "const matrix = JSON.parse(readFileSync(args[args.indexOf('--matrix') + 1], 'utf8'));",
-  `const run = { probeKind: 'generation', acceptedCount: 10, caseId: matrix.cases[0].id, seed: process.env.IG_SEED, sourceDigest: 'rd-' + process.env.IG_SOURCE_LABEL.split(' ')[0], sourceCommit: process.env.IG_SOURCE_LABEL, telemetry: ${JSON.stringify(TELEMETRY)} };`,
+  `const run = { probeKind: 'generation', acceptedCount: 10, caseId: matrix.cases[0].id, seed: process.env.IG_SEED, sourceDigest: 'rd-' + process.env.IG_SOURCE_LABEL.split(' ')[0], sourceCommit: process.env.P2_FAKE_CALIBRATE === 'badlabel' ? 'other' : process.env.IG_SOURCE_LABEL, telemetry: ${JSON.stringify(TELEMETRY)} };`,
   "writeFileSync(args[args.indexOf('--output') + 1] + '.json', JSON.stringify({ meta: { matrixDigest: matrixDigest(matrix) }, runs: [run] }));",
   '',
 ].join('\n');
@@ -903,21 +905,42 @@ describe('the rows of a group', () => {
     assert.equal((await go(w, G1, { smokeGate })).code, 6);
     assert.equal(launched(w).length, 2);
     assert.deepEqual(calls, [2], 'the verdict is decided once');
-    assert.equal((await go(w, G1)).code, 6, 'the stub always fails, and an existing verdict is read, not recomputed');
+    assert.equal((await go(w, G1)).code, 6, 'the default gate fails without proofs, and an existing verdict is read, not recomputed');
   });
 
-  it('the default smoke gate stub always fails', async () => {
-    const w = smokeWorld('smoke-stub');
+  it('the default smoke gate fails without proofs and oracles', async () => {
+    const w = smokeWorld('smoke-default');
     const r = await go(w, G1);
     assert.equal(r.code, 6);
-    assert.match(r.lines.at(-1) ?? '', /smoke gate not implemented \(P2-13b\)/);
+    assert.match(r.lines.at(-1) ?? '', /smoke gate failed: S1 proof observer: missing/);
     assert.equal(launched(w).length, 2);
+  });
+
+  it('a smoke row with a bad binding stops the group', async () => {
+    const w = smokeWorld('smoke-unbound');
+    /** @type {number[]} */
+    const lengths = [];
+    const smokeGate = (/** @type {any[]} */ rows) => {
+      lengths.push(rows.length);
+      return { ok: true, problems: [] };
+    };
+    const r = await go(w, G1, { smokeGate }, 'badlabel');
+    assert.equal(r.code, 6);
+    assert.deepEqual(lengths, [0]);
+    const gate = JSON.parse(readFileSync(join(w.dir, 'RAW', 'rows', 'smoke-gate.json'), 'utf8'));
+    assert.equal(gate.ok, false);
+    assert.ok(gate.problems[0].startsWith('S2 smoke/gen-v4/10x10-nightmare/20: binding '), gate.problems[0]);
+    assert.deepEqual(launched(w), smokeRows.map((k) => k.replaceAll('/', '~')));
+    assert.ok(!jsonLines(w.dir, 'A.status.jsonl').some((l) => l.key === requireKey));
   });
 
   it('a passing smoke gate lets the require rows run', async () => {
     const w = smokeWorld('smoke-pass');
-    const r = await go(w, G1, { smokeGate: () => ({ ok: true, problems: [] }) });
+    /** @type {any[]} */
+    const given = [];
+    const r = await go(w, G1, { smokeGate: (/** @type {any[]} */ _rows, /** @type {any} */ _plan, /** @type {any} */ paths) => { given.push(paths); return { ok: true, problems: [] }; } });
     assert.equal(r.code, 0);
+    assert.equal(given[0], w.P, 'run-group passes the paths of its state');
     assert.equal(jsonLines(w.dir, 'A.jsonl').length, 3);
     assert.equal(JSON.parse(readFileSync(join(w.dir, 'RAW', 'rows', 'smoke-gate.json'), 'utf8')).ok, true);
   });
@@ -1081,5 +1104,629 @@ describe('publication', () => {
     assert.ok(rows[1].binding.problems.includes('report hash'));
     writeFileSync(join(w.out, 'A.sha256'), `${'0'.repeat(64)}\r\n`);
     assert.throws(() => loadSnapshot(w.out, 'A', ctxOf), /^Error: snapshot A hash$/);
+  });
+});
+
+const MIB = 1024 * 1024;
+
+/** The details of a run with ten puzzles. The keys derive from the cell and the rep, so two arms of one request agree. @param {string} cell @param {number} rep */
+function detailsOf(cell, rep) {
+  const level = cell.endsWith('-hell-1') ? 'hell-1' : cell.endsWith('-master') ? 'master' : 'nightmare';
+  const score = { nightmare: 60, 'hell-1': 90, master: 45 }[level];
+  return {
+    K: 30,
+    igSetKey: sha256Hex(`set/${cell}/${rep}`),
+    igPuzzleKeys: Array.from({ length: 10 }, (_, i) => sha256Hex(`${cell}/${rep}/${i}`)),
+    resultDigest: sha256Hex(`result/${cell}/${rep}`),
+    puzzles: Array.from({ length: 10 }, () => ({ clues: 20, score, level })),
+  };
+}
+
+const LEDGER = {
+  complete: true, problems: [], calls: 1, ended: 1, terminated: 0, open: 0, lo: 100, hi: 100, ratingWork: 100, countWork: 0, outcomes: [], rerateStarts: { close: 0, rescue: 0, rerate: 0 },
+};
+
+/**
+ * A published row line made by hand (no raw folder): ten puzzles at 1,000 ms unless `over` says otherwise.
+ * @param {string} component @param {string} arm @param {string} cell @param {number} rep @param {Record<string, any>} [over] Run fields. @param {Record<string, any>} [extra] Row fields.
+ */
+function hand(component, arm, cell, rep, over = {}, extra = {}) {
+  const key = `${component}/${arm}/${cell}/${rep}`;
+  const seed = `landscape/${cell}/${rep}`;
+  const run = newRunRecord({
+    caseId: cell, seed, rep, acceptedCount: 10, tenthReadyMs: 1000, responseMs: 1500, peakProcessBytes: 500 * MIB, peakAccountedBytes: 100 * MIB, details: detailsOf(cell, rep), ...over,
+  });
+  return { key, fileKey: key.replaceAll('/', '~'), stage: 'A', component, arm, cell, rep, seed, run, telemetry: null, ledger: LEDGER, ...extra };
+}
+
+const REP_LIST = Array.from({ length: 20 }, (_, i) => 20 + i);
+/** @param {string} component @param {string} arm @param {string} cell @param {Record<string, any> | ((rep: number) => Record<string, any>)} [over] @param {Record<string, any>} [extra] @param {number[]} [reps] */
+const handRows = (component, arm, cell, over = {}, extra = {}, reps = REP_LIST) => reps.map((rep) => hand(component, arm, cell, rep, typeof over === 'function' ? over(rep) : over, extra));
+/** A shipped arm at 1,000 ms and today's at 2,000 ms: the ratio is 2. @param {string} cell @param {Record<string, any>} [extra] */
+const controlRows = (cell, extra = {}) => [
+  ...handRows('shipped', 'gen-v4', cell, {}, extra),
+  ...handRows('baseline-control', 'today', cell, { tenthReadyMs: 2000, responseMs: 2500 }, extra),
+];
+/** @param {{ id: string, stage: string }[]} gates @param {string} id */
+const gateOf = (gates, id) => /** @type {any} */ (gates.find((g) => g.id === id));
+
+describe('the comparator', () => {
+  const O = 'docs/improve-generating/evidence/frozen';
+
+  it('oracles follow the table', () => {
+    /** @type {[string, string, string, string | null][]} */
+    const cases = [
+      ['shipped', 'gen-v4', '14x14-nightmare', `${O}/V4-S4/fr-frozen/val-14x14-nightmare.runs.json`],
+      ['shipped', 'gen-v4', '15x20-nightmare', `${O}/V4-S4/fr-frozen-none/val-15x20-nightmare.runs.json`],
+      ['shipped', 'gen-v4', '26x26-nightmare', `${O}/V4-S4/log-link/val-26x26-nightmare.runs.json`],
+      ['baseline-control', 'today', '10x10-nightmare', `${O}/V4-S4/log-link/val-10x10-nightmare.runs.json`],
+      ['shipped-master', 'gen-v4', '10x10-master', `${O}/V4-S4/log-link/master-10x10-master.runs.json`],
+      ['non-table', 'gen-v4', '11x11-nightmare', null],
+      ['conditional-twin', 'uncapped', '14x14-hell-1', `${O}/V4-S4C/fr-frozen-none-uncapped/val-14x14-hell-1.runs.json`],
+      ['conditional-twin', 'uncapped', '16x16-nightmare', `${O}/V4-S4C/fr-frozen-uncapped/val-16x16-nightmare.runs.json`],
+      ['smoke', 'gen-v4', '20x20-hell-1', `${O}/V4-S4/fr-frozen-none/val-20x20-hell-1.runs.json`],
+      ['baseline-master', 'today', '10x10-master', `${O}/V4-S4/log-link/master-10x10-master.runs.json`],
+      ['n-mid-no-screen', 'no-screen', '16x16-nightmare', `${O}/V4-S4/fr-frozen-none/val-16x16-nightmare.runs.json`],
+      ['require', 'gen-v4', '22x22-nightmare', null],
+      ['baseline-control', 'today', '14x14-hell-1', null],
+    ];
+    for (const [component, arm, cell, path] of cases) {
+      assert.equal(oracleOf({ component, arm, cell })?.path ?? null, path, `${component} ${arm} ${cell}`);
+    }
+    assert.equal(oracleOf({ component: 'shipped', arm: 'gen-v4', cell: '14x14-nightmare' })?.arm, 'fr-frozen');
+    assert.equal(oracleOf({ component: 'shipped', arm: 'gen-v4', cell: '14x14-nightmare' }, join(RUN, 'no-such-root')), null, 'a cell without the file has no oracle');
+  });
+
+  /** @param {number} n @param {Record<string, any>} [over] @param {Record<string, any>} [details] */
+  const runOf = (n, over = {}, details = {}) => ({
+    acceptedCount: n, partialReason: null, details: { igSetKey: 'S', igPuzzleKeys: Array.from({ length: n }, (_, i) => `k${i}`), resultDigest: 'R', ...details }, ...over,
+  });
+
+  it('exact equality without a wall-clock cause', () => {
+    assert.deepEqual(equality(runOf(10), runOf(10)), { verdict: 'equal' });
+    const keys = Array.from({ length: 10 }, (_, i) => (i === 4 ? 'x' : `k${i}`));
+    assert.deepEqual(equality(runOf(10, {}, { igPuzzleKeys: keys }), runOf(10)), { verdict: 'differ', path: 'details.igPuzzleKeys.4' });
+    assert.deepEqual(equality(runOf(4, { partialReason: 'layouts-not-found' }), runOf(4, { partialReason: 'layouts-not-found' })), { verdict: 'equal' });
+    assert.deepEqual(equality(runOf(4, { partialReason: 'layouts-not-found' }), runOf(5, { partialReason: 'layouts-not-found' })), { verdict: 'differ', path: 'acceptedCount' });
+    assert.deepEqual(equality(runOf(10, {}, { igSetKey: 'T' }), runOf(10)), { verdict: 'differ', path: 'details.igSetKey' });
+    assert.deepEqual(equality(runOf(10, {}, { resultDigest: 'Q' }), runOf(10)), { verdict: 'differ', path: 'details.resultDigest' });
+    assert.equal(equality(runOf(10, { details: { igSetKey: 'S', resultDigest: 'R' } }), runOf(10)).verdict, 'no-evidence', 'a missing key list');
+    assert.deepEqual(equality(runOf(10), null), { verdict: 'no-evidence', why: 'no oracle row' });
+  });
+
+  it('prefix equality only for the five causes', () => {
+    assert.deepEqual(equality(runOf(7, { partialReason: 'set:reserve-cut' }), runOf(10)), { verdict: 'prefix-equal', n: 7 });
+    assert.deepEqual(equality(runOf(7, { partialReason: 'set:no-window-below' }), runOf(10)), { verdict: 'differ', path: 'acceptedCount' });
+    for (const cause of ['time-limit', 'set:time-limit', 'set:reserve-cut', 'response-bound', 'set:response-bound']) {
+      assert.deepEqual(equality(runOf(7, { partialReason: cause }), runOf(10)), { verdict: 'prefix-equal', n: 7 }, cause);
+      assert.deepEqual(equality(runOf(10), runOf(7, { partialReason: cause })), { verdict: 'prefix-equal', n: 7 }, `${cause} on the oracle side`);
+    }
+    const keys = Array.from({ length: 7 }, (_, i) => (i === 5 ? 'x' : `k${i}`));
+    assert.deepEqual(equality(runOf(7, { partialReason: 'time-limit' }, { igPuzzleKeys: keys }), runOf(10)), { verdict: 'differ', path: 'details.igPuzzleKeys.5' });
+    assert.deepEqual(equality(runOf(7, { partialReason: 'time-limit' }, { igSetKey: 'T' }), runOf(10)), { verdict: 'differ', path: 'details.igSetKey' });
+  });
+
+  it('an empty prefix is no evidence', () => {
+    assert.deepEqual(equality(runOf(0, { partialReason: 'time-limit' }), runOf(10)), { verdict: 'no-evidence', why: 'empty prefix' });
+    assert.equal(equality(runOf(7, { partialReason: 'set:reserve-cut', details: {} }), runOf(10)).verdict, 'no-evidence', 'a run without a set key');
+  });
+
+  it('cohorts keep components, arms and cells apart', () => {
+    const rows = [hand('shipped', 'gen-v4', 'a', 20), hand('smoke', 'gen-v4', 'a', 21), hand('baseline-control', 'today', 'a', 20), hand('shipped', 'gen-v4', 'b', 20)];
+    const c = cohorts(rows);
+    assert.deepEqual(Object.keys(c).sort(), ['baseline-control', 'shipped', 'smoke']);
+    assert.deepEqual(Object.keys(c.shipped['gen-v4']).sort(), ['a', 'b']);
+    assert.equal(c.smoke['gen-v4'].a[0].rep, 21);
+  });
+
+  it('a smoke row does not complete a main cohort', () => {
+    const cell = '3x29-nightmare';
+    const today = handRows('baseline-control', 'today', cell, { tenthReadyMs: 2000, responseMs: 2500 });
+    const partial = [...handRows('shipped', 'gen-v4', cell).slice(0, 19), hand('smoke', 'gen-v4', cell, 39), ...today];
+    const entry = (/** @type {any[]} */ rows) => gateOf(stageGates('A', { rows }), 'A1').detail.cells.find((/** @type {any} */ c) => c.cell === cell);
+    assert.equal(entry(partial).verdict, 'incomplete');
+    assert.match(entry(partial).reasons.join(), /missing row: side a rep 39/);
+    assert.equal(entry([...handRows('shipped', 'gen-v4', cell), ...today]).verdict, 'pass', 'the same cell with its 20 main rows passes');
+  });
+
+  it('memory limits', () => {
+    const big = hand('shipped', 'gen-v4', '3x29-nightmare', 20, { peakProcessBytes: 1700 * MIB });
+    const result = memory([big, hand('shipped', 'gen-v4', '3x29-nightmare', 21)]);
+    assert.equal(result.status, 'fail');
+    assert.deepEqual(result.problems, [`${big.key}: peakProcessBytes 1700 MiB exceeds 1536 MiB`]);
+    const a6 = gateOf(stageGates('A', { rows: [big] }), 'A6');
+    assert.equal(a6.status, 'fail');
+    assert.match(a6.detail.problems[0], new RegExp(big.key));
+    assert.equal(memory([hand('shipped', 'gen-v4', 'c', 20, { peakProcessBytes: 1536 * MIB, peakAccountedBytes: 1196 * MIB })]).status, 'pass', 'at most');
+    assert.equal(memory([hand('shipped', 'gen-v4', 'c', 20, { peakAccountedBytes: 1196 * MIB + 1 })]).status, 'fail');
+    assert.equal(memory([hand('shipped', 'gen-v4', 'c', 20, { errors: [{ phase: 'sampling', code: 'model-too-large', message: 'x' }] })]).status, 'fail');
+    assert.equal(memory([hand('shipped', 'gen-v4', 'c', 20, { peakProcessBytes: null })]).status, 'incomplete');
+    assert.equal(memory([]).status, 'incomplete');
+    assert.equal(memory([], [{ key: 'k' }]).status, 'incomplete', 'a refused row is missing evidence');
+  });
+
+  it('the 18x18 control is completion only', () => {
+    const slow = (/** @type {number} */ rep) => (rep === 39 ? { acceptedCount: 3, tenthReadyMs: null, partialReason: 'time-limit', responseMs: 120000 } : { tenthReadyMs: 100000, responseMs: 100500 });
+    const rows = [
+      ...handRows('shipped', 'gen-v4', '18x18-nightmare', slow),
+      ...handRows('baseline-control', 'today', '18x18-nightmare', { tenthReadyMs: 1000 }),
+    ];
+    const b2 = gateOf(stageGates('B', { rows }), 'B2');
+    const entry = b2.detail.cells.find((/** @type {any} */ c) => c.cell === '18x18-nightmare');
+    assert.equal(entry.verdict, 'pass');
+    assert.equal(entry.reachedTen, 19);
+    assert.equal('noRegression' in entry, false, 'no lower bound is reported');
+    assert.equal(b2.status, 'incomplete', 'the other cells of B2 have no rows');
+    const three = rows.map((r) => (r.component === 'shipped' && r.rep >= 37 ? { ...r, run: { ...r.run, acceptedCount: 3, tenthReadyMs: null } } : r));
+    assert.equal(gateOf(stageGates('B', { rows: three }), 'B2').detail.cells.find((/** @type {any} */ c) => c.cell === '18x18-nightmare').verdict, 'fail', 'three short requests fail');
+  });
+
+  it('stage B computes its gates from hand-made rows', () => {
+    const B = (/** @type {Record<string, any>[]} */ rows) => rows.map((r) => ({ ...r, stage: 'B' }));
+    const noScreen = { ledger: { ...LEDGER, lo: 200, hi: 200 } };
+    const slow = { tenthReadyMs: 2000, responseMs: 2500 };
+    const sentinelCells = ['11x11', '18x19', '21x21'].map((c) => `${c}-nightmare`);
+    const sentinels = [
+      ...sentinelCells.flatMap((c) => [...handRows('non-table', 'gen-v4', c), ...handRows('non-table', 'today', c, slow)]),
+      ...handRows('non-table', 'gen-v4', '15x15-nightmare'),
+    ];
+    const rows = [...B([
+      ...['12x12', '14x14', '15x15b10', '16x16', '15x20'].flatMap((c) => handRows('shipped', 'gen-v4', `${c}-nightmare`)),
+      ...['14x14', '15x15b10', '16x16'].flatMap((c) => handRows('n-mid-no-screen', 'no-screen', `${c}-nightmare`, slow, noScreen)),
+      ...['10x10', '18x20', '20x20', '20x21', '24x24', '26x26'].flatMap((c) => controlRows(`${c}-nightmare`)),
+      ...handRows('shipped', 'gen-v4', '18x18-nightmare'),
+      ...['14x14', '20x20', '24x24', '26x26'].flatMap((c) => handRows('shipped', 'gen-v4', `${c}-hell-1`)),
+      ...['6x10', '3x29', '10x10', '12x12', '14x14', '15x15b10', '16x16', '15x20', '18x18', '18x20', '20x20', '20x21', '32x15', '22x22', '24x24', '26x26'].flatMap((c) => [
+        ...handRows('shipped-master', 'gen-v4', `${c}-master`, {}, {}, [20, 21, 22, 23, 24]),
+        ...handRows('baseline-master', 'today', `${c}-master`, {}, {}, [20, 21, 22, 23, 24]),
+      ]),
+    ]), ...sentinels];
+    const journals = Object.fromEntries(rows.filter((r) => r.component === 'shipped' && /^(12x12|14x14|15x15b10|16x16|15x20)-nightmare$/.test(r.cell)).map((r) => [r.fileKey, []]));
+    const equalityEntries = rows.filter((r) => r.cell === '26x26-nightmare' && r.component === 'shipped').map((r, i) => ({ key: r.key, oracle: 'o', verdict: i % 2 === 0 ? 'equal' : 'prefix-equal' }));
+    const gates = stageGates('B', { rows, journals, equality: equalityEntries });
+    assert.deepEqual(gates.map((g) => [g.id, g.status]), [['B1', 'pass'], ['B2', 'pass'], ['B3', 'pass'], ['B4', 'pass'], ['B5', 'pass'], ['B6', 'pass'], ['B7', 'pass'], ['B8', 'not-due']]);
+    assert.ok(gates.slice(0, 7).every((g) => g.rows.length > 0));
+    assert.equal(gateOf(gates, 'B4').detail.verdict, 'admitted');
+    const b2 = gateOf(gates, 'B2').detail.cells.find((/** @type {any} */ c) => c.cell === '26x26-nightmare');
+    assert.deepEqual(b2.identity, { equal: 10, prefixEqual: 10, noEvidence: 0, missing: 0 });
+    assert.ok(b2.timing.noRegression, 'the timing of 26x26 is reported');
+    assert.ok(gateOf(gates, 'B5').detail.paired.length > 0);
+    assert.deepEqual(
+      gateOf(gates, 'B5').detail.paired.filter((/** @type {any} */ p) => p.pair === 'non-table/gen-v4 vs non-table/today').map((/** @type {any} */ p) => p.cell).sort(),
+      sentinelCells,
+      'B5 pairs the sentinels',
+    );
+    // Without the journals B1 is incomplete, and so is the class's cell gate.
+    const without = stageGates('B', { rows, equality: equalityEntries });
+    assert.equal(gateOf(without, 'B1').status, 'incomplete');
+    assert.equal(gateOf(without, 'B4').status, 'incomplete');
+    assert.equal(gateOf(without, 'B4').detail.decidedBy, 'cell-gate');
+    // A differing Master request fails the cell; a screen that is no faster fails the class.
+    const swapped = rows.map((r) => (r.component === 'shipped-master' && r.cell === '10x10-master' && r.rep === 22 ? { ...r, run: { ...r.run, details: detailsOf('other', 1) } } : r));
+    assert.equal(gateOf(stageGates('B', { rows: swapped, journals, equality: equalityEntries }), 'B3').status, 'fail');
+    const noFaster = rows.map((r) => (r.component === 'n-mid-no-screen' ? { ...r, run: { ...r.run, tenthReadyMs: 1000, responseMs: 1500 } } : r));
+    assert.equal(gateOf(stageGates('B', { rows: noFaster, journals, equality: equalityEntries }), 'B4').detail.decidedBy, 'faster');
+  });
+});
+
+/** Builds the raw folder of one row (receipt, report, one journal file) and returns its published line, as `run-group` would. */
+function fabricate(/** @type {string} */ dir, /** @type {any} */ seal, /** @type {string} */ sealSha256, /** @type {any} */ r, /** @type {Record<string, any>} */ over, /** @type {{ name: string, text: string }[]} */ extra = []) {
+  const raw = join(dir, 'RAW', 'raw', r.fileKey);
+  mkdirSync(join(raw, 'journal'), { recursive: true });
+  const journalName = `${r.fileKey}.row.jsonl`;
+  const files = [{ name: journalName, text: `${JSON.stringify({ t: 'row', row: r.fileKey, seed: r.seed })}\n` }, ...extra];
+  const journal = files.map(({ name, text }) => {
+    const bytes = Buffer.from(text);
+    writeFileSync(join(raw, 'journal', name), bytes);
+    return { name, bytes: bytes.length, sha256: sha256Hex(bytes) };
+  }).sort((a, b) => (a.name < b.name ? -1 : 1));
+  const copy = seal.copies.find((/** @type {any} */ c) => c.id === r.variant);
+  const run = newRunRecord({
+    caseId: r.cell, seed: r.seed, rep: r.rep, sourceDigest: copy.runtimeDigest, sourceCommit: `${r.variant} ${seal.commit}`,
+    acceptedCount: 10, tenthReadyMs: 1000, responseMs: 1500, peakProcessBytes: 500 * MIB, peakAccountedBytes: 100 * MIB, ...over,
+  });
+  const reportText = JSON.stringify({ meta: { matrixDigest: matrixDigest(rowMatrix(r)) }, runs: [run] });
+  writeFileSync(join(raw, 'report.json'), reportText);
+  const receiptBytes = Buffer.from(JSON.stringify({
+    key: r.key,
+    fileKey: r.fileKey,
+    stage: r.stage,
+    group: r.group,
+    invocation: 'A-1.1',
+    sealSha256,
+    variant: r.variant,
+    copy: { treeId: copy.treeId, copyDigest: copy.copyDigest },
+    report: { path: `raw/${r.fileKey}/report.json`, sha256: sha256Hex(Buffer.from(reportText)) },
+    journal,
+    childExit: 0,
+    startedAt: 'x',
+    endedAt: 'y',
+  }));
+  writeFileSync(join(raw, 'receipt.json'), receiptBytes);
+  return {
+    key: r.key, fileKey: r.fileKey, stage: r.stage, group: r.group, component: r.component, arm: r.arm, variant: r.variant, cell: r.cell, rep: r.rep, seed: r.seed,
+    uniqueness: r.uniqueness, sealSha256, run, telemetry: null, receipt: sha256Hex(receiptBytes), ledger: LEDGER,
+  };
+}
+
+let realPlan;
+/** @returns {any} The approved plan of the audit (the same one `plan` writes). */
+const planOf = () => (realPlan ??= buildPlan().plan);
+const VARIANT_IDS = ['p2-gen4', 'p2-gen4-diag', 'p2-none', 'p2-uncapped', 'p2-uncapped-diag', 'p2-today'];
+
+/**
+ * A state root with a seal, the plan rows and a published snapshot of their fabricated rows.
+ * @param {string} name
+ * @param {{ rows: any[], folder?: string, runFor?: (row: any) => Record<string, any>, journalFor?: (row: any) => { name: string, text: string }[] }} o
+ * `folder` is `rows` (not smoke) or `rows-smoke` (smoke only); each row goes to `<folder>/<row.stage>.jsonl`.
+ */
+function world(name, { rows, folder = 'rows', runFor = () => ({}), journalFor = () => [] }) {
+  const dir = state(name);
+  const sources = [...new Set([BROWSER_PAGE, ...SOURCE_FILES, ...BROWSER_GENERATOR_SOURCES])].sort();
+  const copies = VARIANT_IDS.map((id) => ({ id, source: id === 'p2-today' ? 'today' : 'gen-v4', treeId: `t-${id}`, copyDigest: `d-${id}`, runtimeDigest: `rd-${id}` }));
+  const seal = { format: 'p2-seal', version: 1, commit: 'c0ffee', sourceDigest: 'sd-1', copies, tools: [], inputs: sources.map((path) => ({ path, sha256: sha256Hex(path) })) };
+  writeFileSync(join(dir, 'E', 'seal', 'seal.json'), `${JSON.stringify(seal, null, 2)}\r\n`);
+  const sealSha256 = sealOf(dir);
+  mkdirSync(join(dir, 'E', 'plan'), { recursive: true });
+  writeFileSync(join(dir, 'E', 'plan', 'plan.json'), `${JSON.stringify({ format: 'p2-plan', version: 1, rows, groups: [] }, null, 2)}\r\n`);
+  const lines = rows.filter((r) => (r.component === 'smoke') === (folder === 'rows-smoke')).map((r) => fabricate(dir, seal, sealSha256, r, runFor(r), journalFor(r)));
+  mkdirSync(join(dir, 'E', folder), { recursive: true });
+  for (const stage of [...new Set(lines.map((l) => l.stage))]) {
+    const jsonl = lines.filter((l) => l.stage === stage).map((l) => `${JSON.stringify(l)}\r\n`).join('');
+    writeFileSync(join(dir, 'E', folder, `${stage}.jsonl`), jsonl);
+    writeFileSync(join(dir, 'E', folder, `${stage}.sha256`), `${sha256Hex(Buffer.from(jsonl))}\r\n`);
+  }
+  const out = join(dir, 'out');
+  return {
+    dir,
+    P: pathsOf(dir),
+    seal,
+    sealSha256,
+    lines,
+    out,
+    /** @param {string} [stage] */
+    report: (stage = 'A') => p2(['report', '--stage', stage, '--out', out, '--state', dir]),
+    read: () => JSON.parse(readFileSync(join(out, 'report.json'), 'utf8')),
+  };
+}
+
+/** @param {ReturnType<typeof world>} w @param {string[]} [skip] The checks without a receipt. */
+function writeBrowser(w, skip = []) {
+  for (const check of BROWSER_CHECKS.filter((c) => !skip.includes(c))) {
+    mkdirSync(join(w.dir, 'E', 'browser', check), { recursive: true });
+    writeFileSync(join(w.dir, 'E', 'browser', check, 'receipt.json'), `${JSON.stringify({
+      format: 'p2-browser', version: 1, page: BROWSER_PAGE, check, status: 'pass', durationMs: 5000, startedAt: 'x', endedAt: 'y', edgePid: 1,
+      consoleLines: [`CHECK-END PASS 5.0 s ${check}`], cleanup: null, sources: w.seal.inputs,
+    }, null, 2)}\r\n`);
+  }
+}
+
+/** @param {ReturnType<typeof world>} w @param {(items: any[]) => any[]} [mutate] */
+function writeReplay(w, mutate = (items) => items) {
+  const items = REPLAY_ITEMS.map((it) => ({
+    n: it.n, cell: it.cell, uniqueness: it.uniqueness, copy: { id: it.copy, treeId: `t-${it.copy}` }, status: 'measured', reason: null,
+    puzzles: [{ id: 'p1', kind: 'candidate', status: 'matched', steps: 1, bytes: 1, work: 1 }], maxima: {}, margin: 'ok',
+  }));
+  mkdirSync(join(w.dir, 'E', 'replay-probes'), { recursive: true });
+  writeFileSync(join(w.dir, 'E', 'replay-probes', 'receipt.json'), `${JSON.stringify({ format: 'p2-replay-probes', version: 1, limits: {}, items: mutate(items), sources: { trees: [] } }, null, 2)}\r\n`);
+}
+
+/** @param {any} row @returns {Record<string, any>} The run of an A row: today's arm is the slower one. */
+const aRun = (row) => ({
+  tenthReadyMs: row.arm === 'today' ? 2000 : 1000,
+  responseMs: row.arm === 'today' ? 2500 : 1500,
+  ...(row.component === 'require' ? { certificates: { unique: 1, multiple: 0, notProved: 0, notChecked: 0 } } : {}),
+});
+const aRows = () => planOf().rows.filter((/** @type {any} */ r) => r.stage === 'A');
+const statusesOf = (/** @type {any} */ report, /** @type {string} */ stage) => report.gates.filter((/** @type {any} */ g) => g.stage === stage).map((/** @type {any} */ g) => [g.id, g.status]);
+
+describe('the report', () => {
+  it('stage A is not vetoed by B\'s cells', () => {
+    const w = world('report-a', { rows: aRows(), runFor: aRun });
+    writeBrowser(w);
+    writeReplay(w);
+    const r = w.report();
+    assert.equal(r.status, 0, r.out);
+    assert.match(r.out, /^report: A complete /);
+    const report = w.read();
+    assert.deepEqual(Object.keys(report), ['stage', 'status', 'snapshots', 'bindings', 'equality', 'gates', 'ledger']);
+    assert.equal(report.status, 'complete');
+    assert.deepEqual(statusesOf(report, 'A'), ['A1', 'A2', 'A3', 'A4', 'A5', 'A6'].map((id) => [id, 'pass']));
+    assert.deepEqual(statusesOf(report, 'B'), ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8'].map((id) => [id, 'not-due']));
+    assert.deepEqual(report.bindings, []);
+    assert.deepEqual(report.snapshots, [{ path: 'rows/A.jsonl', sha256: sha256Hex(readFileSync(join(w.dir, 'E', 'rows', 'A.jsonl'))) }]);
+    assert.match(report.ledger, /^A spent 0\.000 s/);
+    const a3 = report.gates.find((/** @type {any} */ g) => g.id === 'A3');
+    assert.equal(a3.rows.length, 50);
+    assert.deepEqual(a3.detail.cells.find((/** @type {any} */ c) => c.arm === 'today' && c.cell === '22x22-nightmare'), { arm: 'today', cell: '22x22-nightmare', rows: 5, reachedTen: 5, statuses: { valid: 5, invalid: 0, incorrect: 0, censored: 0, error: 0 }, unique: 5, budgetStops: 0, deadlineStops: 0 });
+    const md = readFileSync(join(w.out, 'report.md'), 'utf8');
+    assert.ok(md.includes('\r\n') && !/[^\r]\n/.test(md) && md.endsWith('\r\n'));
+    assert.match(md, /## A1 \(stage A\): pass/);
+    assert.match(md, /\| shipped\/gen-v4\/3x29-nightmare\/20 \|/);
+    assert.equal(/ +\r\n/.test(md), false, 'no trailing whitespace');
+  });
+
+  it('a missing individual browser receipt is incomplete', () => {
+    const w = world('report-late-fence', { rows: aRows(), runFor: aRun });
+    writeBrowser(w, ['late-fence']);
+    writeReplay(w);
+    assert.equal(w.report().status, 0);
+    const report = w.read();
+    assert.equal(report.status, 'incomplete');
+    const a5 = report.gates.find((/** @type {any} */ g) => g.id === 'A5');
+    assert.equal(a5.status, 'incomplete');
+    assert.deepEqual(a5.detail.problems, ['A5 late-fence: missing']);
+    assert.deepEqual(statusesOf(report, 'A').filter(([id]) => id !== 'A5').map(([, s]) => s), Array(5).fill('pass'));
+  });
+
+  it('six individual browser receipts pass without an aggregate', () => {
+    const w = world('report-six', { rows: aRows(), runFor: aRun });
+    writeBrowser(w);
+    writeReplay(w);
+    assert.equal(existsSync(join(w.dir, 'E', 'browser', 'receipt.json')), false);
+    assert.equal(w.report().status, 0);
+    const a5 = w.read().gates.find((/** @type {any} */ g) => g.id === 'A5');
+    assert.equal(a5.status, 'pass');
+    assert.equal(a5.detail.checks.length, 6);
+    writeFileSync(join(w.dir, 'E', 'browser', 'receipt.json'), '{"status":"fail"}\r\n');
+    assert.equal(w.report().status, 0);
+    assert.equal(w.read().gates.find((/** @type {any} */ g) => g.id === 'A5').status, 'pass', 'an aggregate file is never read');
+  });
+
+  it('a not-measured resource item leaves A4 incomplete, and B is refused without the owner line', () => {
+    const w = world('report-a4', { rows: aRows(), runFor: aRun });
+    writeBrowser(w);
+    writeReplay(w, (items) => items.map((item) => (item.n === 7 ? { ...item, status: 'not-measured', puzzles: [] } : item)));
+    assert.equal(w.report().status, 0);
+    const report = w.read();
+    assert.equal(report.status, 'incomplete');
+    const a4 = report.gates.find((/** @type {any} */ g) => g.id === 'A4');
+    assert.equal(a4.status, 'incomplete');
+    assert.equal(a4.detail.items.length, 8);
+    assert.deepEqual(a4.detail.items.map((/** @type {any} */ i) => i.n), [1, 2, 3, 4, 5, 6, 7, 8]);
+    assert.deepEqual(a4.detail.items.filter((/** @type {any} */ i) => i.problems.length > 0).map((/** @type {any} */ i) => [i.n, i.status]), [[7, 'not-measured']]);
+    const text = [
+      `Seal: ${w.sealSha256}`,
+      `Report A: ${sha256Hex(readFileSync(join(w.out, 'report.json')))}`,
+      'Accepted by SA-Opus: 2026-11-26 10:00 +07:00',
+      'Accepted by SA-Astra: 2026-11-26 10:05 +07:00',
+      'Stage B: PROCEED',
+      '',
+    ].join('\r\n');
+    const refused = checkReadout({ text, committed: true, sealSha256: w.sealSha256, reportSha256: sha256Hex(readFileSync(join(w.out, 'report.json'))), reportGates: report.gates });
+    assert.equal(refused.ok, false);
+    assert.match(refused.why, /Owner continuation/);
+    const allowed = checkReadout({ text: `${text}Owner continuation: 1234567890\r\n`, committed: true, sealSha256: w.sealSha256, reportSha256: sha256Hex(readFileSync(join(w.out, 'report.json'))), reportGates: report.gates });
+    assert.equal(allowed.ok, true);
+  });
+
+  it('a row with a bad binding is missing evidence', () => {
+    const w = world('report-binding', { rows: aRows(), runFor: aRun });
+    writeBrowser(w);
+    writeReplay(w);
+    const bad = w.lines.find((l) => l.component === 'shipped' && l.cell === '3x29-nightmare' && l.rep === 25);
+    assert.ok(bad);
+    const receipt = join(w.dir, 'RAW', 'raw', bad.fileKey, 'receipt.json');
+    writeFileSync(receipt, `${readFileSync(receipt, 'utf8')} `);
+    assert.equal(w.report().status, 0);
+    const report = w.read();
+    assert.deepEqual(report.bindings, [{ key: bad.key, problems: ['receipt hash'] }]);
+    assert.equal(report.status, 'incomplete');
+    const a1 = report.gates.find((/** @type {any} */ g) => g.id === 'A1');
+    assert.equal(a1.status, 'incomplete');
+    assert.equal(a1.detail.cells.find((/** @type {any} */ c) => c.cell === '3x29-nightmare').verdict, 'incomplete');
+    assert.deepEqual(a1.detail.cells.filter((/** @type {any} */ c) => c.cell !== '3x29-nightmare').map((/** @type {any} */ c) => c.verdict), ['pass', 'pass']);
+    assert.ok(!a1.rows.includes(bad.key), 'no statistic reads the row');
+    assert.equal(report.gates.find((/** @type {any} */ g) => g.id === 'A6').status, 'incomplete');
+
+    // A key that occurs twice has every line refused.
+    const d = world('report-binding-dup', { rows: aRows(), runFor: aRun });
+    writeBrowser(d);
+    writeReplay(d);
+    const again = d.lines.find((l) => l.key === 'shipped/gen-v4/3x29-nightmare/25');
+    assert.ok(again);
+    const file = join(d.dir, 'E', 'rows', 'A.jsonl');
+    const jsonl = `${readFileSync(file, 'utf8')}${JSON.stringify(again)}\r\n`;
+    writeFileSync(file, jsonl);
+    writeFileSync(join(d.dir, 'E', 'rows', 'A.sha256'), `${sha256Hex(Buffer.from(jsonl))}\r\n`);
+    assert.equal(d.report().status, 0);
+    const dup = d.read();
+    assert.deepEqual(dup.bindings, [{ key: again.key, problems: ['duplicate key'] }, { key: again.key, problems: ['duplicate key'] }]);
+    const dupA1 = dup.gates.find((/** @type {any} */ g) => g.id === 'A1');
+    assert.equal(dupA1.status, 'incomplete');
+    assert.equal(dupA1.detail.cells.find((/** @type {any} */ c) => c.cell === '3x29-nightmare').verdict, 'incomplete');
+    assert.ok(dup.gates.every((/** @type {any} */ g) => !g.rows.includes(again.key)), 'no gate reads the key');
+  });
+
+  it('an incorrect require row fails A3', () => {
+    const key = 'require/gen-v4/22x22-nightmare/0';
+    const w = world('report-incorrect', {
+      rows: aRows(),
+      runFor: (row) => ({ ...aRun(row), ...(row.key === key ? { errors: [{ phase: 'validation', code: 'invalid-puzzle', message: 'x' }] } : {}) }),
+    });
+    writeBrowser(w);
+    writeReplay(w);
+    assert.equal(w.report().status, 0);
+    const a3 = w.read().gates.find((/** @type {any} */ g) => g.id === 'A3');
+    assert.equal(a3.status, 'fail');
+    assert.deepEqual(a3.detail.problems, [`A3 ${key}: incorrect (error validation/invalid-puzzle)`]);
+    assert.equal(a3.detail.cells.find((/** @type {any} */ c) => c.arm === 'gen-v4' && c.cell === '22x22-nightmare').statuses.incorrect, 1);
+  });
+
+  it('stage B reads the bound journals of the failing cells', () => {
+    const cells = new Set(['12x12', '14x14', '15x15b10', '16x16', '15x20'].map((c) => `${c}-nightmare`));
+    const failing = planOf().rows.filter((/** @type {any} */ r) => r.stage === 'B' && r.component === 'shipped' && r.arm === 'gen-v4' && cells.has(r.cell));
+    assert.equal(failing.length, 100);
+    const rows = [...aRows(), ...failing];
+    const P2_KEY = 'shipped/gen-v4/12x12-nightmare/20';
+    const worker = (/** @type {any} */ r, /** @type {string[]} */ more = []) => ({ name: `${r.fileKey}.101.1.jsonl`, text: `${['{"t":"worker","pid":101,"threadId":1}', ...more].map((l) => `${l}\n`).join('')}` });
+    const p2Line = `{"t":"phase","phase":"p2","call":"${P2_KEY.replaceAll('/', '~')}:101:1:1"}`;
+    const entry = (/** @type {any} */ report, /** @type {string} */ cell) => report.gates.find((/** @type {any} */ g) => g.id === 'B1').detail.cells.find((/** @type {any} */ c) => c.cell === cell);
+
+    const first = world('report-b-journals', { rows, runFor: aRun, journalFor: (r) => (r.stage === 'B' ? [worker(r, r.key === P2_KEY ? [p2Line] : [])] : []) });
+    writeBrowser(first);
+    writeReplay(first);
+    assert.equal(first.report('B').status, 0);
+    const one = first.read();
+    assert.deepEqual(one.snapshots.map((/** @type {any} */ s) => s.path), ['rows/A.jsonl', 'rows/B.jsonl']);
+    assert.deepEqual(one.bindings, []);
+    assert.equal(one.gates.find((/** @type {any} */ g) => g.id === 'B1').status, 'fail');
+    assert.equal(entry(one, '12x12-nightmare').deadEnds, 1);
+    assert.deepEqual(entry(one, '12x12-nightmare').reasons, ['dead-end entry: row shipped~gen-v4~12x12-nightmare~20 has 1 call(s) in phase p2']);
+    for (const cell of [...cells].filter((c) => c !== '12x12-nightmare')) {
+      assert.deepEqual([entry(one, cell).verdict, entry(one, cell).deadEnds], ['pass', 0], cell);
+    }
+
+    const lost = 'shipped/gen-v4/14x14-nightmare/20';
+    const cut = 'shipped/gen-v4/16x16-nightmare/20';
+    const second = world('report-b-journals-lost', {
+      rows,
+      runFor: aRun,
+      journalFor: (r) => (r.stage !== 'B' || r.key === lost ? [] : [worker(r, r.key === cut ? ['{"t":"phase"'] : [])]),
+    });
+    writeBrowser(second);
+    writeReplay(second);
+    assert.equal(second.report('B').status, 0);
+    const two = second.read();
+    assert.equal(two.gates.find((/** @type {any} */ g) => g.id === 'B1').status, 'incomplete');
+    assert.deepEqual(entry(two, '14x14-nightmare').reasons, [`no journal: row ${lost.replaceAll('/', '~')}`]);
+    assert.deepEqual(entry(two, '16x16-nightmare').reasons, [`no journal: row ${cut.replaceAll('/', '~')}`]);
+    for (const cell of ['12x12-nightmare', '15x15b10-nightmare', '15x20-nightmare']) assert.equal(entry(two, cell).verdict, 'pass', cell);
+  });
+
+  it('a port defect stops interpretation', () => {
+    const cell = '22x22-nightmare';
+    const w = world('report-defect', {
+      rows: aRows(),
+      runFor: (row) => ({ ...aRun(row), ...(row.component === 'shipped' && row.cell === cell && row.rep === 20 ? { details: detailsOf(cell, 20) } : {}) }),
+    });
+    writeBrowser(w);
+    writeReplay(w);
+    const oracle = join(w.dir, ...'docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json'.split('/'));
+    const writeOracle = (/** @type {Record<string, any>} */ details) => {
+      mkdirSync(dirname(oracle), { recursive: true });
+      writeFileSync(oracle, JSON.stringify({ meta: {}, shard: {}, rows: [{ rowKey: `${cell}~20`, caseId: cell, rep: 20, seed: `landscape/${cell}/20`, localRep: 0, run: { acceptedCount: 10, partialReason: null, details } }] }));
+    };
+    writeOracle(detailsOf(cell, 20));
+    assert.equal(w.report().status, 0);
+    const equal = w.read();
+    assert.equal(equal.status, 'complete');
+    assert.equal(equal.equality.length, 20);
+    assert.deepEqual(equal.equality.find((/** @type {any} */ e) => e.verdict === 'equal'), { key: `shipped/gen-v4/${cell}/20`, oracle: 'docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json', verdict: 'equal' });
+    assert.equal(equal.equality.filter((/** @type {any} */ e) => e.verdict === 'no-evidence').length, 19, 'a rep without an oracle row is no evidence, not a difference');
+    const differing = detailsOf(cell, 20);
+    differing.igPuzzleKeys[4] = sha256Hex('another');
+    writeOracle(differing);
+    const r = w.report();
+    assert.equal(r.status, 2, r.out);
+    assert.match(r.out, new RegExp(`port defect: shipped/gen-v4/${cell}/20 differs at details.igPuzzleKeys.4`));
+    const report = w.read();
+    assert.equal(report.status, 'port-defect');
+    assert.equal('gates' in report, false);
+    assert.equal(report.equality.find((/** @type {any} */ e) => e.verdict === 'differ').path, 'details.igPuzzleKeys.4');
+    assert.equal(existsSync(join(w.out, 'report.md')), false, 'no report.md for a port defect');
+  });
+
+  it('the smoke stage reads its own snapshot and leaves later gates not due', () => {
+    const smokePlan = planOf().rows.filter((/** @type {any} */ r) => r.component === 'smoke');
+    assert.equal(smokePlan.length, 8);
+    const w = world('report-smoke', { rows: smokePlan, folder: 'rows-smoke', runFor: (row) => ({ details: detailsOf(row.cell, row.rep) }) });
+    const oracleFor = (/** @type {string} */ cell) => (cell === '14x14-nightmare' ? 'V4-S4/fr-frozen' : cell === '26x26-nightmare' || cell.endsWith('-master') ? 'V4-S4/log-link' : 'V4-S4/fr-frozen-none');
+    for (const row of smokePlan) {
+      const file = join(w.dir, 'docs', 'improve-generating', 'evidence', 'frozen', ...oracleFor(row.cell).split('/'), `${row.cell.endsWith('-master') ? 'master' : 'val'}-${row.cell}.runs.json`);
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, JSON.stringify({ meta: {}, shard: {}, rows: [{ rowKey: row.fileKey, caseId: row.cell, rep: 20, seed: row.seed, localRep: 0, run: { acceptedCount: 10, partialReason: null, details: detailsOf(row.cell, 20) } }] }));
+    }
+    for (const bundle of ['observer', 'certificate', 'prior-replay', 'legacy']) {
+      mkdirSync(join(w.dir, 'E', 'proofs', bundle), { recursive: true });
+      writeFileSync(join(w.dir, 'E', 'proofs', bundle, 'result.json'), `${JSON.stringify({ format: 'p2-proof', version: 1, bundle, status: 'pass', quick: false, cases: [], counts: {}, sources: { sourceDigest: 'sd-1', copies: [{ id: 'p2-gen4', treeId: 't-p2-gen4' }] } })}\r\n`);
+    }
+    const r = w.report('smoke');
+    assert.equal(r.status, 0, r.out);
+    const report = w.read();
+    assert.equal(report.status, 'complete');
+    assert.deepEqual(statusesOf(report, 'smoke'), [['S1', 'pass'], ['S2', 'pass']]);
+    assert.ok(['A', 'B'].every((stage) => statusesOf(report, stage).every(([, s]) => s === 'not-due')));
+    assert.equal(report.equality.length, 8);
+    assert.equal(report.snapshots[0].path, 'rows-smoke/A.jsonl');
+    rmSync(join(w.dir, 'E', 'proofs', 'legacy'), { recursive: true });
+    assert.equal(w.report('smoke').status, 0);
+    assert.equal(w.read().status, 'incomplete');
+    assert.equal(p2(['report', '--stage', 'A', '--out', w.out, '--state', w.dir]).status, 3, 'stage A has no snapshot here');
+    assert.equal(p2(['report', '--stage', 'X', '--out', w.out, '--state', w.dir]).status, 2);
+  });
+});
+
+describe('the smoke gate', () => {
+  const CELL_ORACLE = {
+    '14x14-nightmare': 'V4-S4/fr-frozen/val-14x14-nightmare.runs.json',
+    '10x10-nightmare': 'V4-S4/fr-frozen-none/val-10x10-nightmare.runs.json',
+    '18x18-nightmare': 'V4-S4/fr-frozen-none/val-18x18-nightmare.runs.json',
+    '22x22-nightmare': 'V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json',
+    '26x26-nightmare': 'V4-S4/log-link/val-26x26-nightmare.runs.json',
+    '20x20-hell-1': 'V4-S4/fr-frozen-none/val-20x20-hell-1.runs.json',
+    '15x20-nightmare': 'V4-S4/fr-frozen-none/val-15x20-nightmare.runs.json',
+    '10x10-master': 'V4-S4/log-link/master-10x10-master.runs.json',
+  };
+
+  /** A state root with the seal, four proof results and the eight oracle files. @param {string} name */
+  function setup(name) {
+    const dir = state(name);
+    writeFileSync(join(dir, 'E', 'seal', 'seal.json'), `${JSON.stringify({ format: 'p2-seal', version: 1, commit: 'c0ffee', sourceDigest: 'sd-1', copies: [{ id: 'p2-gen4', treeId: 't-p2-gen4' }] })}\r\n`);
+    const proof = (/** @type {string} */ bundle, /** @type {Record<string, any>} */ over = {}) => {
+      mkdirSync(join(dir, 'E', 'proofs', bundle), { recursive: true });
+      writeFileSync(join(dir, 'E', 'proofs', bundle, 'result.json'), `${JSON.stringify({
+        format: 'p2-proof', version: 1, bundle, status: 'pass', quick: false, cases: [], counts: {}, sources: { sourceDigest: 'sd-1', copies: [{ id: 'p2-gen4', treeId: 't-p2-gen4' }] }, ...over,
+      })}\r\n`);
+    };
+    for (const bundle of ['observer', 'certificate', 'prior-replay', 'legacy']) proof(bundle);
+    for (const [cell, path] of Object.entries(CELL_ORACLE)) {
+      const file = join(dir, 'docs', 'improve-generating', 'evidence', 'frozen', ...path.split('/'));
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, JSON.stringify({ meta: {}, shard: {}, rows: [{ rowKey: `${cell}~20`, caseId: cell, rep: 20, seed: `landscape/${cell}/20`, localRep: 0, run: hand('smoke', 'gen-v4', cell, 20).run }] }));
+    }
+    const plan = { rows: Object.keys(CELL_ORACLE).map((cell) => ({ key: `smoke/gen-v4/${cell}/20`, component: 'smoke' })) };
+    const rows = () => Object.keys(CELL_ORACLE).map((cell) => hand('smoke', 'gen-v4', cell, 20));
+    return { dir, P: pathsOf(dir), plan, rows, proof };
+  }
+
+  it('the smoke gate', () => {
+    const w = setup('smoke-gate');
+    assert.deepEqual(smokeGate(w.rows(), w.plan, w.P), { ok: true, problems: [] });
+
+    w.proof('observer', { status: 'fail' });
+    const failed = smokeGate(w.rows(), w.plan, w.P);
+    assert.equal(failed.ok, false);
+    assert.deepEqual(failed.problems, ['S1 proof observer: status fail']);
+    w.proof('observer');
+
+    w.proof('legacy', { quick: true });
+    const quick = smokeGate(w.rows(), w.plan, w.P);
+    assert.equal(quick.ok, false);
+    assert.deepEqual(quick.problems, ['S1 proof legacy: quick']);
+    w.proof('legacy');
+
+    w.proof('certificate', { sources: { sourceDigest: 'stale', copies: [] } });
+    assert.deepEqual(smokeGate(w.rows(), w.plan, w.P).problems, ['S1 proof certificate: sourceDigest']);
+    w.proof('certificate');
+
+    const rows = w.rows();
+    rows[2].run.details.igPuzzleKeys[4] = sha256Hex('x');
+    const differ = smokeGate(rows, w.plan, w.P);
+    assert.equal(differ.ok, false);
+    assert.deepEqual(differ.problems, [`S2 ${rows[2].key}: differ details.igPuzzleKeys.4`]);
+
+    const missing = smokeGate(w.rows().slice(1), w.plan, w.P);
+    assert.equal(missing.ok, false, 'a missing smoke row is not a pass');
+    assert.match(missing.problems[0], /missing row/);
+
+    const cut = w.rows();
+    Object.assign(cut[0].run, { partialReason: 'time-limit', acceptedCount: 4 });
+    cut[0].run.details = { ...cut[0].run.details, igPuzzleKeys: cut[0].run.details.igPuzzleKeys.slice(0, 4) };
+    assert.deepEqual(smokeGate(cut, w.plan, w.P), { ok: true, problems: [] }, 'a prefix-equal row passes');
+
+    rmSync(join(w.dir, 'E', 'proofs'), { recursive: true });
+    assert.equal(smokeGate(w.rows(), w.plan, w.P).ok, false, 'no proof results is not a pass');
+    assert.equal(smokeGate(w.rows(), w.plan, pathsOf(join(w.dir, 'nowhere'))).ok, false, 'no seal is not a pass');
   });
 });

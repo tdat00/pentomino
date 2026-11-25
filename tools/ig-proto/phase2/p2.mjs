@@ -12,9 +12,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { rectRows } from '../../bench/calibration-reference.js';
 import { verifySnapshot as realVerifySnapshot } from '../snapshot.mjs';
-import { rowMatrix, sha256Hex, verifyRow } from './binding.mjs';
-import { smokeGate as stubSmokeGate } from './gates.mjs';
-import { rowWork } from './trace-reader.mjs';
+import { BROWSER_CHECKS, rowMatrix, sha256Hex, verifyRow } from './binding.mjs';
+import { B1_CELLS, equalityOf, PROOF_BUNDLES, readJsonOrNull, smokeGate as defaultSmokeGate, stageGates } from './gates.mjs';
+import { readRowFolder, rowWork } from './trace-reader.mjs';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 export const STAGE_MAP = Object.freeze({ A: 410, B: 402 });
@@ -884,7 +884,7 @@ function generationRun(file) {
  * Runs the rows of one group, or of one overflow group, one at a time (C4, C5, C10; R1, R3). Never throws for a refusal:
  * the exit code and the lines to print are returned.
  * @param {{ stage: string, group?: number, overflowGroup?: number, invocation: string, paths: ReturnType<typeof pathsOf>, clockOffsetS?: number }} opts
- * @param {{ smokeGate?: (rows: any[], plan: any) => any, spawn?: typeof spawnSync, now?: () => number }} [deps]
+ * @param {{ smokeGate?: (rows: any[], plan: any, paths: ReturnType<typeof pathsOf>) => any, spawn?: typeof spawnSync, now?: () => number }} [deps]
  * @returns {Promise<{ code: number, lines: string[] }>} Exit code 0, 6 (smoke gate), 7 (deferred keys), 8 (activation) or 9 (a refused binding).
  */
 export async function runGroup(opts, deps = {}) {
@@ -902,7 +902,7 @@ export async function runGroup(opts, deps = {}) {
 /** @param {Parameters<typeof runGroup>[0]} opts @param {NonNullable<Parameters<typeof runGroup>[1]>} deps @param {string[]} out @returns {Promise<number>} */
 async function groupBody(opts, deps, out) {
   const { stage, invocation, paths: P } = opts;
-  const smokeGate = deps.smokeGate ?? stubSmokeGate;
+  const smokeGate = deps.smokeGate ?? defaultSmokeGate;
   const spawn = deps.spawn ?? spawnSync;
   // performance.now() counts from the start of the process, which is the horizon's origin.
   const now = deps.now ?? (() => performance.now());
@@ -1054,8 +1054,20 @@ async function groupBody(opts, deps, out) {
   const gateStops = async () => {
     const gateFile = join(P.RAW, 'rows', 'smoke-gate.json');
     if (!existsSync(gateFile)) {
-      const result = await smokeGate(readJsonl(rowsFile).filter((l) => smokeKeys.includes(l.key)), plan);
-      const verdict = { ok: result?.ok === true, problems: Array.isArray(result?.problems) ? result.problems : [], at: new Date().toISOString() };
+      // R1 with review-2 R2-04: an unbound smoke row is a missing smoke proof, so it never reaches the gate.
+      /** @type {string[]} */
+      const unbound = [];
+      const bound = readJsonl(rowsFile).filter((l) => smokeKeys.includes(l.key)).filter((line) => {
+        const check = verifyRow(line, ctxOf(line));
+        if (!check.ok) unbound.push(`S2 ${line.key}: binding ${check.problems.join('; ')}`);
+        return check.ok;
+      });
+      const result = await smokeGate(bound, plan, P);
+      const verdict = {
+        ok: unbound.length === 0 && result?.ok === true,
+        problems: [...unbound, ...(Array.isArray(result?.problems) ? result.problems : [])],
+        at: new Date().toISOString(),
+      };
       mkdirSync(dirname(gateFile), { recursive: true });
       writeFileSync(gateFile, jsonText(verdict), { flag: 'wx' });
     }
@@ -1182,6 +1194,137 @@ export function publishCommand(P, a) {
   return `publish: ${stage} ${rows.length} rows ${sha}`;
 }
 
+/** The snapshots each report stage reads: folder under `E` and stage name of the files (C8). */
+const REPORT_SNAPSHOTS = Object.freeze({
+  smoke: [['rows-smoke', 'A']],
+  A: [['rows', 'A']],
+  B: [['rows', 'A'], ['rows', 'B']],
+});
+
+/**
+ * The lines of a row's worker journals (C1), read after each file's SHA-256 is checked against the row's receipt (C4).
+ * @param {ReturnType<typeof pathsOf>} P @param {Record<string, any>} row
+ * @returns {any[] | null} Null when the receipt or a file is missing or does not match: B1 is then incomplete.
+ */
+function journalLinesOf(P, row) {
+  const dir = join(P.RAW, 'raw', row.fileKey);
+  const receiptFile = join(dir, 'receipt.json');
+  if (!existsSync(receiptFile) || sha256Hex(readFileSync(receiptFile)) !== row.receipt) return null;
+  let receipt;
+  try {
+    receipt = JSON.parse(readFileSync(receiptFile, 'utf8'));
+  } catch {
+    return null;
+  }
+  const journal = Array.isArray(receipt.journal) ? receipt.journal : [];
+  for (const entry of journal) {
+    const file = join(dir, 'journal', entry.name);
+    if (!existsSync(file) || sha256Hex(readFileSync(file)) !== entry.sha256) return null;
+  }
+  const folder = readRowFolder(join(dir, 'journal'), row.fileKey);
+  // An unparseable line or a foreign file could hide a `p2` line.
+  return folder.workerFiles.length === 0 || folder.problems.length > 0 ? null : folder.workerFiles.flatMap((f) => f.lines);
+}
+
+/** @param {unknown} v @returns {string} A table cell. */
+const mdCell = (v) => String(v).replaceAll('|', '\\|').replace(/\s+/g, ' ');
+
+/** @param {Record<string, any>} report @returns {string} The human report: one table per gate with its rows' keys. */
+function reportMarkdown(report) {
+  const lines = [`# Phase-2 report: stage ${report.stage}`, '', `Status: **${report.status}**`, '', '## Snapshots', '', '| Path | SHA-256 |', '|---|---|'];
+  for (const s of report.snapshots) lines.push(`| ${mdCell(s.path)} | ${s.sha256} |`);
+  lines.push('', '## Bindings', '');
+  if (report.bindings.length === 0) lines.push('Every row is bound to the seal.');
+  else lines.push('| Row | Problems |', '|---|---|', ...report.bindings.map((/** @type {any} */ b) => `| ${mdCell(b.key)} | ${mdCell(b.problems.join('; '))} |`));
+  /** @type {Map<string, number>} */
+  const counts = new Map();
+  for (const e of report.equality) counts.set(e.verdict, (counts.get(e.verdict) ?? 0) + 1);
+  lines.push('', '## Equality with the oracles', '', `${report.equality.length} rows: ${[...counts].map(([v, n]) => `${v} ${n}`).join(', ') || 'none'}.`);
+  const open = report.equality.filter((/** @type {any} */ e) => e.verdict === 'no-evidence');
+  if (open.length > 0) lines.push('', '| Row | Oracle | Why |', '|---|---|---|', ...open.map((/** @type {any} */ e) => `| ${mdCell(e.key)} | ${mdCell(e.oracle)} | ${mdCell(e.why)} |`));
+  for (const g of report.gates) {
+    lines.push('', `## ${g.id} (stage ${g.stage}): ${g.status}`, '');
+    for (const p of Array.isArray(g.detail?.problems) ? g.detail.problems : []) lines.push(`- ${p}`);
+    if (g.rows.length > 0) lines.push('', '| Row |', '|---|', ...g.rows.map((/** @type {string} */ key) => `| ${mdCell(key)} |`));
+  }
+  lines.push('', '## Ledger', '', ...String(report.ledger).split('\n').filter((l) => l !== '').map((l) => `    ${l}`));
+  return toCrlf(lines.join('\n'));
+}
+
+/**
+ * `report --stage <smoke|A|B> --out <dir>` (R4): equality with the oracles first, then the gates of the stage. A row whose
+ * binding fails is missing evidence and is read by no statistic. A difference stops the plan as a port defect (exit 2).
+ * @param {ReturnType<typeof pathsOf>} P @param {Record<string, any>} a @returns {Promise<string>} The printed line.
+ */
+export async function reportCommand(P, a) {
+  const stage = a.stage;
+  if (!Object.hasOwn(REPORT_SNAPSHOTS, stage) || typeof a.out !== 'string') throw new Exit(2, USAGE);
+  const ctxOf = rowContextOf(P);
+  const { seal } = activeSeal(P);
+  const loaded = REPORT_SNAPSHOTS[/** @type {keyof typeof REPORT_SNAPSHOTS} */ (stage)].map(([folder, name]) => {
+    const dir = join(P.E, folder);
+    const path = `${folder}/${name}.jsonl`;
+    try {
+      return { path, ...loadSnapshot(dir, name, ctxOf) };
+    } catch (error) {
+      const failure = /** @type {NodeJS.ErrnoException} */ (error);
+      if (failure.code === 'ENOENT' || /^snapshot /.test(failure.message)) throw new Exit(3, `report: ${path}: ${failure.code === 'ENOENT' ? 'the snapshot is missing' : failure.message}`);
+      throw error;
+    }
+  });
+  /** @type {Map<string, number>} */
+  const occurrences = new Map();
+  const everyRow = loaded.flatMap((s) => s.rows);
+  for (const row of everyRow) occurrences.set(row.key, (occurrences.get(row.key) ?? 0) + 1);
+  /** @type {{ key: string, stage: string, problems: string[] }[]} */
+  const refused = [];
+  /** @type {Record<string, any>[]} */
+  const bound = [];
+  for (const { binding, ...row } of everyRow) {
+    // Every line of a repeated key is refused, not only the later ones.
+    const problems = [...binding.problems, ...((occurrences.get(row.key) ?? 0) > 1 ? ['duplicate key'] : [])];
+    if (problems.length > 0) refused.push({ key: row.key, stage: row.stage, problems });
+    else bound.push(row);
+  }
+  const snapshots = loaded.map(({ path, sha256 }) => ({ path, sha256 }));
+  const bindings = refused.map(({ key, problems }) => ({ key, problems }));
+  const oracleRoot = P.state ?? ROOT;
+  const equality = equalityOf(bound, oracleRoot);
+  const out = resolve(a.out);
+  mkdirSync(out, { recursive: true });
+  const differing = equality.filter((e) => e.verdict === 'differ');
+  if (differing.length > 0) {
+    writeFileSync(join(out, 'report.json'), jsonText({ stage, status: 'port-defect', snapshots, bindings, equality }));
+    rmSync(join(out, 'report.md'), { force: true });
+    throw new Exit(2, differing.map((e) => `report: port defect: ${e.key} differs at ${/** @type {any} */ (e).path} (${e.oracle})`).join('\n'));
+  }
+  /** @type {Record<string, any>} */
+  const journals = {};
+  if (stage === 'B') {
+    for (const row of bound) {
+      if (row.component === 'shipped' && row.arm === 'gen-v4' && B1_CELLS.includes(row.cell)) journals[row.fileKey] = journalLinesOf(P, row);
+    }
+  }
+  const gates = stageGates(/** @type {'smoke' | 'A' | 'B'} */ (stage), {
+    rows: bound,
+    refused,
+    seal,
+    plan: readJsonOrNull(join(P.E, 'plan', 'plan.json')),
+    journals,
+    replay: stage === 'A' ? readJsonOrNull(join(P.E, 'replay-probes', 'receipt.json')) : null,
+    browser: stage === 'A' ? Object.fromEntries(BROWSER_CHECKS.map((c) => [c, readJsonOrNull(join(P.E, 'browser', c, 'receipt.json'))])) : {},
+    proofs: stage === 'smoke' ? Object.fromEntries(PROOF_BUNDLES.map((b) => [b, readJsonOrNull(join(P.E, 'proofs', b, 'result.json'))])) : {},
+    equality,
+    oracleRoot,
+  });
+  const status = gates.filter((g) => g.status !== 'not-due').every((g) => g.status !== 'incomplete') ? 'complete' : 'incomplete';
+  const ledgerStatus = await main(['ledger', '--status', ...(P.state ? ['--state', P.state] : [])]);
+  const report = { stage, status, snapshots, bindings, equality, gates, ledger: ledgerStatus };
+  writeFileSync(join(out, 'report.json'), jsonText(report));
+  writeFileSync(join(out, 'report.md'), reportMarkdown(report));
+  return `report: ${stage} ${status} (${gates.filter((g) => g.status !== 'not-due').map((g) => `${g.id} ${g.status}`).join(', ')})`;
+}
+
 /**
  * Parses `--key value` flags; a flag with no value is `true`.
  * @param {string[]} argv @returns {Record<string, any>}
@@ -1212,6 +1355,7 @@ const USAGE = [
   '  run-group --stage <A|B> (--group <n> | --overflow-group <n>) --invocation <id> [--state <dir> [--clock-offset-s <s>]]',
   '  status --stage <A|B>',
   '  publish --stage <A|B> --out <dir> [--rows <dir>]',
+  '  report --stage <smoke|A|B> --out <dir>',
 ].join('\n');
 
 /**
@@ -1308,6 +1452,8 @@ export async function main(argv) {
       return statusCommand(P, a.stage);
     case 'publish':
       return publishCommand(P, a);
+    case 'report':
+      return reportCommand(P, a);
     default:
       throw new Exit(2, USAGE);
   }

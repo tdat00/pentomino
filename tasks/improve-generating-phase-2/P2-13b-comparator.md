@@ -220,14 +220,14 @@ None here; P2-17 writes the README section.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w3, 953f3b261d1e5fc0b2bb9dd285f7af33b79be0e4 |
+| Start, end, duration | dispatched 2026-11-25 23:55 +07:00 (developer 23:55:22 to 00:12:39; fix round 00:40:42 to 00:43:30); accepted 2026-11-26 00:45 |
+| Waiting for rulings | about 28 min (D1 to D5 and the named items, SA-Opus; queued behind the P2-15 and P2-12d questions) |
+| Agent id, model | 2d9a5a0a-8e0e-4809-b33d-6df188db2747, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 64; 13,913,379 / 167,697 / 13,276,745 |
+| AI credits | 459.62 |
+| Questions and rulings | no QUESTION; five readings ruled by SA-Opus (pack amendment 703f03f): D1 accept; D2 accept (each report holds its own stage's gates); D3 accept (B2 26x26 by equal or prefix-equal against log-link; timing reported, not gated); D4 B4 mapping accepted (P2-20's stop: any B4 status other than pass is P2-B05's owner stop); D4 A3 fix (an incorrect require row fails A3, invalid/censored/error make it incomplete, cells gain statuses); D4 B5 fix (sentinel pair non-table gen-v4 vs today); D5 accepted except duplicates (every line of a repeated key is refused); run-group verifies each smoke line with verifyRow before the smoke gate (S2 <key>: binding ...); journalLinesOf returns null on any readRowFolder problem; four new tests and one extended |
+| Fix rounds | 1 (the five ruled fixes and their tests) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with every phase-2 test file and G-COPIES (results in the bookkeeping); developer: unlocked p2.test.mjs 72/72 (48.1 s), binding and trace-reader 28/28, G-PROTECTED, G-WORKTREE, G-FORMAT (3 files), G-CHECK OK |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | B8 stays not-due until P2-13c; P2-17 writes the README section; stage B run end to end only for B1 and its journals (B2 to B7 through stageGates with hand-made rows); no real seal, oracle or engine row (lane T) |
