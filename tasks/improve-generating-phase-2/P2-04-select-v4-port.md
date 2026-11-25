@@ -185,14 +185,14 @@ counts; each AC row with its evidence; questions and deviations.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w1, df7261576074fa267aab660b023ad6971b5f61fd |
+| Start, end, duration | dispatched 2026-11-25 22:27 +07:00 (developer 22:27:24 to about 22:40, doc fix to 22:46:51); accepted 22:54; about 27 min |
+| Waiting for rulings | about 6 min (deviations 3 and 5 and the module-tree mention, SA-Opus) |
+| Agent id, model | 877421ad-c97c-41ab-a69d-d91596453a90, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 76; 10,374,486 / 57,035 / 10,038,473 |
+| AI credits | 241.42 |
+| Questions and rulings | no QUESTION; seven deviations sent to SA-Opus, all accepted: (1) ctx.target.id ?? ''; (2) r.rating cast as RatingV3; (3) the no-window event after verifyConsumed() and Object.assign(loc, …), where the frozen failNoWindow wrote markNoWindow (frozen 1072-1074); (4) clamp deleted; (5) rescue/tail re-rating counters after const { rating, detail } = out;, so a capped re-rating is not counted (frozen 902-909; P2-05a rescue:<n>:rated|rejected); (6) production-wording comments; (7) rateScreen wrapped. Documentation fix ruled by SA-Opus: design-detail.md line 169 lists select-v4.js; the clues.js API entry (555-567) names the selectCluesV4 dispatch and adds the selectCluesV4 signature |
+| Fix rounds | 1 (the ruled documentation fix) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 81/81 (55.8 s), hook gate 0 hits, anchors 1 hit each, G-FORMAT, G-CHECK OK after the doc fix |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | bandDistance import and the kind/phase parameters kept unused per the table (ruled); the no-window and budget event types in types.js are P2-09; parity with the frozen selector, the two new event kinds and the last-event assertion are P2-05b |

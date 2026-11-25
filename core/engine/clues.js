@@ -11,9 +11,11 @@
 
 import { countRowLimit, makeUnique, noProvedGuess, ranked, SkipReplayError, sortLike } from './clue-primitives.js';
 import { completeDiagnostic, IncompleteRatingError, inBand, rate, rateDetailed, rateLean } from './difficulty.js';
+import { usesGenV4 } from './gen-v4.js';
 import { clueKey } from './keys.js';
 import { bandEdge, initialClueCount } from './levels.js';
 import { BUDGETS } from './policy.js';
+import { selectCluesV4 } from './select-v4.js';
 import { isValidLayout } from './tiling.js';
 
 export { certify, countRowLimit, makeUnique, SkipReplayError } from './clue-primitives.js';
@@ -92,7 +94,7 @@ export const SKIP_BOUNDS = Object.freeze({
  * @returns {SelectResult}
  */
 export function selectClues(ctx) {
-  return selectCluesV3(ctx);
+  return usesGenV4(ctx.target.id ?? '', ctx.board) ? selectCluesV4(ctx) : selectCluesV3(ctx);
 }
 
 /**

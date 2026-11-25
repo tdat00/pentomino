@@ -166,7 +166,7 @@ pentomino/                     repository root = site root /pentomino/
 │  ├─ engine/                  pure ES modules: no DOM, no storage, no clock; run in page, worker and Node
 │  │  ├─ hash.js  rng.js  geometry.js  board.js  view.js  policy.js  levels.js  qualification.js
 │  │  ├─ workspace.js  placements.js  dlx.js  tiling.js  deduce.js  enumerate.js  carve.js  keys.js  difficulty.js
-│  │  ├─ clue-primitives.js  clues.js  generate.js  gen-v4.js  replay.js  tasks.js  hints.js
+│  │  ├─ clue-primitives.js  clues.js  generate.js  gen-v4.js  replay.js  select-v4.js  tasks.js  hints.js
 │  │  ├─ puzzlecode.js  puzzlecode-input.js  puzzlecode-v1.js
 │  │  └─ pack.js  sharecode.js  game.js  palette.js  protocol.js  types.js  version.js
 │  ├─ workers/
@@ -552,7 +552,7 @@ export class IncompleteRatingError extends Error {   // thrown by `measureV3` an
 }
 ```
 
-**`clues.js`** (§6.10, §6.11): `selectClues` dispatches to `selectCluesV3`, today's search (`gen-v3`); `certify`, `makeUnique`, `countRowLimit` and `SkipReplayError` live in `clue-primitives.js` (the primitives shared by the selectors) and are re-exported by `clues.js`.
+**`clues.js`** (§6.10, §6.11): `selectClues` dispatches to `selectCluesV4` (`select-v4.js`, §6.10) when `usesGenV4` holds (the `gen-v4` route, live only when `GEN_V4_LIVE` is true, §7.6), otherwise to `selectCluesV3`, today's search (`gen-v3`); `certify`, `makeUnique`, `countRowLimit` and `SkipReplayError` live in `clue-primitives.js` (the primitives shared by the selectors) and are re-exported by `clues.js`.
 
 ```ts
 export function selectClues(ctx: { board: Board; pieces: Piece[]; layout: Pose[]; target: Level; rng: Rng;
@@ -563,8 +563,9 @@ export function selectClues(ctx: { board: Board; pieces: Piece[]; layout: Pose[]
                                    charge?: (units: number) => void }):                  // observers and replay control (§6.10)
   { ok: true; clues: Pose[]; rating: Rating; certificate: Certificate | null;         // certificate only in 'require' mode
     skips: { subsets: number[]; repairs: number[] } }
-  | { ok: false; reason: 'not-in-band' | 'uniqueness-not-proved' };   // dispatcher: calls `selectCluesV3`, today's search (`gen-v3`)
+  | { ok: false; reason: 'not-in-band' | 'uniqueness-not-proved' };   // dispatcher: selectCluesV4 on the gen-v4 route when live, else selectCluesV3 (gen-v3)
 export function selectCluesV3(ctx: SelectContext): SelectResult;   // today's search, same argument and result as `selectClues`
+export function selectCluesV4(ctx: SelectContext): SelectResult;   // select-v4.js: the gen-v4 search; adds igWindow, counters and igNoWindow (§6.10)
 export const SKIP_BOUNDS: { subsets: 2128; repairs: 64 };                              // exclusive bounds of the skip ordinals (§6.10)
 export class SkipReplayError extends Error {              // defined in `clue-primitives.js`, re-exported; `replaySkips` does not fit the run (§6.10)
   code: 'replay-skips'; reason: 'unreachable' | 'unused'; list: 'subsets' | 'repairs'; ordinal: number;
@@ -1643,6 +1644,14 @@ makeUnique(board, pieces, layout, F, rng, ws, rowLimit, hooks = {}):     // coun
   return null
 optional: try removing the added clues one by one (random order), keeping uniqueness and the band
 ```
+
+**`gen-v4`'s search (phase 2, not yet live).** `core/engine/select-v4.js` exports `selectCluesV4`, the search that the dispatcher `selectClues` sends the `gen-v4` route to (`usesGenV4`, §7.6); while `GEN_V4_LIVE` is `false` the dispatcher runs `selectCluesV3`, so nothing changes for a player. It takes the same context and returns the same result as the search above, with the additions below; the window, seed, beam, centre and stall rules are today's, as described above, and so are the observers, the skip ordinals, the replay of skips and the work meter.
+
+- **Locate (P1, P4).** Phase 1 is replaced by a locate of the clue count on one nested family of subsets (a shuffled order of the layout, of which the first `c` poses form the subset of `c` clues). The start count is the table prior of `priorStart` (`prior-s3-v1`), or the per-set `igPrior` of the context (an integer, clamped to 1 to K − 2; `null` for no prior), else K − 8; the first step is 1 with a prior and 8 without. A result below the band marches towards fewer clues, one above towards more, the step doubling after each result on the same side; a bracket is bisected, and an in-band probe ends the locate as the hit. The window count `wc` is the hit, else the end of the closed bracket nearer to the band centre, and phase 2 of the search above starts from it.
+- **Screen (P2, P3).** On Nightmare boards of 196 to 256 active cells every probe is rated under the lowered work limit `W` (`screenWOf`, `rateWithLimits`, §7.9). A rating whose main-phase work is at most `W` (`screenCertified`) is the canonical rating; a rating above it is screen-capped: it counts as "too few clues", steers the locate and is never accepted. A rating capped on the deduction path is unrateable as before and also counts as too few clues.
+- **Re-ratings.** When the locate ends with no window above (every count up to K − 2 too hard) and some of its probes were screen-capped, those probes nearest the window count are re-rated canonically (the rescue); a rescued in-band rating is the hit, a rescued rating below the band rebuilds the bracket and resumes the locate once. After the search, the screen-capped probes nearest the window count are re-rated canonically in the same way (the tail). The rescue and the tail share an allowance of `RERATE_MAX` (4) canonical ratings per call; they are outside the 64 profiles and the skip ordinals.
+- **Budget and no window (P5).** The call has a work budget (`callBudgetOf`, by uniqueness mode and level). It is checked before every rating and every uniqueness count, so one primitive may overshoot it. When it is spent, the call returns its best result at once: in `require` the best final result already finished, in `any` the best in-band candidate waiting (no work, no rng draw); with none it fails with `not-in-band`. A locate that reaches one clue with every probe too easy, or K − 2 clues with every probe too hard and no rescue that finds a window, ends at once with `not-in-band` and `igNoWindow` set to `'below'` or `'above'`.
+- **Result and events.** Every result has `counters` (`budgetStops`, `screenCapped`, `rescueReratings`, `tailReratings`: the budget stop, the screen-capped ratings and the canonical re-ratings of the call), and a success has `igWindow` (`c0`, `wc`, `hit`, `hiBelow`, `loAbove`, `probes`, `result`, `proof`: the summary of the locate). With a recorder two events are new: `{ stage: 'clues', kind: 'no-window', source, side }` (`side` `'below'` or `'above'`) when the locate ends with no window, and `{ stage: 'clues', kind: 'budget', source }` when the budget stops the call; neither changes a result, a skip or any work. The rating of a result is completed as above (P6).
 
 ### 6.11 Certificates and the uniqueness policy
 
