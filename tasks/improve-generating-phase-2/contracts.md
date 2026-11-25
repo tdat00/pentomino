@@ -217,7 +217,8 @@ or publishing the row." P2-13c reads `outcomes`, and P2-13f reads both; their ab
   - any clock cut: a set reason `time-limit`, `reserve-cut` or `response-bound` (written `set:` before the name in
     reports), or a batch reason `time-limit` or `response-bound`.
 - **Historical rows** (V4-S4, V4-S4C) use their signed F2 and F4 reach readings. Each binds the SHA-256 of its exact
-  published dataset.
+  published dataset. The readings file `docs/improve-generating-stages-2-4/stage4-report.md` is a sealed input (C13),
+  like the frozen oracles, so it cannot change during the stages (ruling on P2-13c, 2026-11-26).
 - **Historical applicability and coverage (review-2 R2-01, verbatim; P2-13c).** "A row in the original validation cells
   requires its declared frozen counterpart and the bound F2/F4 readings. A missing required counterpart or reading is
   unknown. A `non-table` sentinel has no historical counterpart by design: its historical side is `not-applicable`, and

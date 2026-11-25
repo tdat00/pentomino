@@ -50,7 +50,8 @@ finding; a required twin is never dropped. P2-13f adds the N-V4-16 glue and the 
   - **F4** (line 288): "No recorded call-budget stop".
 
   The receipt binds that file's SHA-256 and the SHA-256 of every frozen oracle file read. Without them, those fields
-  are unknown.
+  are unknown. The file also joins `SEALED_INPUTS` in `p2.mjs` (in path order, after the audit file), so the seal binds
+  it and `run-group.ps1`'s `seal --check` refuses a changed copy before every invocation (ruling on P2-13c, 2026-11-26).
 - **A valid observation** (the bounded row, or its twin): its row line exists, its `binding.ok` is true,
   `run.interrupted` is false and `run.errors` is empty. A row line whose binding fails is invalid; a key whose status
   line is `interrupted` (killed, or no report) is censored or interrupted; a run with errors is erroneous.
@@ -91,7 +92,8 @@ finding; a required twin is never dropped. P2-13f adds the N-V4-16 glue and the 
      trigger is evaluated on production alone and adds no unknown. For an original-cell row it is
      `{ applicable: true, row, readings }`: a missing counterpart `row` is unknown, and its `no-window`, `bound` and
      `budget-stop` are settled to "not triggered" only when `readings` holds the bound F2 and F4 hashes, otherwise
-     unknown.
+     unknown. `historical` has no default: a value that is not an object with a boolean `applicable` adds `historical`
+     to `unknown`, so production alone is read only from an explicit `{ applicable: false }`.
    - **`coverage(rows, twinRows, historical)`**: per eligible row, exactly one category, by the R2-01 text above.
      - `unresolved`: the row is not a valid observation; or it has any `unknown`; or it is triggered and has no valid
        twin.
@@ -139,7 +141,7 @@ finding; a required twin is never dropped. P2-13f adds the N-V4-16 glue and the 
 | same | `both set-prefixed clock reasons trigger` | `partialReason` `set:time-limit`; then `set:response-bound` | triggered, `clock-cut`, for both |
 | same | `missing production reach is unknown` | a row without `telemetry` | `unknown` holds `telemetry`; the coverage category is `unresolved` |
 | same | `historical zeros need the signed readings` | an untriggered original-cell row whose historical counterpart reached ten, with and without the F2/F4 hashes | `analytic-only`; `unresolved` |
-| same | `a valid new sentinel has no historical unknown` | a `non-table` row with no oracle, all production trigger fields settled and untriggered; then the same row triggered with a valid twin | `analytic-only`, no unknown; `observed-pair` |
+| same | `a valid new sentinel has no historical unknown` | a `non-table` row with no oracle, all production trigger fields settled and untriggered; then the same row triggered with a valid twin; then `triggered(row)` without its second argument | `analytic-only`, no unknown; `observed-pair`; `unknown` holds `historical` |
 | same | `a missing counterpart or an invalid twin is unresolved` | an original-cell row whose frozen counterpart is missing; separately, a triggered row whose twin line is present but whose twin `binding.ok` is false (receipt hash) | `unresolved` in each case |
 | same | `a reached-ten row with an observed twin is a pair` | a row of ten with a valid twin of ten | `observed-pair`; no false stop; no lost completion |
 | same | `false stops and lost completions` | a `bound` row whose twin made a set; a row of 7 whose twin reached 10 | one false stop; one lost completion; both counted as observed pairs |
