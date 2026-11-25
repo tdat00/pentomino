@@ -38,3 +38,12 @@ Fable" ("the two SA agents work out the answers together; no need to ask Fable")
   spike gave no go (N-V4-05 closed). A small pack at the owner's request, with its own identity and history checks."
 - The owner's decision of the same morning (D-S24-35, Q-T16 (a)): phase 2 (`gen-v4` in production) is a separate,
   later pack; phase 1 does not depend on it.
+
+## The owner's follow-up instruction, verbatim
+
+Discord message 1574937911546085528, 2026-11-25 07:00:59 +07:00:
+
+> Tiếp tục làm các phase 2 đến khi xong, gom trong 1 PR (không merge)
+
+Translation: "Continue doing phase 2 until it is done; gather [it] in one PR (do not merge)." Phase 1 and phase 2
+go together in one pull request, which is not merged.
