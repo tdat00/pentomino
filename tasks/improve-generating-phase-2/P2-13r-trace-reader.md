@@ -142,14 +142,14 @@ None here; P2-17 documents `tools/ig-proto/phase2/` in `tools/ig-proto/README.md
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w2, 203f5ca727301df0a7b1a976748c571189d60db4 (rebased onto gen-v4 after P2-01 and P2-03) |
+| Start, end, duration | dispatched 2026-11-25 22:01 +07:00; developer 22:01:54 to about 22:05, fix round to about 22:31; accepted 22:33; about 32 min |
+| Waiting for rulings | about 10 min (SA-Opus ruling on the deviations) |
+| Agent id, model | 6b40a2d0-7019-410f-917d-bc774ce32d9a, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | see the bookkeeping (usage read after the fix round) |
+| AI credits | see the bookkeeping |
+| Questions and rulings | no QUESTION; SA-Opus ruling: deviations 1-5 and the two gaps accepted; one fix: a row file with more than one parsed line adds `row line mismatch` (case `a second row line is a mismatch`); no contract change (C3, C9) |
+| Fix rounds | 1 |
+| Gates re-run by the orchestrator (merge gate) | static guards in the slot; merge gate after rebase: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT and the locked gate with every phase-2 test file (trace-reader.test.mjs), 600-s limit; developer run 15/15 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | none; P2-13b, P2-13c and P2-13f read rows only through rowWork; P2-17 documents the module |
