@@ -158,8 +158,10 @@ foreach ($recipe in 'hard', 'screen') {
    prints it (review-2 R2-06). Run it locked (limit 600 s), and write those three values into the recipe's `expect`.
 5. **Forward compatibility.** `E/P2-15/forward-check.mjs` imports `parsePack` from
    `Q:\git\pentomino-p2-today\core\engine\pack.js` (the `6b94ffb` reader, by its absolute `file://` URL), and parses
-   each pack of `tests/fixtures/replay-case-v4.json`. Expected: `ok`, every puzzle kept, and each `made` record dropped
-   with the existing warning. It writes its result lines to `E/P2-15/forward-check.log` itself (CRLF, UTF-8 without
+   each pack of `tests/fixtures/replay-case-v4.json`. Expected: `ok`, every puzzle kept; each candidate `made` record
+   and each pack's `setOrigin` dropped with the existing `provenance-ignored` warning; a calibration record
+   (`{ schema: 1, kind: 'calibration' }`, which has no `versions` and no `igPrior`, the same in both families) kept
+   (ruling on P2-15, 2026-11-26). It writes its result lines to `E/P2-15/forward-check.log` itself (CRLF, UTF-8 without
    BOM) before printing its summary (review-2 R2-06). Run it locked (it only parses; limit 120 s).
 6. **`docs/design-detail.md`.**
    - Replace line 1805's paragraph by the statement below.
@@ -198,7 +200,7 @@ Step 6.
 | step 2's recordings and checks (locked) | §3.3 | `record-fixtures: OK`, `replay case OK` twice, `refusal case OK` | 600 s each |
 | `fixture-diff.md` | slot root | version paths only | 1 min |
 | `ui-recipe.mjs` (locked) | §3.3 | `puzzles 10` | 600 s |
-| the forward check (locked) | §3.3 | `ok`; puzzles kept; `made` dropped with warnings | 120 s |
+| the forward check (locked) | §3.3 | `ok`; puzzles kept; candidate `made` records and `setOrigin` dropped with warnings; calibration records kept | 120 s |
 | G-COPIES without the flag: `node tools\ig-proto\phase2\copies.mjs check --source gen-v4` | slot root | `copies: OK (5 variants, ...)` | 1 min |
 | the full suite (a full-suite point) | §3.3 | `# fail 0`, `# cancelled 0`, within 600 s | 600 s |
 | G-CHECK, G-PROTECTED, G-WORKTREE, G-FORMAT | §3.4 | OK lines | 2 min |
