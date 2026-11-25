@@ -278,13 +278,13 @@ second commit or push to complete bookkeeping after publication.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | start 2026-11-25 12:12 +07:00 (preflight); end and duration: see the final report |
+| Waiting for rulings | none |
+| Agent id, model | the orchestrator (no developer) |
+| Calls; input, output and cache-read tokens | - |
+| AI credits | see the final report |
+| Questions and rulings | none |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | command 1 (read-only preflight): G-PROTECTED, G-QUALIFIED, `npm run check`, remote refs (main b5eb858, improve-generating 826ce79), PR #11 OPEN and unmerged, fast-forward ancestry, scope since eca0f94, G-WORKTREE: all OK; `pr-body.md` re-read. Publication pending at this commit; final outcome in PR #11's footer and the final report |
+| Commit | this commit: the published head and phase-2 fork point; full SHA in PR #11's footer and the final report |
+| Issues and named items | N-P1-DOC stays open (disclosed in PR #11) |
