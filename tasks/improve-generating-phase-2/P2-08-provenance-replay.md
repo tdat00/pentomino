@@ -174,6 +174,6 @@ is keyed on the algorithm id, not on a flag.
 | AI credits | 88.62 |
 | Questions and rulings | none; eight minor deviations accepted by the orchestrator (one focused re-run after the developer's own new test had the wrong key order, code unchanged; extra refusal cases; JSDoc of replayKeyOf and replayKeyFor; isV4Versions delegates to isV4Family; provenanceVersions built with a conditional spread in the five-keys, priorTable, screenTable order; the 7.7 paragraph on one line; contracts.md not read; unfiltered gate output) |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 167/167 (26.3 s; first run 166/167 on its own new test), G-PROTECTED with the replay-case blob, G-WORKTREE, G-FORMAT (10 files), G-CHECK OK, anchors 22 of 22 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 11 files); rebased onto b9355f7 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked focused `IG P2-08 merge exit=0 seconds=25.892 quiet=45`, 167/167 pass, 0 fail/cancelled/todo; link anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | rebased a53cb60; gen-v4 a53cb60ea2d4f7427cd15bd7f0d2e63dd2a91e42 |
 | Issues and named items | P2-15 switches ALGO_ID; P2-09 and P2-12d depend on this task; saved replays miss the cache once after merge (R8); no real gen-v4 run exercises the family branches before P2-15 |

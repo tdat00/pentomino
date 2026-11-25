@@ -196,6 +196,6 @@ None (P2-04 wrote §6.10).
 | AI credits | 65.10 |
 | Questions and rulings | none; five minor deviations accepted by the orchestrator (literal helpers s, x, kU, kR, kJ, scr, can; failures assert igWindow and skips as ?? null; run() spec keys observers, throwCharge, throwRecord; G-PROTECTED against 97a6326 as 3.2 says; one deleted scratch reader under tests/artifacts) |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 20/20 (1.678 s), G-PROTECTED, G-WORKTREE, G-FORMAT (1 file), G-CHECK OK, anchors 22 of 22 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 2 files); rebased onto a53cb60 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked focused `IG P2-05a merge exit=0 seconds=1.674 quiet=45`, 20/20 pass, 0 fail/cancelled/todo; link anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | rebased c701d1a; gen-v4 c701d1ab6b187e2ffae6ed9acc0527643c4ed2a8 |
 | Issues and named items | none; no select-v4.js defect found; literals checked by the passing cases and the recomputed counters, not by a mechanical diff against the JSONL |
