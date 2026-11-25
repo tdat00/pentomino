@@ -83,7 +83,7 @@ order and the merges.
 
 ### After development (serial)
 
-- [ ] P2-18 Seal, proof bundles and stage A's first group (locked) (every task above accepted and merged; D-P2-15)
+- [x] P2-18 Seal, proof bundles and stage A's first group (locked) (every task above accepted and merged; D-P2-15)
 - [ ] P2-19 Stage A groups 2 to 23, the items and the readout (locked) (P2-18)
 - [ ] P2-20 Stage B and the conditional twins (locked) (P2-19's committed readout, `contracts.md` C12)
 - [ ] P2-21 The validation report (P2-20)
@@ -619,7 +619,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-16c | w2, 3c77a46 | 2026-11-26 01:18 | 2026-11-26 01:26 | about 8 min | 71.43 | 1369fd2 |
 | P2-16e | w3, df72615 | 2026-11-25 22:27 | 2026-11-25 22:36 | about 9 min | 54.34 | e14e7a4 |
 | P2-17 | w1, f8e1f93 | 2026-11-26 02:33 | 2026-11-26 03:28 | about 55 min | 334.31 | 570d522 |
-| P2-18 | main | | | | | |
+| P2-18 | main, fa0bda2 (seal bca8cfd2) | 2026-11-26 03:09 | 2026-11-26 04:05 | about 56 min (stage A charged 28.344 min) | orchestrator | 46d9af6 |
 | P2-19 | main | | | | | |
 | P2-20 | main | | | | | |
 | P2-21 | main | | | | | |
