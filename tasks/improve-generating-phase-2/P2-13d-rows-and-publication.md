@@ -198,14 +198,14 @@ None here; P2-17 writes the README section.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w3, 6267e869db82297d3ee12e67aa0e9347ec0de2e3 |
+| Start, end, duration | dispatched 2026-11-25 23:07 +07:00 (developer 23:07:20 to 23:16); accepted 23:21 |
+| Waiting for rulings | about 4 min (twelve deviations, SA-Opus) |
+| Agent id, model | 882bf5af-98b2-4076-b35a-5178103fe346, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 39; 5,198,118 / 65,092 / 5,036,958 |
+| AI credits | 155.75 |
+| Questions and rulings | no QUESTION; twelve deviations, all accepted by SA-Opus without a code fix (pack amendment 2cae434: C8 pins <S>.sha256 as 64 lower-case hex characters then CRLF; P2-13e step 5 keeps rowMatrix; P2-13e publish refuses while a started key of the stage has no terminal line, `publish: unreconciled <key> (run its group again)`, exit 9). Exit codes 0, 3, 6, 7, 8 distinct (P2-13e adds 9); a report is valid only with one generation run and a finite acceptedCount (fails closed); a signal kill gives childExit null; the interrupted line carries at (C5); elapsed time from performance.now() plus clockOffsetS (node start is after the quiet period, the right base for the 885-s horizon); resume reconciles only the group being run |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | locked run-group smoke by the orchestrator (SA-Opus's command, -Stage A -Group 1 with an empty self-test state): `run-group: the plan is missing: ...`, `IG P2 A-1.1 exit=3 seconds=0.122 quiet=45`, `threw: IG P2 A-1.1 command failed: 3`, one ledger line group 1, exit 3, cause exit, killed false, countedSeconds 45.122, rowsWritten 0, no pending.json; self-test state removed; slot static guards; merge gate with every phase-2 test file and the link-anchor check (results in the bookkeeping); developer: unlocked 36/36 (17.6 s), G-PROTECTED, G-WORKTREE, G-FORMAT (3 files), G-CHECK OK |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-13e adds sealSha256 to the receipt, status and row lines and replaces the resume existence check with verifyRow; P2-13b replaces the smokeGate stub (rowLines, plan); P2-13c writes the real activation receipt; no real calibrate, seal or row run (lane T) |

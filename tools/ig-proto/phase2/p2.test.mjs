@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 import { rectRows } from '../../bench/calibration-reference.js';
 import { sha256Hex } from './binding.mjs';
-import { buildSeal, checkReadout, checkSeal, COPIES, STAGE_MAP } from './p2.mjs';
+import { buildSeal, checkReadout, checkSeal, COPIES, pathsOf, runGroup, STAGE_MAP } from './p2.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..', '..');
@@ -472,5 +472,355 @@ describe('the seal', () => {
     writeFileSync(join(w.dir, 'RAW', 'trees', 'gen-v4', 'p2-none', 'a.txt'), 'p2-none\n');
     w.gitState.todayStatus = ' M a.txt';
     assert.match(String(await check()), /^drift today /);
+  });
+});
+
+/** The journal of one complete row (C1 to C3), written by the fake calibrate and by the resume case. */
+function writeJournal(/** @type {string} */ dir, /** @type {string} */ row, /** @type {string} */ seed, /** @type {number} */ pid) {
+  mkdirSync(dir, { recursive: true });
+  const call = `${row}:${pid}:1:1`;
+  const put = (/** @type {string} */ name, /** @type {object[]} */ lines) => writeFileSync(join(dir, name), lines.map((l) => `${JSON.stringify(l)}\n`).join(''));
+  put(`${row}.${pid}.1.jsonl`, [
+    { t: 'worker', pid, threadId: 1, at: 0 },
+    { t: 'start', call, stage: 'set', attempt: 0, level: 'x', A: 1, at: 1 },
+    { t: 'caps', call, count: true },
+    { t: 'begin', call, kind: 'rate', bound: 1000 },
+    { t: 'p', call, i: 0, tuple: ['call', 5, 'rated', 60, 90, 10] },
+    { t: 'end', call, result: 'ok', work: 100, profiles: 1, locate: { countWork: 0 }, igNoWindow: null, budgetStop: false, clueCount: null, at: 2 },
+  ]);
+  put(`${row}.link.jsonl`, [
+    { t: 'link', ev: 'set-complete', attempt: 0, outcome: 'ok' },
+    { t: 'link', ev: 'worker-end', pid, threadId: 1, at: 50 },
+  ]);
+  put(`${row}.row.jsonl`, [{ t: 'row', row, seed, caseId: 'c', localRep: 20, pid }]);
+}
+
+const TELEMETRY = { setCounters: null, batchCounters: null, trail: { attempts: [], sameSide: 0, boundFired: false, noWindow: { below: 0, above: 0 } } };
+const GENERATION_REPORT = { runs: [{ probeKind: 'generation', acceptedCount: 10, telemetry: TELEMETRY }] };
+
+/** The stand-in for `tools/calibrate.mjs` of a copy: it acts by `P2_FAKE_CALIBRATE` and records every launch. */
+const FAKE_CALIBRATE = [
+  "import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';",
+  "import { join } from 'node:path';",
+  writeJournal.toString(),
+  "appendFileSync(process.env.P2_FAKE_MARKER, `${process.env.IG_ROW} ${process.env.IG_SOURCE_LABEL} ${process.env.IG_SEED} ${process.cwd()}\\n`);",
+  "if (process.env.P2_FAKE_CALIBRATE === 'noreport') process.exit(1);",
+  'const args = process.argv.slice(2);',
+  'writeJournal(process.env.IG_LOG_DIR, process.env.IG_ROW, process.env.IG_SEED, process.pid);',
+  `writeFileSync(args[args.indexOf('--output') + 1] + '.json', ${JSON.stringify(JSON.stringify(GENERATION_REPORT))});`,
+  '',
+].join('\n');
+
+process.on('exit', () => {
+  delete process.env.P2_FAKE_CALIBRATE;
+  delete process.env.P2_FAKE_MARKER;
+});
+
+/** @param {string} key @param {Record<string, any>} [over] @returns {Record<string, any>} A plan row. */
+function planRow(key, over = {}) {
+  const rep = Number(key.split('/').pop());
+  return {
+    key, fileKey: key.replaceAll('/', '~'), component: 'shipped', stage: 'A', group: 2, arm: 'gen-v4', cell: '10x10-nightmare', rep,
+    seed: `landscape/10x10-nightmare/${rep}`, rowLimitS: 130, uniqueness: 'any', quantity: 10, maxActive: 676, open: false, source: 'gen-v4',
+    levelId: 'nightmare', variant: 'p2-gen4', boardRows: rectRows(10, 10), ...over,
+  };
+}
+
+/**
+ * A state root with a plan, a seal and fake copies.
+ * @param {string} name @param {{ rows: any[], groups: { stage: string, group: number, keys: string[] }[] }} o
+ */
+function runWorld(name, o) {
+  const dir = state(name);
+  mkdirSync(join(dir, 'E', 'plan'), { recursive: true });
+  mkdirSync(join(dir, 'E', 'seal'), { recursive: true });
+  writeFileSync(join(dir, 'E', 'plan', 'plan.json'), `${JSON.stringify({ format: 'p2-plan', version: 1, rows: o.rows, groups: o.groups }, null, 2)}\r\n`);
+  const variants = ['p2-gen4', 'p2-gen4-diag', 'p2-uncapped', 'p2-uncapped-diag'];
+  writeFileSync(join(dir, 'E', 'seal', 'seal.json'), `${JSON.stringify({
+    format: 'p2-seal', version: 1, commit: 'c0ffee', copies: variants.map((id) => ({ id, source: 'gen-v4', treeId: `t-${id}`, copyDigest: `d-${id}` })),
+  }, null, 2)}\r\n`);
+  for (const id of variants) {
+    const tools = join(dir, 'RAW', 'trees', 'gen-v4', id, 'tools');
+    mkdirSync(tools, { recursive: true });
+    writeFileSync(join(tools, 'calibrate.mjs'), FAKE_CALIBRATE);
+  }
+  return { dir, P: pathsOf(dir), marker: join(dir, 'launched.txt') };
+}
+
+/** @param {string} dir @param {string} file @returns {any[]} */
+const jsonLines = (dir, file) => {
+  const path = join(dir, 'RAW', 'rows', file);
+  return existsSync(path) ? readFileSync(path, 'utf8').split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l)) : [];
+};
+const launched = (/** @type {{ marker: string }} */ w) => (existsSync(w.marker) ? readFileSync(w.marker, 'utf8').split('\n').filter(Boolean).map((l) => l.split(' ')[0]) : []);
+
+/**
+ * Runs a group with the fake calibrate.
+ * @param {ReturnType<typeof runWorld>} w @param {Record<string, any>} [opts] @param {Record<string, any>} [deps] @param {string} [mode]
+ */
+function go(w, opts = {}, deps = {}, mode = 'ok') {
+  process.env.P2_FAKE_MARKER = w.marker;
+  process.env.P2_FAKE_CALIBRATE = mode;
+  return runGroup(/** @type {any} */ ({ stage: 'A', group: 2, invocation: 'A-2.1', paths: w.P, ...opts }), { now: () => 0, ...deps });
+}
+
+/** @param {string} dir @param {Record<string, any>} extra Writes an activation receipt for the plan and seal of the state root. */
+function activate(dir, extra) {
+  mkdirSync(join(dir, 'E', 'twins'), { recursive: true });
+  writeFileSync(join(dir, 'E', 'twins', 'activation.json'), `${JSON.stringify({
+    planSha256: sha256Hex(readFileSync(join(dir, 'E', 'plan', 'plan.json'))),
+    sealSha256: sha256Hex(readFileSync(join(dir, 'E', 'seal', 'seal.json'))),
+    predicateVersion: 'p2-twins-v1',
+    slots: {},
+    overflow: { keys: [], groups: [] },
+    ...extra,
+  }, null, 2)}\r\n`);
+}
+
+describe('the rows of a group', () => {
+  const K1 = 'shipped/gen-v4/10x10-nightmare/20';
+  const K2 = 'shipped/gen-v4/10x10-nightmare/21';
+
+  it('a row starts durably and ends with its receipt and line', async () => {
+    const w = runWorld('row-ok', { rows: [planRow(K1)], groups: [{ stage: 'A', group: 2, keys: [K1] }] });
+    const r = await go(w);
+    assert.deepEqual(r, { code: 0, lines: [`row ${K1} done`] });
+    const status = jsonLines(w.dir, 'A.status.jsonl');
+    assert.deepEqual(status.map((l) => [l.t, l.key]), [['start', K1], ['done', K1]]);
+    assert.deepEqual({ group: status[0].group, invocation: status[0].invocation }, { group: 2, invocation: 'A-2.1' });
+    const fileKey = K1.replaceAll('/', '~');
+    const raw = join(w.dir, 'RAW', 'raw', fileKey);
+    const receiptFile = join(raw, 'receipt.json');
+    const receiptText = readFileSync(receiptFile, 'utf8');
+    assert.ok(receiptText.includes('\r\n') && !/[^\r]\n/.test(receiptText));
+    const receipt = JSON.parse(receiptText);
+    assert.deepEqual(Object.keys(receipt), ['key', 'fileKey', 'stage', 'group', 'invocation', 'variant', 'copy', 'report', 'journal', 'childExit', 'startedAt', 'endedAt']);
+    assert.deepEqual({ key: receipt.key, fileKey: receipt.fileKey, stage: receipt.stage, group: receipt.group, invocation: receipt.invocation, variant: receipt.variant, childExit: receipt.childExit },
+      { key: K1, fileKey, stage: 'A', group: 2, invocation: 'A-2.1', variant: 'p2-gen4', childExit: 0 });
+    assert.deepEqual(receipt.copy, { treeId: 't-p2-gen4', copyDigest: 'd-p2-gen4' });
+    assert.deepEqual(receipt.report, { path: `raw/${fileKey}/report.json`, sha256: sha256Hex(readFileSync(join(raw, 'report.json'))) });
+    assert.equal(receipt.journal.length, 3);
+    assert.deepEqual(receipt.journal.map((/** @type {any} */ j) => j.name), receipt.journal.map((/** @type {any} */ j) => j.name).sort());
+    for (const j of receipt.journal) {
+      const bytes = readFileSync(join(raw, 'journal', j.name));
+      assert.deepEqual({ bytes: j.bytes, sha256: j.sha256 }, { bytes: bytes.length, sha256: sha256Hex(bytes) });
+    }
+    const rows = jsonLines(w.dir, 'A.jsonl');
+    assert.equal(rows.length, 1);
+    const [row] = rows;
+    assert.equal(row.key, K1);
+    assert.equal(row.group, 2);
+    assert.equal(row.receipt, sha256Hex(readFileSync(receiptFile)));
+    assert.equal(row.ledger.complete, true, JSON.stringify(row.ledger.problems));
+    assert.equal(row.ledger.outcomes.length, 1);
+    assert.deepEqual(row.ledger.rerateStarts, { close: 0, rescue: 0, rerate: 0 });
+    assert.equal(row.run.acceptedCount, 10);
+    assert.deepEqual(row.telemetry, TELEMETRY);
+    assert.deepEqual(readFileSync(w.marker, 'utf8').trim().split(' ').slice(0, 4), [fileKey, 'p2-gen4', 'c0ffee', 'landscape/10x10-nightmare/20']);
+    const matrix = JSON.parse(readFileSync(join(raw, 'matrix.json'), 'utf8'));
+    assert.deepEqual(matrix.cases[0].seeds, ['landscape/10x10-nightmare/20']);
+    assert.equal(matrix.cases[0].quantity, 10);
+  });
+
+  it('a child without a report is interrupted', async () => {
+    const w = runWorld('row-noreport', { rows: [planRow(K1)], groups: [{ stage: 'A', group: 2, keys: [K1] }] });
+    const r = await go(w, {}, {}, 'noreport');
+    assert.equal(r.code, 0);
+    const status = jsonLines(w.dir, 'A.status.jsonl');
+    assert.deepEqual(status.map((l) => l.t), ['start', 'interrupted']);
+    assert.equal(status[1].cause, 'child-exit 1');
+    assert.equal(jsonLines(w.dir, 'A.jsonl').length, 0);
+    assert.equal((await go(w, {}, {}, 'noreport')).code, 0);
+    assert.equal(launched(w).length, 1, 'an interrupted row is never launched again');
+  });
+
+  it('resume never launches a started row again', async () => {
+    const w = runWorld('row-resume', { rows: [planRow(K1), planRow(K2)],     groups: [{ stage: 'A', group: 2, keys: [K1, K2] }] });
+    mkdirSync(join(w.dir, 'RAW', 'rows'), { recursive: true });
+        writeFileSync(join(w.dir, 'RAW', 'rows', 'A.status.jsonl'), [K1, K2].map((key) => `${JSON.stringify({ t: 'start', key, group: 2, invocation: 'A-2.0' })}\r\n`).join(''));
+    const raw = join(w.dir, 'RAW', 'raw', K1.replaceAll('/', '~'));
+    writeJournal(join(raw, 'journal'), K1.replaceAll('/', '~'), 'landscape/10x10-nightmare/20', 7);
+    writeFileSync(join(raw, 'report.json'), JSON.stringify(GENERATION_REPORT));
+    writeFileSync(join(raw, 'receipt.json'), '{"key":"k1"}\r\n');
+    const r = await go(w);
+    assert.equal(r.code, 0);
+    const status = jsonLines(w.dir, 'A.status.jsonl');
+    assert.deepEqual(status.slice(2).map((l) => [l.t, l.key, l.cause]), [['done', K1, undefined], ['interrupted', K2, 'no-report']]);
+    const rows = jsonLines(w.dir, 'A.jsonl');
+    assert.deepEqual(rows.map((l) => l.key), [K1]);
+    assert.equal(rows[0].receipt, sha256Hex(readFileSync(join(raw, 'receipt.json'))));
+    assert.equal(rows[0].ledger.complete, true);
+    assert.equal(existsSync(w.marker), false);
+    assert.equal((await go(w)).code, 0);
+    assert.equal(jsonLines(w.dir, 'A.jsonl').length, 1, 'the row line is not written twice');
+  });
+
+  it('a group keeps its deferred keys', async () => {
+    const w = runWorld('row-deferred', {
+      rows: [planRow(K1, { rowLimitS: 130 }), planRow(K2, { rowLimitS: 130 })],       groups: [{ stage: 'A', group: 2, keys: [K1, K2] }],
+    });
+    const r = await go(w, { clockOffsetS: 800 });
+    assert.deepEqual(r, { code: 7, lines: [`deferred ${K1}`, `deferred ${K2}`] });
+    assert.equal(existsSync(w.marker), false);
+    assert.equal(jsonLines(w.dir, 'A.status.jsonl').length, 0);
+    const cli = p2(['run-group', '--stage', 'A', '--group', '2', '--invocation', 'A-2.1', '--state', w.dir, '--clock-offset-s', '800']);
+    assert.equal(cli.status, 7);
+    assert.match(cli.out, new RegExp(`deferred ${K1}`));
+    assert.equal(p2(['run-group', '--stage', 'A', '--group', '2', '--invocation', 'A-2.1', '--clock-offset-s', '800']).status, 2);
+    const again = await go(w);
+    assert.equal(again.code, 0);
+    assert.deepEqual(launched(w), [K1, K2].map((k) => k.replaceAll('/', '~')));
+  });
+
+  const smokeRows = ['smoke/gen-v4/10x10-nightmare/20', 'smoke/gen-v4/10x10-nightmare/21'];
+  const requireKey = 'require/gen-v4/10x10-nightmare/0';
+  const G1 = { group: 1, invocation: 'A-1.1' };
+  const smokeWorld = (/** @type {string} */ name) => runWorld(name, {
+    rows: [...smokeRows.map((k) => planRow(k, { component: 'smoke' })), planRow(requireKey, { component: 'require', uniqueness: 'require', seed: 'ig-p2/require/10x10-nightmare/0' })],
+    groups: [{ stage: 'A', group: 1, keys: [...smokeRows, requireKey] }],
+  });
+
+  it('the smoke gate stops before the first require row', async () => {
+    const w = smokeWorld('smoke-fail');
+    /** @type {number[]} */
+    const calls = [];
+    const smokeGate = (/** @type {any[]} */ rows) => {
+      calls.push(rows.length);
+      return { ok: false, problems: ['x'] };
+    };
+    const r = await go(w, G1, { smokeGate });
+    assert.equal(r.code, 6);
+    assert.deepEqual(launched(w), smokeRows.map((k) => k.replaceAll('/', '~')));
+    const gate = JSON.parse(readFileSync(join(w.dir, 'RAW', 'rows', 'smoke-gate.json'), 'utf8'));
+    assert.deepEqual({ ok: gate.ok, problems: gate.problems, at: typeof gate.at }, { ok: false, problems: ['x'], at: 'string' });
+    assert.ok(!jsonLines(w.dir, 'A.status.jsonl').some((l) => l.key === requireKey));
+    assert.deepEqual(calls, [2]);
+    assert.equal((await go(w, G1, { smokeGate })).code, 6);
+    assert.equal(launched(w).length, 2);
+    assert.deepEqual(calls, [2], 'the verdict is decided once');
+    assert.equal((await go(w, G1)).code, 6, 'the stub always fails, and an existing verdict is read, not recomputed');
+  });
+
+  it('the default smoke gate stub always fails', async () => {
+    const w = smokeWorld('smoke-stub');
+    const r = await go(w, G1);
+    assert.equal(r.code, 6);
+    assert.match(r.lines.at(-1) ?? '', /smoke gate not implemented \(P2-13b\)/);
+    assert.equal(launched(w).length, 2);
+  });
+
+  it('a passing smoke gate lets the require rows run', async () => {
+    const w = smokeWorld('smoke-pass');
+    const r = await go(w, G1, { smokeGate: () => ({ ok: true, problems: [] }) });
+    assert.equal(r.code, 0);
+    assert.equal(jsonLines(w.dir, 'A.jsonl').length, 3);
+    assert.equal(JSON.parse(readFileSync(join(w.dir, 'RAW', 'rows', 'smoke-gate.json'), 'utf8')).ok, true);
+  });
+
+  const OPEN = 'conditional-twin/uncapped/unresolved-trigger-0/0';
+  const TRIGGERED = 'shipped/gen-v4/20x20-hell-1/23';
+  const openWorld = (/** @type {string} */ name) => runWorld(name, {
+    rows: [
+      planRow(TRIGGERED, { cell: '20x20-hell-1', levelId: 'hell-1', variant: 'p2-gen4-diag', seed: 'landscape/20x20-hell-1/23', maxActive: 484, uniqueness: 'require', boardRows: rectRows(20, 20) }),
+      planRow(OPEN, { component: 'conditional-twin', stage: 'B', arm: 'uncapped', cell: 'unresolved-trigger-0', rep: 0, seed: null, rowLimitS: 260, open: true, variant: undefined, levelId: undefined, boardRows: undefined }),
+    ],
+    groups: [{ stage: 'B', group: 2, keys: [OPEN] }],
+  });
+
+  it('open slots resolve through the activation receipt', async () => {
+    const none = openWorld('open-none');
+    const refused = await go(none, { stage: 'B', invocation: 'B-1.1' });
+    assert.equal(refused.code, 8);
+    assert.match(refused.lines.join('\n'), /activation receipt required/);
+    assert.equal(existsSync(none.marker), false);
+
+    const mapped = openWorld('open-mapped');
+    activate(mapped.dir, { slots: { [OPEN]: TRIGGERED } });
+    const ran = await go(mapped, { stage: 'B', invocation: 'B-1.1' });
+    assert.equal(ran.code, 0, ran.lines.join('\n'));
+    const rows = jsonLines(mapped.dir, 'B.jsonl');
+    assert.equal(rows.length, 1);
+    assert.deepEqual([rows[0].key, rows[0].variant, rows[0].component, rows[0].arm, rows[0].cell, rows[0].rep, rows[0].seed, rows[0].uniqueness],
+      ['conditional-twin/uncapped/20x20-hell-1/23', 'p2-uncapped-diag', 'conditional-twin', 'uncapped', '20x20-hell-1', 23, 'landscape/20x20-hell-1/23', 'require']);
+    const matrix = JSON.parse(readFileSync(join(mapped.dir, 'RAW', 'raw', 'conditional-twin~uncapped~20x20-hell-1~23', 'matrix.json'), 'utf8'));
+    assert.deepEqual([matrix.cases[0].maxActive, matrix.cases[0].levelId, matrix.cases[0].boardRows.length], [484, 'hell-1', 20]);
+    const [started] = jsonLines(mapped.dir, 'B.status.jsonl');
+    assert.equal(started.key, 'conditional-twin/uncapped/20x20-hell-1/23');
+    assert.equal(launched(mapped)[0].startsWith('conditional-twin~uncapped~20x20-hell-1~23'), true);
+
+    const inactive = openWorld('open-null');
+    activate(inactive.dir, { slots: { [OPEN]: null } });
+    const skipped = await go(inactive, { stage: 'B', invocation: 'B-1.1' });
+    assert.deepEqual(skipped, { code: 0, lines: [] });
+    assert.equal(jsonLines(inactive.dir, 'B.status.jsonl').length, 0);
+    assert.equal(existsSync(inactive.marker), false);
+  });
+
+  it('an activation for another plan is refused', async () => {
+    const w = openWorld('open-foreign');
+    activate(w.dir, { slots: { [OPEN]: null }, planSha256: 'f'.repeat(64) });
+    const r = await go(w, { stage: 'B', invocation: 'B-1.1' });
+    assert.equal(r.code, 8);
+    assert.match(r.lines.join('\n'), /activation receipt does not match the plan/);
+    const other = openWorld('open-foreign-seal');
+    activate(other.dir, { slots: { [OPEN]: null }, sealSha256: 'f'.repeat(64) });
+    assert.match((await go(other, { stage: 'B', invocation: 'B-1.1' })).lines.join('\n'), /does not match the seal/);
+  });
+
+  it('overflow groups come from the receipt', async () => {
+    const t = 'shipped/gen-v4/10x10-nightmare/21';
+    const w = runWorld('overflow', { rows: [planRow(t)], groups: [{ stage: 'B', group: 1, keys: [] }] });
+    assert.equal((await go(w, { stage: 'B', group: undefined, overflowGroup: 1, invocation: 'B-o1.1' })).code, 8);
+    activate(w.dir, { overflow: { keys: [t], groups: [[t]] } });
+    const r = await go(w, { stage: 'B', group: undefined, overflowGroup: 1, invocation: 'B-o1.1' });
+    assert.equal(r.code, 0, r.lines.join('\n'));
+    const rows = jsonLines(w.dir, 'B.jsonl');
+    assert.equal(rows.length, 1);
+    assert.deepEqual([rows[0].key, rows[0].variant, rows[0].group], ['conditional-twin/uncapped/10x10-nightmare/21', 'p2-uncapped', 'o1']);
+    assert.equal(jsonLines(w.dir, 'B.status.jsonl')[0].group, 'o1');
+    assert.equal(JSON.parse(readFileSync(join(w.dir, 'RAW', 'raw', 'conditional-twin~uncapped~10x10-nightmare~21', 'receipt.json'), 'utf8')).group, 'o1');
+    assert.equal((await go(w, { stage: 'B', group: undefined, overflowGroup: 2, invocation: 'B-o2.1' })).code, 8);
+  });
+
+  it('status counts the keys of each group', async () => {
+    const w = runWorld('status', { rows: [planRow(K1), planRow(K2), planRow('shipped/gen-v4/10x10-nightmare/22')], groups: [{ stage: 'A', group: 2, keys: [K1, K2, 'shipped/gen-v4/10x10-nightmare/22'] }] });
+    writeFileSync(join(w.dir, 'RAW', 'rows', 'A.status.jsonl'), [
+      { t: 'start', key: K1 }, { t: 'done', key: K1 }, { t: 'start', key: K2 }, { t: 'interrupted', key: K2, cause: 'no-report' },
+    ].map((l) => `${JSON.stringify(l)}\r\n`).join(''));
+    const r = p2(['status', '--stage', 'A', '--state', w.dir]);
+    assert.equal(r.status, 0, r.out);
+    assert.equal(r.out.trim(), 'group 2: done 1 interrupted 1 inactive 0 pending 1');
+  });
+});
+
+describe('publication', () => {
+  it('publish is write-once', () => {
+    const dir = state('publish');
+    const rowsDir = join(dir, 'rows');
+    mkdirSync(rowsDir, { recursive: true });
+    const line = (/** @type {string} */ cell) => JSON.stringify({ key: `k/${cell}`, component: 'shipped', arm: 'gen-v4', cell });
+    writeFileSync(join(rowsDir, 'A.jsonl'), `${line('a')}\n${line('a')}\n${line('b')}\n`);
+    const out = join(dir, 'out');
+    const args = ['publish', '--stage', 'A', '--out', out, '--rows', rowsDir];
+    const first = p2(args);
+    assert.equal(first.status, 0, first.out);
+    const jsonl = readFileSync(join(out, 'A.jsonl'), 'utf8');
+    assert.equal(jsonl, `${line('a')}\r\n${line('a')}\r\n${line('b')}\r\n`);
+    const sha = sha256Hex(Buffer.from(jsonl, 'utf8'));
+    assert.equal(first.out.trim(), `publish: A 3 rows ${sha}`);
+    assert.equal(readFileSync(join(out, 'A.sha256'), 'utf8'), `${sha}\r\n`);
+    const md = readFileSync(join(out, 'A.md'), 'utf8');
+    assert.match(md, /\| shipped \| gen-v4 \| a \| 2 \|\r\n\| shipped \| gen-v4 \| b \| 1 \|\r\n$/);
+    const before = [jsonl, md, `${sha}\r\n`];
+    const second = p2(args);
+    assert.equal(second.status, 0, second.out);
+    assert.deepEqual(['A.jsonl', 'A.md', 'A.sha256'].map((f) => readFileSync(join(out, f), 'utf8')), before);
+    writeFileSync(join(rowsDir, 'A.jsonl'), `${line('a')}\n${line('a')}\n${line('b')}\n${line('c')}\n`);
+    const third = p2(args);
+    assert.equal(third.status, 3, third.out);
+    assert.deepEqual(['A.jsonl', 'A.md', 'A.sha256'].map((f) => readFileSync(join(out, f), 'utf8')), before);
+    const fresh = p2(['publish', '--stage', 'A', '--out', join(dir, 'out2'), '--rows', rowsDir]);
+    assert.equal(fresh.status, 0, fresh.out);
+    assert.equal(existsSync(join(dir, 'out2', 'A.sha256')), true);
   });
 });

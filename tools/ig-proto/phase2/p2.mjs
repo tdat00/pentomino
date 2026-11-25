@@ -2,7 +2,7 @@
 // The phase-2 driver (P2-13a): the frozen plan of the 1,013 enumerated rows, the seal of every measured source, tool
 // and fixed input, and the ledger with its admission, reservation and stage-B readout checks (contracts C7, C12, C13).
 // The locked wrapper is run-group.ps1. No engine runs here, and no real seal or row run happens in lane T.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import {
   closeSync, existsSync, fsyncSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, writeSync,
 } from 'node:fs';
@@ -11,7 +11,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { rectRows } from '../../bench/calibration-reference.js';
 import { computeSourceDigest } from '../../bench/report.js';
-import { sha256Hex } from './binding.mjs';
+import { rowMatrix, sha256Hex } from './binding.mjs';
+import { smokeGate as stubSmokeGate } from './gates.mjs';
+import { rowWork } from './trace-reader.mjs';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 export const STAGE_MAP = Object.freeze({ A: 410, B: 402 });
@@ -603,6 +605,387 @@ export function reserve(P, a) {
   return id;
 }
 
+/** @param {string} file @returns {any | null} The parsed JSON file, or null when it is missing. */
+function readJsonFile(file) {
+  return existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : null;
+}
+
+/** @param {string} a @param {string} b @returns {number} Code-point order. */
+const byText = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
+/**
+ * @typedef {object} RowSpec What one row run needs.
+ * @property {string} key @property {string} fileKey @property {string} component @property {string} arm
+ * @property {string} variant @property {string} cell @property {number} rep @property {string} seed
+ * @property {string} uniqueness @property {number} maxActive @property {any} boardRows @property {string} levelId
+ * @property {number} rowLimitS @property {string} source
+ */
+
+/**
+ * One position of a group: a row to run, an inactive slot, or an open slot that has no activation receipt yet.
+ * @typedef {{ key: string, spec: RowSpec | null, kind: 'row' | 'inactive' | 'blocked' }} Slot
+ */
+
+/** @param {any} row A plan row. @returns {RowSpec} */
+function specOf(row) {
+  return {
+    key: row.key, fileKey: row.fileKey, component: row.component, arm: row.arm, variant: row.variant, cell: row.cell, rep: row.rep,
+    seed: row.seed, uniqueness: row.uniqueness, maxActive: row.maxActive, boardRows: row.boardRows, levelId: row.levelId,
+    rowLimitS: row.rowLimitS, source: row.source,
+  };
+}
+
+/** @param {any} triggered The plan row of a triggered row. @returns {RowSpec} Its conditional twin (C10). */
+function twinOf(triggered) {
+  const key = `conditional-twin/uncapped/${triggered.cell}/${triggered.rep}`;
+  return {
+    key,
+    fileKey: key.replaceAll('/', '~'),
+    component: 'conditional-twin',
+    arm: 'uncapped',
+    variant: triggered.cell.endsWith('-hell-1') ? 'p2-uncapped-diag' : 'p2-uncapped',
+    cell: triggered.cell,
+    rep: triggered.rep,
+    seed: triggered.seed,
+    uniqueness: triggered.uniqueness,
+    maxActive: triggered.maxActive,
+    boardRows: triggered.boardRows,
+    levelId: triggered.levelId,
+    rowLimitS: 260,
+    source: 'gen-v4',
+  };
+}
+
+/**
+ * The positions of a group, with its open slots resolved through the activation receipt (C10).
+ * @param {any} plan @param {any | null} activation @param {{ stage: string, group?: number, overflowGroup?: number }} opts
+ * @returns {Slot[]}
+ */
+function slotsOf(plan, activation, opts) {
+  /** @type {Map<string, any>} */
+  const rows = new Map(plan.rows.map((/** @type {any} */ r) => [r.key, r]));
+  const twinSlot = (/** @type {string} */ triggeredKey) => {
+    const triggered = rows.get(triggeredKey);
+    if (!triggered || triggered.open) throw new Exit(8, `activation receipt names an unknown row ${triggeredKey}`);
+    const spec = twinOf(triggered);
+    return /** @type {Slot} */ ({ key: spec.key, spec, kind: 'row' });
+  };
+  if (opts.overflowGroup !== undefined) {
+    if (!activation) throw new Exit(8, 'activation receipt required');
+    const keys = activation.overflow?.groups?.[opts.overflowGroup - 1];
+    if (!Array.isArray(keys)) throw new Exit(8, `activation receipt has no overflow group ${opts.overflowGroup}`);
+    return keys.map(twinSlot);
+  }
+  const group = plan.groups.find((/** @type {any} */ g) => g.stage === opts.stage && g.group === opts.group);
+  if (!group) throw new Exit(2, `run-group: stage ${opts.stage} has no group ${opts.group}`);
+  return group.keys.map((/** @type {string} */ key) => {
+    const row = rows.get(key);
+    if (!row) throw new Exit(2, `run-group: the plan has no row ${key}`);
+    if (!row.open) return /** @type {Slot} */ ({ key, spec: specOf(row), kind: 'row' });
+    if (!activation) return /** @type {Slot} */ ({ key, spec: null, kind: 'blocked' });
+    const target = activation.slots?.[key];
+    if (target === undefined) throw new Exit(8, `activation receipt has no slot ${key}`);
+    return target === null ? /** @type {Slot} */ ({ key, spec: null, kind: 'inactive' }) : twinSlot(target);
+  });
+}
+
+/** @param {ReturnType<typeof pathsOf>} P @returns {{ plan: any, seal: any | null, activation: any | null }} */
+function loadRun(P) {
+  const planFile = join(P.E, 'plan', 'plan.json');
+  const sealFile = join(P.E, 'seal', 'seal.json');
+  if (!existsSync(planFile)) throw new Exit(3, `run-group: the plan is missing: ${planFile}`);
+  const plan = JSON.parse(readFileSync(planFile, 'utf8'));
+  const seal = readJsonFile(sealFile);
+  const activation = readJsonFile(join(P.E, 'twins', 'activation.json'));
+  if (activation) {
+    if (activation.planSha256 !== sha256Hex(readFileSync(planFile))) throw new Exit(8, 'activation receipt does not match the plan');
+    if (!seal || activation.sealSha256 !== sha256Hex(readFileSync(sealFile))) throw new Exit(8, 'activation receipt does not match the seal');
+  }
+  return { plan, seal, activation };
+}
+
+/** @param {string} file @returns {any | null} The report's one generation run, or null. */
+function generationRun(file) {
+  if (!existsSync(file)) return null;
+  let runs;
+  try {
+    runs = JSON.parse(readFileSync(file, 'utf8')).runs;
+  } catch {
+    return null;
+  }
+  const generation = Array.isArray(runs) ? runs.filter((r) => r?.probeKind === 'generation') : [];
+  return generation.length === 1 && Number.isFinite(generation[0].acceptedCount) ? generation[0] : null;
+}
+
+/**
+ * Runs the rows of one group, or of one overflow group, one at a time (C4, C5, C10; R1, R3). Never throws for a refusal:
+ * the exit code and the lines to print are returned.
+ * @param {{ stage: string, group?: number, overflowGroup?: number, invocation: string, paths: ReturnType<typeof pathsOf>, clockOffsetS?: number }} opts
+ * @param {{ smokeGate?: (rows: any[], plan: any) => any, spawn?: typeof spawnSync, now?: () => number }} [deps]
+ * @returns {Promise<{ code: number, lines: string[] }>} Exit code 0, 6 (smoke gate), 7 (deferred keys) or 8 (activation).
+ */
+export async function runGroup(opts, deps = {}) {
+  /** @type {string[]} */
+  const lines = [];
+  try {
+    return { code: await groupBody(opts, deps, lines), lines };
+  } catch (error) {
+    if (!(error instanceof Exit)) throw error;
+    lines.push(error.message);
+    return { code: error.code, lines };
+  }
+}
+
+/** @param {Parameters<typeof runGroup>[0]} opts @param {NonNullable<Parameters<typeof runGroup>[1]>} deps @param {string[]} out @returns {Promise<number>} */
+async function groupBody(opts, deps, out) {
+  const { stage, invocation, paths: P } = opts;
+  const smokeGate = deps.smokeGate ?? stubSmokeGate;
+  const spawn = deps.spawn ?? spawnSync;
+  // performance.now() counts from the start of the process, which is the horizon's origin.
+  const now = deps.now ?? (() => performance.now());
+  const elapsedS = () => now() / 1000 + (opts.clockOffsetS ?? 0);
+  const { plan, seal, activation } = loadRun(P);
+  if (!seal) throw new Exit(3, `run-group: the seal is missing: ${join(P.E, 'seal', 'seal.json')}`);
+  const label = opts.overflowGroup !== undefined ? `o${opts.overflowGroup}` : opts.group;
+  const slots = slotsOf(plan, activation, opts);
+  const statusFile = join(P.RAW, 'rows', `${stage}.status.jsonl`);
+  const rowsFile = join(P.RAW, 'rows', `${stage}.jsonl`);
+
+  /** @type {Map<string, { started: boolean, terminal: string | null }>} */
+  const states = new Map();
+  const record = (/** @type {any} */ line) => {
+    appendDurable(statusFile, toCrlf(JSON.stringify(line)));
+    const s = states.get(line.key) ?? { started: false, terminal: null };
+    if (line.t === 'start') s.started = true;
+    else s.terminal = line.t;
+    states.set(line.key, s);
+  };
+  for (const line of readJsonl(statusFile)) {
+    const s = states.get(line.key) ?? { started: false, terminal: null };
+    if (line.t === 'start') s.started = true;
+    else if (line.t === 'done' || line.t === 'interrupted') s.terminal = line.t;
+    states.set(line.key, s);
+  }
+  const terminal = (/** @type {string} */ key) => states.get(key)?.terminal ?? null;
+  const rawOf = (/** @type {RowSpec} */ spec) => join(P.RAW, 'raw', spec.fileKey);
+
+  const lineOf = (/** @type {RowSpec} */ spec, /** @type {any} */ run, /** @type {string} */ receipt) => ({
+    key: spec.key,
+    fileKey: spec.fileKey,
+    stage,
+    group: label,
+    component: spec.component,
+    arm: spec.arm,
+    variant: spec.variant,
+    cell: spec.cell,
+    rep: spec.rep,
+    seed: spec.seed,
+    uniqueness: spec.uniqueness,
+    run,
+    telemetry: run.telemetry ?? null,
+    receipt,
+    // The complete C9 result: workLedger() is only for the statistical functions' input (review-2 R2-01).
+    ledger: rowWork(join(rawOf(spec), 'journal'), { row: spec.fileKey, seed: spec.seed, acceptedCount: run.acceptedCount }),
+  });
+
+  // Resume (C5): a started row without a terminal line is never launched again.
+  for (const slot of slots) {
+    const s = states.get(slot.key);
+    if (slot.spec === null || !s?.started || s.terminal) continue;
+    const raw = rawOf(slot.spec);
+    const run = generationRun(join(raw, 'report.json'));
+    const receiptFile = join(raw, 'receipt.json');
+    if (run && existsSync(receiptFile)) {
+      if (!readJsonl(rowsFile).some((l) => l.key === slot.key)) {
+        appendDurable(rowsFile, toCrlf(JSON.stringify(lineOf(slot.spec, run, sha256Hex(readFileSync(receiptFile))))));
+      }
+      record({ t: 'done', key: slot.key, at: new Date().toISOString() });
+    } else {
+      record({ t: 'interrupted', key: slot.key, cause: 'no-report', at: new Date().toISOString() });
+    }
+  }
+
+  /** @param {RowSpec} spec */
+  const launch = (spec) => {
+    const copy = seal.copies?.find((/** @type {any} */ c) => c.id === spec.variant && c.source === spec.source);
+    if (!copy) throw new Exit(3, `run-group: the seal has no copy ${spec.source}/${spec.variant}`);
+    const raw = rawOf(spec);
+    const tree = join(P.RAW, 'trees', spec.source, spec.variant);
+    const startedAt = new Date().toISOString();
+    record({ t: 'start', key: spec.key, group: label, invocation, at: startedAt });
+    mkdirSync(join(raw, 'journal'), { recursive: true });
+    writeFileSync(join(raw, 'matrix.json'), jsonText(rowMatrix(spec)));
+    const fd = openSync(join(raw, 'calibrate.log'), 'a');
+    /** @type {{ status: number | null }} */
+    let child;
+    try {
+      child = spawn(process.execPath, [
+        '--max-old-space-size=2048', join(tree, 'tools', 'calibrate.mjs'), '--matrix', join(raw, 'matrix.json'), '--workers', '4',
+        '--fresh-process', '--no-cancel-probe', '--child-limit-s', String(spec.rowLimitS), '--output', join(raw, 'report'),
+      ], {
+        cwd: tree,
+        env: { ...process.env, IG_LOG_DIR: join(raw, 'journal'), IG_ROW: spec.fileKey, IG_SEED: spec.seed, IG_SOURCE_LABEL: `${spec.variant} ${seal.commit}` },
+        stdio: ['ignore', fd, fd],
+      });
+    } finally {
+      closeSync(fd);
+    }
+    const endedAt = new Date().toISOString();
+    const reportFile = join(raw, 'report.json');
+    const journalDir = join(raw, 'journal');
+    const journal = existsSync(journalDir)
+      ? readdirSync(journalDir, { withFileTypes: true }).filter((e) => e.isFile()).map((e) => e.name).sort(byText).map((name) => {
+        const bytes = readFileSync(join(journalDir, name));
+        return { name, bytes: bytes.length, sha256: sha256Hex(bytes) };
+      })
+      : [];
+    const receipt = {
+      key: spec.key,
+      fileKey: spec.fileKey,
+      stage,
+      group: label,
+      invocation,
+      variant: spec.variant,
+      copy: { treeId: copy.treeId, copyDigest: copy.copyDigest },
+      report: existsSync(reportFile) ? { path: `raw/${spec.fileKey}/report.json`, sha256: sha256Hex(readFileSync(reportFile)) } : null,
+      journal,
+      childExit: child.status,
+      startedAt,
+      endedAt,
+    };
+    const receiptFile = join(raw, 'receipt.json');
+    writeFileSync(receiptFile, jsonText(receipt));
+    const run = generationRun(reportFile);
+    if (run) {
+      appendDurable(rowsFile, toCrlf(JSON.stringify(lineOf(spec, run, sha256Hex(readFileSync(receiptFile))))));
+      record({ t: 'done', key: spec.key, at: new Date().toISOString() });
+      out.push(`row ${spec.key} done`);
+    } else {
+      const lost = receipt.report === null && child.status !== 0 && child.status !== 2;
+      record({ t: 'interrupted', key: spec.key, cause: lost ? `child-exit ${child.status}` : 'no-report', at: new Date().toISOString() });
+      out.push(`row ${spec.key} interrupted`);
+    }
+  };
+
+  // R1: A's group 1 runs its smoke rows first; the gate decides in process before its first other row.
+  const smokeGroup = opts.overflowGroup === undefined && stage === 'A' && opts.group === 1;
+  const smokeKeys = smokeGroup ? slots.filter((s) => s.spec?.component === 'smoke').map((s) => s.key) : [];
+  let gateDone = !smokeGroup;
+  /** @returns {Promise<boolean>} Whether the gate stops the group. */
+  const gateStops = async () => {
+    const gateFile = join(P.RAW, 'rows', 'smoke-gate.json');
+    if (!existsSync(gateFile)) {
+      const result = await smokeGate(readJsonl(rowsFile).filter((l) => smokeKeys.includes(l.key)), plan);
+      const verdict = { ok: result?.ok === true, problems: Array.isArray(result?.problems) ? result.problems : [], at: new Date().toISOString() };
+      mkdirSync(dirname(gateFile), { recursive: true });
+      writeFileSync(gateFile, jsonText(verdict), { flag: 'wx' });
+    }
+    const verdict = JSON.parse(readFileSync(gateFile, 'utf8'));
+    if (verdict.ok === true) return false;
+    out.push(`smoke gate failed: ${(verdict.problems ?? []).join('; ')}`);
+    return true;
+  };
+
+  /** @type {string[]} */
+  const deferred = [];
+  let deferring = false;
+  for (const slot of slots) {
+    const pending = slot.kind !== 'inactive' && !terminal(slot.key);
+    if (deferring) {
+      if (pending) deferred.push(slot.key);
+      continue;
+    }
+    if (!gateDone && slot.spec?.component !== 'smoke') {
+      gateDone = true;
+      if (await gateStops()) return 6;
+    }
+    if (slot.kind === 'inactive' || terminal(slot.key)) continue;
+    if (slot.kind === 'blocked' || slot.spec === null) throw new Exit(8, 'activation receipt required');
+    if (elapsedS() + slot.spec.rowLimitS + 10 > HORIZON_S) {
+      deferring = true;
+      deferred.push(slot.key);
+      continue;
+    }
+    launch(slot.spec);
+  }
+  for (const key of deferred) out.push(`deferred ${key}`);
+  return deferred.length > 0 ? 7 : 0;
+}
+
+/**
+ * `status --stage <S>`: per group, the counts of done, interrupted, inactive and pending keys.
+ * @param {ReturnType<typeof pathsOf>} P @param {string} stage @returns {string}
+ */
+export function statusCommand(P, stage) {
+  const { plan, activation } = loadRun(P);
+  /** @type {Map<string, string | null>} */
+  const terminals = new Map();
+  for (const line of readJsonl(join(P.RAW, 'rows', `${stage}.status.jsonl`))) {
+    if (line.t === 'start') terminals.set(line.key, null);
+    else if (line.t === 'done' || line.t === 'interrupted') terminals.set(line.key, line.t);
+  }
+  /** @type {{ label: string, opts: { stage: string, group?: number, overflowGroup?: number } }[]} */
+  const groups = plan.groups.filter((/** @type {any} */ g) => g.stage === stage)
+    .map((/** @type {any} */ g) => ({ label: String(g.group), opts: { stage, group: g.group } }));
+  if (stage === 'B') {
+    for (let n = 1; n <= (activation?.overflow?.groups?.length ?? 0); n += 1) groups.push({ label: `o${n}`, opts: { stage, overflowGroup: n } });
+  }
+  return groups.map(({ label, opts }) => {
+    const counts = { done: 0, interrupted: 0, inactive: 0, pending: 0 };
+    for (const slot of slotsOf(plan, activation, opts)) {
+      if (slot.kind === 'inactive') counts.inactive += 1;
+      else {
+        const t = terminals.get(slot.key);
+        if (t === 'done' || t === 'interrupted') counts[t] += 1;
+        else counts.pending += 1;
+      }
+    }
+    return `group ${label}: done ${counts.done} interrupted ${counts.interrupted} inactive ${counts.inactive} pending ${counts.pending}`;
+  }).join('\n');
+}
+
+/**
+ * `publish --stage <S> --out <dir> [--rows <dir>]` (C8): the three write-once files of a snapshot.
+ * @param {ReturnType<typeof pathsOf>} P @param {Record<string, any>} a @returns {string} The printed line.
+ */
+export function publishCommand(P, a) {
+  const stage = a.stage;
+  if ((stage !== 'A' && stage !== 'B') || typeof a.out !== 'string') throw new Exit(2, USAGE);
+  const rowsFile = join(typeof a.rows === 'string' ? resolve(a.rows) : join(P.RAW, 'rows'), `${stage}.jsonl`);
+  if (!existsSync(rowsFile)) throw new Exit(2, `publish: no rows file ${rowsFile}`);
+  const rows = readFileSync(rowsFile, 'utf8').split(/\r?\n/).filter((l) => l.trim() !== '');
+  /** @type {Map<string, number>} */
+  const counts = new Map();
+  for (const line of rows) {
+    const r = JSON.parse(line);
+    const key = JSON.stringify([r.component, r.arm, r.cell]);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const jsonl = rows.map((l) => `${l}\r\n`).join('');
+  const sha = sha256Hex(Buffer.from(jsonl, 'utf8'));
+  const md = toCrlf([
+    `# Phase-2 rows: stage ${stage}`,
+    '',
+    `${rows.length} rows; \`${stage}.jsonl\` is the record (SHA-256 \`${sha}\`).`,
+    '',
+    '| Component | Arm | Cell | Rows |',
+    '|---|---|---|---:|',
+    ...[...counts].sort(([x], [y]) => byText(x, y)).map(([key, n]) => `| ${JSON.parse(key).join(' | ')} | ${n} |`),
+  ].join('\n'));
+  const dir = resolve(a.out);
+  const files = [[`${stage}.jsonl`, jsonl], [`${stage}.md`, md], [`${stage}.sha256`, `${sha}\r\n`]];
+  for (const [name, text] of files) {
+    const file = join(dir, name);
+    if (existsSync(file) && readFileSync(file, 'utf8') !== text) throw new Exit(3, `publish: refused, ${file} exists with other bytes`);
+  }
+  mkdirSync(dir, { recursive: true });
+  for (const [name, text] of files) {
+    const file = join(dir, name);
+    if (!existsSync(file)) writeFileSync(file, text, { flag: 'wx' });
+  }
+  return `publish: ${stage} ${rows.length} rows ${sha}`;
+}
+
 /**
  * Parses `--key value` flags; a flag with no value is `true`.
  * @param {string[]} argv @returns {Record<string, any>}
@@ -630,6 +1013,9 @@ const USAGE = [
   '  ledger --status | --check --stage <A|B> --limit <s> | --append --json <text>',
   '  reserve --stage <A|B> (--group <n> | --item <name> | --overflow-group <n>) --limit <s>',
   '  release --id <id>',
+  '  run-group --stage <A|B> (--group <n> | --overflow-group <n>) --invocation <id> [--state <dir> [--clock-offset-s <s>]]',
+  '  status --stage <A|B>',
+  '  publish --stage <A|B> --out <dir> [--rows <dir>]',
 ].join('\n');
 
 /**
@@ -702,6 +1088,30 @@ export async function main(argv) {
       rmSync(file);
       return `release: ${a.id}`;
     }
+    case 'run-group': {
+      if ((a.stage !== 'A' && a.stage !== 'B') || typeof a.invocation !== 'string' || a.invocation === '') throw new Exit(2, USAGE);
+      if ((a.group === undefined) === (a['overflow-group'] === undefined)) throw new Exit(2, USAGE);
+      const n = Number(a.group ?? a['overflow-group']);
+      if (!Number.isInteger(n) || n < 1) throw new Exit(2, USAGE);
+      if (a['clock-offset-s'] !== undefined && !P.state) throw new Exit(2, 'run-group: --clock-offset-s needs --state');
+      const offset = a['clock-offset-s'] === undefined ? 0 : Number(a['clock-offset-s']);
+      if (!Number.isFinite(offset)) throw new Exit(2, USAGE);
+      const result = await runGroup({
+        stage: a.stage,
+        ...(a.group === undefined ? { overflowGroup: n } : { group: n }),
+        invocation: a.invocation,
+        paths: P,
+        clockOffsetS: offset,
+      });
+      const text = result.lines.join('\n');
+      if (result.code !== 0) throw new Exit(result.code, text);
+      return text === '' ? `run-group: ${a.stage} ${a.group ?? `o${n}`} complete` : text;
+    }
+    case 'status':
+      if (a.stage !== 'A' && a.stage !== 'B') throw new Exit(2, USAGE);
+      return statusCommand(P, a.stage);
+    case 'publish':
+      return publishCommand(P, a);
     default:
       throw new Exit(2, USAGE);
   }
