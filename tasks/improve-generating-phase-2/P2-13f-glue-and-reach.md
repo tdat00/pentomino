@@ -176,6 +176,6 @@ None here; P2-17 writes the README section.
 | AI credits | 178.14 |
 | Questions and rulings | no QUESTION; SA-Opus ruled (pack amendment 40d7730, P2-13f task file): deviations 1 to 8 accepted (fake partialReason null; transport check on attempts 0 to 3 (C6); missing or not-ok binding refused; refused rows make a group unknown; clientSameSide counts a string; null counters a known zero; duplicate keys refused for the readings; extras); declared reasons: the four accepted; fixes: an absent or malformed igNoWindow makes the row incomplete; disagreeing repeats make the row incomplete; groups of only p2-today rows are not-applicable and their reach prints n/a (today's search); two test inputs and one new case |
 | Fix rounds | 1 (the three ruled fixes and their tests) |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with every phase-2 test file and G-COPIES (results in the bookkeeping); developer: unlocked p2.test.mjs 97/97 (64.7 s), G-PROTECTED, G-WORKTREE, G-FORMAT (3 files), G-CHECK OK |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 4 files); rebased onto 86813c6 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked every phase-2 test file `IG P2-13f merge exit=0 seconds=65.022 quiet=45`, 165/165 pass, 0 fail/cancelled/todo; G-COPIES 195 and 32 edits (no flag) |
+| Commit (slot), commit on `gen-v4` | rebased 6c039de; gen-v4 6c039dec1f04072b0e8bcdf52b0c2347ab58485b |
 | Issues and named items | P2-17 documents the readings; the report.md cell for an unknown glue status gives a row count (report.json lists the keys); verified on synthetic rows and the fake calibrate only |

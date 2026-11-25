@@ -162,6 +162,6 @@ None here; P2-17 documents the glue proof in `tools/ig-proto/README.md`.
 | AI credits | 71.43 |
 | Questions and rulings | none; five minor deviations accepted by the orchestrator (a settleWorkers helper waits for every worker-end before the test folder is removed; copies built unrehearsed because gen-v4 is live at the base, as trace.test.mjs does; rectRows from tools/bench/calibration-reference.js; extra manifest fields description, files and params.glueBroken; own case names and discrepancy wording) |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with every phase-2 test file (glue.test.mjs included) and G-COPIES without --rehearse-cutover (results in the bookkeeping); the glue proof ran on a base holding P2-15, so the 3.7 conditional re-run is satisfied by this gate; developer: locked glue proof 5/5 (4.026 s), G-PROTECTED, G-WORKTREE, G-FORMAT (4 files), G-CHECK OK, copies 195 and 32 edits |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 5 files); rebased onto 694be53 cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked every phase-2 test file `IG P2-16c merge exit=0 seconds=61.608 quiet=45`, 146/146 pass, 0 fail/cancelled/todo; G-COPIES 195 and 32 edits (no flag) |
+| Commit (slot), commit on `gen-v4` | rebased 1369fd2; gen-v4 1369fd280e20a6465b49acec4ad5f2982b182b9f |
 | Issues and named items | P2-17 documents the glue proof in tools/ig-proto/README.md; the mixed case asserts only the attempt-4 start line and a non-no-window result |
