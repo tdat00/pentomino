@@ -1,0 +1,23 @@
+{
+  "status": "final accepted plan checks pass",
+  "rr": {
+    "RR1": "applied",
+    "RR2": "applied",
+    "RR3": "applied"
+  },
+  "checks": 77,
+  "inputCount": 57,
+  "unchangedDraftPrerequisites": 50,
+  "sourceDigest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+  "newEngineRuns": 0,
+  "committed": false,
+  "planSha256Lf": "5d53953c296d0ab6b4742dc984e352d5cf65011c57c65229a7135e67209424f3",
+  "reportSha256Lf": "ccda8a27eb2132397f0e9daea7c594782c457629da15ce96fd3b7a1b4da3c87b"
+}
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+Finalization verified: 77 checks, 57 input hashes intact, CRLF/UTF-8 without BOM, both sign-offs effective, no open questions; npm run check and implementation guards pass; no commit.

@@ -1,0 +1,384 @@
+{
+  "status": "final accepted plan checks pass",
+  "base": "c63c553",
+  "sourceBase": "006ca68",
+  "rr": {
+    "RR1": "applied",
+    "RR2": "applied",
+    "RR3": "applied"
+  },
+  "checks": [
+    "Final plan status and base",
+    "Final joint report status",
+    "Reviewer conditional acceptance is explicit",
+    "RR1 required disclosure applied",
+    "Pre-merge documentation gap remains tracked for the correct branch",
+    "Known documentation gap verified: DEVELOPERGUIDE.md",
+    "Known documentation gap verified: DEVELOPERGUIDE.vn.md",
+    "RR2 literal changed-file entry: core/engine/clues.js",
+    "RR2 literal changed-file entry: core/engine/difficulty.js",
+    "RR2 literal changed-file entry: core/engine/types.js",
+    "RR2 literal changed-file entry: tests/clues.test.js",
+    "RR2 literal changed-file entry: tests/difficulty.test.js",
+    "RR2 literal changed-file entry: tests/generation-client.test.js",
+    "RR2 literal changed-file entry: tests/generator-controller.test.js",
+    "RR2 literal changed-file entry: tests/generate.test.js",
+    "RR2 literal changed-file entry: docs/design-detail.md",
+    "RR2 documentation sections and verification results",
+    "RR3 publication acceptance",
+    "plan: SA-Astra accepted",
+    "plan: reviewer acceptance recorded with its condition",
+    "report: SA-Astra accepted",
+    "report: reviewer acceptance recorded with its condition",
+    "No open questions",
+    "Current two-PR branch-origin/base contract retained",
+    "Fail-closed and no-deployment boundaries retained",
+    "Prior draft witness index is intact",
+    "Unchanged draft prerequisite: tests/generate.test.js",
+    "Unchanged draft prerequisite: docs/design-detail.md",
+    "Unchanged draft prerequisite: core/browser/worker-pool.js",
+    "Unchanged draft prerequisite: core/engine/board.js",
+    "Unchanged draft prerequisite: core/engine/carve.js",
+    "Unchanged draft prerequisite: core/engine/clues.js",
+    "Unchanged draft prerequisite: core/engine/deduce.js",
+    "Unchanged draft prerequisite: core/engine/difficulty.js",
+    "Unchanged draft prerequisite: core/engine/dlx.js",
+    "Unchanged draft prerequisite: core/engine/enumerate.js",
+    "Unchanged draft prerequisite: core/engine/game.js",
+    "Unchanged draft prerequisite: core/engine/generate.js",
+    "Unchanged draft prerequisite: core/engine/geometry.js",
+    "Unchanged draft prerequisite: core/engine/hash.js",
+    "Unchanged draft prerequisite: core/engine/hints.js",
+    "Unchanged draft prerequisite: core/engine/keys.js",
+    "Unchanged draft prerequisite: core/engine/levels.js",
+    "Unchanged draft prerequisite: core/engine/pack.js",
+    "Unchanged draft prerequisite: core/engine/palette.js",
+    "Unchanged draft prerequisite: core/engine/placements.js",
+    "Unchanged draft prerequisite: core/engine/policy.js",
+    "Unchanged draft prerequisite: core/engine/protocol.js",
+    "Unchanged draft prerequisite: core/engine/puzzlecode-input.js",
+    "Unchanged draft prerequisite: core/engine/puzzlecode-v1.js",
+    "Unchanged draft prerequisite: core/engine/puzzlecode.js",
+    "Unchanged draft prerequisite: core/engine/qualification.js",
+    "Unchanged draft prerequisite: core/engine/replay.js",
+    "Unchanged draft prerequisite: core/engine/rng.js",
+    "Unchanged draft prerequisite: core/engine/sharecode.js",
+    "Unchanged draft prerequisite: core/engine/tasks.js",
+    "Unchanged draft prerequisite: core/engine/tiling.js",
+    "Unchanged draft prerequisite: core/engine/types.js",
+    "Unchanged draft prerequisite: core/engine/version.js",
+    "Unchanged draft prerequisite: core/engine/view.js",
+    "Unchanged draft prerequisite: core/engine/workspace.js",
+    "Unchanged draft prerequisite: core/browser/generation-client.js",
+    "Unchanged draft prerequisite: core/browser/auxiliary.js",
+    "Unchanged draft prerequisite: core/workers/engine.worker.js",
+    "Unchanged draft prerequisite: tools/bench/runner.js",
+    "Unchanged draft prerequisite: tools/bench/report.js",
+    "Unchanged draft prerequisite: tools/bench/responsiveness.js",
+    "Unchanged draft prerequisite: tools/bench/calibration-reference.js",
+    "Unchanged draft prerequisite: docs/improve-generating-phase-1/clarifications.md",
+    "Unchanged draft prerequisite: docs/improve-generating-phase-1/request.md",
+    "Unchanged draft prerequisite: docs/improve-generating-phase-1/sa-astra/round-1-analysis.md",
+    "Unchanged draft prerequisite: docs/improve-generating-phase-1/sa-astra/round-1-cross-review.md",
+    "Unchanged draft prerequisite: docs/improve-generating-phase-1/sa-opus/round-1-analysis.md",
+    "Unchanged draft prerequisite: docs/improve-generating-phase-1/sa-opus/round-1-cross-review.md",
+    "Unchanged draft prerequisite: docs/improve-generating-phase-1/evidence/sa-astra/joint-draft-checks.mjs",
+    "Unchanged draft prerequisite: .github/workflows/pages.yml",
+    "Production still matches the measured P6 source"
+  ],
+  "unchangedDraftPrerequisites": 50,
+  "sourceDigest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+  "implementationExecuted": false,
+  "newEngineRuns": 0,
+  "committed": false,
+  "planSha256Lf": "5d53953c296d0ab6b4742dc984e352d5cf65011c57c65229a7135e67209424f3",
+  "reportSha256Lf": "ccda8a27eb2132397f0e9daea7c594782c457629da15ce96fd3b7a1b4da3c87b",
+  "inputIndexHash": "dedd68ca44ab9d63a0a4ab877e73085de3523b527ce7763a78457b55dab33b3b",
+  "inputs": [
+    {
+      "path": "docs/improve-generating-phase-1/plan.md",
+      "sha256Raw": "652a4fbb5865fdcd27ac552613a36046ada849476e8daa586709d7bf0c26e075",
+      "sha256Lf": "5d53953c296d0ab6b4742dc984e352d5cf65011c57c65229a7135e67209424f3"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/report.md",
+      "sha256Raw": "d09f1031f341d18e59c6affb52295f93bc1b9235a18f93fedc7fb9201e7283f5",
+      "sha256Lf": "ccda8a27eb2132397f0e9daea7c594782c457629da15ce96fd3b7a1b4da3c87b"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/sa-opus/review-report-plan.md",
+      "sha256Raw": "7fd219469005b82ff86825494136764d4aa1e6fedf96a494cd1c21bd58b1b835",
+      "sha256Lf": "eeaeba80a3266e799efbd2c956754eef9bda78fe54fc33c0ad39b528ba43d3e1"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/clarifications.md",
+      "sha256Raw": "b06015d22423572e61c8fb04e233e039d74b6aba823fabf520675fe9b92b22ad",
+      "sha256Lf": "8eb20db1c659bbdeac66c7d6fcb4e9477aab2342f44053911732f0cf2815f1c7"
+    },
+    {
+      "path": "DEVELOPERGUIDE.md",
+      "sha256Raw": "082e3a1bc909885bb063aeaf9acda5514d85a5691ec52ef20cdec13ab31c33c1",
+      "sha256Lf": "765e8498f00ba34b27b4503ce97a69af844494c507b4b2dc5cd388ab23ede635"
+    },
+    {
+      "path": "DEVELOPERGUIDE.vn.md",
+      "sha256Raw": "eec4d31797c1353bf22f1c7505f6e20bd25ea22737d8d5ca266e6e0257fe7e8e",
+      "sha256Lf": "475fd130018b3976694230a82e3976175f98fcb054e73b15d9573ce74d5e6f76"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/sa-astra/joint-draft-checks.json",
+      "sha256Raw": "26dc8fdd6fb887c3d8dca8713c04c0b88af0c052600a7eab35040c5631d53bd0",
+      "sha256Lf": "9610831d94cd6ebdeae1490f31a85253d231c4e188cb9df4389ac42d22234657"
+    },
+    {
+      "path": "tests/generate.test.js",
+      "sha256Raw": "7a0ebd8276b0b5dd13df456c804b4d6abdebf526c906e03da6332ee0d5935ff9",
+      "sha256Lf": "6fa06e7073ae26875426e1dd1bb6b529fab446e70abf77a129d16ace38ed30a3"
+    },
+    {
+      "path": "docs/design-detail.md",
+      "sha256Raw": "a3cf3a9d7f0be4b394b59d04c58c98eafaf4ce3c98295037df13dec2289898a3",
+      "sha256Lf": "0ab09cdfb92b509395694dd33e4bd077e687a53ece695dad63dbc11fa084fc2f"
+    },
+    {
+      "path": "core/browser/worker-pool.js",
+      "sha256Raw": "4fc5cbfc0283a62fe527f1c930edcb32816a23b1d9927bcd1c101450387d837d",
+      "sha256Lf": "e605c1da51ee1ea81879af8050a60bc851303cb0a318b2d9a451c2f2a12c3a60"
+    },
+    {
+      "path": "core/engine/board.js",
+      "sha256Raw": "a78f55b74e47905723af6a50f00f13a165efb1e044bc508fb9542e381900b43d",
+      "sha256Lf": "443c51c564143b8cd183f44de86aebd090344158f1c6b4356dfd96ab0b21d33e"
+    },
+    {
+      "path": "core/engine/carve.js",
+      "sha256Raw": "e856adc1733be6a92602648052ab17e191f40ecd4f0756c1005d115e54d7b8f3",
+      "sha256Lf": "c2aa481d1a7408f96e029787475ccab35586f6d157d6503c602e660da63a5f0c"
+    },
+    {
+      "path": "core/engine/clues.js",
+      "sha256Raw": "4c1e8ab07d6df07bd0ff54f5e5f4611703a1a030ba984c78a53c7d373f17b468",
+      "sha256Lf": "3eb6c6171654546f02914f323e4a20fb586db754e33b20dc4c63b980cb76a735"
+    },
+    {
+      "path": "core/engine/deduce.js",
+      "sha256Raw": "46c60975827df4faf9e87358fc3153f6bd07b63b6dee05314b80a74a7112ae62",
+      "sha256Lf": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce"
+    },
+    {
+      "path": "core/engine/difficulty.js",
+      "sha256Raw": "2e4b985a2ac1e2f36ab732d68eb2f4b8dde61ca33fd40c5dc516590d404b8c87",
+      "sha256Lf": "e68c9a59a85236aaeb934913430757b7c2cfa1cb9dd122c0a7c1935d70ca1d61"
+    },
+    {
+      "path": "core/engine/dlx.js",
+      "sha256Raw": "6f898a7955c2d08a214d7be6d4648d9a5a28d4ca065ca0d3c819d8a8f6dd3df9",
+      "sha256Lf": "0a18f78ef214064300bb63379dbed79946625fdc6687fdaeea8365b7c71bfc6b"
+    },
+    {
+      "path": "core/engine/enumerate.js",
+      "sha256Raw": "af83437b91e3bfc48f84d47567989aa1e4239f1078520f6cb27bfba530ec47ab",
+      "sha256Lf": "8c71fc231a74402ed928d8b34058e3c28a4cdb03d8bed70467a911d917563256"
+    },
+    {
+      "path": "core/engine/game.js",
+      "sha256Raw": "45be79cfea207f27d9bf76d6928ad0aa28a73d16fd85cbce4833adb0ae573f9f",
+      "sha256Lf": "2920fecf746bde12e8fcfbf36894d3abbbf21bc64ea28bdf79b782e050ad58f0"
+    },
+    {
+      "path": "core/engine/generate.js",
+      "sha256Raw": "0051a8e1e8eec901943de138efc7321ba1138b27fec0e364d5ab530708d00f41",
+      "sha256Lf": "20afef3b322705084604435062105ea9d9e25978b94a82cea40880a90f0d6208"
+    },
+    {
+      "path": "core/engine/geometry.js",
+      "sha256Raw": "79b8b05206499938a239eced7d44fad5171d413da15d173273b5e213d2a4f9c2",
+      "sha256Lf": "51af8541bc3827aef5815ba21c1d1fd81f0a013f25110156c39a1a2ebfe129a6"
+    },
+    {
+      "path": "core/engine/hash.js",
+      "sha256Raw": "e523640ee75e0e0dd247e0e53bb968cc5c357fd3c3e9c05049cf2f049a9ca1c3",
+      "sha256Lf": "ed6a5dcb4ba4ed24c5063d8ad4d21cd85001e3a61fbc8bb6de0f5f77d805c51c"
+    },
+    {
+      "path": "core/engine/hints.js",
+      "sha256Raw": "dd710944bedaae511207dfb258cdd4c48a7c7218018d1db53774d64d7d5189af",
+      "sha256Lf": "d536505f65988b650524287879f6baa618070fb031be63b8c0fdf199ef87e523"
+    },
+    {
+      "path": "core/engine/keys.js",
+      "sha256Raw": "52fad017ac885b000a22ede39d9cd7562414fd17747334de4070cc547dc3abea",
+      "sha256Lf": "0f0054da98a74a24ef2ba64df4441e3175df5548dcb83b4bbd0dc3d799c3c0fa"
+    },
+    {
+      "path": "core/engine/levels.js",
+      "sha256Raw": "f1dd8e5109db00f65d34ff92545493104cb3c9ff055c46386c9134a9a961d143",
+      "sha256Lf": "e0d59290f3c265fd56e84ac9ff83cf048458e223673e2e669525aabef302e096"
+    },
+    {
+      "path": "core/engine/pack.js",
+      "sha256Raw": "2b1c3dce89f8d588e5fae10814b61cce86189a2345addf3da52d152605a208bf",
+      "sha256Lf": "e7ac93a03fad7d484bead4ecf4bd84591ea01f5672c8dad37cdfa76467dbc336"
+    },
+    {
+      "path": "core/engine/palette.js",
+      "sha256Raw": "83f8ebb9cf76d779e083ff8bdf21612289e5d8b7ff58eb8e46b33fa059c353b6",
+      "sha256Lf": "21102da1f41bf3833a85b459ead274f80e4f069b0e6c5e63680067b5680e392c"
+    },
+    {
+      "path": "core/engine/placements.js",
+      "sha256Raw": "b399c57b34a998077634d360a933fd2fe2967aa1010a2f4756278a43e9340069",
+      "sha256Lf": "b386c7f8ddc34a8bb2e4fa58dc5dbf6b97835dd4cb7eb0e8c257fbc71c35405b"
+    },
+    {
+      "path": "core/engine/policy.js",
+      "sha256Raw": "df967a7ea4ee239dd73a18cca5f0e06517157be59313484627f6e394afb2ce15",
+      "sha256Lf": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10"
+    },
+    {
+      "path": "core/engine/protocol.js",
+      "sha256Raw": "2966bea96db27f7f525e46e0bed90a748bbbd909c7c3ef6af49d92ccbba23202",
+      "sha256Lf": "b77b25848fdbf322f461ed5ea79c264729e9667d3747ef1adde828fa1dfc1f6f"
+    },
+    {
+      "path": "core/engine/puzzlecode-input.js",
+      "sha256Raw": "309f4dc4bc1cfdd2f69019e08313f972444ecbeec0b1d619027ac0fb27c91244",
+      "sha256Lf": "b03cad0e5482bcbfd51f8eb54977ee5a96951313b4a7b3fd929b9117e123ddc0"
+    },
+    {
+      "path": "core/engine/puzzlecode-v1.js",
+      "sha256Raw": "525e1dd458e818a3c30e8c62e3f45162d5b78fa9bd6b17941891e51eb4780c44",
+      "sha256Lf": "f05cc281d7e5a9eac0553584a77aa78e042abf3148958fd1dd5bcd627332cf25"
+    },
+    {
+      "path": "core/engine/puzzlecode.js",
+      "sha256Raw": "31701f0c53996c277c6a5b585b05923a3dc52838ee9efaf5dd56f917fface760",
+      "sha256Lf": "61dda9d534823c29e3b4353103df3e763fec256aad9317d01cfd0e8ffa721ed3"
+    },
+    {
+      "path": "core/engine/qualification.js",
+      "sha256Raw": "142b9861a59a6b64e99a18bbd50079e1a2e56a9b8f4633b04c662a81aef74015",
+      "sha256Lf": "d1059002e0edc368cae09cde1c31e9bc72e74ccb54c357efd3e4823096e57b46"
+    },
+    {
+      "path": "core/engine/replay.js",
+      "sha256Raw": "4929844cc4a0d7d95cc0c6873503ca41a404669699c736a63bd0a6dedac30c63",
+      "sha256Lf": "cf09ed0d8585022ec19dfb76777955126ecb162937969aad5911f56ef44899ea"
+    },
+    {
+      "path": "core/engine/rng.js",
+      "sha256Raw": "78faa8116244bd93794457acfdecf91697190caad961950567c757553208665b",
+      "sha256Lf": "5374ca6e32a3e7a9b6cb28c31c7968dccdf732b70ee045fe29d2a20d6cc75ba0"
+    },
+    {
+      "path": "core/engine/sharecode.js",
+      "sha256Raw": "c3c8e2281052c5c59de66805a12310e926c3f673bdbc8b1073aa313039bbb38b",
+      "sha256Lf": "4d14042d67bfcd9855e7bd162e256dca5727b58eb27cbea9455cbdcbf6b4b227"
+    },
+    {
+      "path": "core/engine/tasks.js",
+      "sha256Raw": "fcf8879f0de07b9650c0783c6d209a59eebbefc2f7658b0cd64988c3740a784d",
+      "sha256Lf": "08a43ec2805744177269804f97619bead7327a562a797edab2a6420dd6fd6ede"
+    },
+    {
+      "path": "core/engine/tiling.js",
+      "sha256Raw": "391615913f49b9efb04ab6b47418a4c1d4bc1676a6a911c68cd30e147ce76521",
+      "sha256Lf": "94c2473e374b4f254320354217e866dfcdf11966375f8000d0296f5a211b2015"
+    },
+    {
+      "path": "core/engine/types.js",
+      "sha256Raw": "50d8f7a876f9655b54333485ffe437a344e1b85a88f8e34de314a9e5cee880bc",
+      "sha256Lf": "8966b6f5a1a6f868e6e6e875985a2712031d26ff6dd7face0f10c4b3b43a4251"
+    },
+    {
+      "path": "core/engine/version.js",
+      "sha256Raw": "90d4d78e1b96287b6fba52a9f63bda5cbe15b646ea3af46e2ed167218d9bf15b",
+      "sha256Lf": "bee5adecec5e908403aa8db3a2ab9c8c0455694eb3498a00468fd53a2fe19e9d"
+    },
+    {
+      "path": "core/engine/view.js",
+      "sha256Raw": "e970656ce0cfa3cee04dfadd73d94592d22a55270de25f1d4f390e6177ae43d7",
+      "sha256Lf": "c0cd0d15b3a114d5d48b99a8bea1d00c5448e55997d82730291b7f6728cd8a0a"
+    },
+    {
+      "path": "core/engine/workspace.js",
+      "sha256Raw": "42d91252808d299d92188bc65437654178b635cc82abc35bd88e30b6a626b7f6",
+      "sha256Lf": "47b911e67efb147d574f4fa8c7739d553f12cbb2bba2680494a8f0dc4fc70fb3"
+    },
+    {
+      "path": "core/browser/generation-client.js",
+      "sha256Raw": "eed76d3d611d7e1dd9b320f0006aa2e2494bd8a4f78f4b496ed7967295c2ca60",
+      "sha256Lf": "23f5dc494baea934e481302ccec31b763fbbebbdfac1893879c39c38283564d8"
+    },
+    {
+      "path": "core/browser/auxiliary.js",
+      "sha256Raw": "c7ce3ebddb5796454f6bfff06785397afaabfaf1761fed82241e0493b000a162",
+      "sha256Lf": "68afc9a6d35a770ed507c983c88f7bc9fd43f1b4a36e708e17cb47e116d1c146"
+    },
+    {
+      "path": "core/workers/engine.worker.js",
+      "sha256Raw": "ae4c2d31c23a0d1b21ee1066c8c40055e213ecd3acd6e82f4d1dac548302d168",
+      "sha256Lf": "c0914eeeee30effba24cb55def3f0473f63bb113689ba53e6a3658e18274ef5a"
+    },
+    {
+      "path": "tools/bench/runner.js",
+      "sha256Raw": "8970c6be6c64c8425ee73af403fcc69dd97d10346585dd877e2f668a8f7fe178",
+      "sha256Lf": "9f720febad848803be5504cafdc7c981b98fa01d670c98943b62273d7635097f"
+    },
+    {
+      "path": "tools/bench/report.js",
+      "sha256Raw": "a180a45cea715bcc4ac0a8b315f0dec4afcf1fed23a58dc6304c0b5d6209c295",
+      "sha256Lf": "13f4d316cfdc2515f457f2aa7c313d02f989a3a3d15fdbf10e667c8bc091630c"
+    },
+    {
+      "path": "tools/bench/responsiveness.js",
+      "sha256Raw": "479a92b187471f0cfec1ef28544ac1892cdd465e8218c65c0c8b938c1a1b5770",
+      "sha256Lf": "0830b07f5785ac3b5679b160561b1648af9d46f74640ac7249cbe3ece4a5cdc9"
+    },
+    {
+      "path": "tools/bench/calibration-reference.js",
+      "sha256Raw": "6c0c2ba6efd7ba5739c3f4196ae00f0efaae15a98ada53751d235f0437e263de",
+      "sha256Lf": "ad3b10fb26b78da8ac7755021c09975e82c6f80984e5358971527bde240be75b"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/request.md",
+      "sha256Raw": "27f25d1b34ed9fa08ea1839563b9175eacfb30e18b5c9dd60305ff55511c5dee",
+      "sha256Lf": "798e753c28e6d2db101fd1eb2cdf9f374ec610447bfda75a0362b7b5cacd2b94"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/sa-astra/round-1-analysis.md",
+      "sha256Raw": "e66c50f8981152e476f366988595866fddcd25c85b9efe563cd223092b5a48ee",
+      "sha256Lf": "30ec7174877c8b83fbe5576a0bdfd4155630fc6795370acc63df47bfdc5fb564"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/sa-astra/round-1-cross-review.md",
+      "sha256Raw": "8efc1b0e6e554b835b1aac408fd71999ce12b18502f34d27dc4580412e397776",
+      "sha256Lf": "02ef1cfe677875ed168180015b367eaea409b54c18f816da1160b96dd64ec93f"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/sa-opus/round-1-analysis.md",
+      "sha256Raw": "631e7bfef5ddec841eeed0b0c3e6ebdf5f82910b085a2ac29579b87f40c280db",
+      "sha256Lf": "6088229a301c9a7c34543af5ee574bb68c91f8e2c30640741f294855ca26da6f"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/sa-opus/round-1-cross-review.md",
+      "sha256Raw": "cea0c0bd8b68c87cdb01162b7a4c920162f07c93ada5e44ec7c63b0a766ff133",
+      "sha256Lf": "c1bc146eb5a7f9b334fef1d1cb4af2a6e1a21f48645a4765b1f15b4a3347acb8"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/sa-astra/joint-draft-checks.mjs",
+      "sha256Raw": "99bdf1e958d601e91c44378e025662092a5a9328a77b7a8551192062381d999d",
+      "sha256Lf": "444b1857f86272693c8eadb4430820d9a85fae466e3a85fab88cd7a547c7000d"
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "sha256Raw": "799326601d87ab204cb09889505b8309c76e8255c0909b0bcf5dbeaa7b8dd809",
+      "sha256Lf": "0d402017df24881874dfbfbd7022fc2c8290b2bdd19b3b69b25cdb1791644064"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/sa-astra/final-plan-checks.mjs",
+      "sha256Raw": "194aef1eea46522dfa41ce3350dfd41277c7838af1883777330a8ee127f83455",
+      "sha256Lf": "0ee7023c02f4574228db64d6fbbe7be2afbc7a0909f6c63ec0aca95c0567a35d"
+    }
+  ]
+}

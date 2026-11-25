@@ -1,0 +1,1691 @@
+{
+  "feature": "improve-generating-phase-1",
+  "reviewer": "SA-Astra",
+  "base": "006ca68ff447c8e39c33deaf517df82b3dc6d602",
+  "branch": "improve-generating",
+  "commits": {
+    "p6": "fb893c3876e1bc2adaafbe258c7cf857f652d008 improve-generating T12: P6: the DLX diagnostic only for returned ratings",
+    "streaming": "373e74a57a7c05de0b92eb03cb6eb7ee4e6f8281 improve-generating T13: Progressive presentation: fold order and the history policy",
+    "benchmark": "826ce79dcc4a77daaaea00894a6dcea46bcbd8b7 improve-generating T14: Phase-1 bench of P6, old and new generation time"
+  },
+  "source": {
+    "currentDigest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+    "measuredDigest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+    "sourceFileCount": 40,
+    "frozenProductionDiff": [
+      "core/engine/clues.js",
+      "core/engine/difficulty.js",
+      "core/engine/types.js"
+    ],
+    "runtimeAndTrackedTestsUnchangedFromMeasuredCommit": true,
+    "fixtureToolDiff": "diff --git a/tools/record-fixtures.mjs b/tools/record-fixtures.mjs\nindex a400c5c..ec78f9f 100644\n--- a/tools/record-fixtures.mjs\n+++ b/tools/record-fixtures.mjs\n@@ -536,8 +536,9 @@ async function checkReplayCase(path) {\n       problems.push(`replayed pack ${i + 1} differs from the file`);\n     }\n   });\n-  if (problems.length === 0 && toFileText(r.file) !== text) {\n-    problems.push(`${REPLAY_FILE} text differs from the replay (formatting or line endings)`);\n+  // Git stores the file with LF and a checkout may give LF or CRLF, so the line ends are not compared.\n+  if (problems.length === 0 && toFileText(r.file).replace(/\\r\\n/g, '\\n') !== text.replace(/\\r\\n/g, '\\n')) {\n+    problems.push(`${REPLAY_FILE} text differs from the replay (formatting)`);\n   }\n   return problems;\n }"
+  },
+  "bench": {
+    "inputComparisonReproduced": true,
+    "oldCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+    "newCommit": "27c6189e40bfe2000a454f755797c5745d7c2e84",
+    "rows": 70,
+    "identity": {
+      "pairs": 35,
+      "equal": 35,
+      "metricPrefixOnly": 0,
+      "noPuzzleEvidence": 0,
+      "differ": 0,
+      "incomplete": 0,
+      "list": [
+        {
+          "caseId": "14x14-master",
+          "rep": 0,
+          "seed": "landscape/14x14-master/0",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "821178507c2fcabf1ac9c38421011b1479437db2abfa8d542768ee25b345818b",
+          "newDigest": "821178507c2fcabf1ac9c38421011b1479437db2abfa8d542768ee25b345818b"
+        },
+        {
+          "caseId": "14x14-master",
+          "rep": 1,
+          "seed": "landscape/14x14-master/1",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "567cb2bba4cf34a5d840493a44027284f0117ebb7c75f12f06b2e3481f31a77a",
+          "newDigest": "567cb2bba4cf34a5d840493a44027284f0117ebb7c75f12f06b2e3481f31a77a"
+        },
+        {
+          "caseId": "14x14-master",
+          "rep": 2,
+          "seed": "landscape/14x14-master/2",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "8f3c0a5c548c0650c88b94bf8677e8dd2a4af348e5988e9838e842c0c88f6b3e",
+          "newDigest": "8f3c0a5c548c0650c88b94bf8677e8dd2a4af348e5988e9838e842c0c88f6b3e"
+        },
+        {
+          "caseId": "14x14-master",
+          "rep": 3,
+          "seed": "landscape/14x14-master/3",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "0a3010695db332f307796f403aa45ff98c2802028fb785fd8cc64d46811da4c4",
+          "newDigest": "0a3010695db332f307796f403aa45ff98c2802028fb785fd8cc64d46811da4c4"
+        },
+        {
+          "caseId": "14x14-master",
+          "rep": 4,
+          "seed": "landscape/14x14-master/4",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "ab614181295d6e9e2bba2b8cb9e2dae06fe068568ce55088fcf899e9666bdfe4",
+          "newDigest": "ab614181295d6e9e2bba2b8cb9e2dae06fe068568ce55088fcf899e9666bdfe4"
+        },
+        {
+          "caseId": "26x26-master",
+          "rep": 0,
+          "seed": "landscape/26x26-master/0",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "319009ee5fc772eb2ccb74d8019517e506d87f27445e527cc928ceaa499fdd8d",
+          "newDigest": "319009ee5fc772eb2ccb74d8019517e506d87f27445e527cc928ceaa499fdd8d"
+        },
+        {
+          "caseId": "26x26-master",
+          "rep": 1,
+          "seed": "landscape/26x26-master/1",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "8ac1d02364751658a3122f80d07b59639cedfe832aa7d8f05d8b31d2e14b3eaa",
+          "newDigest": "8ac1d02364751658a3122f80d07b59639cedfe832aa7d8f05d8b31d2e14b3eaa"
+        },
+        {
+          "caseId": "26x26-master",
+          "rep": 2,
+          "seed": "landscape/26x26-master/2",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "6668b934172a858d0a03f5467416b95d2ddd3d18b2769768b93a03285fee934f",
+          "newDigest": "6668b934172a858d0a03f5467416b95d2ddd3d18b2769768b93a03285fee934f"
+        },
+        {
+          "caseId": "26x26-master",
+          "rep": 3,
+          "seed": "landscape/26x26-master/3",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "8b2c273884629e1e30010b9aeb9ed5bcb718f3a721b3dbae379e96671652be10",
+          "newDigest": "8b2c273884629e1e30010b9aeb9ed5bcb718f3a721b3dbae379e96671652be10"
+        },
+        {
+          "caseId": "26x26-master",
+          "rep": 4,
+          "seed": "landscape/26x26-master/4",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "938e721d73d5bb778196df72c1a62553544e9ec93124cb5c50a33d670285b8d4",
+          "newDigest": "938e721d73d5bb778196df72c1a62553544e9ec93124cb5c50a33d670285b8d4"
+        },
+        {
+          "caseId": "26x26-expert",
+          "rep": 0,
+          "seed": "landscape/26x26-expert/0",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "fa44d727abb636ab14ce0b1792a7b8ec6e13e2c7036dc0b801a16f1ec52e0268",
+          "newDigest": "fa44d727abb636ab14ce0b1792a7b8ec6e13e2c7036dc0b801a16f1ec52e0268"
+        },
+        {
+          "caseId": "26x26-expert",
+          "rep": 1,
+          "seed": "landscape/26x26-expert/1",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "49d9de08c1d0a6eb36dfd5c63e928fe93ca6bd58b0ae1683a289d0f0168972a0",
+          "newDigest": "49d9de08c1d0a6eb36dfd5c63e928fe93ca6bd58b0ae1683a289d0f0168972a0"
+        },
+        {
+          "caseId": "26x26-expert",
+          "rep": 2,
+          "seed": "landscape/26x26-expert/2",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "ec55728bca73c289e02dfb6d618b23029f61715bfe0f23db500bf1a4adb8a0e2",
+          "newDigest": "ec55728bca73c289e02dfb6d618b23029f61715bfe0f23db500bf1a4adb8a0e2"
+        },
+        {
+          "caseId": "26x26-expert",
+          "rep": 3,
+          "seed": "landscape/26x26-expert/3",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "d7fb5510814736967a477584b185b9012412112f34f62a068db12dda5ec86d36",
+          "newDigest": "d7fb5510814736967a477584b185b9012412112f34f62a068db12dda5ec86d36"
+        },
+        {
+          "caseId": "26x26-expert",
+          "rep": 4,
+          "seed": "landscape/26x26-expert/4",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "f466197cb310d6ac678f12b183e309d483e58e5c126572d1844f5aa939729866",
+          "newDigest": "f466197cb310d6ac678f12b183e309d483e58e5c126572d1844f5aa939729866"
+        },
+        {
+          "caseId": "26x26-nightmare",
+          "rep": 0,
+          "seed": "landscape/26x26-nightmare/0",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "2c9671fcd9a9561cce05fce2d7ccc500d659e47da1a9ddea497deff9408f3588",
+          "newDigest": "2c9671fcd9a9561cce05fce2d7ccc500d659e47da1a9ddea497deff9408f3588"
+        },
+        {
+          "caseId": "26x26-nightmare",
+          "rep": 1,
+          "seed": "landscape/26x26-nightmare/1",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "7d594bd68183adfc7fb55a55153cb86dd2347130a7b843cb66d1af7e2ed29a83",
+          "newDigest": "7d594bd68183adfc7fb55a55153cb86dd2347130a7b843cb66d1af7e2ed29a83"
+        },
+        {
+          "caseId": "26x26-nightmare",
+          "rep": 2,
+          "seed": "landscape/26x26-nightmare/2",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "c92c220ad9a22ec8eaabc347dd0aa0b9d237b7024928cd7abaffa8f420bb5beb",
+          "newDigest": "c92c220ad9a22ec8eaabc347dd0aa0b9d237b7024928cd7abaffa8f420bb5beb"
+        },
+        {
+          "caseId": "26x26-nightmare",
+          "rep": 3,
+          "seed": "landscape/26x26-nightmare/3",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "f6cbd37084d17859138065feaa9399e5f2ce61324032eb733e8cdbb74dfa4ad5",
+          "newDigest": "f6cbd37084d17859138065feaa9399e5f2ce61324032eb733e8cdbb74dfa4ad5"
+        },
+        {
+          "caseId": "26x26-nightmare",
+          "rep": 4,
+          "seed": "landscape/26x26-nightmare/4",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "82b38527e1766f3be9b8d195be65078e07d872e93f6f20d0b5ca2ecc92903fe4",
+          "newDigest": "82b38527e1766f3be9b8d195be65078e07d872e93f6f20d0b5ca2ecc92903fe4"
+        },
+        {
+          "caseId": "10x10-nightmare",
+          "rep": 0,
+          "seed": "landscape/10x10-nightmare/0",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "3b2e3f1350b10e2e0820788e652fec1ebf1a922789a604176ba7595f8794891b",
+          "newDigest": "3b2e3f1350b10e2e0820788e652fec1ebf1a922789a604176ba7595f8794891b"
+        },
+        {
+          "caseId": "10x10-nightmare",
+          "rep": 1,
+          "seed": "landscape/10x10-nightmare/1",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "27499926b81f49629dbb0a60450026c2f408f75f82d9db23d0b1c3665e9181dd",
+          "newDigest": "27499926b81f49629dbb0a60450026c2f408f75f82d9db23d0b1c3665e9181dd"
+        },
+        {
+          "caseId": "10x10-nightmare",
+          "rep": 2,
+          "seed": "landscape/10x10-nightmare/2",
+          "category": "equal",
+          "oldAccepted": 9,
+          "newAccepted": 9,
+          "oldDigest": "b69a7133a0fd7c2987219995f51a46339b9e4dc36a189bbdbae861c267b5241c",
+          "newDigest": "b69a7133a0fd7c2987219995f51a46339b9e4dc36a189bbdbae861c267b5241c"
+        },
+        {
+          "caseId": "10x10-nightmare",
+          "rep": 3,
+          "seed": "landscape/10x10-nightmare/3",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "8c72386d3c32259e4a5f7d4dc7adbf12e0bf5bdd7cba51e6758285861c069b3e",
+          "newDigest": "8c72386d3c32259e4a5f7d4dc7adbf12e0bf5bdd7cba51e6758285861c069b3e"
+        },
+        {
+          "caseId": "10x10-nightmare",
+          "rep": 4,
+          "seed": "landscape/10x10-nightmare/4",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "49014036d1deeb777ce7b0a10225d471cb26558534d032bbf71408b2a1c51efd",
+          "newDigest": "49014036d1deeb777ce7b0a10225d471cb26558534d032bbf71408b2a1c51efd"
+        },
+        {
+          "caseId": "12x12-nightmare",
+          "rep": 0,
+          "seed": "landscape/12x12-nightmare/0",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "645a17b30d0dcfd3b1d9b6cee7a8c4a1e07ab825a9710ab2a488b2520d7c805c",
+          "newDigest": "645a17b30d0dcfd3b1d9b6cee7a8c4a1e07ab825a9710ab2a488b2520d7c805c"
+        },
+        {
+          "caseId": "12x12-nightmare",
+          "rep": 1,
+          "seed": "landscape/12x12-nightmare/1",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "154c621a89d80e16b9ccd4660b9fb5f307d62491f23762e38c0f6a717378c369",
+          "newDigest": "154c621a89d80e16b9ccd4660b9fb5f307d62491f23762e38c0f6a717378c369"
+        },
+        {
+          "caseId": "12x12-nightmare",
+          "rep": 2,
+          "seed": "landscape/12x12-nightmare/2",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "611ea6010175e0c41ea2913500c36c94aa8e6eee9f81b740049f2d2039bea694",
+          "newDigest": "611ea6010175e0c41ea2913500c36c94aa8e6eee9f81b740049f2d2039bea694"
+        },
+        {
+          "caseId": "12x12-nightmare",
+          "rep": 3,
+          "seed": "landscape/12x12-nightmare/3",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "41985f35b7045cfb67f9d641eade3e32358c3202d28afff9fc2191dd3d2c16c6",
+          "newDigest": "41985f35b7045cfb67f9d641eade3e32358c3202d28afff9fc2191dd3d2c16c6"
+        },
+        {
+          "caseId": "12x12-nightmare",
+          "rep": 4,
+          "seed": "landscape/12x12-nightmare/4",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "0690ff24370ca45fdd4b6a7a277384de2eea0affa7f7890cb16513f407d1cfb0",
+          "newDigest": "0690ff24370ca45fdd4b6a7a277384de2eea0affa7f7890cb16513f407d1cfb0"
+        },
+        {
+          "caseId": "18x18-nightmare",
+          "rep": 0,
+          "seed": "landscape/18x18-nightmare/0",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "bdfd6158318bae63a3374d67a0add3095f407db56d25e54ac4f90e43cdf60b6e",
+          "newDigest": "bdfd6158318bae63a3374d67a0add3095f407db56d25e54ac4f90e43cdf60b6e"
+        },
+        {
+          "caseId": "18x18-nightmare",
+          "rep": 1,
+          "seed": "landscape/18x18-nightmare/1",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "dfaa8a84f05e7be74aa6739d38e0a6d543ae99007cf618b0b9526693fe4f4423",
+          "newDigest": "dfaa8a84f05e7be74aa6739d38e0a6d543ae99007cf618b0b9526693fe4f4423"
+        },
+        {
+          "caseId": "18x18-nightmare",
+          "rep": 2,
+          "seed": "landscape/18x18-nightmare/2",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "3a4438decc55280ba422c993919e6caf5dadc8b2ddf32fa11ec53c218a162954",
+          "newDigest": "3a4438decc55280ba422c993919e6caf5dadc8b2ddf32fa11ec53c218a162954"
+        },
+        {
+          "caseId": "18x18-nightmare",
+          "rep": 3,
+          "seed": "landscape/18x18-nightmare/3",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "392c7e0ea1b5e9a739915e02e09cdf484ff8e68720321bd878c451704b35e2c6",
+          "newDigest": "392c7e0ea1b5e9a739915e02e09cdf484ff8e68720321bd878c451704b35e2c6"
+        },
+        {
+          "caseId": "18x18-nightmare",
+          "rep": 4,
+          "seed": "landscape/18x18-nightmare/4",
+          "category": "equal",
+          "oldAccepted": 10,
+          "newAccepted": 10,
+          "oldDigest": "a6bad1467c0eb86a7c90e6c2c92ec77cc48468b20faea8347d0a6b849d5a57ae",
+          "newDigest": "a6bad1467c0eb86a7c90e6c2c92ec77cc48468b20faea8347d0a6b849d5a57ae"
+        }
+      ]
+    },
+    "cells": [
+      {
+        "cell": "14x14-master",
+        "pairs": 5,
+        "equal": 5,
+        "oldTen": 5,
+        "newTen": 5,
+        "t10": {
+          "n": 5,
+          "median": 1.1588297977804984,
+          "min": 1.1218192321856488,
+          "max": 1.283899417780762,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.1466917091154465,
+          "min": 1.1198037552477067,
+          "max": 1.2780412264562333,
+          "excluded": 0
+        },
+        "oldProcess": {
+          "status": "pass",
+          "value": 223453184,
+          "limit": "<= 1610612736 bytes"
+        },
+        "newProcess": {
+          "status": "pass",
+          "value": 234962944,
+          "limit": "<= 1610612736 bytes"
+        },
+        "oldAccounted": {
+          "status": "pass",
+          "value": 16839576,
+          "limit": "<= 1254096896 bytes"
+        },
+        "newAccounted": {
+          "status": "pass",
+          "value": 17419522,
+          "limit": "<= 1254096896 bytes"
+        }
+      },
+      {
+        "cell": "26x26-master",
+        "pairs": 5,
+        "equal": 5,
+        "oldTen": 5,
+        "newTen": 5,
+        "t10": {
+          "n": 5,
+          "median": 1.204291330408965,
+          "min": 1.1301052430578669,
+          "max": 1.2265364875110971,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.206522046206265,
+          "min": 1.1355913990049322,
+          "max": 1.222496326251686,
+          "excluded": 0
+        },
+        "oldProcess": {
+          "status": "pass",
+          "value": 589246464,
+          "limit": "<= 1610612736 bytes"
+        },
+        "newProcess": {
+          "status": "pass",
+          "value": 570560512,
+          "limit": "<= 1610612736 bytes"
+        },
+        "oldAccounted": {
+          "status": "pass",
+          "value": 228448751,
+          "limit": "<= 1254096896 bytes"
+        },
+        "newAccounted": {
+          "status": "pass",
+          "value": 225779923,
+          "limit": "<= 1254096896 bytes"
+        }
+      },
+      {
+        "cell": "26x26-expert",
+        "pairs": 5,
+        "equal": 5,
+        "oldTen": 5,
+        "newTen": 5,
+        "t10": {
+          "n": 5,
+          "median": 1.139155824205232,
+          "min": 0.9891278542276174,
+          "max": 1.2446065729509137,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.142794949845242,
+          "min": 1.0016473236709913,
+          "max": 1.24050150280483,
+          "excluded": 0
+        },
+        "oldProcess": {
+          "status": "pass",
+          "value": 478535680,
+          "limit": "<= 1610612736 bytes"
+        },
+        "newProcess": {
+          "status": "pass",
+          "value": 497336320,
+          "limit": "<= 1610612736 bytes"
+        },
+        "oldAccounted": {
+          "status": "pass",
+          "value": 191733509,
+          "limit": "<= 1254096896 bytes"
+        },
+        "newAccounted": {
+          "status": "pass",
+          "value": 183794335,
+          "limit": "<= 1254096896 bytes"
+        }
+      },
+      {
+        "cell": "26x26-nightmare",
+        "pairs": 5,
+        "equal": 5,
+        "oldTen": 5,
+        "newTen": 5,
+        "t10": {
+          "n": 5,
+          "median": 1.3220890755983579,
+          "min": 1.2104355952680428,
+          "max": 1.4194753252392815,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.3228280650307735,
+          "min": 1.2058530787128463,
+          "max": 1.4159218866761267,
+          "excluded": 0
+        },
+        "oldProcess": {
+          "status": "pass",
+          "value": 583057408,
+          "limit": "<= 1610612736 bytes"
+        },
+        "newProcess": {
+          "status": "pass",
+          "value": 553484288,
+          "limit": "<= 1610612736 bytes"
+        },
+        "oldAccounted": {
+          "status": "pass",
+          "value": 240995213,
+          "limit": "<= 1254096896 bytes"
+        },
+        "newAccounted": {
+          "status": "pass",
+          "value": 242014758,
+          "limit": "<= 1254096896 bytes"
+        }
+      },
+      {
+        "cell": "10x10-nightmare",
+        "pairs": 5,
+        "equal": 5,
+        "oldTen": 4,
+        "newTen": 4,
+        "t10": {
+          "n": 4,
+          "median": 1.0158792915429762,
+          "min": 0.9854777677534824,
+          "max": 1.0451377900047023,
+          "excluded": 1
+        },
+        "response": {
+          "n": 5,
+          "median": 0.9995104220690596,
+          "min": 0.9862583369784435,
+          "max": 1.0460629326594286,
+          "excluded": 0
+        },
+        "oldProcess": {
+          "status": "pass",
+          "value": 186056704,
+          "limit": "<= 1610612736 bytes"
+        },
+        "newProcess": {
+          "status": "pass",
+          "value": 179605504,
+          "limit": "<= 1610612736 bytes"
+        },
+        "oldAccounted": {
+          "status": "pass",
+          "value": 11879611,
+          "limit": "<= 1254096896 bytes"
+        },
+        "newAccounted": {
+          "status": "pass",
+          "value": 11938998,
+          "limit": "<= 1254096896 bytes"
+        }
+      },
+      {
+        "cell": "12x12-nightmare",
+        "pairs": 5,
+        "equal": 5,
+        "oldTen": 5,
+        "newTen": 5,
+        "t10": {
+          "n": 5,
+          "median": 1.0233274073109198,
+          "min": 1.0106012355829381,
+          "max": 1.0698951688182494,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.0235636517285442,
+          "min": 1.0106357803806392,
+          "max": 1.0693448920420314,
+          "excluded": 0
+        },
+        "oldProcess": {
+          "status": "pass",
+          "value": 192147456,
+          "limit": "<= 1610612736 bytes"
+        },
+        "newProcess": {
+          "status": "pass",
+          "value": 193048576,
+          "limit": "<= 1610612736 bytes"
+        },
+        "oldAccounted": {
+          "status": "pass",
+          "value": 17663135,
+          "limit": "<= 1254096896 bytes"
+        },
+        "newAccounted": {
+          "status": "pass",
+          "value": 17663135,
+          "limit": "<= 1254096896 bytes"
+        }
+      },
+      {
+        "cell": "18x18-nightmare",
+        "pairs": 5,
+        "equal": 5,
+        "oldTen": 5,
+        "newTen": 5,
+        "t10": {
+          "n": 5,
+          "median": 1.1326917100737375,
+          "min": 1.071249407369897,
+          "max": 1.1544958954936617,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.132779405577515,
+          "min": 1.0710613733257153,
+          "max": 1.1538977669532862,
+          "excluded": 0
+        },
+        "oldProcess": {
+          "status": "pass",
+          "value": 308375552,
+          "limit": "<= 1610612736 bytes"
+        },
+        "newProcess": {
+          "status": "pass",
+          "value": 313819136,
+          "limit": "<= 1610612736 bytes"
+        },
+        "oldAccounted": {
+          "status": "pass",
+          "value": 67520246,
+          "limit": "<= 1254096896 bytes"
+        },
+        "newAccounted": {
+          "status": "pass",
+          "value": 66346142,
+          "limit": "<= 1254096896 bytes"
+        }
+      }
+    ],
+    "levels": [
+      {
+        "level": "Master",
+        "response": {
+          "n": 10,
+          "median": 1.1685381563364388,
+          "min": 1.1198037552477067,
+          "max": 1.2780412264562333,
+          "excluded": 0
+        }
+      },
+      {
+        "level": "Expert",
+        "response": {
+          "n": 5,
+          "median": 1.142794949845242,
+          "min": 1.0016473236709913,
+          "max": 1.24050150280483,
+          "excluded": 0
+        }
+      },
+      {
+        "level": "Nightmare",
+        "response": {
+          "n": 20,
+          "median": 1.0702031326838735,
+          "min": 0.9862583369784435,
+          "max": 1.4159218866761267,
+          "excluded": 0
+        }
+      }
+    ],
+    "memory": {
+      "processLimit": 1610612736,
+      "accountedLimit": 1254096896,
+      "processPeak": 589246464,
+      "accountedPeak": 242014758,
+      "sideCells": 14,
+      "bothChecksPass": true
+    },
+    "ledger": {
+      "invocations": 4,
+      "countedSeconds": 2244.925,
+      "allowanceSeconds": 2700,
+      "lines": [
+        {
+          "group": "A",
+          "side": "old",
+          "limitS": 900,
+          "nodeSeconds": 482.539,
+          "lockWaitSeconds": 45.173,
+          "quietS": 45,
+          "countedSeconds": 527.539,
+          "killed": false,
+          "exit": 0
+        },
+        {
+          "group": "A",
+          "side": "new",
+          "limitS": 900,
+          "nodeSeconds": 440.116,
+          "lockWaitSeconds": 114.314,
+          "quietS": 45,
+          "countedSeconds": 485.116,
+          "killed": false,
+          "exit": 0
+        },
+        {
+          "group": "B",
+          "side": "new",
+          "limitS": 900,
+          "nodeSeconds": 552.106,
+          "lockWaitSeconds": 395.219,
+          "quietS": 45,
+          "countedSeconds": 597.106,
+          "killed": false,
+          "exit": 0
+        },
+        {
+          "group": "B",
+          "side": "old",
+          "limitS": 900,
+          "nodeSeconds": 590.164,
+          "lockWaitSeconds": 78.205,
+          "quietS": 45,
+          "countedSeconds": 635.164,
+          "killed": false,
+          "exit": 0
+        }
+      ]
+    },
+    "limitations": [
+      "Five requests per cell provide descriptive results only; the nearest-rank p95 is the maximum of the available sample.",
+      "Response medians include partial responses: each side's ten of n stands beside it.",
+      "The landscape profile's diagnostic sampling runs after the T1, T10 and response timing, but it takes invocation time and counts in the whole-process peak memory.",
+      "The order (A old then new, B new then old) reduces one order imbalance but does not cancel temporal drift within a cell."
+    ]
+  },
+  "equality": {
+    "report": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1-full/p7.json",
+    "declared": 713,
+    "ended": 713,
+    "equal": 713,
+    "memoryObservations": 16,
+    "sourceInputsChecked": 12,
+    "kernelClosure": [
+      {
+        "path": "core/engine/deduce.js",
+        "sha256Lf": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce",
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "currentEqualsFrozenAndP7Reference": true
+      },
+      {
+        "path": "core/engine/policy.js",
+        "sha256Lf": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10",
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "currentEqualsFrozenAndP7Reference": true
+      },
+      {
+        "path": "core/engine/tiling.js",
+        "sha256Lf": "94c2473e374b4f254320354217e866dfcdf11966375f8000d0296f5a211b2015",
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "currentEqualsFrozenAndP7Reference": true
+      },
+      {
+        "path": "core/engine/levels.js",
+        "sha256Lf": "e0d59290f3c265fd56e84ac9ff83cf048458e223673e2e669525aabef302e096",
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "currentEqualsFrozenAndP7Reference": true
+      },
+      {
+        "path": "core/engine/qualification.js",
+        "sha256Lf": "d1059002e0edc368cae09cde1c31e9bc72e74ccb54c357efd3e4823096e57b46",
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "currentEqualsFrozenAndP7Reference": true
+      },
+      {
+        "path": "core/engine/dlx.js",
+        "sha256Lf": "0a18f78ef214064300bb63379dbed79946625fdc6687fdaeea8365b7c71bfc6b",
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "currentEqualsFrozenAndP7Reference": true
+      },
+      {
+        "path": "core/engine/geometry.js",
+        "sha256Lf": "51af8541bc3827aef5815ba21c1d1fd81f0a013f25110156c39a1a2ebfe129a6",
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "currentEqualsFrozenAndP7Reference": true
+      },
+      {
+        "path": "core/engine/placements.js",
+        "sha256Lf": "b386c7f8ddc34a8bb2e4fa58dc5dbf6b97835dd4cb7eb0e8c257fbc71c35405b",
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "currentEqualsFrozenAndP7Reference": true
+      },
+      {
+        "path": "core/engine/workspace.js",
+        "sha256Lf": "47b911e67efb147d574f4fa8c7739d553f12cbb2bba2680494a8f0dc4fc70fb3",
+        "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "currentEqualsFrozenAndP7Reference": true
+      }
+    ],
+    "limitation": "Historical P7 equality is reference-kernel corpus evidence, not a fresh P6 lean/full-rating run. The unchanged runtime closure supports adoption only; no P7 candidate is proposed for production."
+  },
+  "fixtures": [
+    {
+      "path": "tests/fixtures/generation-case.json",
+      "sha256Lf": "df7e1e06d1cb6f290a56994faebd3bfe3f0c1cdec1cd6587f6e34f558d3e357f",
+      "unchangedFromFrozen": true,
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3"
+      },
+      "recipe": {
+        "seedText": "fixture-set-0",
+        "batchSeed": "fixture-set-0#1",
+        "levelId": "hard",
+        "uniqueness": "any",
+        "quantity": 10
+      }
+    },
+    {
+      "path": "tests/fixtures/generated-sample-pack.json",
+      "sha256Lf": "872f386d780a7882f27b619357ec34b5239730e55c0b9696187a1b336a200614",
+      "unchangedFromFrozen": true,
+      "versions": null,
+      "recipe": null
+    },
+    {
+      "path": "tests/fixtures/replay-case.json",
+      "sha256Lf": "fa701844b2c8b7135757509bc24b2c29c3474098a265262de4237c0fba7068a3",
+      "unchangedFromFrozen": true,
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3"
+      },
+      "recipe": {
+        "boardRows": [
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########",
+          "##########"
+        ],
+        "rotation": 0,
+        "levelId": "hard",
+        "uniqueness": "require",
+        "quantity": 4,
+        "seedText": "replay-case-0"
+      }
+    }
+  ],
+  "fixtureVerification": {
+    "semanticChanges": false,
+    "change": "tools/record-fixtures.mjs now normalizes LF/CRLF before its replay-case text comparison; no recipe or fixture change.",
+    "historicalT13FullTests": 1514,
+    "projectedRefreshSeconds": 260.233,
+    "upperThreeInvocationsSeconds": 1035,
+    "note": "Projection for full npm-test-equivalent plus both fixture checks, not a new measurement or allowance. A four-width test extension can change the full-suite duration; each invocation must fit 300 s."
+  },
+  "scope": "Unlocked source/evidence reads, hashes and pure statistics only. No rating, solving, generation, replay, tree build, npm test, fixture regeneration, browser run or measured request. New counted benchmark cost: 0.",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "--no-pager",
+        "rev-parse",
+        "006ca68"
+      ],
+      "sha256Lf": "150cacab285f1d1cf7aafe19ca2deeccfc5ecda0d66a592738f719407670e7eb",
+      "output": "006ca68ff447c8e39c33deaf517df82b3dc6d602"
+    },
+    {
+      "command": [
+        "git",
+        "--no-pager",
+        "rev-parse",
+        "HEAD"
+      ],
+      "sha256Lf": "150cacab285f1d1cf7aafe19ca2deeccfc5ecda0d66a592738f719407670e7eb",
+      "output": "006ca68ff447c8e39c33deaf517df82b3dc6d602"
+    },
+    {
+      "command": [
+        "git",
+        "--no-pager",
+        "branch",
+        "--show-current"
+      ],
+      "sha256Lf": "2ab72e61c545979dd265e567387cc40b1bdd993aa94f3490facbab911481e1a3",
+      "output": "improve-generating"
+    },
+    {
+      "command": [
+        "git",
+        "--no-pager",
+        "diff",
+        "--name-only",
+        "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+        "006ca68",
+        "--",
+        "core",
+        "generator",
+        "player",
+        "tools/bench",
+        "tools/calibrate.mjs",
+        "tools/node-worker.mjs",
+        "package.json"
+      ],
+      "sha256Lf": "9e5a493e318a4581c1c1714cbc5b6567a60c83347e2e89be08cdc8e16cc1bbe1",
+      "output": "core/engine/clues.js\ncore/engine/difficulty.js\ncore/engine/types.js"
+    },
+    {
+      "command": [
+        "git",
+        "--no-pager",
+        "diff",
+        "--name-only",
+        "27c6189e40bfe2000a454f755797c5745d7c2e84",
+        "006ca68",
+        "--",
+        "core",
+        "generator",
+        "player",
+        "tools/bench",
+        "tools/calibrate.mjs",
+        "tools/node-worker.mjs",
+        "package.json",
+        "tests"
+      ],
+      "sha256Lf": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "--no-pager",
+        "diff",
+        "27c6189e40bfe2000a454f755797c5745d7c2e84",
+        "006ca68",
+        "--",
+        "tools/record-fixtures.mjs"
+      ],
+      "sha256Lf": "0a4cb8cdca1d61158df95c152039a6326867e6b428bc3060583575b59998f211",
+      "output": "diff --git a/tools/record-fixtures.mjs b/tools/record-fixtures.mjs\nindex a400c5c..ec78f9f 100644\n--- a/tools/record-fixtures.mjs\n+++ b/tools/record-fixtures.mjs\n@@ -536,8 +536,9 @@ async function checkReplayCase(path) {\n       problems.push(`replayed pack ${i + 1} differs from the file`);\n     }\n   });\n-  if (problems.length === 0 && toFileText(r.file) !== text) {\n-    problems.push(`${REPLAY_FILE} text differs from the replay (formatting or line endings)`);\n+  // Git stores the file with LF and a checkout may give LF or CRLF, so the line ends are not compared.\n+  if (problems.length === 0 && toFileText(r.file).replace(/\\r\\n/g, '\\n') !== text.replace(/\\r\\n/g, '\\n')) {\n+    problems.push(`${REPLAY_FILE} text differs from the replay (formatting)`);\n   }\n   return problems;\n }"
+    },
+    {
+      "command": [
+        "git",
+        "--no-pager",
+        "log",
+        "-1",
+        "--format=%H %s",
+        "--",
+        "core/engine/difficulty.js"
+      ],
+      "sha256Lf": "9e9c4ee9cff14f1aa7016bd9849fc5a3c4d684927497c6e4dbefdf637d31ebe6",
+      "output": "fb893c3876e1bc2adaafbe258c7cf857f652d008 improve-generating T12: P6: the DLX diagnostic only for returned ratings"
+    },
+    {
+      "command": [
+        "git",
+        "--no-pager",
+        "log",
+        "-1",
+        "--format=%H %s",
+        "--",
+        "tests/generator-controller.test.js",
+        "tests/generation-client.test.js"
+      ],
+      "sha256Lf": "97efbcdf4561c477bf2fcdf9896ccf8e4bb13ca8de2771405a87addf387734ea",
+      "output": "373e74a57a7c05de0b92eb03cb6eb7ee4e6f8281 improve-generating T13: Progressive presentation: fold order and the history policy"
+    },
+    {
+      "command": [
+        "git",
+        "--no-pager",
+        "log",
+        "-1",
+        "--format=%H %s",
+        "--",
+        "tasks/improve-generating-v4/T14-p6-phase1-bench.md"
+      ],
+      "sha256Lf": "e9ab3de9f880ff1d4c9f64b1b97c21409cffc0399cf78d7345a9caefddcfcc8a",
+      "output": "826ce79dcc4a77daaaea00894a6dcea46bcbd8b7 improve-generating T14: Phase-1 bench of P6, old and new generation time"
+    }
+  ],
+  "inputIndexHash": "b83940b86106593228381cc829bb4da139c7cf0f3107a0bdf76373d5f2a9cbda",
+  "inputs": [
+    {
+      "path": "docs/improve-generating/evidence/phase1/P6-bench/compare.json",
+      "bytes": 54871,
+      "sha256Raw": "48dba5557e665730e27ca2ab4c4ef68560f7b82b647db1c0314f5fa4e4cc4ba2",
+      "sha256Lf": "7fabb8eb5442e9ab7d23101fd7e36612af4da06ccce2185def652f2a25f19280"
+    },
+    {
+      "path": "docs/improve-generating/evidence/phase1/P6-bench/ledger.jsonl",
+      "bytes": 2061,
+      "sha256Raw": "28735e0c7010cc5f9c0a532e0e9b86d51ac88a8f4459ef774d55bbf27443e750",
+      "sha256Lf": "d509305759d88a2553f52c4a29c9dd8f6adacb087946c615a7d6cb19fde48a88"
+    },
+    {
+      "path": "docs/improve-generating/evidence/phase1/P6-bench/old/A-2026-11-18.json",
+      "bytes": 526670,
+      "sha256Raw": "676dd7ae888d0348f7a4c4f49be66db1ca93c2c5875450cdc9a6ef62aa545956",
+      "sha256Lf": "82d39d0b21d3983cdd1a72cd1fc724ae6f72a4927f1e79cf9e9bc778711853bc"
+    },
+    {
+      "path": "docs/improve-generating/evidence/phase1/P6-bench/old/A-2026-11-18.md",
+      "bytes": 17557,
+      "sha256Raw": "8e8d4b0ddc88c71fc980683aeec436d63c1a1dcd53afe1bddc8f6958d56ae778",
+      "sha256Lf": "a1fba17e8463584f8bf678e63c9cc28ec78e37f269f018cf710d66f1ae6d7855"
+    },
+    {
+      "path": "docs/improve-generating/evidence/phase1/P6-bench/new/A-2026-11-18.json",
+      "bytes": 526368,
+      "sha256Raw": "3be61d72814aebcb591182616fe68a78a38e39b51a675064e4926afc61684546",
+      "sha256Lf": "45fa196a6ed90b3cc7d4ffe52e2cc5d66db5ffef879951bb457d76c7fa63b33b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/phase1/P6-bench/new/A-2026-11-18.md",
+      "bytes": 17558,
+      "sha256Raw": "16e14b1c2f92691d0512ae8a75362bdf673f1983ea44670070af9730ecb8fba5",
+      "sha256Lf": "3897fd0c90c1f5b27900f5a25fbdcdc5e6e6728e216960e65068cc5b9c121252"
+    },
+    {
+      "path": "docs/improve-generating/evidence/phase1/P6-bench/new/B-2026-11-18.json",
+      "bytes": 224870,
+      "sha256Raw": "98472db28b2d303adcd3967ce3deaec871330ed969bc06ee5c924daae30aa08e",
+      "sha256Lf": "8dcf385b7eeb548f97b88176a06a1b1fe53b7d4027300680dcf9eb3bc8eef72f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/phase1/P6-bench/new/B-2026-11-18.md",
+      "bytes": 14968,
+      "sha256Raw": "cbfa7d3c7c141030f8def753a5ad4f28758e77ab7641794f1352585e8e6466c9",
+      "sha256Lf": "98c99dcb8023f9415218862f223e069e3a57d9bbcfb935dcd2c26ee2f8965fcc"
+    },
+    {
+      "path": "docs/improve-generating/evidence/phase1/P6-bench/old/B-2026-11-18.json",
+      "bytes": 224979,
+      "sha256Raw": "1b6d68f1376cac59b6ad458d89267e664e271a3498a661ed225eeea1284ec3bd",
+      "sha256Lf": "cd74452a1425188ba5c9125ba906c80f34ef4865e200754429c0d60124167ee7"
+    },
+    {
+      "path": "docs/improve-generating/evidence/phase1/P6-bench/old/B-2026-11-18.md",
+      "bytes": 14968,
+      "sha256Raw": "a60974520fc377531d26066c45863e1cd48f211e9d98f970f1c3d8124d85f251",
+      "sha256Lf": "0fb3ac112e74a743e8a6879c41f67c0c532a8584c8249c4c692759b608aa2243"
+    },
+    {
+      "path": "core/engine/board.js",
+      "bytes": 15834,
+      "sha256Raw": "a78f55b74e47905723af6a50f00f13a165efb1e044bc508fb9542e381900b43d",
+      "sha256Lf": "443c51c564143b8cd183f44de86aebd090344158f1c6b4356dfd96ab0b21d33e"
+    },
+    {
+      "path": "core/engine/carve.js",
+      "bytes": 29051,
+      "sha256Raw": "e856adc1733be6a92602648052ab17e191f40ecd4f0756c1005d115e54d7b8f3",
+      "sha256Lf": "c2aa481d1a7408f96e029787475ccab35586f6d157d6503c602e660da63a5f0c"
+    },
+    {
+      "path": "core/engine/clues.js",
+      "bytes": 31442,
+      "sha256Raw": "4c1e8ab07d6df07bd0ff54f5e5f4611703a1a030ba984c78a53c7d373f17b468",
+      "sha256Lf": "3eb6c6171654546f02914f323e4a20fb586db754e33b20dc4c63b980cb76a735"
+    },
+    {
+      "path": "core/engine/deduce.js",
+      "bytes": 64074,
+      "sha256Raw": "46c60975827df4faf9e87358fc3153f6bd07b63b6dee05314b80a74a7112ae62",
+      "sha256Lf": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce"
+    },
+    {
+      "path": "core/engine/difficulty.js",
+      "bytes": 20173,
+      "sha256Raw": "2e4b985a2ac1e2f36ab732d68eb2f4b8dde61ca33fd40c5dc516590d404b8c87",
+      "sha256Lf": "e68c9a59a85236aaeb934913430757b7c2cfa1cb9dd122c0a7c1935d70ca1d61"
+    },
+    {
+      "path": "core/engine/dlx.js",
+      "bytes": 11236,
+      "sha256Raw": "6f898a7955c2d08a214d7be6d4648d9a5a28d4ca065ca0d3c819d8a8f6dd3df9",
+      "sha256Lf": "0a18f78ef214064300bb63379dbed79946625fdc6687fdaeea8365b7c71bfc6b"
+    },
+    {
+      "path": "core/engine/enumerate.js",
+      "bytes": 10362,
+      "sha256Raw": "af83437b91e3bfc48f84d47567989aa1e4239f1078520f6cb27bfba530ec47ab",
+      "sha256Lf": "8c71fc231a74402ed928d8b34058e3c28a4cdb03d8bed70467a911d917563256"
+    },
+    {
+      "path": "core/engine/game.js",
+      "bytes": 22696,
+      "sha256Raw": "45be79cfea207f27d9bf76d6928ad0aa28a73d16fd85cbce4833adb0ae573f9f",
+      "sha256Lf": "2920fecf746bde12e8fcfbf36894d3abbbf21bc64ea28bdf79b782e050ad58f0"
+    },
+    {
+      "path": "core/engine/generate.js",
+      "bytes": 24192,
+      "sha256Raw": "0051a8e1e8eec901943de138efc7321ba1138b27fec0e364d5ab530708d00f41",
+      "sha256Lf": "20afef3b322705084604435062105ea9d9e25978b94a82cea40880a90f0d6208"
+    },
+    {
+      "path": "core/engine/geometry.js",
+      "bytes": 12148,
+      "sha256Raw": "79b8b05206499938a239eced7d44fad5171d413da15d173273b5e213d2a4f9c2",
+      "sha256Lf": "51af8541bc3827aef5815ba21c1d1fd81f0a013f25110156c39a1a2ebfe129a6"
+    },
+    {
+      "path": "core/engine/hash.js",
+      "bytes": 6136,
+      "sha256Raw": "e523640ee75e0e0dd247e0e53bb968cc5c357fd3c3e9c05049cf2f049a9ca1c3",
+      "sha256Lf": "ed6a5dcb4ba4ed24c5063d8ad4d21cd85001e3a61fbc8bb6de0f5f77d805c51c"
+    },
+    {
+      "path": "core/engine/hints.js",
+      "bytes": 10928,
+      "sha256Raw": "dd710944bedaae511207dfb258cdd4c48a7c7218018d1db53774d64d7d5189af",
+      "sha256Lf": "d536505f65988b650524287879f6baa618070fb031be63b8c0fdf199ef87e523"
+    },
+    {
+      "path": "core/engine/keys.js",
+      "bytes": 15432,
+      "sha256Raw": "52fad017ac885b000a22ede39d9cd7562414fd17747334de4070cc547dc3abea",
+      "sha256Lf": "0f0054da98a74a24ef2ba64df4441e3175df5548dcb83b4bbd0dc3d799c3c0fa"
+    },
+    {
+      "path": "core/engine/levels.js",
+      "bytes": 4601,
+      "sha256Raw": "f1dd8e5109db00f65d34ff92545493104cb3c9ff055c46386c9134a9a961d143",
+      "sha256Lf": "e0d59290f3c265fd56e84ac9ff83cf048458e223673e2e669525aabef302e096"
+    },
+    {
+      "path": "core/engine/pack.js",
+      "bytes": 69663,
+      "sha256Raw": "2b1c3dce89f8d588e5fae10814b61cce86189a2345addf3da52d152605a208bf",
+      "sha256Lf": "e7ac93a03fad7d484bead4ecf4bd84591ea01f5672c8dad37cdfa76467dbc336"
+    },
+    {
+      "path": "core/engine/palette.js",
+      "bytes": 3373,
+      "sha256Raw": "83f8ebb9cf76d779e083ff8bdf21612289e5d8b7ff58eb8e46b33fa059c353b6",
+      "sha256Lf": "21102da1f41bf3833a85b459ead274f80e4f069b0e6c5e63680067b5680e392c"
+    },
+    {
+      "path": "core/engine/placements.js",
+      "bytes": 11790,
+      "sha256Raw": "b399c57b34a998077634d360a933fd2fe2967aa1010a2f4756278a43e9340069",
+      "sha256Lf": "b386c7f8ddc34a8bb2e4fa58dc5dbf6b97835dd4cb7eb0e8c257fbc71c35405b"
+    },
+    {
+      "path": "core/engine/policy.js",
+      "bytes": 15670,
+      "sha256Raw": "df967a7ea4ee239dd73a18cca5f0e06517157be59313484627f6e394afb2ce15",
+      "sha256Lf": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10"
+    },
+    {
+      "path": "core/engine/protocol.js",
+      "bytes": 38908,
+      "sha256Raw": "2966bea96db27f7f525e46e0bed90a748bbbd909c7c3ef6af49d92ccbba23202",
+      "sha256Lf": "b77b25848fdbf322f461ed5ea79c264729e9667d3747ef1adde828fa1dfc1f6f"
+    },
+    {
+      "path": "core/engine/puzzlecode-input.js",
+      "bytes": 10650,
+      "sha256Raw": "309f4dc4bc1cfdd2f69019e08313f972444ecbeec0b1d619027ac0fb27c91244",
+      "sha256Lf": "b03cad0e5482bcbfd51f8eb54977ee5a96951313b4a7b3fd929b9117e123ddc0"
+    },
+    {
+      "path": "core/engine/puzzlecode-v1.js",
+      "bytes": 63227,
+      "sha256Raw": "525e1dd458e818a3c30e8c62e3f45162d5b78fa9bd6b17941891e51eb4780c44",
+      "sha256Lf": "f05cc281d7e5a9eac0553584a77aa78e042abf3148958fd1dd5bcd627332cf25"
+    },
+    {
+      "path": "core/engine/puzzlecode.js",
+      "bytes": 22365,
+      "sha256Raw": "31701f0c53996c277c6a5b585b05923a3dc52838ee9efaf5dd56f917fface760",
+      "sha256Lf": "61dda9d534823c29e3b4353103df3e763fec256aad9317d01cfd0e8ffa721ed3"
+    },
+    {
+      "path": "core/engine/qualification.js",
+      "bytes": 885,
+      "sha256Raw": "142b9861a59a6b64e99a18bbd50079e1a2e56a9b8f4633b04c662a81aef74015",
+      "sha256Lf": "d1059002e0edc368cae09cde1c31e9bc72e74ccb54c357efd3e4823096e57b46"
+    },
+    {
+      "path": "core/engine/replay.js",
+      "bytes": 36726,
+      "sha256Raw": "4929844cc4a0d7d95cc0c6873503ca41a404669699c736a63bd0a6dedac30c63",
+      "sha256Lf": "cf09ed0d8585022ec19dfb76777955126ecb162937969aad5911f56ef44899ea"
+    },
+    {
+      "path": "core/engine/rng.js",
+      "bytes": 6080,
+      "sha256Raw": "78faa8116244bd93794457acfdecf91697190caad961950567c757553208665b",
+      "sha256Lf": "5374ca6e32a3e7a9b6cb28c31c7968dccdf732b70ee045fe29d2a20d6cc75ba0"
+    },
+    {
+      "path": "core/engine/sharecode.js",
+      "bytes": 5264,
+      "sha256Raw": "c3c8e2281052c5c59de66805a12310e926c3f673bdbc8b1073aa313039bbb38b",
+      "sha256Lf": "4d14042d67bfcd9855e7bd162e256dca5727b58eb27cbea9455cbdcbf6b4b227"
+    },
+    {
+      "path": "core/engine/tasks.js",
+      "bytes": 16253,
+      "sha256Raw": "fcf8879f0de07b9650c0783c6d209a59eebbefc2f7658b0cd64988c3740a784d",
+      "sha256Lf": "08a43ec2805744177269804f97619bead7327a562a797edab2a6420dd6fd6ede"
+    },
+    {
+      "path": "core/engine/tiling.js",
+      "bytes": 20602,
+      "sha256Raw": "391615913f49b9efb04ab6b47418a4c1d4bc1676a6a911c68cd30e147ce76521",
+      "sha256Lf": "94c2473e374b4f254320354217e866dfcdf11966375f8000d0296f5a211b2015"
+    },
+    {
+      "path": "core/engine/types.js",
+      "bytes": 15103,
+      "sha256Raw": "50d8f7a876f9655b54333485ffe437a344e1b85a88f8e34de314a9e5cee880bc",
+      "sha256Lf": "8966b6f5a1a6f868e6e6e875985a2712031d26ff6dd7face0f10c4b3b43a4251"
+    },
+    {
+      "path": "core/engine/version.js",
+      "bytes": 87,
+      "sha256Raw": "90d4d78e1b96287b6fba52a9f63bda5cbe15b646ea3af46e2ed167218d9bf15b",
+      "sha256Lf": "bee5adecec5e908403aa8db3a2ab9c8c0455694eb3498a00468fd53a2fe19e9d"
+    },
+    {
+      "path": "core/engine/view.js",
+      "bytes": 6015,
+      "sha256Raw": "e970656ce0cfa3cee04dfadd73d94592d22a55270de25f1d4f390e6177ae43d7",
+      "sha256Lf": "c0cd0d15b3a114d5d48b99a8bea1d00c5448e55997d82730291b7f6728cd8a0a"
+    },
+    {
+      "path": "core/engine/workspace.js",
+      "bytes": 12784,
+      "sha256Raw": "42d91252808d299d92188bc65437654178b635cc82abc35bd88e30b6a626b7f6",
+      "sha256Lf": "47b911e67efb147d574f4fa8c7739d553f12cbb2bba2680494a8f0dc4fc70fb3"
+    },
+    {
+      "path": "core/browser/worker-pool.js",
+      "bytes": 21996,
+      "sha256Raw": "4fc5cbfc0283a62fe527f1c930edcb32816a23b1d9927bcd1c101450387d837d",
+      "sha256Lf": "e605c1da51ee1ea81879af8050a60bc851303cb0a318b2d9a451c2f2a12c3a60"
+    },
+    {
+      "path": "core/browser/generation-client.js",
+      "bytes": 51805,
+      "sha256Raw": "eed76d3d611d7e1dd9b320f0006aa2e2494bd8a4f78f4b496ed7967295c2ca60",
+      "sha256Lf": "23f5dc494baea934e481302ccec31b763fbbebbdfac1893879c39c38283564d8"
+    },
+    {
+      "path": "core/browser/auxiliary.js",
+      "bytes": 8871,
+      "sha256Raw": "c7ce3ebddb5796454f6bfff06785397afaabfaf1761fed82241e0493b000a162",
+      "sha256Lf": "68afc9a6d35a770ed507c983c88f7bc9fd43f1b4a36e708e17cb47e116d1c146"
+    },
+    {
+      "path": "core/workers/engine.worker.js",
+      "bytes": 647,
+      "sha256Raw": "ae4c2d31c23a0d1b21ee1066c8c40055e213ecd3acd6e82f4d1dac548302d168",
+      "sha256Lf": "c0914eeeee30effba24cb55def3f0473f63bb113689ba53e6a3658e18274ef5a"
+    },
+    {
+      "path": "tools/bench/runner.js",
+      "bytes": 35779,
+      "sha256Raw": "8970c6be6c64c8425ee73af403fcc69dd97d10346585dd877e2f668a8f7fe178",
+      "sha256Lf": "9f720febad848803be5504cafdc7c981b98fa01d670c98943b62273d7635097f"
+    },
+    {
+      "path": "tools/bench/report.js",
+      "bytes": 34456,
+      "sha256Raw": "a180a45cea715bcc4ac0a8b315f0dec4afcf1fed23a58dc6304c0b5d6209c295",
+      "sha256Lf": "13f4d316cfdc2515f457f2aa7c313d02f989a3a3d15fdbf10e667c8bc091630c"
+    },
+    {
+      "path": "tools/bench/responsiveness.js",
+      "bytes": 8907,
+      "sha256Raw": "479a92b187471f0cfec1ef28544ac1892cdd465e8218c65c0c8b938c1a1b5770",
+      "sha256Lf": "0830b07f5785ac3b5679b160561b1648af9d46f74640ac7249cbe3ece4a5cdc9"
+    },
+    {
+      "path": "tools/bench/calibration-reference.js",
+      "bytes": 33445,
+      "sha256Raw": "6c0c2ba6efd7ba5739c3f4196ae00f0efaae15a98ada53751d235f0437e263de",
+      "sha256Lf": "ad3b10fb26b78da8ac7755021c09975e82c6f80984e5358971527bde240be75b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/base/core/engine/deduce.js",
+      "bytes": 62227,
+      "sha256Raw": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce",
+      "sha256Lf": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/base/core/engine/policy.js",
+      "bytes": 15226,
+      "sha256Raw": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10",
+      "sha256Lf": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/base/core/engine/tiling.js",
+      "bytes": 20078,
+      "sha256Raw": "94c2473e374b4f254320354217e866dfcdf11966375f8000d0296f5a211b2015",
+      "sha256Lf": "94c2473e374b4f254320354217e866dfcdf11966375f8000d0296f5a211b2015"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/base/core/engine/levels.js",
+      "bytes": 4474,
+      "sha256Raw": "e0d59290f3c265fd56e84ac9ff83cf048458e223673e2e669525aabef302e096",
+      "sha256Lf": "e0d59290f3c265fd56e84ac9ff83cf048458e223673e2e669525aabef302e096"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/base/core/engine/qualification.js",
+      "bytes": 867,
+      "sha256Raw": "d1059002e0edc368cae09cde1c31e9bc72e74ccb54c357efd3e4823096e57b46",
+      "sha256Lf": "d1059002e0edc368cae09cde1c31e9bc72e74ccb54c357efd3e4823096e57b46"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/base/core/engine/dlx.js",
+      "bytes": 10895,
+      "sha256Raw": "0a18f78ef214064300bb63379dbed79946625fdc6687fdaeea8365b7c71bfc6b",
+      "sha256Lf": "0a18f78ef214064300bb63379dbed79946625fdc6687fdaeea8365b7c71bfc6b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/base/core/engine/geometry.js",
+      "bytes": 11737,
+      "sha256Raw": "51af8541bc3827aef5815ba21c1d1fd81f0a013f25110156c39a1a2ebfe129a6",
+      "sha256Lf": "51af8541bc3827aef5815ba21c1d1fd81f0a013f25110156c39a1a2ebfe129a6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/base/core/engine/placements.js",
+      "bytes": 11472,
+      "sha256Raw": "b386c7f8ddc34a8bb2e4fa58dc5dbf6b97835dd4cb7eb0e8c257fbc71c35405b",
+      "sha256Lf": "b386c7f8ddc34a8bb2e4fa58dc5dbf6b97835dd4cb7eb0e8c257fbc71c35405b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/tree-frozen/base/core/engine/workspace.js",
+      "bytes": 12437,
+      "sha256Raw": "47b911e67efb147d574f4fa8c7739d553f12cbb2bba2680494a8f0dc4fc70fb3",
+      "sha256Lf": "47b911e67efb147d574f4fa8c7739d553f12cbb2bba2680494a8f0dc4fc70fb3"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1-full/p7.json",
+      "bytes": 7759,
+      "sha256Raw": "1d69741319ce85dbf8c3c93c53b5ccc7ade43e60dc8844390052f9deca2a6686",
+      "sha256Lf": "8655bb46f995f56e486d34eda28e3aea84b7e2f39b62e6b85a0f02681bbaaa4b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1-full/equal/experiment.json",
+      "bytes": 23106581,
+      "sha256Raw": "926822b168ad366cefc07afbd6ae56275d39b0f924914cc47c9abfdc09ac2e57",
+      "sha256Lf": "19e705d5a2041ff00864f771fdfb11b8958762b4e95aa52d70e458afdce77532"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1-full/equal/items.jsonl",
+      "bytes": 648427,
+      "sha256Raw": "fa9cb33a426f977f0d798747e2fef0a3d43b0ae6269db9803cf52d80e54173e6",
+      "sha256Lf": "fa9cb33a426f977f0d798747e2fef0a3d43b0ae6269db9803cf52d80e54173e6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-P7E-p7-c1-full/equal/state.json",
+      "bytes": 886,
+      "sha256Raw": "926b1ea60acb3e16686461a7dd38eacbfb10124948ab78870804b3423bc7e5db",
+      "sha256Lf": "0a8e857aa237aa05ad9d41ba340ca67cf6c950a7bc7bda596a022c24ed8f0eee"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/10x10-nightmare/calls.json",
+      "bytes": 72678,
+      "sha256Raw": "d463206b456770c8d0305e51c39ca43a8d1d2bc5c06fdcecb110c757060b0c67",
+      "sha256Lf": "4f20eb7baddc654a37694fe83223004a6727c44e865992dd3dd8580fe5952821"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/12x12-nightmare/calls.json",
+      "bytes": 88510,
+      "sha256Raw": "0163616358fb79dea45f310d753b84292fda2791084d16bd9fe4ab66eab179f9",
+      "sha256Lf": "d944029dca20f0aad504a6cf5f6f9b9619d7afc264ecf4d601c16a4e0737895d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/14x14-nightmare/calls.json",
+      "bytes": 74048,
+      "sha256Raw": "ff750728ef4327316a164096dfa58ed7674f2233a7ebfb1024fac5e96df5236d",
+      "sha256Lf": "0f67c29adb5d65fb0b96f6b0eef822d87b9b7b9e6e83a14b10bf71b115ff4928"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/15x15b10-nightmare/calls.json",
+      "bytes": 76842,
+      "sha256Raw": "6db3f503f0015dff8c97dfac2b8e17e3ef63d50f5778b60f58a008c0cb9b6369",
+      "sha256Lf": "917a423f9415b525cabe7fbc4772fb8389e6a1d8aaa356ad033f18060b3ad4c8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-hell-1/calls.json",
+      "bytes": 93711,
+      "sha256Raw": "05a99645ebd4d08e3f4c7ee8d7a782976f9e293c2f00a12d15aaa54a32be63a0",
+      "sha256Lf": "3119e8bd073fb5f6f09052989c295dee899c4356212bf938f426d138330223a5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-master/calls.json",
+      "bytes": 120288,
+      "sha256Raw": "91071b6f20c40de7ac44963f5c256cb5dd6a8e0f091c19d372e196c1a3989444",
+      "sha256Lf": "096479f7612f15c9f240d0ac0e1e31b69e4f750be54427db426c8aa376adbc5f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-nightmare/calls.json",
+      "bytes": 94273,
+      "sha256Raw": "fa871d37e97332df5bca288b88dba4222c6a9665a6089203ee3b8ff01f5e65fb",
+      "sha256Lf": "a1b3acd4ff941fa66d81cd3c17923d9afd9a5b5a2adebf96549adaf1daedbe06"
+    },
+    {
+      "path": "tools/ig-proto/data/p7-memory-fixtures.json",
+      "bytes": 2400,
+      "sha256Raw": "7f525b026de71a7152455a2d18b466f28c5aa0e48432a100d34840cd88d1bd7a",
+      "sha256Lf": "d196b2e7b360db1635d2b85a4c86ab57b4ba6bb8085d79097ba453ddb0d763d4"
+    },
+    {
+      "path": "tools/ig-proto/data/boards-v1.json",
+      "bytes": 87617,
+      "sha256Raw": "9d3aac635db2bbd40ddebc29dc807134e52455e58f6ad2ee9cc15ed9fbfde7b2",
+      "sha256Lf": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889"
+    },
+    {
+      "path": "tests/fixtures/generation-case.json",
+      "bytes": 3670,
+      "sha256Raw": "ab4d47429bf6c256432d0dccb5129126df90c19a9d68bddd41a64e295e58c682",
+      "sha256Lf": "df7e1e06d1cb6f290a56994faebd3bfe3f0c1cdec1cd6587f6e34f558d3e357f"
+    },
+    {
+      "path": "tests/fixtures/generated-sample-pack.json",
+      "bytes": 14459,
+      "sha256Raw": "ea82cefc9a7589920e61fb5c67bf233c84b4689f86ce8d8f19168d6cd60a04bd",
+      "sha256Lf": "872f386d780a7882f27b619357ec34b5239730e55c0b9696187a1b336a200614"
+    },
+    {
+      "path": "tests/fixtures/replay-case.json",
+      "bytes": 50938,
+      "sha256Raw": "692fee59ceaf4b4ce34a223b65dd2d02a7703b55334ba265c628f6061824f57a",
+      "sha256Lf": "fa701844b2c8b7135757509bc24b2c29c3474098a265262de4237c0fba7068a3"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/request.md",
+      "bytes": 2420,
+      "sha256Raw": "9c080ee56f61bb911b41e2277b45e889d00df33d880ec3bed67ae92edbe9f515",
+      "sha256Lf": "aae8ff373199a9ec728a27ff7f336d0a028fa98f9183438e18a790392296009a"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 1816,
+      "sha256Raw": "71900aea50cfa01bdcb08790f842b6e0f7124e610eb70cd8871906d82cd5ca92",
+      "sha256Lf": "f0db02cf54eb19eb3b37aa6519d349e5d61c182738d9b4610567fd0ed6dde48c"
+    },
+    {
+      "path": "docs/improve-generating/plan.md",
+      "bytes": 68951,
+      "sha256Raw": "2b25a7e93a93ac4ea9b8a55559ddc0a2751e344856c8928fa7409a622401c008",
+      "sha256Lf": "ce6170b8f927a5f8681794a2aad714b4637374b04841e55fe2063f20e705b708"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/stage4-report.md",
+      "bytes": 36690,
+      "sha256Raw": "ce4af4d3491100143af70af950748ce11ac56b575861b210f766f25a7f5dc05c",
+      "sha256Lf": "2e7b716c7b23faf730f2512e9a74cc0af36de76f0e1a505cfad137413843930a"
+    },
+    {
+      "path": "tasks/improve-generating-v4/T12-p6-diagnostic-for-returned-ratings.md",
+      "bytes": 15786,
+      "sha256Raw": "4fc3e3defae314963a1c6eef83577f065d52ed6d987f363815166e2ade159131",
+      "sha256Lf": "7488797502b539deeabf6f02a00fc900c0462f14a63275778159fa1a83008090"
+    },
+    {
+      "path": "tasks/improve-generating-v4/T13-progressive-presentation-history.md",
+      "bytes": 11005,
+      "sha256Raw": "359e75a38a241da045236420c12163c06c461f79cfe402d6babcfcbffbda1740",
+      "sha256Lf": "8160233e993bb20c68fa320c44f6aec9757334024a1fdbb75292da68bd2d57cc"
+    },
+    {
+      "path": "tasks/improve-generating-v4/T14-p6-phase1-bench.md",
+      "bytes": 44645,
+      "sha256Raw": "e7a68b41ec3940d6a14eec158692daa00d4a91b9e4234c8184efb40de8f295ef",
+      "sha256Lf": "13bc1b88e6d425cd800fde0ed34747da78f9f92a6799bccebd6a72e974b33888"
+    },
+    {
+      "path": "tasks/improve-generating-v4/check-list.md",
+      "bytes": 201341,
+      "sha256Raw": "753b0f314ac8f836dbcba47412e5635f0a6f6824c1ac8efcafa400b87fd9efbd",
+      "sha256Lf": "73d4960bd5fc479f9ab55d0ac41250888cbe2d7316ce92e0e9e5341376afdb61"
+    },
+    {
+      "path": "docs/design-detail.md",
+      "bytes": 507138,
+      "sha256Raw": "a3cf3a9d7f0be4b394b59d04c58c98eafaf4ce3c98295037df13dec2289898a3",
+      "sha256Lf": "0ab09cdfb92b509395694dd33e4bd077e687a53ece695dad63dbc11fa084fc2f"
+    },
+    {
+      "path": "docs/design-brief.md",
+      "bytes": 30473,
+      "sha256Raw": "fb002e83992fe664bdc82ad34b615fab20d193a978d0c5506a880edc385c7eec",
+      "sha256Lf": "27df639790bece1f7e8b6d16b88332273a703cc870930fab42d3cce348b6f6d2"
+    },
+    {
+      "path": "USERGUIDE.md",
+      "bytes": 31363,
+      "sha256Raw": "53d71b614d996e26d359ef6d9917c956156c4f104bffe006ff59c70937ae3da8",
+      "sha256Lf": "11167462fcbfd853d79ba96886a168580db9a4fc03eb85f907759a50fced32fd"
+    },
+    {
+      "path": "USERGUIDE.vn.md",
+      "bytes": 40195,
+      "sha256Raw": "d8a4ec5c82117a57afd4f6b1816fe0216612d598e54b6082742e51fab2461663",
+      "sha256Lf": "55bb45caa1d283dcd001ce840fe710b83f820d61b6d8091669df919c6a0cc5db"
+    },
+    {
+      "path": "generator/app.js",
+      "bytes": 19672,
+      "sha256Raw": "d595ea14a17ce98e2235969513ae6026807ed12a1310cd5b7a344199d8f293da",
+      "sha256Lf": "66f4f5f0ccf874299e0601038930b5d01c51f0b71e151fb5f9330c406db63d5e"
+    },
+    {
+      "path": "generator/jobs.js",
+      "bytes": 29408,
+      "sha256Raw": "8a235a223440e071b376688540d7c2c2023a84ae0eea62ea4dc0eab1ee6335a2",
+      "sha256Lf": "0754488742c6f253b37d651b70b40b795bb1c7104503f32925ee2b549af76b32"
+    },
+    {
+      "path": "generator/state.js",
+      "bytes": 69140,
+      "sha256Raw": "94bc00899ddfcb3ac64f187e158159dd61c9245396416bb5901a9c0b1cfc10e4",
+      "sha256Lf": "d197b4e5542bb89afc9abcf20f1d61dc90b7775afd550f7e56f7d2ebe7f4691e"
+    },
+    {
+      "path": "generator/ui/puzzle-panel.js",
+      "bytes": 32267,
+      "sha256Raw": "56b1e43cd7edef25b5f3d1c23b7577742b8734529344932026af6a92bcbab3d1",
+      "sha256Lf": "f893bca2fa822c28144180845f84e3c30b3858fa810e985782c43c47dda5c072"
+    },
+    {
+      "path": "generator/ui/replay-cache.js",
+      "bytes": 7935,
+      "sha256Raw": "a7a48bddf482edcdb13a59c70b59d869721530065f6465dd3e1bd68bb040514a",
+      "sha256Lf": "805b270319a9bd79bddf04c1395f013ea08dde2ae1659705d1753c72fa9a59fb"
+    },
+    {
+      "path": "generator/locale.en.js",
+      "bytes": 24163,
+      "sha256Raw": "6a5f439a5a772234eae45a4edf08307a01d4cb7eb732efb7300c3e9b36d2954d",
+      "sha256Lf": "c2c08044166877b1a854560ad7a5d515a306cb5dd5f0960ec9ba81b03fad5b5d"
+    },
+    {
+      "path": "generator/locale.vi.js",
+      "bytes": 27989,
+      "sha256Raw": "19c78532c53e58478300fb360d1d787da23efc21158a3ff38aaca944862b621a",
+      "sha256Lf": "04bd4659d5a305f98ed5c1ccde026528053cc61e72aa4253ec981d26b511e63b"
+    },
+    {
+      "path": "core/browser/display-rating.js",
+      "bytes": 9639,
+      "sha256Raw": "697807c46336f487bc83f427c36e550761b10e719a0cb69107585204dee4ebf4",
+      "sha256Lf": "352e9b0f5c05761ac3911651686408da3fe8717eba52f7d621a599e9a83255e2"
+    },
+    {
+      "path": "tests/difficulty.test.js",
+      "bytes": 30470,
+      "sha256Raw": "346ea859462accffa7e82295677e8c2f2896a4fe444d54439a65dee2742409d4",
+      "sha256Lf": "faa81c69bd013f186dd39959332d905bb6e7b64edca8d86236d793ab1322de92"
+    },
+    {
+      "path": "tests/clues.test.js",
+      "bytes": 50299,
+      "sha256Raw": "51301fde0a5806b2ff48a8222b4b17d8da83b158a2b4b2cdce50c461a878cdbf",
+      "sha256Lf": "4f6016c29157411111b3b76f8e69727f300f0af76236a0c7f570c5a6d940b931"
+    },
+    {
+      "path": "tests/generate.test.js",
+      "bytes": 49164,
+      "sha256Raw": "7a0ebd8276b0b5dd13df456c804b4d6abdebf526c906e03da6332ee0d5935ff9",
+      "sha256Lf": "6fa06e7073ae26875426e1dd1bb6b529fab446e70abf77a129d16ace38ed30a3"
+    },
+    {
+      "path": "tests/generation-client.test.js",
+      "bytes": 71313,
+      "sha256Raw": "629b33c3d9b89b1acdaa104378d4a95c2607b463337eedadc3d93d1eb725d308",
+      "sha256Lf": "6e14dd940a65a946fd21f3c96ba9a5ca0501733a05b93789a32120cd1d3fbdef"
+    },
+    {
+      "path": "tests/generator-controller.test.js",
+      "bytes": 47739,
+      "sha256Raw": "2bb214b5d828a072a1d06bebbbaeae5316318a14d862dc6a07a7b5004eec35ca",
+      "sha256Lf": "0320a50847d7247e32acab443d7e2bac12c915a4844ec137674c6196919eba16"
+    },
+    {
+      "path": "tests/generator-state.test.js",
+      "bytes": 56104,
+      "sha256Raw": "67fa617cf1ba35848212d6de07944c420ac163867aaacc60a739e6dba64afa1a",
+      "sha256Lf": "482dc637c848c3e07aaafe06d1a8c10c952a63e7158d0125ff747b16d25f5106"
+    },
+    {
+      "path": "tests/replay.test.js",
+      "bytes": 86788,
+      "sha256Raw": "8d1dbcba96b40855ed7f3084788c89ebdda85121176fad3b18d6ec2bbe157ef4",
+      "sha256Lf": "803edcbbc9e7a5f1f850c8eb3b7aae95fc196a075d63df97e1970e401582c773"
+    },
+    {
+      "path": "tests/replay-recorders.test.js",
+      "bytes": 72863,
+      "sha256Raw": "958b9f4f7583de516f2cd2eab43e4614a91780ef59cb4a264ff37d8179264a90",
+      "sha256Lf": "b1c828b8187e75ad87e0a1e932e446addb590ee0d0ec19482c4553e5e49dead8"
+    },
+    {
+      "path": "tools/record-fixtures.mjs",
+      "bytes": 26948,
+      "sha256Raw": "8727b2905f8036d1da800b23f5cb1923150d76b973de51db16509d030fafb120",
+      "sha256Lf": "9cfcfb7ec0d1ca744f3965c9ded4cf649912bb168a742455e40ae7ab4dad8437"
+    },
+    {
+      "path": "tools/ig-proto/lock/ig-lock.ps1",
+      "bytes": 7051,
+      "sha256Raw": "810ebf8fb985c6c9fe941201f2fa469eb33551deb56b0d919b9f1c209045b844",
+      "sha256Lf": "c64a7c912878c7c59cdd6fa2698effc6235dc316dda80e0c70537a1bbbc7184e"
+    },
+    {
+      "path": "tools/ig-proto/p7-probe.mjs",
+      "bytes": 50630,
+      "sha256Raw": "763e11e36594b60f4a6f2a1e8d7f1849742ea8cce480b30db7c0e1bdaf1612b3",
+      "sha256Lf": "8eaf0baff3d073075d3521519cf4b5ec5ec767d7f010eabde2e6e9a8f8091603"
+    },
+    {
+      "path": "tools/ig-proto/lib/p7-core.mjs",
+      "bytes": 6556,
+      "sha256Raw": "18214ef9763ccc34d9a8b92b732cbe790376530cfe8f520c3ebb7348f9812f50",
+      "sha256Lf": "894999855c24557c9b5bf77cb9ad8158249fe1a5428c9ac527eb16de10d5bfc2"
+    },
+    {
+      "path": "tools/ig-proto/lib/records.mjs",
+      "bytes": 8924,
+      "sha256Raw": "8add192e55594f09fd8d8b26221801a937c462a385c2cd797682fa54daeaf111",
+      "sha256Lf": "80b56021f1ae45189b3b811784c0fefb1bfac1d457cfbd12bc379bb7d3612f9a"
+    },
+    {
+      "path": "tools/ig-proto/phase1/p6-bench.mjs",
+      "bytes": 54505,
+      "sha256Raw": "d03d1d0dd403cd66edd28700b71fd4e6cd09dc207adc6418500b83b98c339f9a",
+      "sha256Lf": "b1e0b9a93e11f7a25666b09c4c4ce0c9748270ee6e1ccd8458603fe4bfac6c0f"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/sa-astra/phase1-audit.mjs",
+      "bytes": 13991,
+      "sha256Raw": "75f644ab6c63f0e4f43e425f401869f53a5d8edc1b1dd1596326d62a445cb36a",
+      "sha256Lf": "64c17e5c2298930d327e4feb5daad755f46f38d15272c49e2f6dd265caeffa43"
+    }
+  ]
+}

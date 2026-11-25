@@ -1,0 +1,205 @@
+hint: if you need to wait for this pull request to be reviewed, merged, or closed before continuing, use this instead of polling:
+    gh event listen --resource https://github.com/tdat00/pentomino/pull/11 --event com.github.pull_request.review.submitted.v1,com.github.pull_request.state.changed.v1
+  - It prints the first event as a JSON line on stdout and exits; run it again to wait for the next one.
+  - Add `--timeout` to stop waiting after a while, for example `--timeout 30m`; it then exits with status 8.
+  - Events carry no details; read the pull request to see what changed.
+  - It misses changes made before it starts, so read the pull request once it is running.
+  - See `gh event listen --help` for other event types.
+  - Event subscriptions are in preview and may not be enabled for your account.
+{
+  "base": "006ca68",
+  "pr": {
+    "state": "OPEN",
+    "head": "826ce79dcc4a77daaaea00894a6dcea46bcbd8b7",
+    "files": 479
+  },
+  "scopes": {
+    "base": "006ca68",
+    "head": "a90c2d03198e6aeb7e1a9bd4a7daec01f99bb56d",
+    "main": "b5eb85805f609af7deaa2489eb08675c60b2cc49",
+    "remoteBranch": "826ce79dcc4a77daaaea00894a6dcea46bcbd8b7",
+    "aheadMain": 197,
+    "aheadRemoteBranch": 70,
+    "files": 1286,
+    "additions": 2173527,
+    "deletions": 304,
+    "nonResearch": [
+      {
+        "add": 12,
+        "del": 4,
+        "path": "core/engine/clues.js"
+      },
+      {
+        "add": 71,
+        "del": 17,
+        "path": "core/engine/difficulty.js"
+      },
+      {
+        "add": 2,
+        "del": 1,
+        "path": "core/engine/types.js"
+      },
+      {
+        "add": 15,
+        "del": 7,
+        "path": "docs/design-detail.md"
+      },
+      {
+        "add": 55,
+        "del": 0,
+        "path": "tests/clues.test.js"
+      },
+      {
+        "add": 70,
+        "del": 2,
+        "path": "tests/difficulty.test.js"
+      },
+      {
+        "add": 19,
+        "del": 2,
+        "path": "tests/generation-client.test.js"
+      },
+      {
+        "add": 52,
+        "del": 1,
+        "path": "tests/generator-controller.test.js"
+      }
+    ],
+    "deployedFileDiff": [
+      "core/engine/clues.js",
+      "core/engine/difficulty.js",
+      "core/engine/types.js"
+    ]
+  },
+  "objectSizes": [
+    {
+      "range": "b5eb85805f609af7deaa2489eb08675c60b2cc49",
+      "objects": 2985,
+      "diskBytes": 19051595,
+      "diskMiB": 18.16901683807373,
+      "diskMB": 19.051595,
+      "largestBlob": {
+        "id": "27d6074e93e47802697302dd4f499a7b34265a7f",
+        "path": "docs/difficulty-v3/d21-v3-2026-11-12/nostall/pop-recipe-board.jsonl",
+        "type": "blob",
+        "raw": 1974977,
+        "disk": 404253
+      }
+    },
+    {
+      "range": "b5eb85805f609af7deaa2489eb08675c60b2cc49..006ca68",
+      "objects": 3315,
+      "diskBytes": 49706791,
+      "diskMiB": 47.40408992767334,
+      "diskMB": 49.706791,
+      "largestBlob": {
+        "id": "cd355499858b0bd9118eddb452537cf59b042511",
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/t16-reach.json",
+        "type": "blob",
+        "raw": 6514650,
+        "disk": 849305
+      }
+    },
+    {
+      "range": "826ce79dcc4a77daaaea00894a6dcea46bcbd8b7..006ca68",
+      "objects": 1519,
+      "diskBytes": 33735316,
+      "diskMiB": 32.17250442504883,
+      "diskMB": 33.735316,
+      "largestBlob": {
+        "id": "cd355499858b0bd9118eddb452537cf59b042511",
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/t16-reach.json",
+        "type": "blob",
+        "raw": 6514650,
+        "disk": 849305
+      }
+    }
+  ],
+  "memoryChanges": [
+    {
+      "cell": "14x14-master",
+      "processPercent": 5.150859698647214,
+      "accountedPercent": 3.443946569676104
+    },
+    {
+      "cell": "26x26-master",
+      "processPercent": -3.1711606503590284,
+      "accountedPercent": -1.1682392608047154
+    },
+    {
+      "cell": "26x26-expert",
+      "processPercent": 3.928785414705138,
+      "accountedPercent": -4.140733688861864
+    },
+    {
+      "cell": "26x26-nightmare",
+      "processPercent": -5.072076882007471,
+      "accountedPercent": 0.42305612103590295
+    },
+    {
+      "cell": "10x10-nightmare",
+      "processPercent": -3.467330045790773,
+      "accountedPercent": 0.49990694139732117
+    },
+    {
+      "cell": "12x12-nightmare",
+      "processPercent": 0.4689731619449633,
+      "accountedPercent": 0
+    },
+    {
+      "cell": "18x18-nightmare",
+      "processPercent": 1.7652449958160066,
+      "accountedPercent": -1.7388917688481165
+    }
+  ],
+  "tests": [
+    {
+      "tests": 1514,
+      "pass": 1514,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "duration_ms": 119519.3573
+    },
+    {
+      "tests": 1514,
+      "pass": 1514,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "duration_ms": 142864.9186
+    }
+  ],
+  "verification": {
+    "nodeSeconds": [
+      119.73,
+      0.665,
+      1.243,
+      144.391
+    ],
+    "totalNodeSeconds": 266.029,
+    "quietSeconds": 180,
+    "minimumNodePlusQuietSeconds": 446.029
+  },
+  "pool": {
+    "MAX_POOL_SIZE": 4,
+    "eight": "RangeError: pool size must be an integer from 1 to 4",
+    "factories": 0
+  },
+  "stagedSite": {
+    "sourceCount": 120,
+    "stamp": "stamp-version: 414 reference(s) in 91 of 114 file(s) stamped ?v=006ca68f",
+    "checked": "check-site: OK",
+    "files": 120,
+    "removedAfterCheck": true
+  },
+  "inputCount": 143,
+  "inputIndexHash": "33c3f68168f19d6347acf48f6f67506201d235af970164e084f62b2e979e9740"
+}
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+Cross-review validated: 143 input hashes unchanged; four own artifacts CRLF/UTF-8 without BOM; static staging copy removed; npm run check and runtime/test/tool/workflow guards pass; no measured engine run or remote mutation.
