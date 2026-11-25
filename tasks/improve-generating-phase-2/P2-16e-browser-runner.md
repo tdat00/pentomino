@@ -154,14 +154,14 @@ None here; P2-17 documents the runner in `tools/ig-proto/README.md`.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w3, df7261576074fa267aab660b023ad6971b5f61fd |
+| Start, end, duration | dispatched 2026-11-25 22:58 +07:00 (developer clock 22:27:25 to 22:31); accepted 23:10; about 12 min |
+| Waiting for rulings | about 5 min (SA-Opus) |
+| Agent id, model | 715a631e-37cc-418f-8441-e8aa098dce30, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 20; 1,477,159 / 24,007 / 1,412,329 |
+| AI credits | 54.34 |
+| Questions and rulings | no QUESTION; SA-Opus accepted deviations 1-9 and the three gaps with no code fix; C16 now pins consoleLines text (arguments joined by spaces), startedAt/endedAt/durationMs and cleanup (null or a string); P2-19 step 3 checks a non-null cleanup receipt's Edge PID before stage B (55774d4) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards and the merge gate with every phase-2 test file plus the link-anchor check (results in the bookkeeping); developer: unit 3/3, locked self-check pass 0 / fail 1 / hang 2 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | none; P2-17 documents the runner; P2-16b and P2-19 use one invocation per check |
