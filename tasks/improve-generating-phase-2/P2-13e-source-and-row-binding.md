@@ -244,14 +244,14 @@ No real seal and no row run in this task.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w3, fe9e120cea21921a3b38b0925b23db83f8987ea3 |
+| Start, end, duration | dispatched 2026-11-25 23:31 +07:00 (developer 23:31:21 to 23:42:08, QUESTION; fix to about 23:51); accepted 23:50 |
+| Waiting for rulings | about 6 min (QUESTION 1 and ten deviations, SA-Opus) |
+| Agent id, model | f473f52e-defe-4b9c-a50d-b3ebd84e302f, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 54; 9,756,729 / 93,461 / 9,309,426 |
+| AI credits | 298.38 |
+| Questions and rulings | QUESTION 1 (tools/test-server.mjs listed as a sealed input does not exist): SA-Opus ruled (a), replace with tools/serve.mjs (createStaticServer, imported by browser-run.mjs); pack amendment 199ed46. Ten deviations accepted by SA-Opus ((opts, deps) signature and `drift copies <id>`; checkSeal collects every drift; opts.sealFile; the rowContextOf(P) export; rowsWritten within the active seal; .sha256 hash plus CRLF (C8); stage B for a twin; no-report without a usable report or receipt; the rebuilt write-once case; tests unlocked under 3.3) |
+| Fix rounds | 1 (SEALED_INPUTS entry tools/serve.mjs) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with every phase-2 test file, the link-anchor check and G-COPIES (results in the bookkeeping); developer: unlocked p2.test.mjs 52/52 (22.1 s after the fix), binding and trace-reader 28/28, G-PROTECTED, G-WORKTREE, G-FORMAT (2 files), G-CHECK OK |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | the first real seal runs in P2-18 step 2 (a wiring failure stops with no ledger charge); a fresh row is verified at publication and at every statistical read; the default copiesApi, verifySnapshot and sourceDigestOf meet the real copies.mjs and a real tree first in P2-18 |

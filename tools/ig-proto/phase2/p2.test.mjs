@@ -4,11 +4,11 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { after, before, describe, it } from 'node:test';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { rectRows } from '../../bench/calibration-reference.js';
-import { sha256Hex } from './binding.mjs';
-import { buildSeal, checkReadout, checkSeal, COPIES, pathsOf, runGroup, STAGE_MAP } from './p2.mjs';
+import { sha256Hex, verifyRow } from './binding.mjs';
+import { buildSeal, checkReadout, checkSeal, COPIES, loadSnapshot, pathsOf, rowContextOf, runGroup, STAGE_MAP } from './p2.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..', '..', '..');
@@ -22,11 +22,21 @@ after(() => {
   rmSync(RUN, { recursive: true, force: true });
 });
 
-/** @param {string} name @returns {string} A new state folder. */
+/** The fake active seal of a state folder (C13): the commit and the copies that `verifyRow` reads. @param {string} dir @param {object[]} [copies] */
+function fakeSeal(dir, copies = []) {
+  mkdirSync(join(dir, 'E', 'seal'), { recursive: true });
+  writeFileSync(join(dir, 'E', 'seal', 'seal.json'), `${JSON.stringify({ format: 'p2-seal', version: 1, commit: 'c0ffee', copies }, null, 2)}\r\n`);
+}
+
+/** @param {string} dir @returns {string} The SHA-256 of the state folder's active seal. */
+const sealOf = (dir) => sha256Hex(readFileSync(join(dir, 'E', 'seal', 'seal.json')));
+
+/** @param {string} name @returns {string} A new state folder, with a fake seal. */
 function state(name) {
   const dir = join(RUN, name);
   mkdirSync(join(dir, 'E', 'ledger'), { recursive: true });
   mkdirSync(join(dir, 'RAW', 'rows'), { recursive: true });
+  fakeSeal(dir);
   return dir;
 }
 
@@ -46,11 +56,9 @@ const spent = (stage, countedSeconds, id = `${stage}-1.1`) => ({ id, stage, grou
 
 /** A passing stage-A readout and its inputs in a state folder. @param {string} dir */
 function passingReadout(dir) {
-  mkdirSync(join(dir, 'E', 'seal'), { recursive: true });
   mkdirSync(join(dir, 'E', 'report-A'), { recursive: true });
-  writeFileSync(join(dir, 'E', 'seal', 'seal.json'), '{"seal":1}\r\n');
   writeFileSync(join(dir, 'E', 'report-A', 'report.json'), '{"gates":[{"gate":"A4","status":"pass"}]}\r\n');
-  const seal = sha256Hex(readFileSync(join(dir, 'E', 'seal', 'seal.json')));
+  const seal = sealOf(dir);
   const report = sha256Hex(readFileSync(join(dir, 'E', 'report-A', 'report.json')));
   writeFileSync(join(dir, 'stage-a-readout.md'), [
     `Seal: ${seal}`, `Report A: ${report}`, 'Accepted by SA-Opus: 2026-11-26 10:00 +07:00', 'Accepted by SA-Astra: 2026-11-26 10:05 +07:00', 'Stage B: PROCEED', '',
@@ -328,10 +336,13 @@ describe('the locked wrapper', () => {
 
   it('rowsWritten joins terminals to their start', () => {
     const dir = state('w-rows');
+    const sealSha256 = sealOf(dir);
     writeFileSync(join(dir, 'RAW', 'rows', 'A.status.jsonl'), [
-      { t: 'start', key: 'k1', group: 2, invocation: 'A-2.1' },
-      { t: 'done', key: 'k1' },
-      { t: 'start', key: 'k3', group: 2, invocation: 'A-2.1' },
+      { t: 'start', key: 'k1', group: 2, invocation: 'A-2.1', sealSha256 },
+      { t: 'done', key: 'k1', sealSha256 },
+      { t: 'start', key: 'k3', group: 2, invocation: 'A-2.1', sealSha256 },
+      { t: 'start', key: 'k4', group: 2, invocation: 'A-2.1', sealSha256: 'f'.repeat(64) },
+      { t: 'done', key: 'k4', sealSha256: 'f'.repeat(64) },
     ].map((l) => `${JSON.stringify(l)}\r\n`).join(''));
     assert.equal(wrapper(dir, 'ok').status, 0);
     assert.equal(ledgerOf(dir)[0].rowsWritten, 1);
@@ -341,10 +352,11 @@ describe('the locked wrapper', () => {
     const dir = state('w-recovered');
     const first = { id: 'A-2.1', stage: 'A', group: 2, start: '2026-11-26T10:00:00.000+07:00', end: '2026-11-26T10:01:00.000+07:00', nodeSeconds: 12.5, quietS: 45, countedSeconds: 57.5, limitS: 900, killed: false, exit: 0, rowsWritten: 0, cause: 'ok' };
     const status = join(dir, 'RAW', 'rows', 'A.status.jsonl');
-    writeFileSync(status, `${JSON.stringify({ t: 'start', key: 'k2', group: 2, invocation: 'A-2.1' })}\r\n`);
+    const sealSha256 = sealOf(dir);
+    writeFileSync(status, `${JSON.stringify({ t: 'start', key: 'k2', group: 2, invocation: 'A-2.1', sealSha256 })}\r\n`);
     ledger(dir, [first]);
     const before = readFileSync(join(dir, 'E', 'ledger', 'ledger.jsonl'), 'utf8');
-    writeFileSync(status, `${readFileSync(status, 'utf8')}${JSON.stringify({ t: 'done', key: 'k2' })}\r\n`);
+    writeFileSync(status, `${readFileSync(status, 'utf8')}${JSON.stringify({ t: 'done', key: 'k2', sealSha256 })}\r\n`);
     assert.equal(wrapper(dir, 'ok').status, 0);
     const lines = ledgerOf(dir);
     assert.equal(lines[1].id, 'A-2.2');
@@ -385,6 +397,9 @@ describe('the seal', () => {
     writeFileSync(join(dir, 'a.txt'), text);
   }
 
+  /** @param {boolean} isToday @returns {string} The adapter's input digest of a root. */
+  const inputDigestOf = (isToday) => (isToday ? 'in:today' : 'in:prod');
+
   /** Builds a synthetic root, copies and today worktree. @param {string} name */
   function world(name) {
     const dir = state(name);
@@ -394,6 +409,7 @@ describe('the seal', () => {
     stub(today, 'today\n');
     mkdirSync(join(root, 'tools', 'ig-proto', 'phase2'), { recursive: true });
     writeFileSync(join(root, 'tools', 'ig-proto', 'phase2', 'x.mjs'), 'export const x = 1;\r\n');
+    writeFileSync(join(root, 'tools', 'ig-proto', 'verdicts.mjs'), 'export const v = 1;\r\n');
     mkdirSync(join(root, 'inputs'), { recursive: true });
     writeFileSync(join(root, 'inputs', 'one.json'), '{}\r\n');
     writeFileSync(join(root, 'plan.json'), '{"rows":[]}\r\n');
@@ -401,77 +417,199 @@ describe('the seal', () => {
       for (const id of ids) {
         const tree = join(dir, 'RAW', 'trees', source, id);
         stub(tree, `${id}\n`);
+        mkdirSync(join(tree, 'tools'), { recursive: true });
+        writeFileSync(join(tree, 'tools', 'calibrate.mjs'), `// ${id}\r\n`);
         writeFileSync(join(tree, 'ig-tree.json'), JSON.stringify({ treeId: `t-${id}`, copyDigest: `d:${id}\n` }));
-        writeFileSync(join(tree, 'p2-copy.json'), JSON.stringify({
-          format: 'p2-copy', version: 1, id, source, root: 'r', rehearsal: false, inputDigest: 'i', treeId: `t-${id}`, copyDigest: `d:${id}\n`, chain: [], params: {},
-        }));
+        writeFileSync(join(tree, 'p2-copy.json'), copyReceipt(id, source));
       }
     }
     const gitState = { head: 'c0ffee', status: '', todayHead: '6b94ffb1234', todayStatus: '' };
-    const gitRun = (/** @type {string} */ cwd, /** @type {string[]} */ args) => {
+    const git = (/** @type {string[]} */ args, /** @type {string} */ cwd) => {
       const isToday = cwd === today;
       if (args[0] === 'rev-parse') return isToday ? gitState.todayHead : gitState.head;
       return isToday ? gitState.todayStatus : gitState.status;
     };
-    const o = { commit: 'c0ffee', todayRoot: today, planFile: join(root, 'plan.json'), paths: { E: join(dir, 'E'), RAW: join(dir, 'RAW'), readout: '', state: dir }, root, gitRun, inputs: ['inputs/'] };
-    return { dir, root, today, gitState, o };
+    const snapshot = { ok: true, files: 3, differences: /** @type {string[]} */ ([]) };
+    const deps = {
+      git,
+      copiesApi: async () => ({ readSources: (/** @type {string} */ r) => ({ root: r }), inputDigest: (/** @type {{ root: string }} */ s) => inputDigestOf(s.root === today) }),
+      verifySnapshot: () => snapshot,
+    };
+    const o = {
+      repoRoot: root, commit: 'c0ffee', todayRoot: today, planPath: join(root, 'plan.json'), rawRoot: join(dir, 'RAW'), inputs: ['inputs/', 'tools/ig-proto/verdicts.mjs'], out: join(dir, 'sealed'),
+    };
+    return { dir, root, today, gitState, snapshot, deps, o, copyReceipt };
+
+    /** @param {string} id @param {string} source @param {object} [over] */
+    function copyReceipt(id, source, over = {}) {
+      return JSON.stringify({
+        format: 'p2-copy', version: 1, id, source, root: source === 'today' ? today : root, rehearsal: false, inputDigest: inputDigestOf(source === 'today'), treeId: `t-${id}`, copyDigest: `d:${id}\n`, chain: [], params: {}, ...over,
+      });
+    }
   }
 
   it('seals the sources, copies, today worktree, tools and inputs, and checks them', async () => {
     const w = world('seal-ok');
-    const seal = await buildSeal(w.o);
+    const built = await buildSeal(w.o, w.deps);
+    assert.equal(built.unchanged, false);
+    const seal = JSON.parse(readFileSync(join(w.o.out, 'seal.json'), 'utf8'));
+    assert.equal(built.sha256, sha256Hex(readFileSync(join(w.o.out, 'seal.json'))));
+    assert.deepEqual(Object.keys(seal), ['format', 'version', 'commit', 'stageMap', 'node', 'plan', 'sourceDigest', 'today', 'copies', 'tools', 'inputs', 'snapshot']);
     assert.equal(seal.format, 'p2-seal');
     assert.equal(seal.copies.length, 6);
     assert.ok(seal.copies.every((/** @type {any} */ c) => c.verified === true));
     assert.deepEqual(seal.tools.map((/** @type {any} */ t) => t.path), ['tools/ig-proto/phase2/x.mjs']);
-    assert.deepEqual(seal.inputs.map((/** @type {any} */ t) => t.path), ['inputs/one.json']);
+    assert.deepEqual(seal.inputs.map((/** @type {any} */ t) => t.path), ['inputs/one.json', 'tools/ig-proto/verdicts.mjs']);
     assert.equal(seal.sourceDigest, 'd:prod\n');
+    assert.equal(seal.today.digest, 'd:today\n');
     assert.equal(seal.plan.path, 'plan.json');
-    const { paths, root, gitRun, inputs } = w.o;
-    assert.equal(await checkSeal({ seal, paths, root, gitRun, inputs }), null);
+    assert.deepEqual(seal.snapshot, { manifest: 'docs/improve-generating/evidence/frozen/V4-T01a/snapshot-manifest.json', ok: true, files: 3 });
+    assert.deepEqual(await checkSeal(w.o, w.deps), { ok: true, drift: [] });
     w.gitState.head = 'other';
-    assert.equal(await checkSeal({ seal, paths, root, gitRun, inputs }), null, 'a later commit is allowed');
-    assert.match(String(await checkSeal({ seal: { ...seal, node: 'v0.0.0' }, paths, root, gitRun, inputs })), /^drift node/);
+    assert.equal((await checkSeal(w.o, w.deps)).ok, true, 'a later commit is allowed');
+    const file = join(w.o.out, 'seal.json');
+    writeFileSync(join(w.dir, 'other-seal.json'), JSON.stringify({ ...seal, node: 'v0.0.0' }));
+    assert.deepEqual((await checkSeal({ ...w.o, sealFile: join(w.dir, 'other-seal.json') }, w.deps)).drift, [{ field: 'node', id: process.version }]);
+    assert.equal(existsSync(file), true);
   });
 
   it('refuses what the creation requires', async () => {
     const w = world('seal-refuse');
     w.gitState.head = 'other';
-    await assert.rejects(buildSeal(w.o), /HEAD is not c0ffee/);
+    await assert.rejects(buildSeal(w.o, w.deps), /HEAD is not c0ffee/);
     w.gitState.head = 'c0ffee';
     w.gitState.status = ' M a.txt';
-    await assert.rejects(buildSeal(w.o), /tracked worktree is not clean/);
+    await assert.rejects(buildSeal(w.o, w.deps), /tracked worktree is not clean/);
     w.gitState.status = '';
     w.gitState.todayHead = 'abcdef0';
-    await assert.rejects(buildSeal(w.o), /today worktree is not at 6b94ffb/);
+    await assert.rejects(buildSeal(w.o, w.deps), /today worktree is not at 6b94ffb/);
     w.gitState.todayHead = '6b94ffb1234';
     w.gitState.todayStatus = '?? x';
-    await assert.rejects(buildSeal(w.o), /today worktree is not clean/);
+    await assert.rejects(buildSeal(w.o, w.deps), /today worktree is not clean/);
     w.gitState.todayStatus = '';
-    await assert.rejects(buildSeal({ ...w.o, inputs: ['inputs/', 'missing/file.json'] }), /sealed input is missing/);
+    await assert.rejects(buildSeal({ ...w.o, inputs: ['inputs/', 'missing/file.json'] }, w.deps), /sealed input is missing/);
     rmSync(join(w.dir, 'RAW', 'trees', 'today', 'p2-today'), { recursive: true });
-    await assert.rejects(buildSeal(w.o), /copy is missing: today\/p2-today/);
+    await assert.rejects(buildSeal(w.o, w.deps), /copy is missing: today\/p2-today/);
+    assert.equal(existsSync(join(w.o.out, 'seal.json')), false);
   });
 
-  it('drift exits with the field and the path', async () => {
-    const w = world('seal-drift');
-    const seal = await buildSeal(w.o);
-    const { paths, root, gitRun, inputs } = w.o;
-    const check = () => checkSeal({ seal, paths, root, gitRun, inputs });
+  it('the seal refuses a stale but self-consistent copy', async () => {
+    const w = world('seal-stale');
+    const dir = join(w.dir, 'RAW', 'trees', 'gen-v4', 'p2-gen4');
+    writeFileSync(join(dir, 'p2-copy.json'), w.copyReceipt('p2-gen4', 'gen-v4', { inputDigest: 'in:older' }));
+    await assert.rejects(buildSeal(w.o, w.deps), /^Error: seal: refused copy p2-gen4 input digest$/);
+    assert.equal(existsSync(join(w.o.out, 'seal.json')), false);
+  });
+
+  it('the seal refuses a rehearsal copy', async () => {
+    const w = world('seal-rehearsal');
+    const dir = join(w.dir, 'RAW', 'trees', 'gen-v4', 'p2-gen4');
+    writeFileSync(join(dir, 'p2-copy.json'), w.copyReceipt('p2-gen4', 'gen-v4', { rehearsal: true }));
+    await assert.rejects(buildSeal(w.o, w.deps), /^Error: seal: refused copy p2-gen4 rehearsal$/);
+  });
+
+  it('the seal refuses a copy of another identity, digest or tree', async () => {
+    const w = world('seal-identity');
+    const dir = join(w.dir, 'RAW', 'trees', 'gen-v4', 'p2-gen4');
+    const receipt = join(dir, 'p2-copy.json');
+    const good = readFileSync(receipt, 'utf8');
+    writeFileSync(receipt, w.copyReceipt('p2-gen4', 'gen-v4', { root: w.today }));
+    await assert.rejects(buildSeal(w.o, w.deps), /seal: refused copy p2-gen4 identity/);
+    writeFileSync(receipt, w.copyReceipt('p2-gen4', 'gen-v4', { id: 'p2-none' }));
+    await assert.rejects(buildSeal(w.o, w.deps), /seal: refused copy p2-gen4 identity/);
+    writeFileSync(receipt, w.copyReceipt('p2-gen4', 'gen-v4', { root: w.root.toUpperCase() }));
+    await buildSeal(w.o, w.deps);
+    rmSync(join(w.o.out, 'seal.json'));
+    writeFileSync(receipt, good);
+    writeFileSync(join(dir, 'a.txt'), 'edited\n');
+    await assert.rejects(buildSeal(w.o, w.deps), /seal: refused copy p2-gen4 digest/);
+    writeFileSync(join(dir, 'a.txt'), 'p2-gen4\n');
+    writeFileSync(receipt, w.copyReceipt('p2-gen4', 'gen-v4', { treeId: 't-other' }));
+    await assert.rejects(buildSeal(w.o, w.deps), /seal: refused copy p2-gen4 tree id/);
+  });
+
+  it('the seal binds the runtime and whole-tree digests', async () => {
+    const w = world('seal-digests');
+    await buildSeal(w.o, w.deps);
+    const seal = JSON.parse(readFileSync(join(w.o.out, 'seal.json'), 'utf8'));
+    for (const c of seal.copies) {
+      assert.equal(c.runtimeDigest, c.copyDigest);
+      assert.match(c.filesDigest, /^[0-9a-f]{64}$/);
+    }
+    assert.deepEqual((await checkSeal(w.o, w.deps)).drift, []);
+    const calibrate = join(w.dir, 'RAW', 'trees', 'gen-v4', 'p2-gen4', 'tools', 'calibrate.mjs');
+    writeFileSync(calibrate, `${readFileSync(calibrate, 'utf8')}x`);
+    assert.deepEqual((await checkSeal(w.o, w.deps)).drift, [{ field: 'copies', id: 'p2-gen4' }]);
+  });
+
+  it('a changed reused comparator input is drift', async () => {
+    const w = world('seal-comparator');
+    await buildSeal(w.o, w.deps);
+    writeFileSync(join(w.root, 'tools', 'ig-proto', 'verdicts.mjs'), 'export const v = 2;\r\n');
+    assert.deepEqual((await checkSeal(w.o, w.deps)).drift, [{ field: 'inputs', id: 'tools/ig-proto/verdicts.mjs' }]);
+  });
+
+  it('the check allows ledger-only changes and refuses sealed changes', async () => {
+    const w = world('seal-ledger-only');
+    await buildSeal(w.o, w.deps);
+    w.gitState.head = 'abc1234';
+    w.gitState.status = ' M docs/improve-generating-phase-2/evidence/ledger/ledger.jsonl';
+    const ledgerFolder = join(w.root, 'docs', 'improve-generating-phase-2', 'evidence', 'ledger');
+    mkdirSync(ledgerFolder, { recursive: true });
+    writeFileSync(join(ledgerFolder, 'ledger.jsonl'), '{"id":"A-1.1"}\r\n');
+    assert.deepEqual(await checkSeal(w.o, w.deps), { ok: true, drift: [] });
+    writeFileSync(join(w.root, 'tools', 'ig-proto', 'verdicts.mjs'), 'export const v = 3;\r\n');
+    assert.deepEqual((await checkSeal(w.o, w.deps)).drift, [{ field: 'inputs', id: 'tools/ig-proto/verdicts.mjs' }]);
+  });
+
+  it('the seal is write-once', async () => {
+    const w = world('seal-once');
+    const first = await buildSeal(w.o, w.deps);
+    const file = join(w.o.out, 'seal.json');
+    const bytes = readFileSync(file, 'utf8');
+    assert.deepEqual(await buildSeal(w.o, w.deps), { sha256: first.sha256, unchanged: true });
     writeFileSync(join(w.root, 'inputs', 'one.json'), '{"a":1}\r\n');
-    assert.equal(await check(), 'drift inputs inputs/one.json');
+    await assert.rejects(buildSeal(w.o, w.deps), /^Error: seal: refused existing seal differs \(a new source epoch needs the ruling of check-list §3\.5\)$/);
+    assert.equal(readFileSync(file, 'utf8'), bytes);
+  });
+
+  it('a failed snapshot refuses the seal', async () => {
+    const w = world('seal-snapshot');
+    Object.assign(w.snapshot, { ok: false, files: 0, differences: ['x'] });
+    await assert.rejects(buildSeal(w.o, w.deps), /^Error: seal: refused snapshot x$/);
+    assert.equal(existsSync(join(w.o.out, 'seal.json')), false);
+    Object.assign(w.snapshot, { ok: true, files: 3, differences: [] });
+    await buildSeal(w.o, w.deps);
+    Object.assign(w.snapshot, { ok: false, files: 0, differences: ['y'] });
+    assert.deepEqual((await checkSeal(w.o, w.deps)).drift, [{ field: 'snapshot', id: 'y' }]);
+  });
+
+  it('drift names the field and the path', async () => {
+    const w = world('seal-drift');
+    await buildSeal(w.o, w.deps);
+    const check = async () => (await checkSeal(w.o, w.deps)).drift.map((d) => `${d.field} ${d.id}`);
+    writeFileSync(join(w.root, 'inputs', 'one.json'), '{"a":1}\r\n');
+    assert.deepEqual(await check(), ['inputs inputs/one.json']);
     writeFileSync(join(w.root, 'inputs', 'one.json'), '{}\r\n');
     writeFileSync(join(w.root, 'tools', 'ig-proto', 'phase2', 'y.mjs'), '\r\n');
-    assert.equal(await check(), 'drift tools tools/ig-proto/phase2/y.mjs');
+    assert.deepEqual(await check(), ['tools tools/ig-proto/phase2/y.mjs']);
     rmSync(join(w.root, 'tools', 'ig-proto', 'phase2', 'y.mjs'));
     writeFileSync(join(w.root, 'a.txt'), 'changed\n');
-    assert.equal(await check(), 'drift sourceDigest repository');
+    assert.deepEqual(await check(), ['sourceDigest repository']);
     writeFileSync(join(w.root, 'a.txt'), 'prod\n');
     writeFileSync(join(w.dir, 'RAW', 'trees', 'gen-v4', 'p2-none', 'a.txt'), 'edited\n');
-    assert.equal(await check(), 'drift copy gen-v4/p2-none');
+    assert.deepEqual(await check(), ['copies p2-none']);
     writeFileSync(join(w.dir, 'RAW', 'trees', 'gen-v4', 'p2-none', 'a.txt'), 'p2-none\n');
     w.gitState.todayStatus = ' M a.txt';
-    assert.match(String(await check()), /^drift today /);
+    assert.deepEqual(await check(), [`today ${w.today}`]);
+  });
+
+  it('the command reports a missing seal as drift', () => {
+    const dir = state('seal-cli');
+    rmSync(join(dir, 'E', 'seal'), { recursive: true });
+    const r = p2(['seal', '--check', '--state', dir]);
+    assert.equal(r.status, 3, r.out);
+    assert.match(r.out, /seal: drift file /);
   });
 });
 
@@ -496,18 +634,24 @@ function writeJournal(/** @type {string} */ dir, /** @type {string} */ row, /** 
 }
 
 const TELEMETRY = { setCounters: null, batchCounters: null, trail: { attempts: [], sameSide: 0, boundFired: false, noWindow: { below: 0, above: 0 } } };
-const GENERATION_REPORT = { runs: [{ probeKind: 'generation', acceptedCount: 10, telemetry: TELEMETRY }] };
 
-/** The stand-in for `tools/calibrate.mjs` of a copy: it acts by `P2_FAKE_CALIBRATE` and records every launch. */
+/**
+ * The stand-in for `tools/calibrate.mjs` of a copy: it acts by `P2_FAKE_CALIBRATE`, records every launch and writes the
+ * report that `verifyRow` reads: the matrix digest of its `--matrix` file, and the run's case, seed, source digest
+ * (`rd-<variant>`, the fake seal's `runtimeDigest`) and label (`IG_SOURCE_LABEL`).
+ */
 const FAKE_CALIBRATE = [
-  "import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';",
+  "import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';",
   "import { join } from 'node:path';",
+  `import { matrixDigest } from ${JSON.stringify(pathToFileURL(join(REPO, 'tools', 'bench', 'calibration-reference.js')).href)};`,
   writeJournal.toString(),
   "appendFileSync(process.env.P2_FAKE_MARKER, `${process.env.IG_ROW} ${process.env.IG_SOURCE_LABEL} ${process.env.IG_SEED} ${process.cwd()}\\n`);",
   "if (process.env.P2_FAKE_CALIBRATE === 'noreport') process.exit(1);",
   'const args = process.argv.slice(2);',
   'writeJournal(process.env.IG_LOG_DIR, process.env.IG_ROW, process.env.IG_SEED, process.pid);',
-  `writeFileSync(args[args.indexOf('--output') + 1] + '.json', ${JSON.stringify(JSON.stringify(GENERATION_REPORT))});`,
+  "const matrix = JSON.parse(readFileSync(args[args.indexOf('--matrix') + 1], 'utf8'));",
+  `const run = { probeKind: 'generation', acceptedCount: 10, caseId: matrix.cases[0].id, seed: process.env.IG_SEED, sourceDigest: 'rd-' + process.env.IG_SOURCE_LABEL.split(' ')[0], sourceCommit: process.env.IG_SOURCE_LABEL, telemetry: ${JSON.stringify(TELEMETRY)} };`,
+  "writeFileSync(args[args.indexOf('--output') + 1] + '.json', JSON.stringify({ meta: { matrixDigest: matrixDigest(matrix) }, runs: [run] }));",
   '',
 ].join('\n');
 
@@ -533,12 +677,9 @@ function planRow(key, over = {}) {
 function runWorld(name, o) {
   const dir = state(name);
   mkdirSync(join(dir, 'E', 'plan'), { recursive: true });
-  mkdirSync(join(dir, 'E', 'seal'), { recursive: true });
   writeFileSync(join(dir, 'E', 'plan', 'plan.json'), `${JSON.stringify({ format: 'p2-plan', version: 1, rows: o.rows, groups: o.groups }, null, 2)}\r\n`);
   const variants = ['p2-gen4', 'p2-gen4-diag', 'p2-uncapped', 'p2-uncapped-diag'];
-  writeFileSync(join(dir, 'E', 'seal', 'seal.json'), `${JSON.stringify({
-    format: 'p2-seal', version: 1, commit: 'c0ffee', copies: variants.map((id) => ({ id, source: 'gen-v4', treeId: `t-${id}`, copyDigest: `d-${id}` })),
-  }, null, 2)}\r\n`);
+  fakeSeal(dir, variants.map((id) => ({ id, source: 'gen-v4', treeId: `t-${id}`, copyDigest: `d-${id}`, runtimeDigest: `rd-${id}` })));
   for (const id of variants) {
     const tools = join(dir, 'RAW', 'trees', 'gen-v4', id, 'tools');
     mkdirSync(tools, { recursive: true });
@@ -581,6 +722,13 @@ describe('the rows of a group', () => {
   const K1 = 'shipped/gen-v4/10x10-nightmare/20';
   const K2 = 'shipped/gen-v4/10x10-nightmare/21';
 
+  /** Leaves the start lines of a finished group and drops its row lines, as a crash after the receipts would. @param {ReturnType<typeof runWorld>} w */
+  function crash(w) {
+    const starts = jsonLines(w.dir, 'A.status.jsonl').filter((l) => l.t === 'start');
+    writeFileSync(join(w.dir, 'RAW', 'rows', 'A.status.jsonl'), starts.map((l) => `${JSON.stringify(l)}\r\n`).join(''));
+    rmSync(join(w.dir, 'RAW', 'rows', 'A.jsonl'));
+  }
+
   it('a row starts durably and ends with its receipt and line', async () => {
     const w = runWorld('row-ok', { rows: [planRow(K1)], groups: [{ stage: 'A', group: 2, keys: [K1] }] });
     const r = await go(w);
@@ -594,7 +742,7 @@ describe('the rows of a group', () => {
     const receiptText = readFileSync(receiptFile, 'utf8');
     assert.ok(receiptText.includes('\r\n') && !/[^\r]\n/.test(receiptText));
     const receipt = JSON.parse(receiptText);
-    assert.deepEqual(Object.keys(receipt), ['key', 'fileKey', 'stage', 'group', 'invocation', 'variant', 'copy', 'report', 'journal', 'childExit', 'startedAt', 'endedAt']);
+    assert.deepEqual(Object.keys(receipt), ['key', 'fileKey', 'stage', 'group', 'invocation', 'sealSha256', 'variant', 'copy', 'report', 'journal', 'childExit', 'startedAt', 'endedAt']);
     assert.deepEqual({ key: receipt.key, fileKey: receipt.fileKey, stage: receipt.stage, group: receipt.group, invocation: receipt.invocation, variant: receipt.variant, childExit: receipt.childExit },
       { key: K1, fileKey, stage: 'A', group: 2, invocation: 'A-2.1', variant: 'p2-gen4', childExit: 0 });
     assert.deepEqual(receipt.copy, { treeId: 't-p2-gen4', copyDigest: 'd-p2-gen4' });
@@ -635,24 +783,81 @@ describe('the rows of a group', () => {
   });
 
   it('resume never launches a started row again', async () => {
-    const w = runWorld('row-resume', { rows: [planRow(K1), planRow(K2)],     groups: [{ stage: 'A', group: 2, keys: [K1, K2] }] });
-    mkdirSync(join(w.dir, 'RAW', 'rows'), { recursive: true });
-        writeFileSync(join(w.dir, 'RAW', 'rows', 'A.status.jsonl'), [K1, K2].map((key) => `${JSON.stringify({ t: 'start', key, group: 2, invocation: 'A-2.0' })}\r\n`).join(''));
-    const raw = join(w.dir, 'RAW', 'raw', K1.replaceAll('/', '~'));
-    writeJournal(join(raw, 'journal'), K1.replaceAll('/', '~'), 'landscape/10x10-nightmare/20', 7);
-    writeFileSync(join(raw, 'report.json'), JSON.stringify(GENERATION_REPORT));
-    writeFileSync(join(raw, 'receipt.json'), '{"key":"k1"}\r\n');
+    const w = runWorld('row-resume', { rows: [planRow(K1), planRow(K2)], groups: [{ stage: 'A', group: 2, keys: [K1, K2] }] });
+    assert.equal((await go(w)).code, 0);
+    crash(w);
+    rmSync(join(w.dir, 'RAW', 'raw', K2.replaceAll('/', '~')), { recursive: true });
+    const receiptFile = join(w.dir, 'RAW', 'raw', K1.replaceAll('/', '~'), 'receipt.json');
+    const before = launched(w).length;
     const r = await go(w);
     assert.equal(r.code, 0);
     const status = jsonLines(w.dir, 'A.status.jsonl');
     assert.deepEqual(status.slice(2).map((l) => [l.t, l.key, l.cause]), [['done', K1, undefined], ['interrupted', K2, 'no-report']]);
+    assert.ok(status.slice(2).every((l) => l.sealSha256 === sealOf(w.dir)));
     const rows = jsonLines(w.dir, 'A.jsonl');
     assert.deepEqual(rows.map((l) => l.key), [K1]);
-    assert.equal(rows[0].receipt, sha256Hex(readFileSync(join(raw, 'receipt.json'))));
+    assert.equal(rows[0].receipt, sha256Hex(readFileSync(receiptFile)));
     assert.equal(rows[0].ledger.complete, true);
-    assert.equal(existsSync(w.marker), false);
+    assert.equal(launched(w).length, before, 'nothing is launched again');
     assert.equal((await go(w)).code, 0);
     assert.equal(jsonLines(w.dir, 'A.jsonl').length, 1, 'the row line is not written twice');
+  });
+
+  it('a mismatched raw report is interrupted on resume', async () => {
+    const w = runWorld('row-report-hash', { rows: [planRow(K1)], groups: [{ stage: 'A', group: 2, keys: [K1] }] });
+    assert.equal((await go(w)).code, 0);
+    crash(w);
+    const report = join(w.dir, 'RAW', 'raw', K1.replaceAll('/', '~'), 'report.json');
+    writeFileSync(report, `${readFileSync(report, 'utf8')} `);
+    assert.equal((await go(w)).code, 0);
+    const [, terminal] = jsonLines(w.dir, 'A.status.jsonl').filter((l) => l.key === K1);
+    assert.deepEqual([terminal.t, terminal.cause], ['interrupted', 'report hash']);
+    assert.equal(jsonLines(w.dir, 'A.jsonl').length, 0);
+    assert.equal(launched(w).length, 1, 'no launch marker after the first run');
+  });
+
+  it('an old-seal terminal key is refused after a new seal', async () => {
+    const w = runWorld('row-old-seal', { rows: [planRow(K1), planRow(K2)], groups: [{ stage: 'A', group: 2, keys: [K1, K2] }] });
+    assert.equal((await go(w)).code, 0);
+    const copies = JSON.parse(readFileSync(join(w.dir, 'E', 'seal', 'seal.json'), 'utf8')).copies;
+    fakeSeal(w.dir, [...copies].reverse());
+    const before = launched(w).length;
+    const r = await go(w);
+    assert.deepEqual(r, { code: 9, lines: [`refused: foreign seal epoch ${K1}`, `refused: foreign seal epoch ${K2}`] });
+    assert.equal(launched(w).length, before);
+    const cli = p2(['publish', '--stage', 'A', '--out', join(w.dir, 'out'), '--state', w.dir]);
+    assert.equal(cli.status, 9, cli.out);
+    assert.match(cli.out, new RegExp(`publish: refused ${K1}: foreign seal [0-9a-f]{64}`));
+    assert.equal(existsSync(join(w.dir, 'out')), false);
+  });
+
+  it('every record names the seal', async () => {
+    const w = runWorld('row-seal-names', { rows: [planRow(K1)], groups: [{ stage: 'A', group: 2, keys: [K1] }] });
+    const seal = sealOf(w.dir);
+    assert.equal((await go(w)).code, 0);
+    const status = jsonLines(w.dir, 'A.status.jsonl');
+    assert.deepEqual(status.map((l) => [l.t, l.sealSha256]), [['start', seal], ['done', seal]]);
+    assert.equal(jsonLines(w.dir, 'A.jsonl')[0].sealSha256, seal);
+    assert.equal(JSON.parse(readFileSync(join(w.dir, 'RAW', 'raw', K1.replaceAll('/', '~'), 'receipt.json'), 'utf8')).sealSha256, seal);
+    const reserved = p2(['reserve', '--stage', 'A', '--group', '3', '--limit', '900', '--state', w.dir]);
+    assert.equal(reserved.status, 0, reserved.out);
+    assert.equal(JSON.parse(readFileSync(join(w.dir, 'RAW', 'pending.json'), 'utf8')).sealSha256, seal);
+    const line = { id: 'A-3.1', stage: 'A', group: 3, start: '2026-11-26T10:00:00.000+07:00', end: '2026-11-26T10:01:00.000+07:00', nodeSeconds: 12.5, quietS: 45, countedSeconds: 57.5, limitS: 900, killed: false, exit: 0, rowsWritten: 0, cause: 'ok' };
+    assert.equal(p2(['ledger', '--append', '--json', JSON.stringify(line), '--state', w.dir]).status, 0);
+    assert.equal(JSON.parse(readFileSync(join(w.dir, 'E', 'ledger', 'ledger.jsonl'), 'utf8')).sealSha256, seal);
+    assert.equal(p2(['ledger', '--append', '--json', JSON.stringify({ ...line, id: 'A-3.2', sealSha256: seal }), '--state', w.dir]).status, 5, 'the caller never passes the seal');
+  });
+
+  it('reserve and append refuse without a seal', () => {
+    const dir = state('no-seal');
+    rmSync(join(dir, 'E', 'seal'), { recursive: true });
+    const reserved = p2(['reserve', '--stage', 'A', '--group', '2', '--limit', '900', '--state', dir]);
+    assert.equal(reserved.status, 4);
+    assert.match(reserved.out, /reserve: no seal/);
+    assert.equal(existsSync(join(dir, 'RAW', 'pending.json')), false);
+    const line = { id: 'A-2.1', stage: 'A', group: 2, start: '2026-11-26T10:00:00.000+07:00', end: '2026-11-26T10:01:00.000+07:00', nodeSeconds: 12.5, quietS: 45, countedSeconds: 57.5, limitS: 900, killed: false, exit: 0, rowsWritten: 0, cause: 'ok' };
+    assert.equal(p2(['ledger', '--append', '--json', JSON.stringify(line), '--state', dir]).status, 5);
+    assert.equal(existsSync(join(dir, 'E', 'ledger', 'ledger.jsonl')), false);
   });
 
   it('a group keeps its deferred keys', async () => {
@@ -740,6 +945,7 @@ describe('the rows of a group', () => {
     assert.equal(ran.code, 0, ran.lines.join('\n'));
     const rows = jsonLines(mapped.dir, 'B.jsonl');
     assert.equal(rows.length, 1);
+    assert.deepEqual(verifyRow(rows[0], rowContextOf(mapped.P)(rows[0])), { ok: true, problems: [] });
     assert.deepEqual([rows[0].key, rows[0].variant, rows[0].component, rows[0].arm, rows[0].cell, rows[0].rep, rows[0].seed, rows[0].uniqueness],
       ['conditional-twin/uncapped/20x20-hell-1/23', 'p2-uncapped-diag', 'conditional-twin', 'uncapped', '20x20-hell-1', 23, 'landscape/20x20-hell-1/23', 'require']);
     const matrix = JSON.parse(readFileSync(join(mapped.dir, 'RAW', 'raw', 'conditional-twin~uncapped~20x20-hell-1~23', 'matrix.json'), 'utf8'));
@@ -778,6 +984,9 @@ describe('the rows of a group', () => {
     assert.equal(rows.length, 1);
     assert.deepEqual([rows[0].key, rows[0].variant, rows[0].group], ['conditional-twin/uncapped/10x10-nightmare/21', 'p2-uncapped', 'o1']);
     assert.equal(jsonLines(w.dir, 'B.status.jsonl')[0].group, 'o1');
+    const twin = rowContextOf(w.P)(rows[0]);
+    assert.deepEqual([twin.expected?.stage, twin.expected?.variant], ['B', 'p2-uncapped']);
+    assert.deepEqual(verifyRow(rows[0], twin), { ok: true, problems: [] });
     assert.equal(JSON.parse(readFileSync(join(w.dir, 'RAW', 'raw', 'conditional-twin~uncapped~10x10-nightmare~21', 'receipt.json'), 'utf8')).group, 'o1');
     assert.equal((await go(w, { stage: 'B', group: undefined, overflowGroup: 2, invocation: 'B-o2.1' })).code, 8);
   });
@@ -794,33 +1003,83 @@ describe('the rows of a group', () => {
 });
 
 describe('publication', () => {
-  it('publish is write-once', () => {
-    const dir = state('publish');
-    const rowsDir = join(dir, 'rows');
+  const K1 = 'shipped/gen-v4/10x10-nightmare/20';
+  const K2 = 'shipped/gen-v4/10x10-nightmare/21';
+  const K3 = 'shipped/gen-v4/12x12-nightmare/22';
+
+  /** A finished group of three rows, two cells. @param {string} name */
+  async function finished(name) {
+    const w = runWorld(name, {
+      rows: [planRow(K1), planRow(K2), planRow(K3, { cell: '12x12-nightmare', seed: 'landscape/12x12-nightmare/22', boardRows: rectRows(12, 12) })],
+      groups: [{ stage: 'A', group: 2, keys: [K1, K2, K3] }],
+    });
+    assert.equal((await go(w)).code, 0);
+    const rowsDir = join(w.dir, 'rows-copy');
     mkdirSync(rowsDir, { recursive: true });
-    const line = (/** @type {string} */ cell) => JSON.stringify({ key: `k/${cell}`, component: 'shipped', arm: 'gen-v4', cell });
-    writeFileSync(join(rowsDir, 'A.jsonl'), `${line('a')}\n${line('a')}\n${line('b')}\n`);
-    const out = join(dir, 'out');
-    const args = ['publish', '--stage', 'A', '--out', out, '--rows', rowsDir];
+    writeFileSync(join(rowsDir, 'A.jsonl'), readFileSync(join(w.dir, 'RAW', 'rows', 'A.jsonl')));
+    return { ...w, rowsDir, out: join(w.dir, 'out') };
+  }
+
+  it('publish is write-once', async () => {
+    const w = await finished('publish');
+    const lines = readFileSync(join(w.rowsDir, 'A.jsonl'), 'utf8').split(/\r?\n/).filter(Boolean);
+    assert.equal(lines.length, 3);
+    const args = ['publish', '--stage', 'A', '--out', w.out, '--rows', w.rowsDir, '--state', w.dir];
     const first = p2(args);
     assert.equal(first.status, 0, first.out);
-    const jsonl = readFileSync(join(out, 'A.jsonl'), 'utf8');
-    assert.equal(jsonl, `${line('a')}\r\n${line('a')}\r\n${line('b')}\r\n`);
+    const jsonl = readFileSync(join(w.out, 'A.jsonl'), 'utf8');
+    assert.equal(jsonl, lines.map((l) => `${l}\r\n`).join(''));
     const sha = sha256Hex(Buffer.from(jsonl, 'utf8'));
     assert.equal(first.out.trim(), `publish: A 3 rows ${sha}`);
-    assert.equal(readFileSync(join(out, 'A.sha256'), 'utf8'), `${sha}\r\n`);
-    const md = readFileSync(join(out, 'A.md'), 'utf8');
-    assert.match(md, /\| shipped \| gen-v4 \| a \| 2 \|\r\n\| shipped \| gen-v4 \| b \| 1 \|\r\n$/);
+    assert.equal(readFileSync(join(w.out, 'A.sha256'), 'utf8'), `${sha}\r\n`);
+    const md = readFileSync(join(w.out, 'A.md'), 'utf8');
+    assert.match(md, /\| shipped \| gen-v4 \| 10x10-nightmare \| 2 \|\r\n\| shipped \| gen-v4 \| 12x12-nightmare \| 1 \|\r\n$/);
     const before = [jsonl, md, `${sha}\r\n`];
     const second = p2(args);
     assert.equal(second.status, 0, second.out);
-    assert.deepEqual(['A.jsonl', 'A.md', 'A.sha256'].map((f) => readFileSync(join(out, f), 'utf8')), before);
-    writeFileSync(join(rowsDir, 'A.jsonl'), `${line('a')}\n${line('a')}\n${line('b')}\n${line('c')}\n`);
+    assert.deepEqual(['A.jsonl', 'A.md', 'A.sha256'].map((f) => readFileSync(join(w.out, f), 'utf8')), before);
+    writeFileSync(join(w.rowsDir, 'A.jsonl'), `${lines.slice(0, 2).join('\r\n')}\r\n`);
     const third = p2(args);
     assert.equal(third.status, 3, third.out);
-    assert.deepEqual(['A.jsonl', 'A.md', 'A.sha256'].map((f) => readFileSync(join(out, f), 'utf8')), before);
-    const fresh = p2(['publish', '--stage', 'A', '--out', join(dir, 'out2'), '--rows', rowsDir]);
+    assert.deepEqual(['A.jsonl', 'A.md', 'A.sha256'].map((f) => readFileSync(join(w.out, f), 'utf8')), before);
+    const fresh = p2(['publish', '--stage', 'A', '--out', join(w.dir, 'out2'), '--rows', w.rowsDir, '--state', w.dir]);
     assert.equal(fresh.status, 0, fresh.out);
-    assert.equal(existsSync(join(dir, 'out2', 'A.sha256')), true);
+    assert.equal(existsSync(join(w.dir, 'out2', 'A.sha256')), true);
+  });
+
+  it('publication refuses a bad binding', async () => {
+    const w = await finished('publish-bad');
+    const rows = readFileSync(join(w.rowsDir, 'A.jsonl'), 'utf8').split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l));
+    rows[0].receipt = 'f'.repeat(64);
+    writeFileSync(join(w.rowsDir, 'A.jsonl'), rows.map((r) => `${JSON.stringify(r)}\r\n`).join(''));
+    const r = p2(['publish', '--stage', 'A', '--out', w.out, '--rows', w.rowsDir, '--state', w.dir]);
+    assert.equal(r.status, 9, r.out);
+    assert.equal(r.out.trim(), `publish: refused ${K1}: receipt hash`);
+    assert.equal(existsSync(w.out), false);
+  });
+
+  it('publication refuses an unreconciled key', async () => {
+    const w = await finished('publish-open');
+    const status = join(w.dir, 'RAW', 'rows', 'A.status.jsonl');
+    writeFileSync(status, `${readFileSync(status, 'utf8')}${JSON.stringify({ t: 'start', key: 'k1', group: 2, invocation: 'A-2.2', sealSha256: sealOf(w.dir) })}\r\n`);
+    const r = p2(['publish', '--stage', 'A', '--out', w.out, '--rows', w.rowsDir, '--state', w.dir]);
+    assert.equal(r.status, 9, r.out);
+    assert.equal(r.out.trim(), 'publish: unreconciled k1 (run its group again)');
+    assert.equal(existsSync(w.out), false);
+  });
+
+  it('a published row with a later bad binding is marked', async () => {
+    const w = await finished('publish-later');
+    assert.equal(p2(['publish', '--stage', 'A', '--out', w.out, '--rows', w.rowsDir, '--state', w.dir]).status, 0);
+    const ctxOf = rowContextOf(w.P);
+    assert.deepEqual(loadSnapshot(w.out, 'A', ctxOf).rows.map((r) => r.binding.ok), [true, true, true]);
+    const report = join(w.dir, 'RAW', 'raw', K2.replaceAll('/', '~'), 'report.json');
+    writeFileSync(report, `${readFileSync(report, 'utf8')} `);
+    const { sha256, rows } = loadSnapshot(w.out, 'A', ctxOf);
+    assert.equal(sha256, sha256Hex(readFileSync(join(w.out, 'A.jsonl'))));
+    assert.deepEqual(rows.map((r) => [r.key, r.binding.ok]), [[K1, true], [K2, false], [K3, true]]);
+    assert.ok(rows[1].binding.problems.includes('report hash'));
+    writeFileSync(join(w.out, 'A.sha256'), `${'0'.repeat(64)}\r\n`);
+    assert.throws(() => loadSnapshot(w.out, 'A', ctxOf), /^Error: snapshot A hash$/);
   });
 });

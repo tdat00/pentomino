@@ -7,11 +7,12 @@ import {
   closeSync, existsSync, fsyncSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, writeSync,
 } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { rectRows } from '../../bench/calibration-reference.js';
-import { computeSourceDigest } from '../../bench/report.js';
-import { rowMatrix, sha256Hex } from './binding.mjs';
+import { verifySnapshot as realVerifySnapshot } from '../snapshot.mjs';
+import { rowMatrix, sha256Hex, verifyRow } from './binding.mjs';
 import { smokeGate as stubSmokeGate } from './gates.mjs';
 import { rowWork } from './trace-reader.mjs';
 
@@ -24,13 +25,21 @@ export const AUDIT = 'docs/improve-generating-phase-2/evidence/sa-astra/round1-c
 export const BOARDS = 'tools/ig-proto/data/boards-v1.json';
 export const READOUT = 'docs/improve-generating-phase-2/stage-a-readout.md';
 export const SEALED_INPUTS = Object.freeze([
+  'core/',
   AUDIT,
-  'tasks/improve-generating-phase-2/contracts.md',
   'docs/improve-generating/evidence/frozen/V4-S4/',
   'docs/improve-generating/evidence/frozen/V4-S4C/',
+  'docs/improve-generating/evidence/frozen/V4-T01a/snapshot-manifest.json',
   'generator/',
-  'tests/fixtures/replay-case.json',
+  'tasks/improve-generating-phase-2/contracts.md',
+  'tests/browser/',
   'tests/fixtures/replay-case-v4.json',
+  'tests/fixtures/replay-case.json',
+  'tools/bench/',
+  'tools/calibrate.mjs',
+  'tools/ig-proto/',
+  'tools/node-worker.mjs',
+  'tools/serve.mjs',
 ]);
 /** The copies of the sealed trees (P2-12b's `COPIES`), under `RAW/trees/<source>/<id>/`. */
 export const COPIES = Object.freeze({
@@ -240,12 +249,31 @@ export function git(cwd, args) {
   return execFileSync('git', ['-C', cwd, ...args], { encoding: 'utf8' }).trim();
 }
 
-/** The production root's digest, or a copy's or the today worktree's digest with its own `report.js`. */
-async function digestOf(/** @type {string} */ dir) {
-  const report = dir === ROOT
-    ? { computeSourceDigest }
-    : await import(pathToFileURL(join(dir, 'tools', 'bench', 'report.js')).href);
-  return /** @type {string} */ (await report.computeSourceDigest((/** @type {string} */ p) => readFileSync(join(dir, ...p.split('/')), 'utf8')));
+/** @param {string} root @returns {Promise<string>} The root's digest, with the root's own `tools/bench/report.js` and its `SOURCE_FILES`. */
+async function digestByReport(root) {
+  const report = await import(pathToFileURL(join(root, 'tools', 'bench', 'report.js')).href);
+  return /** @type {string} */ (await report.computeSourceDigest((/** @type {string} */ p) => readFileSync(join(root, ...p.split('/')), 'utf8')));
+}
+
+/**
+ * @typedef {object} SealDeps What `buildSeal` and `checkSeal` read from outside (the tests pass adapters).
+ * @property {(args: string[], cwd: string) => string} git
+ * @property {() => Promise<{ readSources: (root: string) => any, inputDigest: (sources: any) => string | Promise<string> }>} copiesApi
+ * @property {(copyRoot: string) => Promise<string>} runtimeDigestOf
+ * @property {() => { ok: boolean, files: number, differences: string[] }} verifySnapshot
+ * @property {(root: string) => Promise<string>} sourceDigestOf
+ */
+
+/** @param {Partial<SealDeps>} [deps] @returns {SealDeps} */
+function sealDeps(deps = {}) {
+  return {
+    git: (args, cwd) => execFileSync('git', args, { cwd, encoding: 'utf8' }),
+    copiesApi: () => import('./copies.mjs'),
+    runtimeDigestOf: digestByReport,
+    verifySnapshot: realVerifySnapshot,
+    sourceDigestOf: digestByReport,
+    ...deps,
+  };
 }
 
 /** @param {string} root @param {readonly string[]} inputs @returns {string[]} The files of the sealed inputs, in path order. */
@@ -277,114 +305,165 @@ function copyDir(raw, source, id) {
   return join(raw, 'trees', source, id);
 }
 
+/** @param {string} dir @returns {string} The SHA-256 of the sorted `[path, sha256(bytes)]` pairs of the copy's files, but its two receipts (C13). */
+function filesDigestOf(dir) {
+  const pairs = listFiles(dir, dir)
+    .filter((path) => path !== 'ig-tree.json' && path !== 'p2-copy.json')
+    .map((path) => [path, sha256Hex(readFileSync(join(dir, ...path.split('/'))))]);
+  return sha256Hex(JSON.stringify(pairs));
+}
+
+/** @param {string} a @param {string} b @returns {boolean} Whether two paths name the same place, compared as lower-case resolved paths. */
+const samePath = (a, b) => resolve(a).toLowerCase() === resolve(b).toLowerCase();
+
 /**
- * Reads one copy's two records and recomputes its digest.
- * @param {string} raw @param {string} source @param {string} id
- * @returns {Promise<{ copy: Record<string, any>, digest: string }>}
+ * Reads one copy's two records and binds it to its source (review-2 R2-04): not a rehearsal, its own identity, the input
+ * digest of the production or today root, the runtime digest equal to both recorded copy digests, one tree id.
+ * @param {{ raw: string, repoRoot: string, todayRoot: string, deps: SealDeps }} ctx
+ * @param {string} source @param {string} id
+ * @returns {Promise<Record<string, any>>} The seal's entry of the copy (C13).
  */
-async function readCopy(raw, source, id) {
-  const dir = copyDir(raw, source, id);
+async function sealCopy(ctx, source, id) {
+  const dir = copyDir(ctx.raw, source, id);
   const tree = join(dir, 'ig-tree.json');
   const info = join(dir, 'p2-copy.json');
   if (!existsSync(tree) || !existsSync(info)) throw new Exit(3, `seal: refused a copy is missing: ${source}/${id}`);
+  const refuse = (/** @type {string} */ why) => new Exit(3, `seal: refused copy ${id} ${why}`);
   const igTree = JSON.parse(readFileSync(tree, 'utf8'));
   const p2 = JSON.parse(readFileSync(info, 'utf8'));
-  const digest = await digestOf(dir);
-  if (digest !== igTree.copyDigest || p2.copyDigest !== igTree.copyDigest || p2.treeId !== igTree.treeId) {
-    throw new Exit(3, `seal: drift copy ${source}/${id}`);
-  }
+  if (p2.rehearsal !== false) throw refuse('rehearsal');
+  const sourceRoot = source === 'today' ? ctx.todayRoot : ctx.repoRoot;
+  if (p2.id !== id || p2.source !== source || typeof p2.root !== 'string' || !samePath(p2.root, sourceRoot)) throw refuse('identity');
+  const api = await ctx.deps.copiesApi();
+  if (p2.inputDigest !== await api.inputDigest(await api.readSources(sourceRoot))) throw refuse('input digest');
+  const runtimeDigest = await ctx.deps.runtimeDigestOf(dir);
+  if (runtimeDigest !== igTree.copyDigest || runtimeDigest !== p2.copyDigest) throw refuse('digest');
+  if (p2.treeId !== igTree.treeId) throw refuse('tree id');
+  /** @type {Record<string, any>} */
   const copy = {};
-  for (const f of ['id', 'source', 'root', 'rehearsal', 'inputDigest', 'treeId', 'copyDigest', 'chain', 'params']) {
-    /** @type {any} */ (copy)[f] = p2[f];
-  }
-  return { copy: { ...copy, verified: true }, digest };
+  for (const f of ['id', 'source', 'root', 'rehearsal', 'inputDigest', 'treeId', 'copyDigest', 'chain', 'params']) copy[f] = p2[f];
+  return { ...copy, runtimeDigest, filesDigest: filesDigestOf(dir), verified: true };
 }
 
 /**
- * The refusals and the record of `seal --commit`.
- * @param {{ commit: string, todayRoot: string, planFile: string, paths: ReturnType<typeof pathsOf>, root?: string, gitRun?: typeof git, inputs?: readonly string[] }} o
- * @returns {Promise<any>} The seal.
+ * `seal --commit`: the refusals, the record, and its write-once file `<out>/seal.json` (C13).
+ * @typedef {object} SealOptions
+ * @property {string} [repoRoot] The production repository (default: this one).
+ * @property {string} commit @property {string} todayRoot @property {string} planPath
+ * @property {string} rawRoot `RAW`, holding `trees/<source>/<id>/`.
+ * @property {readonly string[]} [inputs] Default `SEALED_INPUTS`.
+ * @property {string} out The folder of `seal.json`.
+ * @property {string} [sealFile] `checkSeal` only: the seal file, when it is not `<out>/seal.json`.
  */
-export async function buildSeal(o) {
-  const root = o.root ?? ROOT;
-  const run = o.gitRun ?? git;
+
+/**
+ * @param {SealOptions} opts @param {Partial<SealDeps>} [deps]
+ * @returns {Promise<{ sha256: string, unchanged: boolean }>}
+ */
+export async function buildSeal(opts, deps) {
+  const d = sealDeps(deps);
+  const root = opts.repoRoot ?? ROOT;
+  const git = (/** @type {string[]} */ args, /** @type {string} */ cwd) => d.git(args, cwd).trim();
   const refuse = (/** @type {string} */ why) => new Exit(3, `seal: refused ${why}`);
-  if (run(root, ['rev-parse', 'HEAD']) !== o.commit) throw refuse(`HEAD is not ${o.commit}`);
-  if (run(root, ['status', '--porcelain', '--untracked-files=no']) !== '') throw refuse('the tracked worktree is not clean');
-  if (!run(o.todayRoot, ['rev-parse', 'HEAD']).startsWith(TODAY_HEAD)) throw refuse(`the today worktree is not at ${TODAY_HEAD}`);
-  if (run(o.todayRoot, ['status', '--porcelain']) !== '') throw refuse('the today worktree is not clean');
+  if (git(['rev-parse', 'HEAD'], root) !== opts.commit) throw refuse(`HEAD is not ${opts.commit}`);
+  if (git(['status', '--porcelain', '--untracked-files=no'], root) !== '') throw refuse('the tracked worktree is not clean');
+  if (!git(['rev-parse', 'HEAD'], opts.todayRoot).startsWith(TODAY_HEAD)) throw refuse(`the today worktree is not at ${TODAY_HEAD}`);
+  if (git(['status', '--porcelain'], opts.todayRoot) !== '') throw refuse('the today worktree is not clean');
+  const ctx = { raw: opts.rawRoot, repoRoot: root, todayRoot: opts.todayRoot, deps: d };
   /** @type {any[]} */
   const copies = [];
   for (const [source, ids] of Object.entries(COPIES)) {
-    for (const id of ids) copies.push((await readCopy(o.paths.RAW, source, id)).copy);
+    for (const id of ids) copies.push(await sealCopy(ctx, source, id));
   }
-  if (!existsSync(o.planFile)) throw refuse(`the plan is missing: ${o.planFile}`);
-  const files = sealedFiles(root, o.inputs ?? SEALED_INPUTS);
-  const inside = relative(root, resolve(o.planFile));
-  return {
+  if (!existsSync(opts.planPath)) throw refuse(`the plan is missing: ${opts.planPath}`);
+  const snapshot = d.verifySnapshot();
+  if (!snapshot.ok) throw refuse(`snapshot ${snapshot.differences[0]}`);
+  const files = sealedFiles(root, opts.inputs ?? SEALED_INPUTS);
+  const inside = relative(root, resolve(opts.planPath));
+  const seal = {
     format: 'p2-seal',
     version: 1,
-    commit: o.commit,
+    commit: opts.commit,
     stageMap: { ...STAGE_MAP },
     node: process.version,
-    plan: { path: inside.startsWith('..') || isAbsolute(inside) ? resolve(o.planFile) : inside.split(sep).join('/'), sha256: sha256Hex(readFileSync(o.planFile)) },
-    sourceDigest: await digestOf(root),
-    today: { root: resolve(o.todayRoot), head: run(o.todayRoot, ['rev-parse', 'HEAD']), digest: await digestOf(resolve(o.todayRoot)) },
+    plan: { path: inside.startsWith('..') || isAbsolute(inside) ? resolve(opts.planPath) : inside.split(sep).join('/'), sha256: sha256Hex(readFileSync(opts.planPath)) },
+    sourceDigest: await d.sourceDigestOf(root),
+    today: { root: resolve(opts.todayRoot), head: git(['rev-parse', 'HEAD'], opts.todayRoot), digest: await d.sourceDigestOf(resolve(opts.todayRoot)) },
     copies,
     tools: files.tools,
     inputs: files.inputs,
+    snapshot: { manifest: SNAPSHOT_MANIFEST, ok: true, files: snapshot.files },
   };
+  const text = jsonText(seal);
+  const sha256 = sha256Hex(Buffer.from(text, 'utf8'));
+  const file = join(resolve(opts.out), 'seal.json');
+  if (existsSync(file)) {
+    if (readFileSync(file, 'utf8') === text) return { sha256, unchanged: true };
+    throw new Exit(3, 'seal: refused existing seal differs (a new source epoch needs the ruling of check-list §3.5)');
+  }
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, text, { flag: 'wx' });
+  return { sha256, unchanged: false };
 }
 
 /**
- * `seal --check`: recomputes what this task's seal holds. The creation-only refusals are not repeated; files outside the
- * sealed inventory may change.
- * @param {{ seal: any, paths: ReturnType<typeof pathsOf>, root?: string, gitRun?: typeof git, inputs?: readonly string[] }} o
- * @returns {Promise<string | null>} `null` when nothing drifted, else `drift <field> <path or id>`.
+ * `seal --check` (review-3 R3-01): recomputes what the seal holds, without the two creation-only refusals (HEAD equal to
+ * the commit, a clean tracked worktree). The recorded commit is kept; files outside the sealed inventory may change.
+ * @param {SealOptions} opts @param {Partial<SealDeps>} [deps]
+ * @returns {Promise<{ ok: boolean, drift: { field: string, id: string }[] }>}
  */
-export async function checkSeal(o) {
-  const root = o.root ?? ROOT;
-  const run = o.gitRun ?? git;
-  const { seal } = o;
-  if (seal?.format !== 'p2-seal' || seal.version !== 1) return 'drift format seal';
-  if (JSON.stringify(seal.stageMap) !== JSON.stringify(STAGE_MAP)) return 'drift stageMap seal';
-  if (seal.node !== process.version) return `drift node ${process.version}`;
+export async function checkSeal(opts, deps) {
+  const d = sealDeps(deps);
+  const root = opts.repoRoot ?? ROOT;
+  const git = (/** @type {string[]} */ args, /** @type {string} */ cwd) => d.git(args, cwd).trim();
+  /** @type {{ field: string, id: string }[]} */
+  const drift = [];
+  const out = () => ({ ok: drift.length === 0, drift });
+  const file = opts.sealFile ?? join(resolve(opts.out), 'seal.json');
+  if (!existsSync(file)) {
+    drift.push({ field: 'file', id: file });
+    return out();
+  }
+  const seal = JSON.parse(readFileSync(file, 'utf8'));
+  if (seal?.format !== 'p2-seal' || seal.version !== 1) {
+    drift.push({ field: 'format', id: 'seal' });
+    return out();
+  }
+  if (JSON.stringify(seal.stageMap) !== JSON.stringify(STAGE_MAP)) drift.push({ field: 'stageMap', id: 'seal' });
+  if (seal.node !== process.version) drift.push({ field: 'node', id: process.version });
   const planFile = isAbsolute(seal.plan.path) ? seal.plan.path : join(root, ...seal.plan.path.split('/'));
-  if (!existsSync(planFile) || sha256Hex(readFileSync(planFile)) !== seal.plan.sha256) return `drift plan ${seal.plan.path}`;
-  /** @type {string | null} */
-  let drift = null;
+  if (!existsSync(planFile) || sha256Hex(readFileSync(planFile)) !== seal.plan.sha256) drift.push({ field: 'plan', id: seal.plan.path });
   try {
-    const files = sealedFiles(root, o.inputs ?? SEALED_INPUTS);
+    const files = sealedFiles(root, opts.inputs ?? SEALED_INPUTS);
     for (const [field, now] of [['tools', files.tools], ['inputs', files.inputs]]) {
       const was = new Map(seal[/** @type {string} */ (field)].map((/** @type {any} */ e) => [e.path, e.sha256]));
       const have = new Map(/** @type {any[]} */ (now).map((e) => [e.path, e.sha256]));
       for (const path of [...new Set([...was.keys(), ...have.keys()])].sort()) {
-        if (was.get(path) !== have.get(path)) return `drift ${field} ${path}`;
+        if (was.get(path) !== have.get(path)) drift.push({ field, id: path });
       }
     }
   } catch (error) {
-    if (error instanceof Exit) return `drift inputs ${error.message.split(': ').pop()}`;
-    throw error;
+    if (!(error instanceof Exit)) throw error;
+    drift.push({ field: 'inputs', id: error.message.split(': ').pop() ?? error.message });
   }
-  if (await digestOf(root) !== seal.sourceDigest) return 'drift sourceDigest repository';
-  const head = run(seal.today.root, ['rev-parse', 'HEAD']);
-  if (!head.startsWith(TODAY_HEAD) || head !== seal.today.head || run(seal.today.root, ['status', '--porcelain']) !== ''
-    || await digestOf(seal.today.root) !== seal.today.digest) {
-    return `drift today ${seal.today.root}`;
+  const snapshot = d.verifySnapshot();
+  if (!snapshot.ok) drift.push({ field: 'snapshot', id: snapshot.differences[0] });
+  if (await d.sourceDigestOf(root) !== seal.sourceDigest) drift.push({ field: 'sourceDigest', id: 'repository' });
+  const head = git(['rev-parse', 'HEAD'], seal.today.root);
+  if (!head.startsWith(TODAY_HEAD) || head !== seal.today.head || git(['status', '--porcelain'], seal.today.root) !== ''
+    || await d.sourceDigestOf(seal.today.root) !== seal.today.digest) {
+    drift.push({ field: 'today', id: seal.today.root });
   }
+  const ctx = { raw: opts.rawRoot, repoRoot: root, todayRoot: seal.today.root, deps: d };
   for (const sealed of seal.copies) {
     try {
-      const now = await readCopy(o.paths.RAW, sealed.source, sealed.id);
-      if (now.copy.treeId !== sealed.treeId || now.copy.copyDigest !== sealed.copyDigest || now.copy.inputDigest !== sealed.inputDigest) {
-        drift = `drift copy ${sealed.source}/${sealed.id}`;
-      }
+      if (!isDeepStrictEqual(await sealCopy(ctx, sealed.source, sealed.id), sealed)) drift.push({ field: 'copies', id: sealed.id });
     } catch (error) {
       if (!(error instanceof Exit)) throw error;
-      drift = `drift copy ${sealed.source}/${sealed.id}`;
+      drift.push({ field: 'copies', id: sealed.id });
     }
-    if (drift) return drift;
   }
-  return null;
+  return out();
 }
 
 const ACCEPTED = /^(\d{4})-(\d{2})-(\d{2}) ([01]\d|2[0-3]):[0-5]\d \+07:00$/;
@@ -458,6 +537,23 @@ function readoutOf(P) {
 
 const ledgerFile = (/** @type {ReturnType<typeof pathsOf>} */ P) => join(P.E, 'ledger', 'ledger.jsonl');
 const pendingFile = (/** @type {ReturnType<typeof pathsOf>} */ P) => join(P.RAW, 'pending.json');
+
+/**
+ * The active seal (C13): its record and the SHA-256 of its bytes.
+ * @param {ReturnType<typeof pathsOf>} P
+ * @returns {{ seal: any, sealSha256: string }}
+ */
+export function activeSeal(P) {
+  const file = join(P.E, 'seal', 'seal.json');
+  if (!existsSync(file)) throw new Error('no seal');
+  const bytes = readFileSync(file);
+  return { seal: JSON.parse(bytes.toString('utf8')), sealSha256: sha256Hex(bytes) };
+}
+
+/** @param {ReturnType<typeof pathsOf>} P @returns {{ seal: any, sealSha256: string } | null} The active seal, or null when there is none. */
+function sealOf(P) {
+  return existsSync(join(P.E, 'seal', 'seal.json')) ? activeSeal(P) : null;
+}
 
 /** @param {ReturnType<typeof pathsOf>} P @param {string} stage @returns {number} Counted seconds spent in the stage. */
 export function spentS(P, stage) {
@@ -540,7 +636,10 @@ export function validateLedgerLine(line, P) {
   /** @type {Record<string, any>} */
   const out = {};
   for (const f of LEDGER_FIELDS) if (f in line) out[f] = line[f];
-  out.rowsWritten = countRowsWritten(P, line.stage, line.id, null);
+  const active = sealOf(P);
+  if (!active) throw bad('no seal');
+  out.rowsWritten = countRowsWritten(P, line.stage, line.id, active.sealSha256);
+  out.sealSha256 = active.sealSha256;
   return out;
 }
 
@@ -588,6 +687,8 @@ export function reserve(P, a) {
       entry.group = n;
     }
   }
+  const active = sealOf(P);
+  if (!active) throw new Exit(4, 'reserve: no seal');
   mkdirSync(P.RAW, { recursive: true });
   let fd;
   try {
@@ -597,7 +698,7 @@ export function reserve(P, a) {
     throw error;
   }
   try {
-    writeSync(fd, jsonText({ id, stage, ...entry, limitS: limit, at: new Date().toISOString() }));
+    writeSync(fd, jsonText({ id, stage, ...entry, limitS: limit, at: new Date().toISOString(), sealSha256: active.sealSha256 }));
     fsyncSync(fd);
   } finally {
     closeSync(fd);
@@ -689,19 +790,81 @@ function slotsOf(plan, activation, opts) {
   });
 }
 
-/** @param {ReturnType<typeof pathsOf>} P @returns {{ plan: any, seal: any | null, activation: any | null }} */
+/** @param {ReturnType<typeof pathsOf>} P @returns {{ plan: any, seal: any | null, sealSha256: string | null, activation: any | null }} */
 function loadRun(P) {
   const planFile = join(P.E, 'plan', 'plan.json');
-  const sealFile = join(P.E, 'seal', 'seal.json');
   if (!existsSync(planFile)) throw new Exit(3, `run-group: the plan is missing: ${planFile}`);
   const plan = JSON.parse(readFileSync(planFile, 'utf8'));
-  const seal = readJsonFile(sealFile);
+  const active = sealOf(P);
+  const seal = active?.seal ?? null;
   const activation = readJsonFile(join(P.E, 'twins', 'activation.json'));
   if (activation) {
     if (activation.planSha256 !== sha256Hex(readFileSync(planFile))) throw new Exit(8, 'activation receipt does not match the plan');
-    if (!seal || activation.sealSha256 !== sha256Hex(readFileSync(sealFile))) throw new Exit(8, 'activation receipt does not match the seal');
+    if (!active || activation.sealSha256 !== active.sealSha256) throw new Exit(8, 'activation receipt does not match the seal');
   }
-  return { plan, seal, activation };
+  return { plan, seal, sealSha256: active?.sealSha256 ?? null, activation };
+}
+
+/**
+ * The expected identity of a row key, which `verifyRow` needs (review-2 R2-04).
+ * @param {string} key @param {{ plan: any, activation: any | null }} from
+ * @returns {Record<string, any> | null} The plan row's identity, a named twin's, or null.
+ */
+export function expectedOf(key, { plan, activation }) {
+  const fields = ['key', 'fileKey', 'stage', 'component', 'arm', 'variant', 'cell', 'rep', 'seed', 'uniqueness', 'levelId', 'boardRows', 'maxActive'];
+  /** @param {Record<string, any>} source */
+  const pick = (source) => Object.fromEntries(fields.map((f) => [f, source[f]]));
+  const row = plan.rows.find((/** @type {any} */ r) => r.key === key);
+  if (row) return row.open ? null : pick(row);
+  const m = /^conditional-twin\/uncapped\/(.+)\/(\d+)$/.exec(key);
+  if (!m || !activation) return null;
+  const named = [
+    ...Object.values(activation.slots ?? {}).filter((v) => typeof v === 'string'),
+    ...(activation.overflow?.groups ?? []).flat(),
+  ];
+  for (const name of named) {
+    const triggered = plan.rows.find((/** @type {any} */ r) => r.key === name && !r.open && r.cell === m[1] && String(r.rep) === m[2]);
+    if (triggered) return pick({ ...twinOf(triggered), stage: 'B' });
+  }
+  return null;
+}
+
+/**
+ * The reader of RAW that `verifyRow` takes, for the rows of one seal.
+ * @param {{ plan: any, seal: any, sealSha256: string, activation: any | null }} run @param {ReturnType<typeof pathsOf>} P
+ * @returns {(row: Record<string, any>) => import('./binding.mjs').RowContext}
+ */
+function rowContext(run, P) {
+  const place = (/** @type {string} */ path) => join(P.RAW, ...path.split('/'));
+  const read = (/** @type {string} */ path) => (existsSync(place(path)) && statSync(place(path)).isFile() ? readFileSync(place(path)) : null);
+  const list = (/** @type {string} */ path) => (existsSync(place(path)) && statSync(place(path)).isDirectory()
+    ? readdirSync(place(path), { withFileTypes: true }).filter((e) => e.isFile()).map((e) => e.name).sort(byText)
+    : []);
+  return (row) => ({ sealSha256: run.sealSha256, seal: run.seal, expected: expectedOf(row.key, run), read, list });
+}
+
+/**
+ * `ctxOf` for `loadSnapshot` and the readers: the context of every row, from the active seal, the plan and RAW.
+ * @param {ReturnType<typeof pathsOf>} P
+ * @returns {(row: Record<string, any>) => import('./binding.mjs').RowContext}
+ */
+export function rowContextOf(P) {
+  const run = loadRun(P);
+  if (!run.seal || !run.sealSha256) throw new Exit(3, `the seal is missing: ${join(P.E, 'seal', 'seal.json')}`);
+  return rowContext({ plan: run.plan, seal: run.seal, sealSha256: run.sealSha256, activation: run.activation }, P);
+}
+
+/**
+ * A published snapshot with each row's binding (C8; review-2 R2-04). A row whose `binding.ok` is false is missing evidence.
+ * @param {string} dir @param {string} stage @param {(row: Record<string, any>) => import('./binding.mjs').RowContext} ctxOf
+ * @returns {{ sha256: string, rows: (Record<string, any> & { binding: { ok: boolean, problems: string[] } })[] }}
+ */
+export function loadSnapshot(dir, stage, ctxOf) {
+  const bytes = readFileSync(join(dir, `${stage}.jsonl`));
+  const sha256 = sha256Hex(bytes);
+  if (readFileSync(join(dir, `${stage}.sha256`), 'utf8') !== `${sha256}\r\n`) throw new Error(`snapshot ${stage} hash`);
+  const rows = bytes.toString('utf8').split(/\r?\n/).filter((l) => l.trim() !== '').map((l) => JSON.parse(l));
+  return { sha256, rows: rows.map((row) => ({ ...row, binding: verifyRow(row, ctxOf(row)) })) };
 }
 
 /** @param {string} file @returns {any | null} The report's one generation run, or null. */
@@ -722,7 +885,7 @@ function generationRun(file) {
  * the exit code and the lines to print are returned.
  * @param {{ stage: string, group?: number, overflowGroup?: number, invocation: string, paths: ReturnType<typeof pathsOf>, clockOffsetS?: number }} opts
  * @param {{ smokeGate?: (rows: any[], plan: any) => any, spawn?: typeof spawnSync, now?: () => number }} [deps]
- * @returns {Promise<{ code: number, lines: string[] }>} Exit code 0, 6 (smoke gate), 7 (deferred keys) or 8 (activation).
+ * @returns {Promise<{ code: number, lines: string[] }>} Exit code 0, 6 (smoke gate), 7 (deferred keys), 8 (activation) or 9 (a refused binding).
  */
 export async function runGroup(opts, deps = {}) {
   /** @type {string[]} */
@@ -744,8 +907,9 @@ async function groupBody(opts, deps, out) {
   // performance.now() counts from the start of the process, which is the horizon's origin.
   const now = deps.now ?? (() => performance.now());
   const elapsedS = () => now() / 1000 + (opts.clockOffsetS ?? 0);
-  const { plan, seal, activation } = loadRun(P);
-  if (!seal) throw new Exit(3, `run-group: the seal is missing: ${join(P.E, 'seal', 'seal.json')}`);
+  const { plan, seal, sealSha256, activation } = loadRun(P);
+  if (!seal || !sealSha256) throw new Exit(3, `run-group: the seal is missing: ${join(P.E, 'seal', 'seal.json')}`);
+  const ctxOf = rowContext({ plan, seal, sealSha256, activation }, P);
   const label = opts.overflowGroup !== undefined ? `o${opts.overflowGroup}` : opts.group;
   const slots = slotsOf(plan, activation, opts);
   const statusFile = join(P.RAW, 'rows', `${stage}.status.jsonl`);
@@ -760,11 +924,20 @@ async function groupBody(opts, deps, out) {
     else s.terminal = line.t;
     states.set(line.key, s);
   };
+  const keys = new Set(slots.map((s) => s.key));
+  /** @type {Set<string>} */
+  const foreign = new Set();
   for (const line of readJsonl(statusFile)) {
+    if (keys.has(line.key) && line.sealSha256 !== sealSha256) foreign.add(line.key);
     const s = states.get(line.key) ?? { started: false, terminal: null };
     if (line.t === 'start') s.started = true;
     else if (line.t === 'done' || line.t === 'interrupted') s.terminal = line.t;
     states.set(line.key, s);
+  }
+  // Review-2 R2-04: a record of another source epoch is refused before anything is resumed or launched.
+  if (foreign.size > 0) {
+    for (const key of foreign) out.push(`refused: foreign seal epoch ${key}`);
+    return 9;
   }
   const terminal = (/** @type {string} */ key) => states.get(key)?.terminal ?? null;
   const rawOf = (/** @type {RowSpec} */ spec) => join(P.RAW, 'raw', spec.fileKey);
@@ -781,6 +954,7 @@ async function groupBody(opts, deps, out) {
     rep: spec.rep,
     seed: spec.seed,
     uniqueness: spec.uniqueness,
+    sealSha256,
     run,
     telemetry: run.telemetry ?? null,
     receipt,
@@ -788,21 +962,25 @@ async function groupBody(opts, deps, out) {
     ledger: rowWork(join(rawOf(spec), 'journal'), { row: spec.fileKey, seed: spec.seed, acceptedCount: run.acceptedCount }),
   });
 
-  // Resume (C5): a started row without a terminal line is never launched again.
+  // Resume (C5): a started row without a terminal line is never launched again; it is done only when it verifies.
   for (const slot of slots) {
     const s = states.get(slot.key);
     if (slot.spec === null || !s?.started || s.terminal) continue;
     const raw = rawOf(slot.spec);
     const run = generationRun(join(raw, 'report.json'));
     const receiptFile = join(raw, 'receipt.json');
-    if (run && existsSync(receiptFile)) {
-      if (!readJsonl(rowsFile).some((l) => l.key === slot.key)) {
-        appendDurable(rowsFile, toCrlf(JSON.stringify(lineOf(slot.spec, run, sha256Hex(readFileSync(receiptFile))))));
-      }
-      record({ t: 'done', key: slot.key, at: new Date().toISOString() });
-    } else {
-      record({ t: 'interrupted', key: slot.key, cause: 'no-report', at: new Date().toISOString() });
+    if (!run || !existsSync(receiptFile)) {
+      record({ t: 'interrupted', key: slot.key, cause: 'no-report', sealSha256, at: new Date().toISOString() });
+      continue;
     }
+    const line = lineOf(slot.spec, run, sha256Hex(readFileSync(receiptFile)));
+    const bound = verifyRow(line, ctxOf(line));
+    if (!bound.ok) {
+      record({ t: 'interrupted', key: slot.key, cause: bound.problems[0], sealSha256, at: new Date().toISOString() });
+      continue;
+    }
+    if (!readJsonl(rowsFile).some((l) => l.key === slot.key)) appendDurable(rowsFile, toCrlf(JSON.stringify(line)));
+    record({ t: 'done', key: slot.key, sealSha256, at: new Date().toISOString() });
   }
 
   /** @param {RowSpec} spec */
@@ -812,7 +990,7 @@ async function groupBody(opts, deps, out) {
     const raw = rawOf(spec);
     const tree = join(P.RAW, 'trees', spec.source, spec.variant);
     const startedAt = new Date().toISOString();
-    record({ t: 'start', key: spec.key, group: label, invocation, at: startedAt });
+    record({ t: 'start', key: spec.key, group: label, invocation, sealSha256, at: startedAt });
     mkdirSync(join(raw, 'journal'), { recursive: true });
     writeFileSync(join(raw, 'matrix.json'), jsonText(rowMatrix(spec)));
     const fd = openSync(join(raw, 'calibrate.log'), 'a');
@@ -845,6 +1023,7 @@ async function groupBody(opts, deps, out) {
       stage,
       group: label,
       invocation,
+      sealSha256,
       variant: spec.variant,
       copy: { treeId: copy.treeId, copyDigest: copy.copyDigest },
       report: existsSync(reportFile) ? { path: `raw/${spec.fileKey}/report.json`, sha256: sha256Hex(readFileSync(reportFile)) } : null,
@@ -858,11 +1037,11 @@ async function groupBody(opts, deps, out) {
     const run = generationRun(reportFile);
     if (run) {
       appendDurable(rowsFile, toCrlf(JSON.stringify(lineOf(spec, run, sha256Hex(readFileSync(receiptFile))))));
-      record({ t: 'done', key: spec.key, at: new Date().toISOString() });
+      record({ t: 'done', key: spec.key, sealSha256, at: new Date().toISOString() });
       out.push(`row ${spec.key} done`);
     } else {
       const lost = receipt.report === null && child.status !== 0 && child.status !== 2;
-      record({ t: 'interrupted', key: spec.key, cause: lost ? `child-exit ${child.status}` : 'no-report', at: new Date().toISOString() });
+      record({ t: 'interrupted', key: spec.key, cause: lost ? `child-exit ${child.status}` : 'no-report', sealSha256, at: new Date().toISOString() });
       out.push(`row ${spec.key} interrupted`);
     }
   };
@@ -954,6 +1133,23 @@ export function publishCommand(P, a) {
   const rowsFile = join(typeof a.rows === 'string' ? resolve(a.rows) : join(P.RAW, 'rows'), `${stage}.jsonl`);
   if (!existsSync(rowsFile)) throw new Exit(2, `publish: no rows file ${rowsFile}`);
   const rows = readFileSync(rowsFile, 'utf8').split(/\r?\n/).filter((l) => l.trim() !== '');
+  // Resume reconciles only the keys of the group being run, so a stage with a started key and no terminal line is refused.
+  /** @type {Set<string>} */
+  const open = new Set();
+  for (const l of readJsonl(join(P.RAW, 'rows', `${stage}.status.jsonl`))) {
+    if (l.t === 'start') open.add(l.key);
+    else if (l.t === 'done' || l.t === 'interrupted') open.delete(l.key);
+  }
+  if (open.size > 0) throw new Exit(9, [...open].map((key) => `publish: unreconciled ${key} (run its group again)`).join('\n'));
+  const ctxOf = rowContextOf(P);
+  /** @type {string[]} */
+  const refused = [];
+  for (const line of rows) {
+    const row = JSON.parse(line);
+    const bound = verifyRow(row, ctxOf(row));
+    if (!bound.ok) refused.push(`publish: refused ${row.key}: ${bound.problems.join('; ')}`);
+  }
+  if (refused.length > 0) throw new Exit(9, refused.join('\n'));
   /** @type {Map<string, number>} */
   const counts = new Map();
   for (const line of rows) {
@@ -1033,17 +1229,17 @@ export async function main(argv) {
     }
     case 'seal': {
       if (a.check) {
-        const file = typeof a.seal === 'string' ? resolve(a.seal) : join(P.E, 'seal', 'seal.json');
-        if (!existsSync(file)) throw new Exit(3, `seal: drift file ${file}`);
-        const drift = await checkSeal({ seal: JSON.parse(readFileSync(file, 'utf8')), paths: P });
-        if (drift) throw new Exit(3, `seal: ${drift}`);
+        const r = await checkSeal(/** @type {any} */ ({
+          rawRoot: P.RAW,
+          out: join(P.E, 'seal'),
+          ...(typeof a.seal === 'string' ? { sealFile: resolve(a.seal) } : {}),
+        }));
+        if (!r.ok) throw new Exit(3, r.drift.map(({ field, id }) => `seal: drift ${field} ${id}`).join('\n'));
         return 'seal: OK';
       }
       for (const f of ['commit', 'today-root', 'plan', 'out']) if (typeof a[f] !== 'string') throw new Exit(2, USAGE);
-      const seal = await buildSeal({ commit: a.commit, todayRoot: resolve(a['today-root']), planFile: resolve(a.plan), paths: P });
-      const text = jsonText(seal);
-      writeOnce(join(resolve(a.out), 'seal.json'), text, 'seal');
-      return `seal: ${sha256Hex(Buffer.from(text, 'utf8'))}`;
+      const r = await buildSeal({ commit: a.commit, todayRoot: resolve(a['today-root']), planPath: resolve(a.plan), rawRoot: P.RAW, out: a.out });
+      return `seal: ${r.sha256}${r.unchanged ? ' (unchanged)' : ''}`;
     }
     case 'ledger': {
       if (a.status) {
