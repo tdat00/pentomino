@@ -319,7 +319,8 @@ Stage B: PROCEED
 - **`item`** is `{ n, cell, uniqueness, copy: { id, treeId }, status, reason, puzzles: [{ id, kind, status, steps, bytes, work }], maxima, margin }`,
   for the eight fixed items of P2-14b, in order.
 - `status` is `measured`, `not-measured`, `failed`, `censored` or `not-started`; a puzzle's `status` is the replay's
-  (`matched` or another); `margin` is `'ok'` or `'exceeded'`.
+  (`matched` or another); `margin` is `'ok'` or `'exceeded'` when puzzles were replayed, and `null` when nothing was
+  measured. An item whose run throws is `failed` with `reason: 'error'` and a `detail` (ruling on P2-14b, 2026-11-26).
 
 ## C16. The browser receipts (P2-16e; read by A5 through P2-13v)
 

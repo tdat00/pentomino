@@ -109,8 +109,17 @@ None here; P2-17 writes the README section.
 |---|---|---|---|
 | `node --test tools/ig-proto/phase2/replay-probe.test.mjs` | slot root, unlocked (fakes only) | `# fail 0`, `# cancelled 0` | 2 min |
 | G-CHECK, G-PROTECTED, G-WORKTREE, G-FORMAT | §3.4 | OK lines | 2 min |
+| the merge gate's rehearsal (the orchestrator, after the merge, on the merged `gen-v4` head in the main worktree; ruling on P2-14b, 2026-11-26): the copies built with `node tools\ig-proto\phase2\copies.mjs build --source gen-v4`, then `Invoke-IgNode -Repo pentomino -Task 'P2-14b replay-probe rehearsal' -LimitSeconds 900 -QuietSeconds 45 -NodeArgs @('tools\ig-proto\phase2\replay-probe.mjs', '--all', '--out', 'tests\artifacts\ig-proto\phase2\rehearsal\replay-probes')` | §3.3, uncharged (before the seal) | exit 0: the eight items `measured`, margin `ok`; the execution log records each item's status, `seconds` and maxima, and the helper's node seconds | 900 s |
 
-No probe runs here; P2-19 runs `--all` once, locked, through the stage-A ledger.
+No probe runs in the developer's slot. P2-19 runs `--all` once, locked, through the stage-A ledger. Before that, the
+orchestrator runs the rehearsal above once, uncharged. Its `--out` is a scratch folder, never `E/replay-probes/`. The
+seeds are fixed, so it does P2-19's work, and the first real run of the two-lane client path happens before the seal. Any
+other exit, or a kill, stops for the pack author's ruling before P2-18:
+
+- exit 2 is a wiring defect, fixed before the seal;
+- a `not-measured` item may get a seed rule, stated before the seal;
+- a `failed` item (a replay not `matched`, a margin `exceeded`, or an error) falls under R5. Its seed is never swapped
+  to avoid the failure.
 
 ## Stop points and questions
 
