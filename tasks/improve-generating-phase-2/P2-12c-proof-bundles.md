@@ -7,7 +7,7 @@
 | Lane; starts when merged | join; P2-12d (the traced copies) |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executor | Dev-Sonnet (`claude-sonnet-5.5`) |
-| Estimate | developer 2 h; machine: two locked rehearsals (at most 120 s each) |
+| Estimate | developer 2 h; machine: two locked rehearsals (at most 300 s each) |
 
 ## Goal
 
@@ -107,8 +107,8 @@ None here; P2-17 writes the README section.
 |---|---|---|---|
 | the rehearsal copies: `node tools\ig-proto\phase2\copies.mjs build --source gen-v4 @flag` (G-COPIES' `$flag`) | slot root, unlocked | one line per copy | 2 min |
 | locked focused gate: `-NodeArgs @('--test', 'tools/ig-proto/phase2/proofs.test.mjs')` | §3.3 | `# fail 0`, `# cancelled 0` | 300 s |
-| locked rehearsal, each of `observer` and `certificate`: `Invoke-IgNode -Repo pentomino -Task 'P2-12c <bundle> quick' -LimitSeconds 120 -QuietSeconds 45 -NodeArgs @('tools\ig-proto\phase2\proofs.mjs', '<bundle>', '--out', 'tests\artifacts\ig-proto\phase2\rehearsal\<bundle>', '--quick')` | §3.3 | exit 0; `result.json` `status: 'pass'` | 120 s each |
-| the merge gate's full runs (the orchestrator, on the merged tree; ruling on P2-12e, 2026-11-26): the same command without `--quick` (task `'P2-12c <bundle> full'`), `-LimitSeconds 600` | §3.3 | exit 0; `status: 'pass'`; the helper's node seconds recorded in the execution log as P2-18's expected cost. A kill stops for a ruling before P2-18 | 600 s each |
+| locked rehearsal, each of `observer` and `certificate`: `Invoke-IgNode -Repo pentomino -Task 'P2-12c <bundle> quick' -LimitSeconds 300 -QuietSeconds 45 -NodeArgs @('tools\ig-proto\phase2\proofs.mjs', '<bundle>', '--out', 'tests\artifacts\ig-proto\phase2\rehearsal\<bundle>', '--quick')` (300 s since the ruling on P2-12c, 2026-11-26: the quick `observer` used 108.6 s of 120) | §3.3 | exit 0; `result.json` `status: 'pass'` | 300 s each |
+| the merge gate's full runs (the orchestrator, on the merged tree; rulings on P2-12e and P2-12c, 2026-11-26): the same command without `--quick` (task `'P2-12c <bundle> full'`), `-LimitSeconds 900`, P2-18's own limit | §3.3 | exit 0; `status: 'pass'`; the helper's node seconds recorded in the execution log as P2-18's expected cost, with the counts (`certificate`: certified, screen-capped, capped). A kill, or a bundle above 720 s (less than a fifth of margin under P2-18's 900 s), stops for a ruling before P2-18 | 900 s each |
 | G-CHECK, G-PROTECTED, G-WORKTREE, G-FORMAT | §3.4 | OK lines | 2 min |
 
 ## Stop points and questions
