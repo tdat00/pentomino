@@ -85,7 +85,9 @@ before it is measured or counted.
    - `core/`, `generator/` and `tests/browser/` (the shipping build that browser receipts name);
    - `tests/fixtures/replay-case.json` and `tests/fixtures/replay-case-v4.json`;
    - `tools/ig-proto/` (except `tools/ig-proto/phase2/`), `tools/bench/`, `tools/calibrate.mjs`,
-     `tools/node-worker.mjs` and `tools/test-server.mjs`.
+     `tools/node-worker.mjs` and `tools/serve.mjs`. Review-2's `tools/test-server.mjs` does not exist; the reused
+     static server is `tools/serve.mjs` (`createStaticServer`, imported by `browser-run.mjs`; ruling on P2-13e,
+     2026-11-25).
 2. **`export async function buildSeal(opts, deps)`**, which the `seal` command calls.
    - **`opts`:** `{ repoRoot, commit, todayRoot, planPath, rawRoot, inputs, out }`, with `inputs` defaulting to
      `SEALED_INPUTS` (the tests pass a short list). `buildSeal` writes `<out>/seal.json` and returns

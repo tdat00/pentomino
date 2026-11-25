@@ -40,7 +40,9 @@ P2-12c and P2-12e plug their bundles.
   receipt, `p2-copy.json`, naming its input root and the digest of its input sources. The seal adds the git facts of
   the today worktree (P2-13a); this tool runs no git.
 - **The edit anchors** are exact texts of the merged production code:
-  - `const bound = setBound(results);` (P2-06, `generation-client.js`);
+  - `        const bound = setBound(results);\n        if (bound !== null) {` (P2-06, `generation-client.js`: the loop of
+    `generateSet` that fires the bound; the one-line text also occurs in `telemetry()`, so the anchor is two lines;
+    ruling on P2-12b, 2026-11-25);
   - `  const scope = usesGenV4(caseDef.levelId, boardFromRows(caseDef.boardRows)) ? { origin: s.t0, setCutAt: s.t0 + DEADLINE.setStageCapMs } : undefined;`
     (P2-10, `tools/bench/runner.js`);
   - the `gen-v4.js` lines of P2-01 step 2;
@@ -89,7 +91,7 @@ P2-12c and P2-12e plug their bundles.
    | `p2-gen4` | `["base"]` | none | `{ "p2": "gen-v4", "source": "gen-v4" }` |
    | `p2-gen4-diag` | `["p2-gen4", "p2-diag"]` | none | `{}` |
    | `p2-none` | `["p2-gen4"]` | `nn-1` `core/engine/gen-v4.js`: `export const SCREEN_TABLE_ID = 'screen-v4-v1';` to `export const SCREEN_TABLE_ID = 'screen-p2-none-v1';`; `nn-2` the same file: `export const SCREEN_AREAS = Object.freeze([196, 256]);` to `export const SCREEN_AREAS = Object.freeze([1, 0]);` (no area is screened); `nn-3` `core/engine/version.js`: `export const ALGO_ID = 'gen-v4';` to `export const ALGO_ID = 'gen-v4-proto:p2-none';` | `{ "p2": "p2-none" }` |
-   | `p2-uncapped` | `["p2-gen4"]` | `un-1` `core/engine/gen-v4.js`: the whole `export const CALL_BUDGET = ...;` line of P2-01 to `export const CALL_BUDGET = Object.freeze({ any: Object.freeze({}), require: Object.freeze({}) });` (every budget is `Infinity`); `un-2` `core/browser/generation-client.js`: `const bound = setBound(results);` to `const bound = null;` (no bound); `un-3` `tools/bench/runner.js`: P2-10's scope line above to `  const scope = undefined;` (no shared scope: a guard per request); `un-4` `core/engine/version.js`: `export const ALGO_ID = 'gen-v4';` to `export const ALGO_ID = 'gen-v4-proto:p2-uncapped';` | `{ "p2": "p2-uncapped" }` |
+   | `p2-uncapped` | `["p2-gen4"]` | `un-1` `core/engine/gen-v4.js`: the whole `export const CALL_BUDGET = ...;` line of P2-01 to `export const CALL_BUDGET = Object.freeze({ any: Object.freeze({}), require: Object.freeze({}) });` (every budget is `Infinity`); `un-2` `core/browser/generation-client.js`: `        const bound = setBound(results);\n        if (bound !== null) {` to `        const bound = null;\n        if (bound !== null) {` (no bound: the loop site only; `telemetry()` still reports `sameSide`); `un-3` `tools/bench/runner.js`: P2-10's scope line above to `  const scope = undefined;` (no shared scope: a guard per request); `un-4` `core/engine/version.js`: `export const ALGO_ID = 'gen-v4';` to `export const ALGO_ID = 'gen-v4-proto:p2-uncapped';` | `{ "p2": "p2-uncapped" }` |
    | `p2-uncapped-diag` | `["p2-uncapped", "p2-diag"]` | none | `{}` |
    | `p2-today` | `["base"]` | `td-1` `tools/bench/runner.js`: `  if (c.uniqueness !== 'any') {` to `  if (c.uniqueness !== 'any' && c.uniqueness !== 'require') {` (today's bench accepts `require` rows, as P2-12a's does) | `{ "p2": "today", "source": "today" }` |
 
