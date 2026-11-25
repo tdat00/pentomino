@@ -338,13 +338,13 @@ State the commit and successful post-commit G-QUALIFIED. No push or PR edit here
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-25 11:29 to 11:37 +07:00 (one command: shared block, G-PROTECTED, G-STAGE, blocks A-D); accepted 11:40; about 11 min |
+| Waiting for rulings | none |
+| Agent id, model | the orchestrator (no developer) |
+| Calls; input, output and cache-read tokens | - |
+| AI credits | - |
+| Questions and rulings | none |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | attempt P1-03b-20261125T042920136Z, qualified commit 02edc6a48662fd81d38d86044881de20a5d8f4ff, digest a51e8196...: full Node 26 (v26.13.0) 1514/1514 pass, 128 suites, 0 fail/cancelled/skipped/todo, 122.063 s; fixtures `record-fixtures: OK` 0.673 s; replay case `record-fixtures: replay case OK` 1.306 s; full Node 22 (v22.23.5) 1514/1514 pass, 141.735 s; every helper quiet 45; `npm run check` OK; staged site stamped 02edc6a4, check-site OK, 120 files equal to git ls-tree, owned copy removed; five locked invocations 509.741 node+quiet s of 1,725; then G-PROTECTED, G-STAGE, G-WORKTREE, G-FORMAT and, after the commit, G-QUALIFIED |
+| Commit | this task's commit |
+| Issues and named items | none; limitations recorded: Node 22 on Windows, not Ubuntu CI; static-site check is not a browser run or deployment |
