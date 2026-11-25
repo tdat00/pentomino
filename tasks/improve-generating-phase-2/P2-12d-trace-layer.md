@@ -246,14 +246,14 @@ None here; P2-17 documents the trace in `tools/ig-proto/README.md`.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w1, 953f3b261d1e5fc0b2bb9dd285f7af33b79be0e4 |
+| Start, end, duration | dispatched 2026-11-25 23:55 +07:00 (developer 23:55:22 to about 00:08, QUESTION 1; resumed to about 00:16); accepted 2026-11-26 00:18 |
+| Waiting for rulings | about 7 min (QUESTION 1 and six deviations, SA-Opus) |
+| Agent id, model | 1210dfa8-8c1b-44c4-9772-26300a99df7d, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 52; 7,636,794 / 61,670 / 7,269,621 |
+| AI credits | 226.15 |
+| Questions and rulings | QUESTION 1 (copies.test.mjs:35's plan helper passes no filesRoot, so P2-12b's three identity tests fail once a manifest has a files folder): SA-Opus ruled option (a), add filesRoot: join(HERE, 'files') and add tools/ig-proto/phase2/copies.test.mjs to $Allowed. Six deviations accepted (redundant id spread on the Nightmare target, level('nightmare') already has it; BAND with id nightmare and budget Infinity; smaller run() helper; copy at trace-<ms>/gen-v4/p2-gen4; header set keyed by the path as given, made safe by 5f73c9e: C1 states IG_LOG_DIR is absolute, P2-12c and P2-16c set absolute folders; sequence from 1, C1) |
+| Fix rounds | 1 (the ruled filesRoot line) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards with copies.test.mjs added to $Allowed (ruling); merge gate with every phase-2 test file and G-COPIES (results in the bookkeeping); developer: locked trace self-check 25/25 (1.539 s), copies gen-v4 --rehearse-cutover `copies: OK (5 variants, 195 edits match)`, copies today `copies: OK (1 variants, 32 edits match)`, G-PROTECTED, G-WORKTREE, G-FORMAT (9 files), G-CHECK OK |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | trace.test.mjs reads the frozen igRatingBound through the tree-frozen junction (every slot has it); a later manifest with a files folder must pass filesRoot to planTree; real and require batches are covered by P2-12c's observer proof and P2-18's smoke rows; the tt-* journals first run in P2-18's smoke rows; open-begin rows and the worker-end check rest on rowLedger and P2-13r |

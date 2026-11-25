@@ -1,0 +1,77 @@
+{
+  "id": "p2-trace",
+  "extends": ["p2-link"],
+  "description": "The trace layer of the gen-v4 copies (P2-12d, contracts.md C1): every selection call, rating and uniqueness count is journaled in the frozen work ledger's format by p2-trace.js, and the phase C dead end and the re-rating starts of the selector are written back.",
+  "edits": [
+    {
+      "id": "tr-1",
+      "file": "core/engine/clues.js",
+      "find": "export function selectClues(ctx) {\n",
+      "replace": "export function selectClues(ctx) {\n  return p2TraceCall(ctx, () => p2SelectClues(ctx));\n}\n\nfunction p2SelectClues(ctx) {\n"
+    },
+    {
+      "id": "tr-2",
+      "file": "core/engine/difficulty.js",
+      "find": "export function rate(board, pieces, clues, ws) {\n",
+      "replace": "export function rate(board, pieces, clues, ws) {\n  return p2TraceRating(board, pieces, clues, DEDUCE.work, () => p2Rate(board, pieces, clues, ws), IncompleteRatingError);\n}\n\nfunction p2Rate(board, pieces, clues, ws) {\n"
+    },
+    {
+      "id": "tr-3",
+      "file": "core/engine/difficulty.js",
+      "find": "export function rateDetailed(board, pieces, clues, ws) {\n",
+      "replace": "export function rateDetailed(board, pieces, clues, ws) {\n  return p2TraceRating(board, pieces, clues, DEDUCE.work, () => p2RateDetailed(board, pieces, clues, ws), IncompleteRatingError);\n}\n\nfunction p2RateDetailed(board, pieces, clues, ws) {\n"
+    },
+    {
+      "id": "tr-4",
+      "file": "core/engine/difficulty.js",
+      "find": "export function rateLean(board, pieces, clues, ws) {\n",
+      "replace": "export function rateLean(board, pieces, clues, ws) {\n  return p2TraceRating(board, pieces, clues, DEDUCE.work, () => p2RateLean(board, pieces, clues, ws), IncompleteRatingError);\n}\n\nfunction p2RateLean(board, pieces, clues, ws) {\n"
+    },
+    {
+      "id": "tr-5",
+      "file": "core/engine/difficulty.js",
+      "find": "export function rateWithLimits(board, pieces, clues, ws, work, mode) {\n",
+      "replace": "export function rateWithLimits(board, pieces, clues, ws, work, mode) {\n  return p2TraceRating(board, pieces, clues, work, () => p2RateWithLimits(board, pieces, clues, ws, work, mode), IncompleteRatingError);\n}\n\nfunction p2RateWithLimits(board, pieces, clues, ws, work, mode) {\n"
+    },
+    {
+      "id": "tr-6",
+      "file": "core/engine/clue-primitives.js",
+      "find": "    const c = countSolutions(model, { cap: 2, rowTrialLimit: rowLimit, witnessLimit: 2 });\n",
+      "replace": "    const c = p2TraceCount(rowLimit, () => countSolutions(model, { cap: 2, rowTrialLimit: rowLimit, witnessLimit: 2 }));\n"
+    },
+    {
+      "id": "tr-7",
+      "file": "core/engine/clues.js",
+      "append": "\nimport { p2TraceCall } from './p2-trace.js';\n"
+    },
+    {
+      "id": "tr-8",
+      "file": "core/engine/difficulty.js",
+      "append": "\nimport { p2TraceRating } from './p2-trace.js';\n"
+    },
+    {
+      "id": "tr-9",
+      "file": "core/engine/clue-primitives.js",
+      "append": "\nimport { p2TraceCount } from './p2-trace.js';\n"
+    },
+    {
+      "id": "tr-10",
+      "file": "core/engine/select-v4.js",
+      "find": "  const rerate = (p, phase) => {\n",
+      "replace": "  const rerate = (p, phase) => {\n    p2TraceRerate(phase);\n"
+    },
+    {
+      "id": "tr-11",
+      "file": "core/engine/select-v4.js",
+      "find": "    for (let attempt = 0; rated.length === 0 && attempt < 4 * SAMPLES_PER_COUNT; attempt += 1) {\n",
+      "replace": "    if (rated.length === 0) {\n      p2TracePhase('p2');\n    }\n    for (let attempt = 0; rated.length === 0 && attempt < 4 * SAMPLES_PER_COUNT; attempt += 1) {\n"
+    },
+    {
+      "id": "tr-12",
+      "file": "core/engine/select-v4.js",
+      "append": "\nimport { p2TracePhase, p2TraceRerate } from './p2-trace.js';\n"
+    }
+  ],
+  "files": ["p2-trace"],
+  "params": { "trace": "p2-trace-v1" }
+}

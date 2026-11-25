@@ -32,7 +32,7 @@ function slotSources() {
 }
 
 /** @param {string} id @param {Map<string, string | Buffer>} sources */
-const plan = (id, sources) => planTree(id, { manifests, sources });
+const plan = (id, sources) => planTree(id, { manifests, filesRoot: join(HERE, 'files'), sources });
 
 /** @param {ReturnType<typeof planTree>} p @param {string} file @returns {string} */
 const text = (p, file) => String(p.files.get(file));

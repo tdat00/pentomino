@@ -1,0 +1,49 @@
+{
+  "id": "p2-trace-today",
+  "extends": ["p2-link"],
+  "description": "The trace layer of the today copy (P2-12d, contracts.md C1): today's search journals every selection call, rating and uniqueness count in the frozen work ledger's format by p2-trace.js. It has no screen rating and no dead-end or re-rating line.",
+  "edits": [
+    {
+      "id": "tt-1",
+      "file": "core/engine/clues.js",
+      "find": "export function selectClues(ctx) {\n",
+      "replace": "export function selectClues(ctx) {\n  return p2TraceCall(ctx, () => p2SelectClues(ctx));\n}\n\nfunction p2SelectClues(ctx) {\n"
+    },
+    {
+      "id": "tt-2",
+      "file": "core/engine/difficulty.js",
+      "find": "export function rate(board, pieces, clues, ws) {\n",
+      "replace": "export function rate(board, pieces, clues, ws) {\n  return p2TraceRating(board, pieces, clues, DEDUCE.work, () => p2Rate(board, pieces, clues, ws), IncompleteRatingError);\n}\n\nfunction p2Rate(board, pieces, clues, ws) {\n"
+    },
+    {
+      "id": "tt-3",
+      "file": "core/engine/difficulty.js",
+      "find": "export function rateDetailed(board, pieces, clues, ws) {\n",
+      "replace": "export function rateDetailed(board, pieces, clues, ws) {\n  return p2TraceRating(board, pieces, clues, DEDUCE.work, () => p2RateDetailed(board, pieces, clues, ws), IncompleteRatingError);\n}\n\nfunction p2RateDetailed(board, pieces, clues, ws) {\n"
+    },
+    {
+      "id": "tt-4",
+      "file": "core/engine/difficulty.js",
+      "find": "export function rateLean(board, pieces, clues, ws) {\n",
+      "replace": "export function rateLean(board, pieces, clues, ws) {\n  return p2TraceRating(board, pieces, clues, DEDUCE.work, () => p2RateLean(board, pieces, clues, ws), IncompleteRatingError);\n}\n\nfunction p2RateLean(board, pieces, clues, ws) {\n"
+    },
+    {
+      "id": "tt-6",
+      "file": "core/engine/clues.js",
+      "find": "    const c = countSolutions(model, { cap: 2, rowTrialLimit: rowLimit, witnessLimit: 2 });\n",
+      "replace": "    const c = p2TraceCount(rowLimit, () => countSolutions(model, { cap: 2, rowTrialLimit: rowLimit, witnessLimit: 2 }));\n"
+    },
+    {
+      "id": "tt-7",
+      "file": "core/engine/clues.js",
+      "append": "\nimport { p2TraceCall, p2TraceCount } from './p2-trace.js';\n"
+    },
+    {
+      "id": "tt-8",
+      "file": "core/engine/difficulty.js",
+      "append": "\nimport { p2TraceRating } from './p2-trace.js';\n"
+    }
+  ],
+  "files": ["p2-trace"],
+  "params": { "trace": "p2-trace-v1" }
+}

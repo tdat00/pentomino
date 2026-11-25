@@ -1,6 +1,6 @@
 {
   "id": "p2-gen4",
-  "extends": ["base"],
+  "extends": ["p2-trace"],
   "description": "The gen-v4 candidate as an identified copy of the repository's sources, the arm that every counterfactual and layer extends (R2).",
   "edits": [],
   "files": [],
