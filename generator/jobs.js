@@ -133,6 +133,7 @@ export function duplicateGuard(set, existing) {
 export function batchShortfall(reason, o) {
   const params = () => ({ n: o.n, q: o.q, level: levelLabel(o.levelId) });
   switch (reason) {
+    case 'response-bound':
     case 'time-limit':
       return notice('N-PARTIAL', () => formatNotice('N-PARTIAL', params()), 'warning');
     case 'layouts-not-found': {
@@ -355,7 +356,11 @@ export function createJobController(options) {
     } else if (result.status === 'cancelled') {
       finish(revision, (s) => ({ ...s, notice: notice('M-CANCELLED-SET', () => formatMessage('M-CANCELLED-SET'), 'info') }));
     } else {
-      finish(revision, (s) => ({ ...s, notice: notice('N-NOSET', () => formatNotice('N-NOSET', { level: levelLabel(levelId) }), 'warning') }));
+      const variant = result.reason === 'no-window-below' ? 'below' : result.reason === 'no-window-above' ? 'above' : undefined;
+      finish(revision, (s) => ({
+        ...s,
+        notice: notice('N-NOSET', () => formatNotice('N-NOSET', { level: levelLabel(levelId) }, variant), 'warning'),
+      }));
     }
   }
 

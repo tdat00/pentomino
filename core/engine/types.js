@@ -330,15 +330,18 @@
  * is announced by `selected`. The last `repair` event of a finish carries its outcome (`accepted` true or false,
  * `reason` when refused); earlier ones have `rating`, `detail` and `accepted` null.
  * @typedef {{ stage: 'clues', kind: 'rated', source: 'calibration' | 'candidate',
- *     phase: 'sample' | 'seed' | 'beam', sequence: number, clueIds: string[], rating: Rating,
- *     detail: RatingDetail | null, band: ClueBand }
+ *     phase: 'sample' | 'seed' | 'beam' | 'locate' | 'window' | 'rescue' | 'rerate', sequence: number,
+ *     clueIds: string[], rating: Rating, detail: RatingDetail | null, band: ClueBand }
  *   | { stage: 'clues', kind: 'skip', source: 'calibration' | 'candidate', sequence: number }
+ *   | { stage: 'clues', kind: 'budget', source: 'calibration' | 'candidate' }
+ *   | { stage: 'clues', kind: 'no-window', source: 'calibration' | 'candidate', side: 'below' | 'above' }
  *   | { stage: 'clues', kind: 'unrateable', source: 'calibration' | 'candidate',
- *     phase: 'sample' | 'seed' | 'beam', sequence: number, clueIds: string[], reason: 'path-capped',
- *     band: ClueBand }
+ *     phase: 'sample' | 'seed' | 'beam' | 'locate' | 'window' | 'rescue' | 'rerate', sequence: number,
+ *     clueIds: string[], reason: 'path-capped' | 'screen-capped', band: ClueBand }
  *   | { stage: 'clues', kind: 'rejected', source: 'calibration' | 'candidate',
- *     phase: 'sample' | 'seed' | 'beam', sequence: number, clueIds: string[], rating: Rating,
- *     detail: RatingDetail | null, band: ClueBand, reason: 'no-proved-guess' }
+ *     phase: 'sample' | 'seed' | 'beam' | 'locate' | 'window' | 'rescue' | 'rerate', sequence: number,
+ *     clueIds: string[], rating: Rating, detail: RatingDetail | null, band: ClueBand,
+ *     reason: 'no-proved-guess' }
  *   | { stage: 'unique', kind: 'repair', source: 'calibration' | 'candidate', repairSequence: number,
  *     addedId: string | null, clues: Pose[], rating: Rating | null, detail: RatingDetail | null,
  *     accepted: boolean | null,

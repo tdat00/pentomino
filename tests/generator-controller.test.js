@@ -1013,3 +1013,41 @@ describe('response bounds', () => {
     h.destroy();
   });
 });
+
+describe('notices of the search', () => {
+  test('a no-window set failure names its side', async () => {
+    const level = 'nightmare';
+    const levelName = 'Nightmare';
+    const cases = [
+      ['no-window-above', formatNotice('N-NOSET', { level: levelName }, 'above'), 'N-NOSET.above'],
+      ['no-window-below', formatNotice('N-NOSET', { level: levelName }, 'below'), 'N-NOSET.below'],
+      ['time-limit', formatNotice('N-NOSET', { level: levelName }), 'N-NOSET'],
+      ['reserve-cut', formatNotice('N-NOSET', { level: levelName }), 'N-NOSET'],
+    ];
+    for (const [reason, text, key] of cases) {
+      const client = fakeClient({ set: () => ({ status: 'failed', reason }) });
+      const h = harness({ client, accepted: true, state: { levelId: level } });
+      const before = h.store.getState();
+      await h.controller.generateSet({ seed: 'BBBB' });
+      const after = h.store.getState();
+      assert.equal(client.sets[0].levelId, level, reason);
+      assert.equal(after.set, before.set, reason);
+      assert.equal(after.notice?.code, 'N-NOSET', reason);
+      assert.equal(after.notice?.text, text, reason);
+      assert.equal(after.notice?.text.includes(levelName), true, key);
+      h.destroy();
+    }
+    assert.notEqual(formatNotice('N-NOSET', { level: levelName }, 'above'), formatNotice('N-NOSET', { level: levelName }, 'below'));
+  });
+
+  test('a response-bound batch shows N-PARTIAL', async () => {
+    const client = fakeClient({ batch: () => ({ status: 'partial', reason: 'response-bound', accepted: [], seenLayouts: [], seenClues: [] }) });
+    const h = harness({ client, accepted: true, state: { quantity: 4 } });
+    await h.controller.addMore();
+    const state = h.store.getState();
+    assert.equal(state.notice?.code, 'N-PARTIAL');
+    assert.equal(state.notice?.text, formatNotice('N-PARTIAL', { n: 0, q: 4, level: 'Normal' }));
+    assert.equal(batchShortfall('response-bound', { n: 1, q: 3, levelId: 'normal' })?.code, 'N-PARTIAL');
+    h.destroy();
+  });
+});

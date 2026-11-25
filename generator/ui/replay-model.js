@@ -297,13 +297,31 @@ export function stepText(step) {
         step: ordinal(a.step), lifted: numOr(a.lifted),
       });
     case 'rated':
+      if (a.phase === 'locate') {
+        return desc('replay.step.locate', {
+          sequence: ordinal(a.sequence), count: step.board.clues.length, score: numOr(step.rating?.score),
+        });
+      }
+      if (a.phase === 'rescue' || a.phase === 'rerate') {
+        return desc('replay.step.rerate', { sequence: ordinal(a.sequence), score: numOr(step.rating?.score) });
+      }
       return desc(a.source === 'calibration' ? 'replay.step.rated.calibration' : 'replay.step.rated', {
         sequence: ordinal(a.sequence), score: numOr(step.rating?.score),
       });
     case 'skip':
       return desc('replay.step.skip', { sequence: ordinal(a.sequence) });
     case 'unrateable':
+      if (a.reason === 'screen-capped') {
+        return desc('replay.step.screenCapped', { sequence: ordinal(a.sequence) });
+      }
+      if (a.phase === 'rescue' || a.phase === 'rerate') {
+        return desc('replay.step.rerateCapped', { sequence: ordinal(a.sequence) });
+      }
       return desc('replay.step.unrateable', { sequence: ordinal(a.sequence) });
+    case 'budget':
+      return desc('replay.step.budget');
+    case 'noWindow':
+      return desc(`replay.step.noWindow.${a.side === 'above' ? 'above' : 'below'}`);
     case 'rejected':
       return desc('replay.step.rejected', { sequence: ordinal(a.sequence), score: numOr(step.rating?.score) });
     case 'repair': {

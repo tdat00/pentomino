@@ -149,14 +149,14 @@ questions and deviations.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w2, df15064f2d3d059ae6f2d61f9a9456bb1869cb34 |
+| Start, end, duration | dispatched 2026-11-25 23:34 +07:00 (developer 23:34:40 to 23:39:29; doc fix to about 23:48); accepted 23:46 |
+| Waiting for rulings | about 5 min (six deviations, SA-Opus) |
+| Agent id, model | 7fbcd743-8e5b-45d6-a777-e67c4447fa2a, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 45; 4,797,767 / 34,016 / 4,668,378 |
+| AI credits | 113.04 |
+| Questions and rulings | no QUESTION; six deviations, all accepted by SA-Opus (export on stepMaker, the smallest way to test the mapping, production path unchanged; a noWindow note that is not a locale key, as step 2 prescribes; one sentence in design-brief.md's "A new puzzle is a request" paragraph; the notices bullet at the end of 6.12; the types.js edits; locale placement). Documentation fix ruled by SA-Opus: design-detail.md N-NOSET table row gains the .below and .above variants (D-P2-16 strings verbatim from the locale), and the Outcome list line reads "No set within the time limit, or four no-window ends on the same side (gen-v4): N-NOSET (its .below or .above variant for the latter)."; no pack amendment |
+| Fix rounds | 1 (the ruled documentation fix) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: nine text checks one hit each in EN and VI, locked focused 140/140 (18.088 s), G-PROTECTED, G-WORKTREE, G-FORMAT (11 files), G-CHECK OK, anchors 22 of 22; after the doc fix: the three N-NOSET strings verbatim in the doc, G-WORKTREE, G-FORMAT, G-CHECK OK |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | N-P2-09-CELL (the score cell of a screen-capped or re-rating-capped step shows replay.table.unrateable; one new EN/VI cell string; routed to the owner's text pass); P2-17's guide sentence row; the step-builder test uses synthetic gen-v4 events only |
