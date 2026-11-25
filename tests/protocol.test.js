@@ -52,7 +52,7 @@ const V3_ESTIMATE = {
 };
 const V3_SUMMARY = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, censored: true };
 
-const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case.json', import.meta.url), 'utf8'));
+const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case-v4.json', import.meta.url), 'utf8'));
 /**
  * The replay payload of one fixture puzzle, as the Generator's client builds it (design §8.1): the set of its pack in
  * wire form, the puzzle's id, clues, solution and rating, and the pack's set origin with the puzzle's own `made` record.

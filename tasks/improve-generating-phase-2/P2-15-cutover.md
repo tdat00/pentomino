@@ -253,14 +253,14 @@ Step 6.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w2, 9bc10e65e985904c053be8786fa6ba60ded3912d |
+| Start, end, duration | dispatched 2026-11-25 23:59 +07:00 (developer 23:59 to 00:07, QUESTION 1; to about 00:24, QUESTION 2; resumed to 00:55); accepted 2026-11-26 00:57 |
+| Waiting for rulings | about 26 min (QUESTION 1 about 9 min; QUESTION 2 about 17 min; the forward-check point about 3 min; SA-Opus) |
+| Agent id, model | c920fe82-3187-4ae2-b311-b6fa0ed8fac9, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 91; 11,208,699 / 56,674 / 10,794,657 |
+| AI credits | 268.12 |
+| Questions and rulings | QUESTION 1 (the hard search ran 50 seeds in 157.9 s, no seed with a subset skip): SA-Opus ruled option 1, record replay-case-0 with the qualifier unchanged (the gen-v3 fixture was also replay-case-0 without a skip; skip replay stays covered by replay-recorders.test.js and the screen case); K2's 26x26 input accepted with an added no-counters assertion. QUESTION 2 (14 full-suite failures, 2 in K8/K9 and 12 outside): scoped ruling K10 to K18 plus K3 extended, pack amendment 703f03f; no production change; K12 repairs P2-11b's regression (df15064: generator-import.test.js:512, client.newScope missing in its fake client, confirmed failing on gen-v4 3b06cbc by the orchestrator). Forward check: the calibration made record is kept (it has no versions or igPrior, the phase-1 reader reads it); the task text was corrected in 67b87f5. K8 test name kept ("v3" is the rating model). Other deviations accepted (stale gen-v4.js comments, extra accurate design-detail edits, string-replace reader paths) |
+| Fix rounds | 2 (K2 assertion; K3 and K10 to K18) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked full suite (full-suite point), G-COPIES without --rehearse-cutover, and the six P2-16b browser checks on the combined tree (P2-15 merges second; check-list 3.7) (results in the bookkeeping); developer: fixture checks OK (record-fixtures --check, hard and screen replay checks, --refusal), hard search 157.9 s no seed (ruled), screen search 17.3 s seed 0, ui-recipe 9.2 s puzzles 10, forward check ok, locked full suite 1626/1626 (60.98 s), G-PROTECTED, G-WORKTREE, G-FORMAT (28 files), G-CHECK OK, copies 25 and 3 edits |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | N-P2-15-K8 (15x20 Nightmare, seed t18-big-a, K = 24: the gen-v4 calibration has 5 clues and score 69, in band; gen-v3 had 3 clues and score 70; one seed, a P2-21 deviation note, not population evidence); replay-case-v4.json has no subset skip (ruled); the set-stage bound's false-stop rate is not established (the statement says so) |

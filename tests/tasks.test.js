@@ -103,7 +103,11 @@ describe('executeTask returns exact engine results', () => {
       slot: 1,
       attempt: 0,
     };
-    assert.deepEqual(executeTask('puzzleCandidate', { ...payload, igPrior: 5 }, execution()), executeTask('puzzleCandidate', payload, execution()));
+    const withPrior = /** @type {any} */ (executeTask('puzzleCandidate', { ...payload, igPrior: 5 }, execution()));
+    const without = /** @type {any} */ (executeTask('puzzleCandidate', payload, execution()));
+    assert.equal(withPrior.made.igPrior, 5);
+    assert.equal(without.made.igPrior, null);
+    assert.deepEqual({ ...withPrior, made: { ...withPrior.made, igPrior: null } }, without);
   });
 
   test('certify, rate and solveFirst', () => {
@@ -628,7 +632,7 @@ describe('puzzle-code tasks', () => {
 });
 
 describe('replayPuzzle task', () => {
-  const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('tests/fixtures/replay-case.json', root), 'utf8'));
+  const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('tests/fixtures/replay-case-v4.json', root), 'utf8'));
   /**
    * The payload of one fixture puzzle as the Generator's client builds it (design §8.1).
    * @param {number} [packIndex]

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 
 import { boardFromRows, rectangle } from '../core/engine/board.js';
+import { ALGO_ID } from '../core/engine/version.js';
 import {
   BUDGET_TABLE_ID, callBudgetOf, DEADLINE, DEADLINE_ID, GEN_V4_LIVE, isGenV4Route, isV4Family, perSetPrior, PER_SET_LEVELS,
   PRIOR, PRIOR_TABLE_ID, priorStart, RERATE_MAX, SCREEN_TABLE_ID, screenWOf, SET_ATTEMPTS_BOUND, SKIP_BOUNDS_V4, startOf,
@@ -36,9 +37,11 @@ describe('gen-v4 tables and rules', () => {
     }
   });
 
-  test('the route is off until the cutover', () => {
-    assert.equal(GEN_V4_LIVE, false);
-    assert.equal(usesGenV4('nightmare', rectangle(10, 10)), false);
+  test('the route is live with the gen-v4 algo id', () => {
+    assert.equal(GEN_V4_LIVE, true);
+    assert.equal(ALGO_ID, 'gen-v4');
+    assert.equal(usesGenV4('nightmare', rectangle(10, 10)), true);
+    assert.equal(usesGenV4('nightmare', rectangle(26, 26)), false);
   });
 
   test('the screen applies on Nightmare 196 to 256 cells only', () => {

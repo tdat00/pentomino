@@ -1,5 +1,5 @@
 // @ts-check
-// Replay runs (MP15a1, design §6.12): `runReplay` on the replay fixture of tests/fixtures/replay-case.json (hard,
+// Replay runs (MP15a1, design §6.12): `runReplay` on the replay fixture of tests/fixtures/replay-case-v4.json (hard,
 // 10 x 6, `require`, the set seed replay-case-0: two batch packs of the same set, the first puzzle of pack 0 being
 // the set's reused calibration puzzle). The fixture has no skip of any kind, so the skip cases (17) are made by the
 // real engine and never written by hand. MP15a2 adds `replayPuzzle` and its steps at the end of the file.
@@ -24,7 +24,7 @@ import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '
 /** @typedef {import('../core/engine/replay.js').ReplayResult} ReplayResult */
 /** @typedef {{ name: string, set: PieceSet, puzzle: any, generation: any }} ReplayInput */
 
-const FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case.json', import.meta.url), 'utf8'));
+const FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case-v4.json', import.meta.url), 'utf8'));
 const ws = createWorkspace(MAIN_WORKSPACE_BYTES);
 const scratch = createWorkspace(SCRATCH_WORKSPACE_BYTES);
 const workspaces = { ws, scratch };
@@ -191,7 +191,7 @@ test('events are in chronological order: count, carves, pieces, the walk and the
 test('a version mismatch makes the stage unavailable; with both records changed nothing runs at all', () => {
   const candidate = PLAIN;
   const id = candidate.puzzle.id;
-  const setChanged = runReplay(edited(candidate, (g) => { g.setOrigin.versions.algo = 'gen-v0'; }), workspaces);
+  const setChanged = runReplay(edited(candidate, (g) => { g.setOrigin.versions.algo = 'gen-v4-proto:other'; }), workspaces);
   assert.equal(setChanged.status, 'unavailable');
   assert.equal(setChanged.reason, 'set-versions');
   assert.equal(setChanged.stages.set, 'unavailable');
@@ -199,7 +199,7 @@ test('a version mismatch makes the stage unavailable; with both records changed 
   assert.deepEqual(setChanged.compared, ['clues', 'rating', 'solution']);
 
   const both = edited(candidate, (g) => {
-    g.setOrigin.versions.algo = 'gen-v0';
+    g.setOrigin.versions.algo = 'gen-v4-proto:other';
     g.made[id].versions.policy = 'mixed-v0';
   });
   const none = runReplay(both, workspaces, REPLAY, neverCancelled);
@@ -225,17 +225,17 @@ test('a version mismatch makes the stage unavailable; with both records changed 
   assert.equal(hidden.reason, 'set-versions');
   assert.deepEqual(hidden.stages, { set: 'unavailable', candidate: 'unavailable', final: 'not-compared' });
 
-  // Every one of the five ids counts, in the origin and in the record.
-  for (const name of ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel']) {
+  // Every one of the seven ids counts, in the origin and in the record.
+  for (const name of ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel', 'priorTable', 'screenTable']) {
     const origin = runReplay(edited(candidate, (g) => {
-      g.setOrigin.versions[name] = 'other';
-      g.made[id].versions[name] = 'other';
+      g.setOrigin.versions[name] = name === 'algo' ? 'gen-v4-proto:other' : 'other';
+      g.made[id].versions[name] = name === 'algo' ? 'gen-v4-proto:other' : 'other';
     }), workspaces, REPLAY, neverCancelled);
     assert.equal(origin.reason, 'set-versions', name);
     assert.equal(origin.stages.candidate, 'unavailable', name);
     const record = runReplay(edited(candidate, (g) => {
       delete g.setOrigin;
-      g.made[id].versions[name] = 'other';
+      g.made[id].versions[name] = name === 'algo' ? 'gen-v4-proto:other' : 'other';
     }), workspaces, REPLAY, neverCancelled);
     assert.equal(record.reason, 'no-set-origin', name);
     assert.deepEqual(record.stages, { set: 'unavailable', candidate: 'unavailable', final: 'not-compared' }, name);
@@ -1658,13 +1658,13 @@ test('sameVersions compares the table ids', () => {
   assert.equal(sameVersions(seven, { ...seven }), true);
   assert.equal(sameVersions(seven, { ...seven, screenTable: 'screen-v4-v2' }), false);
   assert.equal(sameVersions(seven, { ...seven, priorTable: 'prior-s3-v2' }), false);
-  assert.equal(sameVersions(seven, provenanceVersions()), false);
+  assert.equal(sameVersions(seven, /** @type {any} */ ({ algo: seven.algo, policy: seven.policy, rng: seven.rng, seedScheme: seven.seedScheme, ratingModel: seven.ratingModel })), false);
   assert.equal(sameVersions(provenanceVersions(), provenanceVersions()), true);
 });
 
-test('the fixture still replays while ALGO_ID is gen-v3', () => {
-  assert.equal(provenanceVersions().algo, 'gen-v3');
-  assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel']);
+test('the fixture replays while ALGO_ID is gen-v4', () => {
+  assert.equal(provenanceVersions().algo, 'gen-v4');
+  assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel', 'priorTable', 'screenTable']);
   const res = replayPuzzle(INPUTS[0], workspaces, REPLAY);
   assert.equal(res.status, 'matched');
   assert.equal(res.reason, null);

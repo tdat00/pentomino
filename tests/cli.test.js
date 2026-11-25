@@ -281,7 +281,10 @@ describe('request scope', () => {
   test('the CLI scope follows the route', () => {
     const client = { newScope: (/** @type {boolean} */ r) => ({ origin: 0, setCutAt: r ? 46000 : null }) };
     for (const levelId of ['nightmare', 'hard']) {
-      assert.equal(cliScope(/** @type {any} */ (client), levelId, rectRows(10, 10)), undefined);
+      assert.deepEqual(
+        cliScope(/** @type {any} */ (client), levelId, rectRows(10, 10)),
+        levelId === 'nightmare' ? { origin: 0, setCutAt: 46000 } : undefined,
+      );
     }
   });
 });

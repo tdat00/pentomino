@@ -1,0 +1,4860 @@
+{
+  "version": 1,
+  "recipe": {
+    "boardRows": [
+      "##############",
+      "##############",
+      "##############",
+      "##############",
+      "##############",
+      "##############",
+      "##############",
+      "##############",
+      "##############",
+      "##############",
+      "##############",
+      "##############",
+      "##############",
+      "##############"
+    ],
+    "rotation": 0,
+    "levelId": "nightmare",
+    "uniqueness": "any",
+    "quantity": 4,
+    "seedText": "replay-case-screen-0"
+  },
+  "versions": {
+    "algo": "gen-v4",
+    "policy": "mixed-v3",
+    "rng": "xoshiro128ss-v1",
+    "model": "difficulty-v3",
+    "priorTable": "prior-s3-v1",
+    "screenTable": "screen-v4-v1"
+  },
+  "packs": [
+    {
+      "format": "pentomino-pack",
+      "version": 1,
+      "kind": "puzzle-pack",
+      "rules": "free-polyomino-v1",
+      "board": {
+        "rows": [
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############"
+        ]
+      },
+      "presentation": {
+        "rotation": 0
+      },
+      "pieces": [
+        {
+          "id": "A",
+          "label": "A",
+          "color": "#e6194b",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "B",
+          "label": "B",
+          "color": "#3cb44b",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              5,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "C",
+          "label": "C",
+          "color": "#ffe119",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              3,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "D",
+          "label": "D",
+          "color": "#4363d8",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "E",
+          "label": "E",
+          "color": "#f58231",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "F",
+          "label": "F",
+          "color": "#911eb4",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "G",
+          "label": "G",
+          "color": "#42d4f4",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              1,
+              3
+            ]
+          ]
+        },
+        {
+          "id": "H",
+          "label": "H",
+          "color": "#f032e6",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "I",
+          "label": "I",
+          "color": "#bfef45",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "J",
+          "label": "J",
+          "color": "#fabed4",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "K",
+          "label": "K",
+          "color": "#469990",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "L",
+          "label": "L",
+          "color": "#dcbeff",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "M",
+          "label": "M",
+          "color": "#9a6324",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        {
+          "id": "N",
+          "label": "N",
+          "color": "#fffac8",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "id": "O",
+          "label": "O",
+          "color": "#800000",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "P",
+          "label": "P",
+          "color": "#aaffc3",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "Q",
+          "label": "Q",
+          "color": "#808000",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "R",
+          "label": "R",
+          "color": "#ffd8b1",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "S",
+          "label": "S",
+          "color": "#000075",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              2,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "T",
+          "label": "T",
+          "color": "#a9a9a9",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ]
+          ]
+        },
+        {
+          "id": "U",
+          "label": "U",
+          "color": "#2841bd",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "V",
+          "label": "V",
+          "color": "#e07b6c",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "W",
+          "label": "W",
+          "color": "#28bd67",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "X",
+          "label": "X",
+          "color": "#be6ce0",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      ],
+      "witness": [
+        {
+          "piece": "A",
+          "x": 1,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 11,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 11,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 11,
+          "y": 9,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 9,
+          "y": 9,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 2,
+          "y": 9,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 3,
+          "y": 6,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 7,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 9,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "K",
+          "x": 0,
+          "y": 3,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "L",
+          "x": 5,
+          "y": 11,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "M",
+          "x": 10,
+          "y": 3,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 4,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "O",
+          "x": 3,
+          "y": 8,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "P",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "Q",
+          "x": 5,
+          "y": 3,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 8,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "S",
+          "x": 9,
+          "y": 3,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 5,
+          "y": 9,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "U",
+          "x": 5,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "V",
+          "x": 9,
+          "y": 11,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "W",
+          "x": 9,
+          "y": 7,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "X",
+          "x": 0,
+          "y": 10,
+          "turn": 3,
+          "mirrored": false
+        }
+      ],
+      "puzzles": [
+        {
+          "id": "p031a0f9b2135",
+          "title": "Nightmare #1",
+          "seed": "replay-case-screen-0#1",
+          "clues": [
+            {
+              "piece": "B",
+              "x": 11,
+              "y": 3,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "C",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "F",
+              "x": 9,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "G",
+              "x": 2,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "H",
+              "x": 3,
+              "y": 6,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "S",
+              "x": 9,
+              "y": 3,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "W",
+              "x": 9,
+              "y": 7,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "X",
+              "x": 0,
+              "y": 10,
+              "turn": 3,
+              "mirrored": false
+            }
+          ],
+          "solution": [
+            {
+              "piece": "A",
+              "x": 1,
+              "y": 1,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "B",
+              "x": 11,
+              "y": 3,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "C",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "D",
+              "x": 11,
+              "y": 9,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "E",
+              "x": 0,
+              "y": 4,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "F",
+              "x": 9,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "G",
+              "x": 2,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "H",
+              "x": 3,
+              "y": 6,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "I",
+              "x": 7,
+              "y": 1,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 9,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "K",
+              "x": 0,
+              "y": 3,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "L",
+              "x": 5,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "M",
+              "x": 10,
+              "y": 3,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "N",
+              "x": 3,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "O",
+              "x": 3,
+              "y": 8,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "P",
+              "x": 0,
+              "y": 0,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "Q",
+              "x": 5,
+              "y": 3,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "R",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "S",
+              "x": 9,
+              "y": 3,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "T",
+              "x": 5,
+              "y": 9,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "U",
+              "x": 5,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "V",
+              "x": 9,
+              "y": 11,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "W",
+              "x": 9,
+              "y": 7,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "X",
+              "x": 0,
+              "y": 10,
+              "turn": 3,
+              "mirrored": false
+            }
+          ],
+          "rating": {
+            "model": "difficulty-v3",
+            "score": 63,
+            "level": "nightmare",
+            "saturated": false,
+            "metrics": {
+              "U": 16,
+              "R": 132,
+              "H": 8.047617919118647,
+              "B": 202,
+              "branchTrials": 202,
+              "rowTrials": 226,
+              "dlxStop": "solution",
+              "searchStop": "exhausted",
+              "F": 8,
+              "E": 8,
+              "rules": {
+                "R1": 8,
+                "R2": 0,
+                "R3": 0,
+                "R4": 10,
+                "R5": 0,
+                "R6": 8,
+                "R7": 16,
+                "R8": 913,
+                "R9": 0
+              },
+              "deductionTier": 3,
+              "tier": 4,
+              "G": 8,
+              "info": 18.19604494933187,
+              "Cmax": 15,
+              "Dmax": 11,
+              "Gt": 43,
+              "nodes": 265,
+              "work": 32051295,
+              "S": 4,
+              "solutionLimit": 8,
+              "solutions": "few",
+              "censusComplete": true,
+              "censusUndecided": 0,
+              "censusNodes": 0,
+              "censusWork": 0,
+              "Gproved": 8
+            }
+          },
+          "certificate": null
+        },
+        {
+          "id": "pe145f35f09ea",
+          "title": "Nightmare #2",
+          "seed": "replay-case-screen-0#1",
+          "clues": [
+            {
+              "piece": "E",
+              "x": 0,
+              "y": 3,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "G",
+              "x": 2,
+              "y": 9,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "H",
+              "x": 3,
+              "y": 3,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 0,
+              "y": 0,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "M",
+              "x": 10,
+              "y": 5,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "T",
+              "x": 5,
+              "y": 10,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "W",
+              "x": 10,
+              "y": 3,
+              "turn": 2,
+              "mirrored": true
+            }
+          ],
+          "solution": [
+            {
+              "piece": "A",
+              "x": 7,
+              "y": 0,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "B",
+              "x": 9,
+              "y": 3,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "C",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "D",
+              "x": 9,
+              "y": 9,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "E",
+              "x": 0,
+              "y": 3,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "F",
+              "x": 11,
+              "y": 10,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "G",
+              "x": 2,
+              "y": 9,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "H",
+              "x": 3,
+              "y": 3,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "I",
+              "x": 1,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 0,
+              "y": 0,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "K",
+              "x": 0,
+              "y": 5,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "L",
+              "x": 5,
+              "y": 8,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "M",
+              "x": 10,
+              "y": 5,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "N",
+              "x": 3,
+              "y": 4,
+              "turn": 3,
+              "mirrored": true
+            },
+            {
+              "piece": "O",
+              "x": 3,
+              "y": 12,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "P",
+              "x": 9,
+              "y": 0,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "Q",
+              "x": 5,
+              "y": 5,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "R",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "S",
+              "x": 12,
+              "y": 4,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "T",
+              "x": 5,
+              "y": 10,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "U",
+              "x": 5,
+              "y": 1,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "V",
+              "x": 9,
+              "y": 12,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "W",
+              "x": 10,
+              "y": 3,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "X",
+              "x": 0,
+              "y": 9,
+              "turn": 3,
+              "mirrored": false
+            }
+          ],
+          "rating": {
+            "model": "difficulty-v3",
+            "score": 66,
+            "level": "nightmare",
+            "saturated": false,
+            "metrics": {
+              "U": 17,
+              "R": 138,
+              "H": 7.451827778917568,
+              "B": 1383,
+              "branchTrials": 1383,
+              "rowTrials": 1543,
+              "dlxStop": "solution",
+              "searchStop": "solution-limit",
+              "F": 8,
+              "E": 19,
+              "rules": {
+                "R1": 7,
+                "R2": 0,
+                "R3": 1,
+                "R4": 103,
+                "R5": 58,
+                "R6": 19,
+                "R7": 48,
+                "R8": 792,
+                "R9": 0
+              },
+              "deductionTier": 3,
+              "tier": 4,
+              "G": 9,
+              "info": 15.165456629498449,
+              "Cmax": 14,
+              "Dmax": 14,
+              "Gt": 54,
+              "nodes": 271,
+              "work": 53402497,
+              "S": 8,
+              "solutionLimit": 8,
+              "solutions": "many",
+              "censusComplete": true,
+              "censusUndecided": 0,
+              "censusNodes": 51,
+              "censusWork": 15189675,
+              "Gproved": 9
+            }
+          },
+          "certificate": null
+        },
+        {
+          "id": "p2c33c15a43bf",
+          "title": "Nightmare #3",
+          "seed": "replay-case-screen-0#1",
+          "clues": [
+            {
+              "piece": "A",
+              "x": 1,
+              "y": 1,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "B",
+              "x": 9,
+              "y": 3,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "F",
+              "x": 9,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "N",
+              "x": 1,
+              "y": 4,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "O",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "V",
+              "x": 9,
+              "y": 9,
+              "turn": 3,
+              "mirrored": true
+            }
+          ],
+          "solution": [
+            {
+              "piece": "A",
+              "x": 1,
+              "y": 1,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "B",
+              "x": 9,
+              "y": 3,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "C",
+              "x": 3,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "D",
+              "x": 11,
+              "y": 9,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "E",
+              "x": 6,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "F",
+              "x": 9,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "G",
+              "x": 3,
+              "y": 9,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "H",
+              "x": 0,
+              "y": 6,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "I",
+              "x": 7,
+              "y": 1,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 9,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "K",
+              "x": 3,
+              "y": 3,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "L",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "M",
+              "x": 10,
+              "y": 5,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "N",
+              "x": 1,
+              "y": 4,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "O",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "P",
+              "x": 0,
+              "y": 0,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "Q",
+              "x": 0,
+              "y": 3,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "R",
+              "x": 6,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "S",
+              "x": 12,
+              "y": 4,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "T",
+              "x": 0,
+              "y": 9,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "U",
+              "x": 5,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "V",
+              "x": 9,
+              "y": 9,
+              "turn": 3,
+              "mirrored": true
+            },
+            {
+              "piece": "W",
+              "x": 10,
+              "y": 3,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "X",
+              "x": 7,
+              "y": 10,
+              "turn": 1,
+              "mirrored": false
+            }
+          ],
+          "rating": {
+            "model": "difficulty-v3",
+            "score": 63,
+            "level": "nightmare",
+            "saturated": false,
+            "metrics": {
+              "U": 18,
+              "R": 143,
+              "H": 7.528974292380495,
+              "B": 1408,
+              "branchTrials": 1408,
+              "rowTrials": 1524,
+              "dlxStop": "solution",
+              "searchStop": "exhausted",
+              "F": 10,
+              "E": 18,
+              "rules": {
+                "R1": 10,
+                "R2": 0,
+                "R3": 0,
+                "R4": 0,
+                "R5": 181,
+                "R6": 18,
+                "R7": 4,
+                "R8": 267,
+                "R9": 0
+              },
+              "deductionTier": 3,
+              "tier": 4,
+              "G": 8,
+              "info": 15.459431618637296,
+              "Cmax": 11,
+              "Dmax": 12,
+              "Gt": 108,
+              "nodes": 647,
+              "work": 73272582,
+              "S": 1,
+              "solutionLimit": 8,
+              "solutions": "unique",
+              "censusComplete": true,
+              "censusUndecided": 0,
+              "censusNodes": 0,
+              "censusWork": 0,
+              "Gproved": 8
+            }
+          },
+          "certificate": null
+        },
+        {
+          "id": "p604e1637399e",
+          "title": "Nightmare #4",
+          "seed": "replay-case-screen-0#1",
+          "clues": [
+            {
+              "piece": "F",
+              "x": 9,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 0,
+              "y": 0,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "K",
+              "x": 0,
+              "y": 5,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "L",
+              "x": 5,
+              "y": 8,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "N",
+              "x": 3,
+              "y": 4,
+              "turn": 3,
+              "mirrored": true
+            },
+            {
+              "piece": "R",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "U",
+              "x": 5,
+              "y": 1,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "V",
+              "x": 9,
+              "y": 11,
+              "turn": 3,
+              "mirrored": false
+            }
+          ],
+          "solution": [
+            {
+              "piece": "A",
+              "x": 7,
+              "y": 0,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "B",
+              "x": 11,
+              "y": 3,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "C",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "D",
+              "x": 11,
+              "y": 9,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "E",
+              "x": 0,
+              "y": 3,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "F",
+              "x": 9,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "G",
+              "x": 2,
+              "y": 9,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "H",
+              "x": 3,
+              "y": 3,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "I",
+              "x": 1,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 0,
+              "y": 0,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "K",
+              "x": 0,
+              "y": 5,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "L",
+              "x": 5,
+              "y": 8,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "M",
+              "x": 10,
+              "y": 5,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "N",
+              "x": 3,
+              "y": 4,
+              "turn": 3,
+              "mirrored": true
+            },
+            {
+              "piece": "O",
+              "x": 3,
+              "y": 12,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "P",
+              "x": 9,
+              "y": 0,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "Q",
+              "x": 5,
+              "y": 5,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "R",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "S",
+              "x": 9,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "T",
+              "x": 5,
+              "y": 10,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "U",
+              "x": 5,
+              "y": 1,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "V",
+              "x": 9,
+              "y": 11,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "W",
+              "x": 9,
+              "y": 3,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "X",
+              "x": 0,
+              "y": 9,
+              "turn": 3,
+              "mirrored": false
+            }
+          ],
+          "rating": {
+            "model": "difficulty-v3",
+            "score": 67,
+            "level": "nightmare",
+            "saturated": false,
+            "metrics": {
+              "U": 16,
+              "R": 133,
+              "H": 7.3823946176264466,
+              "B": 226,
+              "branchTrials": 226,
+              "rowTrials": 257,
+              "dlxStop": "solution",
+              "searchStop": "exhausted",
+              "F": 7,
+              "E": 15,
+              "rules": {
+                "R1": 7,
+                "R2": 0,
+                "R3": 0,
+                "R4": 0,
+                "R5": 0,
+                "R6": 15,
+                "R7": 26,
+                "R8": 311,
+                "R9": 0
+              },
+              "deductionTier": 3,
+              "tier": 4,
+              "G": 9,
+              "info": 16.24674059849314,
+              "Cmax": 12,
+              "Dmax": 13,
+              "Gt": 22,
+              "nodes": 100,
+              "work": 8160202,
+              "S": 4,
+              "solutionLimit": 8,
+              "solutions": "few",
+              "censusComplete": true,
+              "censusUndecided": 0,
+              "censusNodes": 0,
+              "censusWork": 0,
+              "Gproved": 9
+            }
+          },
+          "certificate": null
+        }
+      ],
+      "generation": {
+        "app": "pentomino-generator/1.0.0",
+        "algo": "gen-v4",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "seedScheme": "seed-sha256-v1",
+        "setSeed": "replay-case-screen-0",
+        "setLevel": "nightmare",
+        "setAttempt": 0,
+        "carving": "macro",
+        "macroRegion": [
+          0,
+          2,
+          3,
+          4,
+          1,
+          4,
+          3,
+          1,
+          0,
+          0,
+          1,
+          3,
+          2,
+          1,
+          3,
+          0,
+          1,
+          3,
+          2,
+          3,
+          0,
+          4,
+          2,
+          3
+        ],
+        "batchSeed": "replay-case-screen-0#1",
+        "batchLevel": "nightmare",
+        "batchIndex": 1,
+        "uniqueness": "any",
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "setOrigin": {
+          "schema": 1,
+          "seed": "replay-case-screen-0",
+          "level": "nightmare",
+          "attempt": 0,
+          "uniqueness": "any",
+          "versions": {
+            "algo": "gen-v4",
+            "policy": "mixed-v3",
+            "rng": "xoshiro128ss-v1",
+            "seedScheme": "seed-sha256-v1",
+            "ratingModel": "difficulty-v3",
+            "priorTable": "prior-s3-v1",
+            "screenTable": "screen-v4-v1"
+          }
+        },
+        "made": {
+          "p031a0f9b2135": {
+            "schema": 1,
+            "kind": "calibration"
+          },
+          "pe145f35f09ea": {
+            "schema": 1,
+            "kind": "candidate",
+            "batchSeed": "replay-case-screen-0#1",
+            "targetLevel": "nightmare",
+            "uniqueness": "any",
+            "slot": 2,
+            "attempt": 0,
+            "start": "witness",
+            "skips": {
+              "subsets": [],
+              "repairs": []
+            },
+            "igPrior": null,
+            "versions": {
+              "algo": "gen-v4",
+              "policy": "mixed-v3",
+              "rng": "xoshiro128ss-v1",
+              "seedScheme": "seed-sha256-v1",
+              "ratingModel": "difficulty-v3",
+              "priorTable": "prior-s3-v1",
+              "screenTable": "screen-v4-v1"
+            }
+          },
+          "p2c33c15a43bf": {
+            "schema": 1,
+            "kind": "candidate",
+            "batchSeed": "replay-case-screen-0#1",
+            "targetLevel": "nightmare",
+            "uniqueness": "any",
+            "slot": 3,
+            "attempt": 0,
+            "start": "witness",
+            "skips": {
+              "subsets": [],
+              "repairs": []
+            },
+            "igPrior": null,
+            "versions": {
+              "algo": "gen-v4",
+              "policy": "mixed-v3",
+              "rng": "xoshiro128ss-v1",
+              "seedScheme": "seed-sha256-v1",
+              "ratingModel": "difficulty-v3",
+              "priorTable": "prior-s3-v1",
+              "screenTable": "screen-v4-v1"
+            }
+          },
+          "p604e1637399e": {
+            "schema": 1,
+            "kind": "candidate",
+            "batchSeed": "replay-case-screen-0#1",
+            "targetLevel": "nightmare",
+            "uniqueness": "any",
+            "slot": 4,
+            "attempt": 0,
+            "start": "witness",
+            "skips": {
+              "subsets": [],
+              "repairs": []
+            },
+            "igPrior": null,
+            "versions": {
+              "algo": "gen-v4",
+              "policy": "mixed-v3",
+              "rng": "xoshiro128ss-v1",
+              "seedScheme": "seed-sha256-v1",
+              "ratingModel": "difficulty-v3",
+              "priorTable": "prior-s3-v1",
+              "screenTable": "screen-v4-v1"
+            }
+          }
+        }
+      }
+    },
+    {
+      "format": "pentomino-pack",
+      "version": 1,
+      "kind": "puzzle-pack",
+      "rules": "free-polyomino-v1",
+      "board": {
+        "rows": [
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############",
+          "##############"
+        ]
+      },
+      "presentation": {
+        "rotation": 0
+      },
+      "pieces": [
+        {
+          "id": "A",
+          "label": "A",
+          "color": "#e6194b",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "B",
+          "label": "B",
+          "color": "#3cb44b",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              5,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "C",
+          "label": "C",
+          "color": "#ffe119",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              3,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "D",
+          "label": "D",
+          "color": "#4363d8",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "E",
+          "label": "E",
+          "color": "#f58231",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "F",
+          "label": "F",
+          "color": "#911eb4",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "G",
+          "label": "G",
+          "color": "#42d4f4",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              1,
+              3
+            ]
+          ]
+        },
+        {
+          "id": "H",
+          "label": "H",
+          "color": "#f032e6",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "I",
+          "label": "I",
+          "color": "#bfef45",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              4,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "J",
+          "label": "J",
+          "color": "#fabed4",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "K",
+          "label": "K",
+          "color": "#469990",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              4,
+              1
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "L",
+          "label": "L",
+          "color": "#dcbeff",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "M",
+          "label": "M",
+          "color": "#9a6324",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        {
+          "id": "N",
+          "label": "N",
+          "color": "#fffac8",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              0,
+              4
+            ],
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "id": "O",
+          "label": "O",
+          "color": "#800000",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "P",
+          "label": "P",
+          "color": "#aaffc3",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "Q",
+          "label": "Q",
+          "color": "#808000",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "R",
+          "label": "R",
+          "color": "#ffd8b1",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "id": "S",
+          "label": "S",
+          "color": "#000075",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              2,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "T",
+          "label": "T",
+          "color": "#a9a9a9",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ]
+          ]
+        },
+        {
+          "id": "U",
+          "label": "U",
+          "color": "#2841bd",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "V",
+          "label": "V",
+          "color": "#e07b6c",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "W",
+          "label": "W",
+          "color": "#28bd67",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ]
+          ]
+        },
+        {
+          "id": "X",
+          "label": "X",
+          "color": "#be6ce0",
+          "cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      ],
+      "witness": [
+        {
+          "piece": "A",
+          "x": 1,
+          "y": 1,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "B",
+          "x": 11,
+          "y": 3,
+          "turn": 1,
+          "mirrored": false
+        },
+        {
+          "piece": "C",
+          "x": 0,
+          "y": 11,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "D",
+          "x": 11,
+          "y": 9,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "E",
+          "x": 0,
+          "y": 4,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "F",
+          "x": 9,
+          "y": 9,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "G",
+          "x": 2,
+          "y": 9,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "H",
+          "x": 3,
+          "y": 6,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "I",
+          "x": 7,
+          "y": 1,
+          "turn": 2,
+          "mirrored": true
+        },
+        {
+          "piece": "J",
+          "x": 9,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "K",
+          "x": 0,
+          "y": 3,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "L",
+          "x": 5,
+          "y": 11,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "M",
+          "x": 10,
+          "y": 3,
+          "turn": 2,
+          "mirrored": false
+        },
+        {
+          "piece": "N",
+          "x": 3,
+          "y": 4,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "O",
+          "x": 3,
+          "y": 8,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "P",
+          "x": 0,
+          "y": 0,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "Q",
+          "x": 5,
+          "y": 3,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "R",
+          "x": 0,
+          "y": 8,
+          "turn": 0,
+          "mirrored": false
+        },
+        {
+          "piece": "S",
+          "x": 9,
+          "y": 3,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "T",
+          "x": 5,
+          "y": 9,
+          "turn": 1,
+          "mirrored": true
+        },
+        {
+          "piece": "U",
+          "x": 5,
+          "y": 0,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "V",
+          "x": 9,
+          "y": 11,
+          "turn": 3,
+          "mirrored": false
+        },
+        {
+          "piece": "W",
+          "x": 9,
+          "y": 7,
+          "turn": 0,
+          "mirrored": true
+        },
+        {
+          "piece": "X",
+          "x": 0,
+          "y": 10,
+          "turn": 3,
+          "mirrored": false
+        }
+      ],
+      "puzzles": [
+        {
+          "id": "pfc8cc7f278f7",
+          "title": "Nightmare #1",
+          "seed": "replay-case-screen-0#2",
+          "clues": [
+            {
+              "piece": "G",
+              "x": 2,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "I",
+              "x": 7,
+              "y": 1,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 9,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "K",
+              "x": 0,
+              "y": 3,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "O",
+              "x": 3,
+              "y": 8,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "S",
+              "x": 9,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "U",
+              "x": 5,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "X",
+              "x": 0,
+              "y": 10,
+              "turn": 3,
+              "mirrored": false
+            }
+          ],
+          "solution": [
+            {
+              "piece": "A",
+              "x": 1,
+              "y": 1,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "B",
+              "x": 11,
+              "y": 3,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "C",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "D",
+              "x": 9,
+              "y": 9,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "E",
+              "x": 0,
+              "y": 4,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "F",
+              "x": 10,
+              "y": 9,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "G",
+              "x": 2,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "H",
+              "x": 3,
+              "y": 6,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "I",
+              "x": 7,
+              "y": 1,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 9,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "K",
+              "x": 0,
+              "y": 3,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "L",
+              "x": 5,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "M",
+              "x": 10,
+              "y": 5,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "N",
+              "x": 3,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "O",
+              "x": 3,
+              "y": 8,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "P",
+              "x": 0,
+              "y": 0,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "Q",
+              "x": 5,
+              "y": 3,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "R",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "S",
+              "x": 9,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "T",
+              "x": 5,
+              "y": 9,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "U",
+              "x": 5,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "V",
+              "x": 12,
+              "y": 11,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "W",
+              "x": 9,
+              "y": 3,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "X",
+              "x": 0,
+              "y": 10,
+              "turn": 3,
+              "mirrored": false
+            }
+          ],
+          "rating": {
+            "model": "difficulty-v3",
+            "score": 67,
+            "level": "nightmare",
+            "saturated": false,
+            "metrics": {
+              "U": 16,
+              "R": 136,
+              "H": 7.62776028906981,
+              "B": 1011,
+              "branchTrials": 1011,
+              "rowTrials": 1090,
+              "dlxStop": "solution",
+              "searchStop": "solution-limit",
+              "F": 7,
+              "E": 19,
+              "rules": {
+                "R1": 7,
+                "R2": 0,
+                "R3": 0,
+                "R4": 20,
+                "R5": 51,
+                "R6": 19,
+                "R7": 115,
+                "R8": 466,
+                "R9": 0
+              },
+              "deductionTier": 3,
+              "tier": 4,
+              "G": 9,
+              "info": 17.24674059849314,
+              "Cmax": 24,
+              "Dmax": 13,
+              "Gt": 39,
+              "nodes": 250,
+              "work": 39984147,
+              "S": 8,
+              "solutionLimit": 8,
+              "solutions": "many",
+              "censusComplete": true,
+              "censusUndecided": 0,
+              "censusNodes": 11,
+              "censusWork": 7328040,
+              "Gproved": 9
+            }
+          },
+          "certificate": null
+        },
+        {
+          "id": "p98090231d757",
+          "title": "Nightmare #2",
+          "seed": "replay-case-screen-0#2",
+          "clues": [
+            {
+              "piece": "B",
+              "x": 11,
+              "y": 3,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "C",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "E",
+              "x": 0,
+              "y": 4,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 0,
+              "y": 0,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "M",
+              "x": 10,
+              "y": 5,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "N",
+              "x": 3,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "P",
+              "x": 9,
+              "y": 0,
+              "turn": 2,
+              "mirrored": false
+            }
+          ],
+          "solution": [
+            {
+              "piece": "A",
+              "x": 7,
+              "y": 0,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "B",
+              "x": 11,
+              "y": 3,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "C",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "D",
+              "x": 3,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "E",
+              "x": 0,
+              "y": 4,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "F",
+              "x": 11,
+              "y": 9,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "G",
+              "x": 2,
+              "y": 9,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "H",
+              "x": 3,
+              "y": 6,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "I",
+              "x": 1,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 0,
+              "y": 0,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "K",
+              "x": 0,
+              "y": 3,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "L",
+              "x": 5,
+              "y": 8,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "M",
+              "x": 10,
+              "y": 5,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "N",
+              "x": 3,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "O",
+              "x": 8,
+              "y": 12,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "P",
+              "x": 9,
+              "y": 0,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "Q",
+              "x": 5,
+              "y": 3,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "R",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "S",
+              "x": 9,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "T",
+              "x": 8,
+              "y": 10,
+              "turn": 3,
+              "mirrored": true
+            },
+            {
+              "piece": "U",
+              "x": 5,
+              "y": 1,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "V",
+              "x": 9,
+              "y": 9,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "W",
+              "x": 9,
+              "y": 3,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "X",
+              "x": 0,
+              "y": 9,
+              "turn": 3,
+              "mirrored": false
+            }
+          ],
+          "rating": {
+            "model": "difficulty-v3",
+            "score": 66,
+            "level": "nightmare",
+            "saturated": false,
+            "metrics": {
+              "U": 17,
+              "R": 131,
+              "H": 7.922461959944281,
+              "B": 3369,
+              "branchTrials": 3369,
+              "rowTrials": 3656,
+              "dlxStop": "solution",
+              "searchStop": "solution-limit",
+              "F": 7,
+              "E": 9,
+              "rules": {
+                "R1": 7,
+                "R2": 0,
+                "R3": 0,
+                "R4": 5,
+                "R5": 0,
+                "R6": 9,
+                "R7": 65,
+                "R8": 693,
+                "R9": 0
+              },
+              "deductionTier": 3,
+              "tier": 4,
+              "G": 9,
+              "info": 15.398743691938192,
+              "Cmax": 16,
+              "Dmax": 14,
+              "Gt": 104,
+              "nodes": 487,
+              "work": 72949784,
+              "S": 8,
+              "solutionLimit": 8,
+              "solutions": "many",
+              "censusComplete": true,
+              "censusUndecided": 0,
+              "censusNodes": 36,
+              "censusWork": 8034430,
+              "Gproved": 9
+            }
+          },
+          "certificate": null
+        },
+        {
+          "id": "p51b4eaa1c347",
+          "title": "Nightmare #3",
+          "seed": "replay-case-screen-0#2",
+          "clues": [
+            {
+              "piece": "C",
+              "x": 3,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "D",
+              "x": 9,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "E",
+              "x": 0,
+              "y": 3,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "G",
+              "x": 3,
+              "y": 9,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "I",
+              "x": 7,
+              "y": 1,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "N",
+              "x": 3,
+              "y": 4,
+              "turn": 3,
+              "mirrored": true
+            },
+            {
+              "piece": "R",
+              "x": 6,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "S",
+              "x": 9,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            }
+          ],
+          "solution": [
+            {
+              "piece": "A",
+              "x": 1,
+              "y": 1,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "B",
+              "x": 11,
+              "y": 3,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "C",
+              "x": 3,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "D",
+              "x": 9,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "E",
+              "x": 0,
+              "y": 3,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "F",
+              "x": 9,
+              "y": 10,
+              "turn": 3,
+              "mirrored": true
+            },
+            {
+              "piece": "G",
+              "x": 3,
+              "y": 9,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "H",
+              "x": 3,
+              "y": 3,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "I",
+              "x": 7,
+              "y": 1,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 9,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "K",
+              "x": 0,
+              "y": 5,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "L",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "M",
+              "x": 10,
+              "y": 5,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "N",
+              "x": 3,
+              "y": 4,
+              "turn": 3,
+              "mirrored": true
+            },
+            {
+              "piece": "O",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "P",
+              "x": 0,
+              "y": 0,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "Q",
+              "x": 5,
+              "y": 5,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "R",
+              "x": 6,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "S",
+              "x": 9,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "T",
+              "x": 0,
+              "y": 9,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "U",
+              "x": 5,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "V",
+              "x": 11,
+              "y": 12,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "W",
+              "x": 9,
+              "y": 3,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "X",
+              "x": 7,
+              "y": 10,
+              "turn": 1,
+              "mirrored": false
+            }
+          ],
+          "rating": {
+            "model": "difficulty-v3",
+            "score": 63,
+            "level": "nightmare",
+            "saturated": false,
+            "metrics": {
+              "U": 16,
+              "R": 125,
+              "H": 6.6250461171030635,
+              "B": 981,
+              "branchTrials": 981,
+              "rowTrials": 1076,
+              "dlxStop": "solution",
+              "searchStop": "exhausted",
+              "F": 8,
+              "E": 14,
+              "rules": {
+                "R1": 8,
+                "R2": 0,
+                "R3": 0,
+                "R4": 0,
+                "R5": 11,
+                "R6": 14,
+                "R7": 58,
+                "R8": 608,
+                "R9": 0
+              },
+              "deductionTier": 3,
+              "tier": 4,
+              "G": 8,
+              "info": 15.872674880270603,
+              "Cmax": 6,
+              "Dmax": 10,
+              "Gt": 12,
+              "nodes": 48,
+              "work": 30002713,
+              "S": 1,
+              "solutionLimit": 8,
+              "solutions": "unique",
+              "censusComplete": true,
+              "censusUndecided": 0,
+              "censusNodes": 0,
+              "censusWork": 0,
+              "Gproved": 8
+            }
+          },
+          "certificate": null
+        },
+        {
+          "id": "pd932bad51ced",
+          "title": "Nightmare #4",
+          "seed": "replay-case-screen-0#2",
+          "clues": [
+            {
+              "piece": "C",
+              "x": 3,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "F",
+              "x": 9,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "G",
+              "x": 3,
+              "y": 9,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "H",
+              "x": 0,
+              "y": 6,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "J",
+              "x": 9,
+              "y": 0,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "K",
+              "x": 3,
+              "y": 3,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "L",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "N",
+              "x": 1,
+              "y": 4,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "O",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "V",
+              "x": 9,
+              "y": 11,
+              "turn": 3,
+              "mirrored": false
+            }
+          ],
+          "solution": [
+            {
+              "piece": "A",
+              "x": 1,
+              "y": 0,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "B",
+              "x": 9,
+              "y": 3,
+              "turn": 3,
+              "mirrored": true
+            },
+            {
+              "piece": "C",
+              "x": 3,
+              "y": 11,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "D",
+              "x": 11,
+              "y": 9,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "E",
+              "x": 6,
+              "y": 4,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "F",
+              "x": 9,
+              "y": 9,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "G",
+              "x": 3,
+              "y": 9,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "H",
+              "x": 0,
+              "y": 6,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "I",
+              "x": 7,
+              "y": 0,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "J",
+              "x": 9,
+              "y": 0,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "K",
+              "x": 3,
+              "y": 3,
+              "turn": 0,
+              "mirrored": true
+            },
+            {
+              "piece": "L",
+              "x": 0,
+              "y": 11,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "M",
+              "x": 10,
+              "y": 3,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "N",
+              "x": 1,
+              "y": 4,
+              "turn": 1,
+              "mirrored": true
+            },
+            {
+              "piece": "O",
+              "x": 0,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "P",
+              "x": 0,
+              "y": 0,
+              "turn": 2,
+              "mirrored": true
+            },
+            {
+              "piece": "Q",
+              "x": 0,
+              "y": 3,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "R",
+              "x": 6,
+              "y": 8,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "S",
+              "x": 12,
+              "y": 3,
+              "turn": 1,
+              "mirrored": false
+            },
+            {
+              "piece": "T",
+              "x": 0,
+              "y": 9,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "U",
+              "x": 5,
+              "y": 1,
+              "turn": 2,
+              "mirrored": false
+            },
+            {
+              "piece": "V",
+              "x": 9,
+              "y": 11,
+              "turn": 3,
+              "mirrored": false
+            },
+            {
+              "piece": "W",
+              "x": 10,
+              "y": 7,
+              "turn": 0,
+              "mirrored": false
+            },
+            {
+              "piece": "X",
+              "x": 7,
+              "y": 10,
+              "turn": 1,
+              "mirrored": false
+            }
+          ],
+          "rating": {
+            "model": "difficulty-v3",
+            "score": 68,
+            "level": "nightmare",
+            "saturated": false,
+            "metrics": {
+              "U": 14,
+              "R": 108,
+              "H": 7.069846929913295,
+              "B": 710,
+              "branchTrials": 710,
+              "rowTrials": 786,
+              "dlxStop": "solution",
+              "searchStop": "exhausted",
+              "F": 5,
+              "E": 3,
+              "rules": {
+                "R1": 5,
+                "R2": 0,
+                "R3": 0,
+                "R4": 0,
+                "R5": 0,
+                "R6": 3,
+                "R7": 43,
+                "R8": 139,
+                "R9": 0
+              },
+              "deductionTier": 3,
+              "tier": 4,
+              "G": 9,
+              "info": 18.890596788267864,
+              "Cmax": 12,
+              "Dmax": 11,
+              "Gt": 41,
+              "nodes": 214,
+              "work": 17515785,
+              "S": 4,
+              "solutionLimit": 8,
+              "solutions": "few",
+              "censusComplete": true,
+              "censusUndecided": 0,
+              "censusNodes": 0,
+              "censusWork": 0,
+              "Gproved": 9
+            }
+          },
+          "certificate": null
+        }
+      ],
+      "generation": {
+        "app": "pentomino-generator/1.0.0",
+        "algo": "gen-v4",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "seedScheme": "seed-sha256-v1",
+        "setSeed": "replay-case-screen-0",
+        "setLevel": "nightmare",
+        "setAttempt": 0,
+        "carving": "macro",
+        "macroRegion": [
+          0,
+          2,
+          3,
+          4,
+          1,
+          4,
+          3,
+          1,
+          0,
+          0,
+          1,
+          3,
+          2,
+          1,
+          3,
+          0,
+          1,
+          3,
+          2,
+          3,
+          0,
+          4,
+          2,
+          3
+        ],
+        "batchSeed": "replay-case-screen-0#2",
+        "batchLevel": "nightmare",
+        "batchIndex": 2,
+        "uniqueness": "any",
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "setOrigin": {
+          "schema": 1,
+          "seed": "replay-case-screen-0",
+          "level": "nightmare",
+          "attempt": 0,
+          "uniqueness": "any",
+          "versions": {
+            "algo": "gen-v4",
+            "policy": "mixed-v3",
+            "rng": "xoshiro128ss-v1",
+            "seedScheme": "seed-sha256-v1",
+            "ratingModel": "difficulty-v3",
+            "priorTable": "prior-s3-v1",
+            "screenTable": "screen-v4-v1"
+          }
+        },
+        "made": {
+          "pfc8cc7f278f7": {
+            "schema": 1,
+            "kind": "candidate",
+            "batchSeed": "replay-case-screen-0#2",
+            "targetLevel": "nightmare",
+            "uniqueness": "any",
+            "slot": 1,
+            "attempt": 0,
+            "start": "witness",
+            "skips": {
+              "subsets": [],
+              "repairs": []
+            },
+            "igPrior": null,
+            "versions": {
+              "algo": "gen-v4",
+              "policy": "mixed-v3",
+              "rng": "xoshiro128ss-v1",
+              "seedScheme": "seed-sha256-v1",
+              "ratingModel": "difficulty-v3",
+              "priorTable": "prior-s3-v1",
+              "screenTable": "screen-v4-v1"
+            }
+          },
+          "p98090231d757": {
+            "schema": 1,
+            "kind": "candidate",
+            "batchSeed": "replay-case-screen-0#2",
+            "targetLevel": "nightmare",
+            "uniqueness": "any",
+            "slot": 2,
+            "attempt": 0,
+            "start": "witness",
+            "skips": {
+              "subsets": [],
+              "repairs": []
+            },
+            "igPrior": null,
+            "versions": {
+              "algo": "gen-v4",
+              "policy": "mixed-v3",
+              "rng": "xoshiro128ss-v1",
+              "seedScheme": "seed-sha256-v1",
+              "ratingModel": "difficulty-v3",
+              "priorTable": "prior-s3-v1",
+              "screenTable": "screen-v4-v1"
+            }
+          },
+          "p51b4eaa1c347": {
+            "schema": 1,
+            "kind": "candidate",
+            "batchSeed": "replay-case-screen-0#2",
+            "targetLevel": "nightmare",
+            "uniqueness": "any",
+            "slot": 3,
+            "attempt": 0,
+            "start": "witness",
+            "skips": {
+              "subsets": [],
+              "repairs": []
+            },
+            "igPrior": null,
+            "versions": {
+              "algo": "gen-v4",
+              "policy": "mixed-v3",
+              "rng": "xoshiro128ss-v1",
+              "seedScheme": "seed-sha256-v1",
+              "ratingModel": "difficulty-v3",
+              "priorTable": "prior-s3-v1",
+              "screenTable": "screen-v4-v1"
+            }
+          },
+          "pd932bad51ced": {
+            "schema": 1,
+            "kind": "candidate",
+            "batchSeed": "replay-case-screen-0#2",
+            "targetLevel": "nightmare",
+            "uniqueness": "any",
+            "slot": 4,
+            "attempt": 0,
+            "start": "witness",
+            "skips": {
+              "subsets": [],
+              "repairs": []
+            },
+            "igPrior": null,
+            "versions": {
+              "algo": "gen-v4",
+              "policy": "mixed-v3",
+              "rng": "xoshiro128ss-v1",
+              "seedScheme": "seed-sha256-v1",
+              "ratingModel": "difficulty-v3",
+              "priorTable": "prior-s3-v1",
+              "screenTable": "screen-v4-v1"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

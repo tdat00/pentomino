@@ -599,13 +599,16 @@ describe('set attempts and puzzle candidates', () => {
       attempt: 0,
       start: 'witness',
       skips: { subsets: [], repairs: [] },
+      igPrior: null,
       versions: provenanceVersions(),
     });
     assert.deepEqual(Object.keys(c.made), ['schema', 'kind', 'batchSeed', 'targetLevel', 'uniqueness', 'slot', 'attempt',
-      'start', 'skips', 'versions']);
+      'start', 'skips', 'igPrior', 'versions']);
     const v = currentVersions();
-    assert.deepEqual(provenanceVersions(), { algo: v.algo, policy: v.policy, rng: v.rng, seedScheme: SEED_SCHEME, ratingModel: v.model });
-    assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel']);
+    assert.deepEqual(provenanceVersions(), {
+      algo: v.algo, policy: v.policy, rng: v.rng, seedScheme: SEED_SCHEME, ratingModel: v.model, priorTable: 'prior-s3-v1', screenTable: 'screen-v4-v1',
+    });
+    assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel', 'priorTable', 'screenTable']);
     assert.equal(provenanceProblem('made', c.made), null);
     const other = /** @type {PuzzleCandidate} */ (puzzleCandidate(realCtx({ uniqueness: 'any', batchSeed: 'x#2' }), 3, 1));
     assert.deepEqual([other.made.slot, other.made.attempt, other.made.batchSeed], [3, 1, 'x#2']);
@@ -727,11 +730,13 @@ describe('set attempts and puzzle candidates', () => {
   });
 
   test('provenanceVersions follows ALGO_ID\'s family', () => {
-    assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel']);
-    assert.equal(provenanceVersions().algo, 'gen-v3');
+    assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel', 'priorTable', 'screenTable']);
+    assert.equal(provenanceVersions().algo, 'gen-v4');
+    assert.equal(provenanceVersions().priorTable, 'prior-s3-v1');
+    assert.equal(provenanceVersions().screenTable, 'screen-v4-v1');
     const c = puzzleCandidate(realCtx(), 1, 0);
     assert.ok('made' in c);
-    assert.ok(!('igPrior' in c.made));
+    assert.equal(c.made.igPrior, null);
     assert.deepEqual(c.made.versions, provenanceVersions());
   });
 
@@ -981,9 +986,9 @@ describe('recorded generation fixture', () => {
     assert.equal(run('--search').status, 2, 'the search belongs to the replay-case mode');
     const refusal = run('--replay-case', '--refusal');
     assert.equal(refusal.status, 0);
-    assert.match(refusal.stdout, /refusal case skipped \(the running versions are the file's\)/);
+    assert.match(refusal.stdout, /record-fixtures: refusal case OK/);
     assert.equal(run('--replay-case', '--recipe', 'screen', '--create').status, 2, 'a recording needs a seed');
     assert.equal(run('--replay-case', '--recipe', 'nope', '--check').status, 2, 'an unknown recipe is a usage error');
-    assert.equal(run('--replay-case', '--check', '--file', 'replay-case.json').status, 0, 'an explicit file is read');
+    assert.equal(run('--replay-case', '--check', '--file', 'replay-case.json').status, 1, "the old case's versions differ");
   });
 });

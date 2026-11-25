@@ -447,7 +447,7 @@ const ORIGIN = Object.freeze({ schema: 1, seed: 'demo', level: 'hard', attempt: 
 const CALIBRATION_RECORD = Object.freeze({ schema: 1, kind: 'calibration' });
 const CANDIDATE_RECORD = Object.freeze({
   schema: 1, kind: 'candidate', batchSeed: 'demo#1', targetLevel: 'hard', uniqueness: 'any', slot: 2, attempt: 0, start: 'witness',
-  skips: { subsets: [3, 9], repairs: [] }, versions: provenanceVersions(),
+  skips: { subsets: [3, 9], repairs: [] }, igPrior: null, versions: provenanceVersions(),
 });
 assert.equal(provenanceProblem('setOrigin', ORIGIN), null);
 assert.equal(provenanceProblem('made', CANDIDATE_RECORD), null);

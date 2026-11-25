@@ -1010,7 +1010,7 @@ describe('auxiliary requests', () => {
   });
 });
 
-const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case.json', import.meta.url), 'utf8'));
+const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case-v4.json', import.meta.url), 'utf8'));
 /**
  * The input of `replayPuzzle` for one fixture puzzle, as the Generator holds it: the set of its pack, the puzzle, the
  * pack's set origin and the puzzle's own origin record.
@@ -1380,6 +1380,7 @@ describe('real engine through the pool', () => {
         targetLevel: recipe.levelId,
         uniqueness: recipe.uniqueness,
         slot: i + 2,
+        igPrior: null,
         versions: provenanceVersions(),
       }, id);
       assert.ok(Number.isInteger(attempt) && attempt >= 0, id);

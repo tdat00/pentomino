@@ -58,7 +58,7 @@ describe('select-v4 smoke', () => {
     assert.equal(result.igNoWindow, 'below');
   });
 
-  test("the dispatcher keeps today's search while the route is off", () => {
+  test('the dispatcher routes Nightmare to gen-v4 except the full 26x26 board', () => {
     const big = rectangle(10, 10);
     const twenty = [...pieces, ...pieces.slice(0, 8).map((p) => ({ ...p, id: `${p.id}2` }))];
     const witness = /** @type {Pose[]} */ (solveFirst(buildModel(big, twenty, [], ws), { rowTrialLimit: 1e6 }).layout);
@@ -68,7 +68,17 @@ describe('select-v4 smoke', () => {
       rng: createRng(seed), uniqueness: /** @type {'any'} */ ('any'), excludeClueKeys: new Set(), ws,
       rate: () => fakeRating(60),
     });
-    assert.deepEqual(selectClues(context('p2-04/c')), selectCluesV3(context('p2-04/c')));
+    assert.deepEqual(selectClues(context('p2-04/c')), selectCluesV4(context('p2-04/c')));
+    const full = rectangle(26, 26);
+    const strips = Array.from({ length: 26 }, (_, i) => ({
+      id: `s${i}`, label: `s${i}`, color: '#888888', cells: Array.from({ length: 26 }, (__, x) => [x, 0]),
+    }));
+    const fullWitness = /** @type {Pose[]} */ (solveFirst(buildModel(full, strips, [], ws), { rowTrialLimit: 1e6 }).layout);
+    /** @param {string} seed */
+    const fullContext = (seed) => ({ ...context(seed), board: full, pieces: strips, layout: fullWitness });
+    const fullV3 = selectCluesV3(fullContext('p2-04/d'));
+    assert.deepEqual(selectClues(fullContext('p2-04/d')), fullV3);
+    assert.ok(!('counters' in fullV3), 'only selectCluesV4 returns counters');
   });
 });
 

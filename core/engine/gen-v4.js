@@ -1,15 +1,15 @@
 // @ts-check
 // gen-v4: the frozen values and pure rules of plan v4 (P1 to P5) and of phase 2 (plan 4.1): table ids, the route
 // predicate, the screen, the budgets, the start rule, the per-set prior rule of Hell 1 and the algorithm family.
-// Pure and DOM-free; nothing calls it until the cutover.
+// Pure and DOM-free; the route is live since the P2-15 cutover.
 
 import { activeCount } from './board.js';
 import { DEDUCE } from './policy.js';
 
 /** @typedef {import('./types.js').Board} Board */
 
-// P2-15 sets it to true together with `ALGO_ID = 'gen-v4'`.
-export const GEN_V4_LIVE = false;
+// The route switch, set to true by P2-15 together with `ALGO_ID = 'gen-v4'`.
+export const GEN_V4_LIVE = true;
 
 /** Table ids. */
 export const PRIOR_TABLE_ID = 'prior-s3-v1';

@@ -1,7 +1,7 @@
 // @ts-check
 // Generation steps model (MP16a, MP18a; design §6.12 and §11.11): the two views and the compact filter, the step
 // sentences, the score table, the stage list and the status text, the steps table (rows, stage groups and controller)
-// and the removed dialog, on the real replay of the replay fixture (tests/fixtures/replay-case.json, the first
+// and the removed dialog, on the real replay of the replay fixture (tests/fixtures/replay-case-v4.json, the first
 // candidate puzzle) and on small synthetic step lists.
 
 import assert from 'node:assert/strict';
@@ -30,7 +30,7 @@ afterEach(() => {
   setLocale('en', null);
 });
 
-const FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case.json', import.meta.url), 'utf8'));
+const FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case-v4.json', import.meta.url), 'utf8'));
 const workspaces = { ws: createWorkspace(MAIN_WORKSPACE_BYTES), scratch: createWorkspace(SCRATCH_WORKSPACE_BYTES) };
 
 /**
@@ -1322,8 +1322,8 @@ test('replay cache: the key holds the running provenance tuple', async () => {
   const key = replayKeyFor(source, provenanceVersions());
   assert.equal(key, replayKeyOf(source));
   assert.notEqual(replayKeyFor(source, { ...provenanceVersions(), rng: 'other' }), key, 'another rng');
-  assert.notEqual(replayKeyFor(source, { ...provenanceVersions(), priorTable: 'prior-s3-v1', screenTable: 'screen-v4-v1' }), key,
-    'the table ids of the gen-v4 family');
+  assert.notEqual(replayKeyFor(source, { ...provenanceVersions(), priorTable: 'prior-s3-v2' }), key, 'the prior table id');
+  assert.notEqual(replayKeyFor(source, { ...provenanceVersions(), screenTable: 'screen-v4-v2' }), key, 'the screen table id');
 });
 
 test('replay cache: a prefetch makes and saves a replay once; the section waits for it; a cancelled one is asked again', async () => {
