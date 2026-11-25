@@ -1,0 +1,17 @@
+Phase-1 task-pack review-1 final validation (SA-Astra)
+Base: eca0f94717a56de43c52f6cb54d739360670fef8; no engine/test invocation, commit, push or PR mutation.
+Command: npm run check (Q:\git\pentomino)
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+Command: git --no-pager diff --exit-code eca0f94 -- .
+PASS: empty tracked diff; production, tests, final plan and earlier tracked evidence untouched.
+PASS: 31 recorded validation input bindings still match their raw bytes.
+pack-r1-checks.mjs: 219 checks; disposable adoption reader 70 rows / 35 equal pairs / 14 memory side-cells; write-once refusal; scratch removed.
+pack-r1-dryrun.ps1: 23 PowerShell blocks parsed, 78 checks pass, 17 negative cases rejected; synthetic/old-log examples only; scratch and staged site removed.
+Command: check-list §3.3 G-FORMAT on every pack Markdown file and pack-r1-* evidence file, including this log.
+format: OK (14 files)
+PASS: owned scratch folders removed; no canonical adoption or qualification deliverable created.
