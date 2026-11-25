@@ -120,7 +120,10 @@ trước mọi tiến độ chơi khi bộ nhớ đầy, theo một khóa tính 
 `replaySourceOf` của `generator/state.js`, còn `generator/app.js` đưa cho nó hàm `replayPuzzle` của client.
 `tests/browser/replay.html` kiểm thử toàn bộ trên trình duyệt thật.
 `node tools\record-fixtures.mjs --replay-case --check` (và `--search`, `--create`, `--replace`) kiểm tra dữ liệu mẫu
-chạy lại `tests/fixtures/replay-case.json` giống cách `--check` kiểm tra các dữ liệu mẫu tạo đề.
+chạy lại `tests/fixtures/replay-case.json` giống cách `--check` kiểm tra các dữ liệu mẫu tạo đề. Từ khi chuyển sang `gen-v4`, dữ liệu mẫu chạy lại mặc định là `tests/fixtures/replay-case-v4.json`
+(`--recipe hard`), kèm dữ liệu thứ hai `replay-case-v4-screen.json` (`--recipe screen`) có các bước cho thấy lần
+chấm nhanh; `--file <tên>` chọn tệp khác, và `--replay-case --refusal` kiểm tra rằng `replay-case.json` cũ, do
+`gen-v3` tạo, bị từ chối theo phiên bản.
 
 Mọi module được trang hoặc worker nạp đều dùng đuôi `.js`; `.mjs` dành riêng cho công cụ Node. Chữ trên giao diện nằm
 trong các gói phẳng `generator/locale.en.js` / `locale.vi.js` và `player/locale.en.js` / `locale.vi.js` (chữ khi in nằm

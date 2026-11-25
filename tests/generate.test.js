@@ -979,5 +979,11 @@ describe('recorded generation fixture', () => {
     assert.equal(run('--replay-case', '--search', '--from', '50').status, 2, 'the seeds are 0 to 49');
     assert.equal(run('--replay-case', '--check', '--seed', '0').status, 2);
     assert.equal(run('--search').status, 2, 'the search belongs to the replay-case mode');
+    const refusal = run('--replay-case', '--refusal');
+    assert.equal(refusal.status, 0);
+    assert.match(refusal.stdout, /refusal case skipped \(the running versions are the file's\)/);
+    assert.equal(run('--replay-case', '--recipe', 'screen', '--create').status, 2, 'a recording needs a seed');
+    assert.equal(run('--replay-case', '--recipe', 'nope', '--check').status, 2, 'an unknown recipe is a usage error');
+    assert.equal(run('--replay-case', '--check', '--file', 'replay-case.json').status, 0, 'an explicit file is read');
   });
 });

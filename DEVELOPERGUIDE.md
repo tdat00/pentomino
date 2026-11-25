@@ -121,7 +121,10 @@ generator version changes); the section stays hidden until its **Show generation
 under the pieces to place and gives it `replaySourceOf` of `generator/state.js`, and `generator/app.js` passes it the
 client's `replayPuzzle`. `tests/browser/replay.html` tests all of it in a real browser.
 `node tools\record-fixtures.mjs --replay-case --check` (and `--search`, `--create`, `--replace`) checks the replay
-fixture `tests/fixtures/replay-case.json` the way `--check` checks the generation fixtures.
+fixture `tests/fixtures/replay-case.json` the way `--check` checks the generation fixtures. From the `gen-v4` cutover on, the default replay case is `tests/fixtures/replay-case-v4.json`
+(`--recipe hard`), with a second case `replay-case-v4-screen.json` (`--recipe screen`) whose steps show the
+screen; `--file <name>` picks another file, and `--replay-case --refusal` checks that the old
+`replay-case.json`, made by `gen-v3`, is refused by version.
 
 Every module loaded by a page or worker uses `.js`; `.mjs` is reserved for Node-only tools. The interface text is in the
 flat packs `generator/locale.en.js` / `locale.vi.js` and `player/locale.en.js` / `locale.vi.js` (printing texts in

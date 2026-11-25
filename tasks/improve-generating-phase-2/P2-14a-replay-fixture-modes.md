@@ -156,14 +156,14 @@ Before the cutover nothing changes for today's checks. Nothing is recorded here,
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w1, 17b3de00fc48929439794c4a1deda95ebd4155b5 |
+| Start, end, duration | dispatched 2026-11-25 23:12 +07:00 (developer 23:12:09 to 23:31:09); accepted 23:35 |
+| Waiting for rulings | about 4 min (eleven deviations, SA-Opus) |
+| Agent id, model | 6904288c-6284-475a-b3f8-850fa0b90ebd, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 46; 4,329,500 / 36,679 / 4,231,982 |
+| AI credits | 103.37 |
+| Questions and rulings | no QUESTION; eleven deviations, all accepted by SA-Opus with no fix and no pack amendment: generateReplaySeed returns qualifies (internal); --file a bare name (exit 2 otherwise); an unknown --recipe is a usage error in every mode, no gen-v4 check for --refusal (R10); the refusal check compares the whole generation object (fails closed); the refusal replays use the engine's replayPuzzle directly; the screen condition replays candidate puzzles through client.replayPuzzle (R10); no probe exists in checkReplayCase at the base, the task text was wrong and the developer's reading follows R10 (such a mismatch should normally be a QUESTION); guide sentence wrapped and appended; --create and --search name the recipe's file or seed prefix; test lines about 950-985; the usage text lists the new options |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked --replay-case --check OK (1.242 s), locked --replay-case --refusal skipped line exit 0 (0.138 s), locked focused generate.test.js 45/45 (27.394 s), REPLAY check (policy.js diff empty), G-PROTECTED, G-WORKTREE, G-FORMAT (4 files), G-CHECK OK, anchors 22 of 22; scratch refusal runs (deleted): differing versions OK, mixed versions exit 1 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-15 step 2 records replay-case-v4.json and replay-case-v4-screen.json and runs the real --refusal (the OK branch) and the screen flow; the screen generation path and hasScreenSteps first run end to end at the cutover |
