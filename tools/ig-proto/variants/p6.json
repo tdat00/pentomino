@@ -1,0 +1,20 @@
+{
+  "id": "p6",
+  "extends": [],
+  "description": "P6 (OD-P2): during the search measureV3 skips the DLX diagnostic, which never enters the score; ig-log.js withP6 gives it back to the returned result. Edits only: composed after log, never alone.",
+  "edits": [
+    {
+      "id": "p6-1",
+      "file": "core/engine/difficulty.js",
+      "find": "  const run = solveFirst(model, { rowTrialLimit: limits.dlx.rows, branchTrialLimit: limits.dlx.branch });\n",
+      "replace": "  const run = igDlx.skip ? { layout: [], exhausted: false, stop: 'skipped', branchTrials: 0, rowTrials: 0 } : solveFirst(model, { rowTrialLimit: limits.dlx.rows, branchTrialLimit: limits.dlx.branch });\n"
+    },
+    {
+      "id": "p6-2",
+      "file": "core/engine/difficulty.js",
+      "append": "\n/** P6 prototype switch (ig-proto): the search skips the DLX diagnostic; the returned result gets it back. */\nexport const igDlx = { skip: false };\n"
+    }
+  ],
+  "files": [],
+  "params": { "p6": true, "logAccepted": true }
+}

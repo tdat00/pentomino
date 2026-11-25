@@ -1,0 +1,385 @@
+SA-Astra S06 review at 96f231e: existing records, independent bootstrap and normal-model arithmetic only.
+COMMAND: node docs\improve-generating-stages-2-4\evidence\sa-astra\s06-review-checks.mjs --label frozen
+{
+  "publicationCount": 80,
+  "declared": 1120,
+  "validPublished": 1120,
+  "controls": [
+    {
+      "cell": "3x29-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.0591869954057995,
+      "lower": 0.9472801890051681,
+      "pass": true,
+      "logSd": 0.4025944641461532,
+      "logMean": 0.057501628373912386,
+      "approximateNeeded20": 1.0100630759446652,
+      "approximateFresh20PowerAtTrueParity": 0.45571901725781255,
+      "approximateNeeded40": 0.9765012235268514,
+      "approximateFresh40PowerAtTrueParity": 0.645634295622881,
+      "medianTodayS": 4.655431549999999,
+      "medianShippedS": 4.5257121,
+      "p95TodayS": 8.7766067,
+      "p95ShippedS": 6.4003214,
+      "screen": {
+        "geoMean": 1.0473035289132737,
+        "lower": 0.9375449902496422,
+        "medianS": 4.618342800000001
+      }
+    },
+    {
+      "cell": "10x10-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.522135163994111,
+      "lower": 1.317266804579746,
+      "pass": true,
+      "logSd": 0.5030976177291846,
+      "logMean": 0.4201140623256462,
+      "approximateNeeded20": 1.0395775393939104,
+      "approximateFresh20PowerAtTrueParity": 0.3650362183113549,
+      "approximateNeeded40": 0.9965923771364622,
+      "approximateFresh40PowerAtTrueParity": 0.5171138242033592,
+      "medianTodayS": 16.68387155,
+      "medianShippedS": 12.118299200000001,
+      "p95TodayS": 55.8742575,
+      "p95ShippedS": 29.6597792,
+      "screen": {
+        "geoMean": 1.5350956607459267,
+        "lower": 1.3274704929688568,
+        "medianS": 12.042064
+      }
+    },
+    {
+      "cell": "18x18-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 2.001212907181786,
+      "lower": 1.6984165142524623,
+      "pass": true,
+      "logSd": 0.5922549253369199,
+      "logMean": 0.6937534503321738,
+      "approximateNeeded20": 1.0664811955616167,
+      "approximateFresh20PowerAtTrueParity": 0.3134767184758166,
+      "approximateNeeded40": 1.0147611692279983,
+      "approximateFresh40PowerAtTrueParity": 0.43782770618014555,
+      "medianTodayS": 34.47791515,
+      "medianShippedS": 15.726647250000001,
+      "p95TodayS": 120,
+      "p95ShippedS": 29.837636,
+      "screen": {
+        "geoMean": 3.732441003581245,
+        "lower": 3.095534119306123,
+        "medianS": 7.2385781
+      }
+    },
+    {
+      "cell": "18x20-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.6591288062801857,
+      "lower": 1.4374145194731394,
+      "pass": true,
+      "logSd": 0.5120403517509075,
+      "logMean": 0.506292649110734,
+      "approximateNeeded20": 1.042245143133881,
+      "approximateFresh20PowerAtTrueParity": 0.35890534668423685,
+      "approximateNeeded40": 0.9983999838248909,
+      "approximateFresh40PowerAtTrueParity": 0.5078900472358606,
+      "medianTodayS": 26.4371623,
+      "medianShippedS": 15.86469185,
+      "p95TodayS": 85.00716779999999,
+      "p95ShippedS": 34.3729309,
+      "screen": {
+        "geoMean": 2.8818571036308227,
+        "lower": 2.356673460211553,
+        "medianS": 9.39520355
+      }
+    },
+    {
+      "cell": "20x20-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 2.088863267833705,
+      "lower": 1.7329615831517327,
+      "pass": true,
+      "logSd": 0.6673129460088404,
+      "logMean": 0.7366200270257053,
+      "approximateNeeded20": 1.089669391302068,
+      "approximateFresh20PowerAtTrueParity": 0.2824750143133315,
+      "approximateNeeded40": 1.0303133169766214,
+      "approximateFresh40PowerAtTrueParity": 0.38857676003650665,
+      "medianTodayS": 38.938761650000004,
+      "medianShippedS": 15.2350012,
+      "p95TodayS": 73.6913815,
+      "p95ShippedS": 24.2193921,
+      "screen": {
+        "geoMean": 3.7928452694323633,
+        "lower": 3.0564181785124704,
+        "medianS": 7.8562091
+      }
+    },
+    {
+      "cell": "20x21-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.5839811431116972,
+      "lower": 1.3792986276058001,
+      "pass": true,
+      "logSd": 0.5083360124500047,
+      "logMean": 0.45994138872017254,
+      "approximateNeeded20": 1.041139314977268,
+      "approximateFresh20PowerAtTrueParity": 0.3614144715964588,
+      "approximateNeeded40": 0.9976508233817912,
+      "approximateFresh40PowerAtTrueParity": 0.5116722208187188,
+      "medianTodayS": 29.359135800000004,
+      "medianShippedS": 18.1402828,
+      "p95TodayS": 96.2292762,
+      "p95ShippedS": 25.345622499999998,
+      "screen": {
+        "geoMean": 2.746987998172864,
+        "lower": 2.2956793717461617,
+        "medianS": 10.016329549999998
+      }
+    },
+    {
+      "cell": "32x15-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.0539507622469275,
+      "lower": 0.9126590989538331,
+      "pass": true,
+      "logSd": 0.5107235699275032,
+      "logMean": 0.052545733892242305,
+      "approximateNeeded20": 1.0418519198147824,
+      "approximateFresh20PowerAtTrueParity": 0.35979240676286284,
+      "approximateNeeded40": 0.9981336152721646,
+      "approximateFresh40PowerAtTrueParity": 0.5092283103591219,
+      "medianTodayS": 10.565413399999999,
+      "medianShippedS": 14.33708805,
+      "p95TodayS": 40.0604485,
+      "p95ShippedS": 25.5973969,
+      "screen": {
+        "geoMean": 1.6934439595315933,
+        "lower": 1.464555993632626,
+        "medianS": 8.550576099999999
+      }
+    },
+    {
+      "cell": "22x22-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.155386821595929,
+      "lower": 1.0388096227711745,
+      "pass": true,
+      "logSd": 0.37594063510941705,
+      "logMean": 0.14443519837642907,
+      "approximateNeeded20": 1.00237729464507,
+      "approximateFresh20PowerAtTrueParity": 0.48873281708785826,
+      "approximateNeeded40": 0.9712412616461401,
+      "approximateFresh40PowerAtTrueParity": 0.688254830169054,
+      "medianTodayS": 10.82187525,
+      "medianShippedS": 10.3102648,
+      "p95TodayS": 31.6018529,
+      "p95ShippedS": 19.1825377,
+      "screen": {
+        "geoMean": 1.5903840254744814,
+        "lower": 1.4315651389420803,
+        "medianS": 7.31645125
+      }
+    },
+    {
+      "cell": "24x24-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.2433695406496388,
+      "lower": 1.1271388877754354,
+      "pass": true,
+      "logSd": 0.3680504114806476,
+      "logMean": 0.21782506572953086,
+      "approximateNeeded20": 1.0001133431031324,
+      "approximateFresh20PowerAtTrueParity": 0.4994506006940226,
+      "approximateNeeded40": 0.9696896186800588,
+      "approximateFresh40PowerAtTrueParity": 0.701565548177962,
+      "medianTodayS": 16.42326885,
+      "medianShippedS": 15.62501035,
+      "p95TodayS": 43.568093700000006,
+      "p95ShippedS": 23.8768645,
+      "screen": {
+        "geoMean": 1.7759166987060835,
+        "lower": 1.566366997233606,
+        "medianS": 10.79687805
+      }
+    },
+    {
+      "cell": "26x26-nightmare",
+      "shipped": "fr-frozen-none",
+      "geoMean": 1.0006219645915206,
+      "lower": 0.886429539656821,
+      "pass": false,
+      "logSd": 0.43861384948113685,
+      "logMean": 0.0006217712517069901,
+      "approximateNeeded20": 1.0205431817380366,
+      "approximateFresh20PowerAtTrueParity": 0.41787326929371515,
+      "approximateNeeded40": 0.9836547056690599,
+      "approximateFresh40PowerAtTrueParity": 0.5939186932967935,
+      "medianTodayS": 15.535982349999998,
+      "medianShippedS": 15.7559589,
+      "p95TodayS": 26.398446600000003,
+      "p95ShippedS": 26.1594208,
+      "screen": {
+        "geoMean": 1.4665780100036852,
+        "lower": 1.2929807789805263,
+        "medianS": 10.185888749999998
+      }
+    }
+  ],
+  "classes": [
+    {
+      "id": "n-small",
+      "cells": [
+        "3x29-nightmare",
+        "10x10-nightmare",
+        "12x12-nightmare"
+      ],
+      "geoMean": 0.9981064516435699,
+      "lower": 0.9953047082657673,
+      "verdict": "failed",
+      "decidedBy": "faster",
+      "workVerdictFromRecordedBounds": "unknown",
+      "shipped": "fr-frozen-none"
+    },
+    {
+      "id": "n-mid",
+      "cells": [
+        "14x14-nightmare",
+        "15x15b10-nightmare",
+        "16x16-nightmare"
+      ],
+      "geoMean": 2.300742673695926,
+      "lower": 2.1680299106501772,
+      "verdict": "admitted",
+      "decidedBy": null,
+      "workVerdictFromRecordedBounds": "pass",
+      "shipped": "fr-frozen"
+    },
+    {
+      "id": "n-upper",
+      "cells": [
+        "15x20-nightmare",
+        "18x18-nightmare"
+      ],
+      "geoMean": 1.790501260750378,
+      "lower": 1.6835699259721364,
+      "verdict": "inconclusive",
+      "decidedBy": "work-unknown",
+      "workVerdictFromRecordedBounds": "unknown",
+      "shipped": "fr-frozen-none"
+    },
+    {
+      "id": "n-large",
+      "cells": [
+        "18x20-nightmare",
+        "20x20-nightmare",
+        "20x21-nightmare",
+        "32x15-nightmare",
+        "22x22-nightmare",
+        "24x24-nightmare",
+        "26x26-nightmare"
+      ],
+      "geoMean": 1.586738132895369,
+      "lower": 1.5415167983432614,
+      "verdict": "inconclusive",
+      "decidedBy": "work-unknown",
+      "workVerdictFromRecordedBounds": "unknown",
+      "shipped": "fr-frozen-none"
+    },
+    {
+      "id": "hell-1",
+      "cells": [
+        "14x14-hell-1",
+        "20x20-hell-1",
+        "24x24-hell-1",
+        "26x26-hell-1"
+      ],
+      "geoMean": 0.9985545053031247,
+      "lower": 0.9958581862458629,
+      "verdict": "failed",
+      "decidedBy": "faster",
+      "workVerdictFromRecordedBounds": "unknown",
+      "shipped": "fr-frozen-none"
+    }
+  ],
+  "phase0": {
+    "verdict": "fail",
+    "deciding": [
+      "control 26x26-nightmare: fail"
+    ]
+  },
+  "modelIllustration": {
+    "assumptions": "Hypothetical independent normal log-ratios, fixed population SD set to the observed sample SD; these are not calibrated powers of the frozen bootstrap rule.",
+    "observedMean": 1.0006219645915206,
+    "observedLower": 0.886429539656821,
+    "sd": 0.43861384948113685,
+    "needed20": 1.0205431817380366,
+    "fresh20PowerAtTrueParity": 0.41787326929371515,
+    "needed40": 0.9836547056690599,
+    "fresh40PowerAtTrueParity": 0.5939186932967935,
+    "conditionalExisting20PlusFresh20AtTrueParity": 0.6339785009027143,
+    "belowOne": 9,
+    "below08": 5,
+    "above12": 6
+  },
+  "c26Slow": [
+    {
+      "rep": 21,
+      "todayMs": 13972.7132,
+      "shippedMs": 38919.1043,
+      "screenMs": 18277.996499999997,
+      "ratio": 0.3590193929514457,
+      "screenRatio": 0.7644554040701343,
+      "todaySetMs": 2439.0264,
+      "shippedSetMs": 25418.814599999998,
+      "todayAccepted": 10,
+      "shippedAccepted": 10
+    },
+    {
+      "rep": 28,
+      "todayMs": 9116.776,
+      "shippedMs": 16635.7473,
+      "screenMs": 9487.1139,
+      "ratio": 0.5480232318748915,
+      "screenRatio": 0.9609641136489359,
+      "todaySetMs": 763.1988,
+      "shippedSetMs": 882.5339,
+      "todayAccepted": 10,
+      "shippedAccepted": 10
+    },
+    {
+      "rep": 37,
+      "todayMs": 11237.5382,
+      "shippedMs": 18990.1359,
+      "screenMs": 10840.4515,
+      "ratio": 0.5917565971710608,
+      "screenRatio": 1.0366300887006414,
+      "todaySetMs": 1774.2261999999998,
+      "shippedSetMs": 2477.1451,
+      "todayAccepted": 10,
+      "shippedAccepted": 10
+    }
+  ],
+  "account": {
+    "countedS": 28043.39100000001,
+    "afterLoggedS": 42514.43900000001,
+    "offLogS": 87.4,
+    "afterMinutes": 710.0306500000003,
+    "comparatorGuardMinutes": 732.0213794942938,
+    "comparatorScope": 19,
+    "comparatorRows": 380,
+    "comparatorMinimumCap": 1443,
+    "currentGrant": 1725
+  },
+  "inputCount": 128
+}
+COMMAND: npm run check
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+PASS: 128 reviewed input byte hashes unchanged; all four proof bindings pass.
+PASS: scratch files are CRLF, UTF-8 without BOM, no trailing whitespace, final newline.
+Disposition: FAIL and measurement-only S07 recommendation agreed; three corrections requested in s06-review.md. Reviewer sign-off left empty. No code, plan or run record edited; no measured command or commit.

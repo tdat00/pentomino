@@ -1,0 +1,63 @@
+{
+  "id": "r4c",
+  "extends": ["instr"],
+  "description": "R4 visit and mutation counters (V4-T10a, plan P7 C1): test-side; the deduction result is unchanged.",
+  "edits": [
+    {
+      "id": "r4c-1",
+      "file": "core/engine/deduce.js",
+      "find": "  let igR7CutCensus = 0;\n",
+      "replace": "  let igR7CutCensus = 0;\n  let igR4Calls = 0;\n  let igR4Pieces = 0;\n  let igR4Static = 0;\n  let igR4Live = 0;\n  let igR4Dirty = 0;\n  let igR4CountChanged = 0;\n  let igR4Kills = 0;\n  let igKills = 0;\n  let igUndo = 0;\n  const igEpoch = new Int32Array(NP);\n  const igR4Seen = new Int32Array(NP).fill(-1);\n  const igR4LastLive = new Int32Array(NP).fill(-1);\n"
+    },
+    {
+      "id": "r4c-2",
+      "file": "core/engine/deduce.js",
+      "find": "  function ruleR4(counting) {\n",
+      "replace": "  function ruleR4(counting) {\n    igR4Calls += 1;\n"
+    },
+    {
+      "id": "r4c-3",
+      "file": "core/engine/deduce.js",
+      "find": "      let nLive = 0;\n",
+      "replace": "      igR4Pieces += 1;\n      igR4Static += colStart[pc + 1] - colStart[pc];\n      let nLive = 0;\n"
+    },
+    {
+      "id": "r4c-4",
+      "file": "core/engine/deduce.js",
+      "find": "      let killed = 0;\n      if (nLive > 0) {\n",
+      "replace": "      igR4Live += nLive;\n      if (igR4Seen[p] !== igEpoch[p]) {\n        igR4Dirty += 1;\n        igR4Seen[p] = igEpoch[p];\n      }\n      if (igR4LastLive[p] !== nLive) {\n        igR4CountChanged += 1;\n        igR4LastLive[p] = nLive;\n      }\n      let killed = 0;\n      if (nLive > 0) {\n"
+    },
+    {
+      "id": "r4c-5",
+      "file": "core/engine/deduce.js",
+      "find": "      if (killed > 0) {\n        if (counting) {\n          rules[3] += killed;\n",
+      "replace": "      igR4Kills += killed;\n      if (killed > 0) {\n        if (counting) {\n          rules[3] += killed;\n"
+    },
+    {
+      "id": "r4c-6",
+      "file": "core/engine/deduce.js",
+      "find": "  function kill(r) {\n    live[r] = 0;\n",
+      "replace": "  function kill(r) {\n    igKills += 1;\n    igEpoch[rowPiece[r]] += 1;\n    live[r] = 0;\n"
+    },
+    {
+      "id": "r4c-7",
+      "file": "core/engine/deduce.js",
+      "find": "      const x = trail[--trailLength];\n      work += 1;\n",
+      "replace": "      const x = trail[--trailLength];\n      work += 1;\n      igUndo += 1;\n"
+    },
+    {
+      "id": "r4c-8",
+      "file": "core/engine/deduce.js",
+      "find": "r7CutCensus: igR7CutCensus };\n",
+      "replace": "r7CutCensus: igR7CutCensus, r4: { calls: igR4Calls, pieces: igR4Pieces, staticRows: igR4Static, liveRows: igR4Live, dirtyPieces: igR4Dirty, countChanged: igR4CountChanged, r4Kills: igR4Kills, kills: igKills, undoEntries: igUndo } };\n"
+    },
+    {
+      "id": "r4c-9",
+      "file": "core/engine/deduce.js",
+      "find": "      if (x >= 0) {\n        live[x] = 1;\n",
+      "replace": "      if (x >= 0) {\n        igEpoch[rowPiece[x]] += 1;\n        live[x] = 1;\n"
+    }
+  ],
+  "files": [],
+  "params": {}
+}

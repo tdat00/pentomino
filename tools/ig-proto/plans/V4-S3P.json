@@ -1,0 +1,888 @@
+{
+  "task": "V4-S3P",
+  "generatedBy": "manifest.mjs write-plan",
+  "runnable": true,
+  "blockedBy": [],
+  "prerequisites": [
+    {
+      "type": "variant",
+      "id": "fr-frozen"
+    },
+    {
+      "type": "variant",
+      "id": "fr-frozen-none"
+    },
+    {
+      "type": "variant",
+      "id": "fr-frozen-uncapped"
+    },
+    {
+      "type": "variant",
+      "id": "fr-frozen-none-uncapped"
+    },
+    {
+      "type": "accepted",
+      "path": "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json",
+      "current": [
+        "v4"
+      ]
+    }
+  ],
+  "allocationMinutes": 139,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "prerequisites",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\manifest.mjs",
+        "check-prerequisites",
+        "--plan",
+        "V4-S3P"
+      ],
+      "optional": false,
+      "dependsOn": [],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json"
+      ],
+      "produces": [],
+      "expect": "prerequisites: pass",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\firewall.mjs",
+        "snapshot",
+        "--task",
+        "V4-S3P"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "prerequisites"
+      ],
+      "consumes": [],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/firewall-before.json"
+      ],
+      "expect": "firewall: snapshot of V4-S3P",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\lib\\tree.mjs",
+        "build",
+        "fr-frozen",
+        "fr-frozen-none",
+        "fr-frozen-uncapped",
+        "fr-frozen-none-uncapped"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "prerequisites"
+      ],
+      "consumes": [],
+      "produces": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen-uncapped/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none-uncapped/ig-tree.json"
+      ],
+      "expect": "<variant> <treeId> <copyDigest> built|reused, one line per variant",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-frozen",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen.json"
+      ],
+      "state": "V4-S3P\\parity-fr-frozen\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 978,
+      "minHorizonS": 270,
+      "invocations": 2,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-frozen",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-frozen",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-frozen",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-frozen",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen.json",
+        "--arm",
+        "fr-frozen",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-frozen"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-frozen",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.accepted.json",
+        "--by",
+        "V4-S3"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-frozen"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-frozen-none",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen-none",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen-none.json"
+      ],
+      "state": "V4-S3P\\parity-fr-frozen-none\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 978,
+      "minHorizonS": 270,
+      "invocations": 2,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-frozen-none",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-frozen-none",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-frozen-none",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-frozen-none",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen-none",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen-none.json",
+        "--arm",
+        "fr-frozen-none",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-frozen-none"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-frozen-none",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen-none",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen-none.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.accepted.json",
+        "--by",
+        "V4-S3"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-frozen-none"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-frozen-uncapped",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen-uncapped",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen-uncapped.json"
+      ],
+      "state": "V4-S3P\\parity-fr-frozen-uncapped\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 978,
+      "minHorizonS": 270,
+      "invocations": 2,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-frozen-uncapped",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-frozen-uncapped",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-frozen-uncapped",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen-uncapped/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-uncapped/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-uncapped/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-frozen-uncapped",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen-uncapped",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen-uncapped.json",
+        "--arm",
+        "fr-frozen-uncapped",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-frozen-uncapped"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-uncapped/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-uncapped/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-frozen-uncapped",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen-uncapped",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen-uncapped.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.accepted.json",
+        "--by",
+        "V4-S3"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-frozen-uncapped"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "parity-fr-frozen-none-uncapped",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "run",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen-none-uncapped",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen-none-uncapped.json"
+      ],
+      "state": "V4-S3P\\parity-fr-frozen-none-uncapped\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 978,
+      "minHorizonS": 270,
+      "invocations": 2,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "v4-select",
+            "variant": "fr-frozen-none-uncapped",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-generate",
+            "variant": "fr-frozen-none-uncapped",
+            "lanes": 1,
+            "reserveS": 245,
+            "durationsS": [
+              245
+            ],
+            "durationSource": "reserve"
+          },
+          {
+            "kind": "v4-replay",
+            "variant": "fr-frozen-none-uncapped",
+            "lanes": 2,
+            "reserveS": 120,
+            "durationsS": [
+              120,
+              120
+            ],
+            "durationSource": "reserve"
+          }
+        ]
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none-uncapped/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none-uncapped/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none-uncapped/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item of the manifest has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "receipt-fr-frozen-none-uncapped",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "receipt",
+        "--kind",
+        "parity",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen-none-uncapped",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen-none-uncapped.json",
+        "--arm",
+        "fr-frozen-none-uncapped",
+        "--require-pass"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "parity-fr-frozen-none-uncapped"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none-uncapped/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/parity-fr-frozen-none-uncapped/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.receipt.json"
+      ],
+      "expect": "receipt: parity pass -> docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.receipt.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "accept-fr-frozen-none-uncapped",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\v4-check.mjs",
+        "accept",
+        "--task",
+        "V4-S3P",
+        "--step",
+        "parity-fr-frozen-none-uncapped",
+        "--manifest",
+        "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen-none-uncapped.json",
+        "--receipt",
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.receipt.json",
+        "--binding",
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.accepted.json",
+        "--by",
+        "V4-S3"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "receipt-fr-frozen-none-uncapped"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.receipt.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.accepted.json"
+      ],
+      "expect": "accepted: docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.receipt.json sha256 <hash> -> docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.accepted.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-frozen-none-uncapped-pilot-14x14-hell-1",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S3P",
+        "--arm",
+        "fr-frozen-none-uncapped",
+        "--shard",
+        "pilot-14x14-hell-1",
+        "--variant",
+        "fr-frozen-none-uncapped",
+        "--workers",
+        "4",
+        "--cases",
+        "14x14-hell-1:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S3P\\fr-frozen-none-uncapped\\pilot-14x14-hell-1\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 737.8103443947482,
+      "minHorizonS": 272,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 147.16206887894964,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none-uncapped/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-frozen-none-uncapped-pilot-20x20-hell-1",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S3P",
+        "--arm",
+        "fr-frozen-none-uncapped",
+        "--shard",
+        "pilot-20x20-hell-1",
+        "--variant",
+        "fr-frozen-none-uncapped",
+        "--workers",
+        "4",
+        "--cases",
+        "20x20-hell-1:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S3P\\fr-frozen-none-uncapped\\pilot-20x20-hell-1\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 1304,
+      "minHorizonS": 272,
+      "invocations": 2,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 260,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none-uncapped/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-frozen-none-uncapped-pilot-24x24-hell-1",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S3P",
+        "--arm",
+        "fr-frozen-none-uncapped",
+        "--shard",
+        "pilot-24x24-hell-1",
+        "--variant",
+        "fr-frozen-none-uncapped",
+        "--workers",
+        "4",
+        "--cases",
+        "24x24-hell-1:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S3P\\fr-frozen-none-uncapped\\pilot-24x24-hell-1\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 737.8295604728761,
+      "minHorizonS": 272,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 147.16591209457522,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none-uncapped/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "rows-fr-frozen-none-uncapped-pilot-26x26-hell-1",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "run",
+        "--task",
+        "V4-S3P",
+        "--arm",
+        "fr-frozen-none-uncapped",
+        "--shard",
+        "pilot-26x26-hell-1",
+        "--variant",
+        "fr-frozen-none-uncapped",
+        "--workers",
+        "4",
+        "--cases",
+        "26x26-hell-1:0-4",
+        "--row-limit-s",
+        "260"
+      ],
+      "state": "V4-S3P\\fr-frozen-none-uncapped\\pilot-26x26-hell-1\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 1011.6375781847969,
+      "minHorizonS": 272,
+      "invocations": 2,
+      "optional": false,
+      "price": {
+        "type": "rows",
+        "rows": 5,
+        "rowS": 201.52751563695938,
+        "rowLimitS": 260
+      },
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/fr-frozen-none-uncapped/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/state.json"
+      ],
+      "expect": "arm: <n> row(s) recorded in this invocation, 5 of 5 in all (<s> s); the state has done: true",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "publish-fr-frozen-none-uncapped",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\arm.mjs",
+        "publish",
+        "--task",
+        "V4-S3P",
+        "--arm",
+        "fr-frozen-none-uncapped"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "rows-fr-frozen-none-uncapped-pilot-14x14-hell-1",
+        "rows-fr-frozen-none-uncapped-pilot-20x20-hell-1",
+        "rows-fr-frozen-none-uncapped-pilot-24x24-hell-1",
+        "rows-fr-frozen-none-uncapped-pilot-26x26-hell-1"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/state.json"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/"
+      ],
+      "expect": "arm: published fr-frozen-none-uncapped/<shard>: <n> rows, <m> journal lines (one line per shard)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\firewall.mjs",
+        "check",
+        "--task",
+        "V4-S3P"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "firewall-snapshot"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-S3P/firewall-before.json"
+      ],
+      "produces": [],
+      "expect": "firewall: OK, <n> production files unchanged since the snapshot of V4-S3P",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    }
+  ]
+}

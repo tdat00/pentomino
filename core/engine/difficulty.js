@@ -271,18 +271,45 @@ function copyDetail(d) {
 }
 
 /**
- * The one measurement behind `measureV3`, `rate` and `rateDetailed`. With `keepDetail` the deduction result is
- * copied right after `measureDeduction` returns, before the DLX diagnostic reuses the workspace; the second solve
- * of the detail channel does not exist.
+ * The DLX diagnostic of a model: the four fields of `MetricsV3` that only the traversal sets. An exhausted search
+ * without a solution is an internal error (the deduction found one).
+ * @param {import('./tiling.js').Model} model
+ * @param {{ branch: number, rows: number }} dlx
+ * @returns {Pick<MetricsV3, 'B' | 'branchTrials' | 'rowTrials' | 'dlxStop'>}
+ */
+function dlxDiagnostic(model, dlx) {
+  const run = solveFirst(model, { rowTrialLimit: dlx.rows, branchTrialLimit: dlx.branch });
+  /** @type {MetricsV3['dlxStop']} */
+  let dlxStop = 'solution';
+  if (run.layout === null) {
+    if (run.exhausted) {
+      throw new Error('internal: the DLX diagnostic found no solution where the deduction found one');
+    }
+    dlxStop = run.stop === 'row-limit' ? 'row-cap' : 'branch-cap';
+  }
+  return {
+    B: dlxStop === 'solution' ? Math.min(run.branchTrials, SCORE.caps.branch) : SCORE.caps.branch,
+    branchTrials: run.branchTrials,
+    rowTrials: run.rowTrials,
+    dlxStop,
+  };
+}
+
+/**
+ * The one measurement behind `measureV3`, `rate`, `rateDetailed` and `rateLean`. With `keepDetail` the deduction
+ * result is copied right after `measureDeduction` returns, before the DLX diagnostic reuses the workspace; the second
+ * solve of the detail channel does not exist. Without `withDlx` (and with U > 0) the DLX diagnostic is not run: `B`,
+ * `branchTrials` and `rowTrials` are 0 and `dlxStop` is `'skipped'` (P6); everything else is as with it.
  * @param {Board} board
  * @param {Piece[]} pieces
  * @param {Pose[]} clues
  * @param {Workspace} ws
  * @param {{ deduce: DeductionLimits, dlx: { branch: number, rows: number } }} limits
  * @param {boolean} keepDetail
+ * @param {boolean} [withDlx] Default true.
  * @returns {{ metrics: MetricsV3, saturated: false, detail: RatingDetail | null }}
  */
-function measureV3Core(board, pieces, clues, ws, limits, keepDetail) {
+function measureV3Core(board, pieces, clues, ws, limits, keepDetail, withDlx = true) {
   const U = pieces.length - clues.length;
   if (U === 0) {
     if (!isValidLayout(board, pieces, clues)) {
@@ -323,24 +350,18 @@ function measureV3Core(board, pieces, clues, ws, limits, keepDetail) {
   const first = /** @type {NonNullable<typeof d.first>} */ (d.first);
   const detail = keepDetail ? copyDetail(d) : null;
   const census = /** @type {NonNullable<typeof d.census>} */ (d.census);
-  const run = solveFirst(model, { rowTrialLimit: limits.dlx.rows, branchTrialLimit: limits.dlx.branch });
-  /** @type {MetricsV3['dlxStop']} */
-  let dlxStop = 'solution';
-  if (run.layout === null) {
-    if (run.exhausted) {
-      throw new Error('internal: the DLX diagnostic found no solution where the deduction found one');
-    }
-    dlxStop = run.stop === 'row-limit' ? 'row-cap' : 'branch-cap';
-  }
+  const dlx = withDlx
+    ? dlxDiagnostic(model, limits.dlx)
+    : { B: 0, branchTrials: 0, rowTrials: 0, dlxStop: /** @type {MetricsV3['dlxStop']} */ ('skipped') };
   return {
     metrics: {
       U,
       R: model.freeCells,
       H: bits / U,
-      B: dlxStop === 'solution' ? Math.min(run.branchTrials, SCORE.caps.branch) : SCORE.caps.branch,
-      branchTrials: run.branchTrials,
-      rowTrials: run.rowTrials,
-      dlxStop,
+      B: dlx.B,
+      branchTrials: dlx.branchTrials,
+      rowTrials: dlx.rowTrials,
+      dlxStop: dlx.dlxStop,
       searchStop: d.search.stop,
       F: first.F,
       E: first.E,
@@ -415,6 +436,39 @@ export function rate(board, pieces, clues, ws) {
 export function rateDetailed(board, pieces, clues, ws) {
   const { metrics, detail } = measureV3Core(board, pieces, clues, ws, { deduce: DEDUCE, dlx: SCORE.caps }, true);
   return { rating: ratingOf(metrics), detail: /** @type {RatingDetail} */ (detail) };
+}
+
+/**
+ * The search rating of `selectClues` (P6): `rate()` without the DLX diagnostic; the same score, errors and work;
+ * never stored.
+ * @param {Board} board
+ * @param {Piece[]} pieces
+ * @param {Pose[]} clues
+ * @param {Workspace} ws
+ * @returns {RatingV3}
+ */
+export function rateLean(board, pieces, clues, ws) {
+  const { metrics } = measureV3Core(board, pieces, clues, ws, { deduce: DEDUCE, dlx: SCORE.caps }, false, false);
+  return ratingOf(metrics);
+}
+
+/**
+ * Fills the DLX diagnostic of a lean rating (`rateLean`) with one traversal on a new model of the same clues: the
+ * result equals `rate()` of them, key order included, and `rating` is not changed. Any other rating is returned as
+ * it is.
+ * @param {Board} board
+ * @param {Piece[]} pieces
+ * @param {Pose[]} clues
+ * @param {RatingV3} rating
+ * @param {Workspace} ws
+ * @returns {RatingV3}
+ */
+export function completeDiagnostic(board, pieces, clues, rating, ws) {
+  if (rating.metrics?.dlxStop !== 'skipped') {
+    return rating;
+  }
+  const diagnostic = dlxDiagnostic(buildModel(board, pieces, clues, ws), SCORE.caps);
+  return { ...rating, metrics: { ...rating.metrics, ...diagnostic } };
 }
 
 /**

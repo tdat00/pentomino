@@ -1,0 +1,8 @@
+{
+  "id": "log-p6",
+  "extends": ["log", "p6"],
+  "description": "Today's search with P6 (IGP-04): the same puzzles, the DLX diagnostic only for the returned result.",
+  "edits": [],
+  "files": [],
+  "params": {}
+}

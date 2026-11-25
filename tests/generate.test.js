@@ -805,7 +805,7 @@ describe('deterministic parallel simulation', () => {
   }
 
   for (const [seedText, tag] of [['fixture-set-0', ''], ['fixture-set-1', ' (slow)']]) {
-    test(`pool sizes 1-4 and shuffled completion orders agree on ${seedText}${tag}`, () => {
+    test(`pool sizes 1-4 and 8 with shuffled completion orders agree on ${seedText}${tag}`, () => {
       const r = setAttempt({ board, rotation: 0, levelId: 'hard', seedText, uniqueness: 'any', execution }, 0);
       assert.ok(r.ok);
       const seenLayouts = new Set(['pre-existing']);
@@ -818,7 +818,7 @@ describe('deterministic parallel simulation', () => {
       assert.ok(serial.accepted.length >= 2, 'the serial reference produces puzzles');
       const want = summary(serial);
       const memo = /** @type {Map<string, PuzzleCandidate | { fail: string }>} */ (new Map());
-      for (const width of [1, 2, 3, 4]) {
+      for (const width of [1, 2, 3, 4, 8]) {
         for (const order of ['a', 'b', 'c']) {
           assert.equal(summary(simulate(ctx, memo, width, `${order}${width}`)), want, `width ${width} order ${order}`);
         }

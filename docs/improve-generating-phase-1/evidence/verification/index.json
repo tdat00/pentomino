@@ -1,0 +1,156 @@
+{
+  "format": "pentomino-phase1-qualification",
+  "version": 1,
+  "status": "pass",
+  "planCommit": "eca0f94717a56de43c52f6cb54d739360670fef8",
+  "qualifiedCommit": "02edc6a48662fd81d38d86044881de20a5d8f4ff",
+  "attempt": "P1-03b-20261125T042920136Z",
+  "runtimeDigest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+  "node": {
+    "node26": "v26.13.0",
+    "node22": "v22.23.5"
+  },
+  "testedPaths": [
+    "core",
+    "generator",
+    "player",
+    "assets",
+    "index.html",
+    "redirect.js",
+    "sitemap.xml",
+    "tests",
+    "tools",
+    "package.json",
+    ".github"
+  ],
+  "focused": {
+    "task": "P1-02 fold8",
+    "node": "v26.13.0",
+    "seconds": 18.964,
+    "files": [
+      {
+        "path": "docs/improve-generating-phase-1/evidence/fold-width8/run.log",
+        "sha256": "968659377ff16e33a0de664309420454cfd94ed2c32fbd8b1e68d9e1f2581d47"
+      },
+      {
+        "path": "docs/improve-generating-phase-1/evidence/fold-width8/helper.log",
+        "sha256": "aa208e0d402028d5f2b084ad0e9af8e47bb05d5c2dcaadeb8ace9c18debc6e63"
+      }
+    ]
+  },
+  "gates": [
+    {
+      "id": "full-node26",
+      "task": "P1-03b full-node26",
+      "which": "self",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "tests/**/*.test.js"
+      ],
+      "exit": 0,
+      "seconds": 122.063,
+      "log": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/full-node26.log",
+      "helperLog": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/full-node26.helper.log"
+    },
+    {
+      "id": "fixtures",
+      "task": "P1-03b fixtures",
+      "which": "self",
+      "args": [
+        "tools\\record-fixtures.mjs",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.673,
+      "log": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/fixtures.log",
+      "helperLog": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/fixtures.helper.log"
+    },
+    {
+      "id": "replay-case",
+      "task": "P1-03b replay-case",
+      "which": "self",
+      "args": [
+        "tools\\record-fixtures.mjs",
+        "--replay-case",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 1.306,
+      "log": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/replay-case.log",
+      "helperLog": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/replay-case.helper.log"
+    },
+    {
+      "id": "full-node22",
+      "task": "P1-03b full-node22",
+      "which": "IG_NODE22",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "tests/**/*.test.js"
+      ],
+      "exit": 0,
+      "seconds": 141.735,
+      "log": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/full-node22.log",
+      "helperLog": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/full-node22.helper.log"
+    }
+  ],
+  "site": {
+    "version": "02edc6a4",
+    "files": 120,
+    "stamp": "stamp-version: 414 reference(s) in 91 of 114 file(s) stamped ?v=02edc6a4",
+    "check": "check-site: OK"
+  },
+  "nodePlusQuietSeconds": 509.741,
+  "evidence": [
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/conventions.log",
+      "sha256": "68db173301c5f85116e641689058beb8fc33881b4c2845d1470e9c0ea60bcae9"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/fixtures.helper.log",
+      "sha256": "fb4864121a09f98423f9c7a72e3ede9de2a3f8b05c0460299ad63d59c9043ded"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/fixtures.log",
+      "sha256": "badee78ea1627550f2951b90179741fb8a8d64ab1d0fe102a814829fe89bf428"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/full-node22.helper.log",
+      "sha256": "5922cb4ce2634e458453fd6c03974c9cbacfda0da4dac58716f9aefad1513dbc"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/full-node22.log",
+      "sha256": "b8df1ef34d24f187ae32fd825e5732c45beaa6182f680f25aa4e514bcfcb4954"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/full-node26.helper.log",
+      "sha256": "5d2ca905ddfc69208c89f4fe3db0aa7e787727a5911021ef03edf305697fbe4b"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/full-node26.log",
+      "sha256": "cd4e148b52bc0d95d9ceacc846ba7fbcfd81b8c82472289260dbc86725a630b1"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/replay-case.helper.log",
+      "sha256": "94faed4a829d84bdbaa211c662b6f54ba51da101381f9d7d5a41438516145109"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/replay-case.log",
+      "sha256": "e475e4b334366a42a741f51cf27ba5dfd204462fe57950bd9125c6304ba61f27"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/site.log",
+      "sha256": "ec82932bf2876d0402f6e7c07e97941fb8987a972ee7d0ea7422beff63c459ca"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/verification/P1-03b-20261125T042920136Z/tested-files.txt",
+      "sha256": "3d3670fe1c70a3aa43422691a66a92280dfc24c7017c7e04849a85e3fe1fc2ba"
+    }
+  ],
+  "limitations": [
+    "Node 22 verification ran on Windows, not Ubuntu CI.",
+    "The static-site check is not a browser run or deployment.",
+    "Node plus quiet seconds exclude lock waits; this is verification, not a benchmark."
+  ]
+}

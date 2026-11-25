@@ -1,0 +1,882 @@
+{
+  "meta": {
+    "format": "ig-proto-identity",
+    "version": 1,
+    "task": "V4-T04",
+    "label": "frozen",
+    "labelText": "frozen (3fc65f4)",
+    "createdAt": "2026-11-17T02:28:21.129Z",
+    "source": {
+      "label": "frozen 3fc65f4",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": false,
+      "kind": "frozen",
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "equalsFrozenSource": true,
+      "firewall": "4e5708012a353e204417a9841f0041f12b3fd90f6036d6acf4d18bc352637521"
+    },
+    "harness": {
+      "harnessHash": "136d4c6cde25e95e60cf5bf7899b05aead9ce4518286128e5d302dcd42d94b67",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "63a03c19840d96606baa93a53e1dfd39a855ebf25e3dbeb495a8e13ca564b20a",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/items.mjs": "fe1810c34d44f0569752619403c4aba421d1427a0a1be51815598cdc8a00af44",
+        "tools/ig-proto/lib/lane-worker.mjs": "fe431a621ac05b877b668e8cccfef7db98afa2fceaa0328bee6b6dff09c388d7",
+        "tools/ig-proto/lib/lanes.mjs": "65fd454af0364eef425bc5cce92e037ad3424cb6a342946d958d0215af5edd13",
+        "tools/ig-proto/lib/ledger.mjs": "53c2760b88d9f0a83bf1442f61119fbafadcb7225e8ead6e3faadf78baeb777b",
+        "tools/ig-proto/lib/packs.mjs": "ce449eecb938202e487b9e99c6c153bb897480e38ba475b87f070e26f22559d4",
+        "tools/ig-proto/lib/paths.mjs": "c0e9a057708264a2c6d83f197b18dfaffa327774b93b14fa9af797d08fdf7637",
+        "tools/ig-proto/lib/proof.mjs": "3bc03d54453875f8a71d3a0f74fbe64e971e0ae54a8f0681607031e2aa012543",
+        "tools/ig-proto/lib/records.mjs": "80b56021f1ae45189b3b811784c0fefb1bfac1d457cfbd12bc379bb7d3612f9a",
+        "tools/ig-proto/lib/sets.mjs": "23671cfa598ee767f405d18a1d2f8c1f95f9ca0356cbbbcd677b5fbd82050954",
+        "tools/ig-proto/lib/tree.mjs": "c35e4f5509687f2f84f5c008d834b1d70eea141718bbd869dba05155251f3675",
+        "tools/ig-proto/arm.mjs": "5fe5854f1fb183d6827b7c18f55bd5fc16de6206db4d73c7e1b7543f0aec2165",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "fa372834239566783c8faeb866b908701067af1d8b7bffca7736130c57f01983",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/identity.mjs": "6a6e554c592e9178a930329625e7fe08a854add6a3668c7f0ff95cccc830df9d",
+        "tools/ig-proto/pm1-inventory.mjs": "25a4f82515a20ea41804f7958da4c12aa1779c5f530ea2a2c041663a5e0e05de",
+        "tools/ig-proto/pm1.mjs": "eb5448500ed81ab97ebb92aad040bbaec781d3224587ce60ec9248a59e644177",
+        "tools/ig-proto/pm2-worker.mjs": "4e126db9770ebc7a056643541ce8fed3b82030cccc30b226ef5c343508269215",
+        "tools/ig-proto/pm2.mjs": "4e308b6f85cc2f2d9b1de3c48c929b96c3781c16341e0e558e84b58be8495d92",
+        "tools/ig-proto/pm4.mjs": "9a7cc13d8a98eb104b6c0a534c7eb7ddbbae7972da52b4bbd1cf25090b83bf63",
+        "tools/ig-proto/receipt.mjs": "16b74bb4dfc81f781e288cf111795a2da0d812faed1addc70e55f411698e4506",
+        "tools/ig-proto/run-task.ps1": "5d5bc46ee095e16315522f8bc6a2a47c5d8cc891ec151236d31e2652708a86ac",
+        "tools/ig-proto/self-test.mjs": "3dffd4a6cb29a4567629bb8ec5d01c78373592519e813d81b45f1c9f322e2ce4",
+        "tools/ig-proto/snapshot.mjs": "45c1624e0ec8af04069d1ee5b9a3a6fa0a74e989148de80b7df8fffc4209792a",
+        "tools/ig-proto/summary.mjs": "ab5ed7c65f358c6c43d46c89de9554e5bf93badd538611ba6890c6235fa7b5e9",
+        "tools/ig-proto/v4-check.mjs": "612bd3c7e527c8812f7e90a2e4d9257520cce4c8005912f26a6f0759caec1df9",
+        "tools/ig-proto/verify.mjs": "ea594451955ca2e954e37da38eb53f01a0dddffc1bc2697ae6b27d050ecb5d73",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+      }
+    },
+    "trees": {
+      "base": {
+        "treeId": "963c625a51af4aeb9132f41142f166c66cc4b02d4f912ee17764bea4f9c622d4",
+        "copyDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+        "edits": [
+          "meta-1"
+        ],
+        "params": {
+          "variant": "base"
+        }
+      },
+      "log": {
+        "treeId": "0928ea0597dd3b4957b8faa00c9eb7f4486a8f3a0167af3b45740a032fb388fc",
+        "copyDigest": "e3386c3532fa8e35436e5e8578050779842e1c1e12ef1d02cbb7660d789da9f3",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "log",
+          "diagnosticOffers": true,
+          "logAccepted": false,
+          "p6": false
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 4,
+      "nodeSeconds": 145.179,
+      "countedSeconds": 325.179,
+      "lockWaitSeconds": 321.347
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\V4-T04.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "arms": {
+    "base": {
+      "variant": "base",
+      "treeId": "963c625a51af4aeb9132f41142f166c66cc4b02d4f912ee17764bea4f9c622d4",
+      "copyDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "rows": 4
+    },
+    "log": {
+      "variant": "log",
+      "treeId": "0928ea0597dd3b4957b8faa00c9eb7f4486a8f3a0167af3b45740a032fb388fc",
+      "copyDigest": "e3386c3532fa8e35436e5e8578050779842e1c1e12ef1d02cbb7660d789da9f3",
+      "rows": 4
+    }
+  },
+  "seeds": [
+    {
+      "case": "26x26-nightmare",
+      "seed": "landscape/26x26-nightmare/0",
+      "rep": 0,
+      "mp12b1": {
+        "accepted": 10,
+        "t1": 843.0604000000001,
+        "t10": 8167.459,
+        "response": 8310.2907,
+        "resultDigest": "2c9671fcd9a9561cce05fce2d7ccc500d659e47da1a9ddea497deff9408f3588",
+        "set": {
+          "area": 676,
+          "K": 31,
+          "sizes": [
+            15,
+            17,
+            17,
+            17,
+            19,
+            19,
+            19,
+            20,
+            20,
+            20,
+            20,
+            21,
+            21,
+            21,
+            22,
+            22,
+            22,
+            22,
+            23,
+            23,
+            23,
+            24,
+            24,
+            24,
+            24,
+            25,
+            25,
+            25,
+            25,
+            27,
+            30
+          ],
+          "setAttempt": 0
+        }
+      },
+      "base": {
+        "accepted": 10,
+        "t1": 1056.0097,
+        "t10": 8719.929800000002,
+        "response": 8849.1555,
+        "resultDigest": "2c9671fcd9a9561cce05fce2d7ccc500d659e47da1a9ddea497deff9408f3588",
+        "set": {
+          "area": 676,
+          "K": 31,
+          "sizes": [
+            15,
+            17,
+            17,
+            17,
+            19,
+            19,
+            19,
+            20,
+            20,
+            20,
+            20,
+            21,
+            21,
+            21,
+            22,
+            22,
+            22,
+            22,
+            23,
+            23,
+            23,
+            24,
+            24,
+            24,
+            24,
+            25,
+            25,
+            25,
+            25,
+            27,
+            30
+          ],
+          "setAttempt": 0
+        }
+      },
+      "log": {
+        "accepted": 10,
+        "t1": 1040.2532,
+        "t10": 8774.7239,
+        "response": 8917.0827,
+        "resultDigest": "2c9671fcd9a9561cce05fce2d7ccc500d659e47da1a9ddea497deff9408f3588",
+        "set": {
+          "area": 676,
+          "K": 31,
+          "sizes": [
+            15,
+            17,
+            17,
+            17,
+            19,
+            19,
+            19,
+            20,
+            20,
+            20,
+            20,
+            21,
+            21,
+            21,
+            22,
+            22,
+            22,
+            22,
+            23,
+            23,
+            23,
+            24,
+            24,
+            24,
+            24,
+            25,
+            25,
+            25,
+            25,
+            27,
+            30
+          ],
+          "setAttempt": 0
+        }
+      },
+      "pairs": {
+        "mp12b1~base": {
+          "level": "different-source",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": [],
+          "sameResult": true
+        },
+        "mp12b1~log": {
+          "level": "different-source",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": [],
+          "sameResult": true
+        },
+        "base~log": {
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": []
+        }
+      },
+      "ratioBase": 1.0648430746231297,
+      "ratioLog": 1.0730169403099221,
+      "ratioLogBase": 1.0076761223147226
+    },
+    {
+      "case": "26x26-nightmare",
+      "seed": "landscape/26x26-nightmare/1",
+      "rep": 1,
+      "mp12b1": {
+        "accepted": 10,
+        "t1": 5823.166200000001,
+        "t10": 27245.8125,
+        "response": 27367.7967,
+        "resultDigest": "7d594bd68183adfc7fb55a55153cb86dd2347130a7b843cb66d1af7e2ed29a83",
+        "set": {
+          "area": 676,
+          "K": 30,
+          "sizes": [
+            15,
+            17,
+            19,
+            19,
+            19,
+            19,
+            20,
+            20,
+            21,
+            21,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            23,
+            23,
+            24,
+            25,
+            25,
+            26,
+            27,
+            27,
+            29,
+            29,
+            30
+          ],
+          "setAttempt": 0
+        }
+      },
+      "base": {
+        "accepted": 10,
+        "t1": 5913.6712,
+        "t10": 28233.992599999998,
+        "response": 28393.6777,
+        "resultDigest": "7d594bd68183adfc7fb55a55153cb86dd2347130a7b843cb66d1af7e2ed29a83",
+        "set": {
+          "area": 676,
+          "K": 30,
+          "sizes": [
+            15,
+            17,
+            19,
+            19,
+            19,
+            19,
+            20,
+            20,
+            21,
+            21,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            23,
+            23,
+            24,
+            25,
+            25,
+            26,
+            27,
+            27,
+            29,
+            29,
+            30
+          ],
+          "setAttempt": 0
+        }
+      },
+      "log": {
+        "accepted": 10,
+        "t1": 6030.4574999999995,
+        "t10": 28623.6424,
+        "response": 28793.8464,
+        "resultDigest": "7d594bd68183adfc7fb55a55153cb86dd2347130a7b843cb66d1af7e2ed29a83",
+        "set": {
+          "area": 676,
+          "K": 30,
+          "sizes": [
+            15,
+            17,
+            19,
+            19,
+            19,
+            19,
+            20,
+            20,
+            21,
+            21,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            22,
+            23,
+            23,
+            24,
+            25,
+            25,
+            26,
+            27,
+            27,
+            29,
+            29,
+            30
+          ],
+          "setAttempt": 0
+        }
+      },
+      "pairs": {
+        "mp12b1~base": {
+          "level": "different-source",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": [],
+          "sameResult": true
+        },
+        "mp12b1~log": {
+          "level": "different-source",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": [],
+          "sameResult": true
+        },
+        "base~log": {
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": []
+        }
+      },
+      "ratioBase": 1.037484968601802,
+      "ratioLog": 1.05210685082296,
+      "ratioLogBase": 1.0140935846433166
+    },
+    {
+      "case": "14x14-master",
+      "seed": "landscape/14x14-master/0",
+      "rep": 0,
+      "mp12b1": {
+        "accepted": 10,
+        "t1": 4382.7067,
+        "t10": 11023.7881,
+        "response": 11180.252,
+        "resultDigest": "821178507c2fcabf1ac9c38421011b1479437db2abfa8d542768ee25b345818b",
+        "set": {
+          "area": 196,
+          "K": 19,
+          "sizes": [
+            6,
+            6,
+            7,
+            7,
+            8,
+            8,
+            9,
+            9,
+            11,
+            11,
+            11,
+            11,
+            12,
+            12,
+            13,
+            13,
+            14,
+            14,
+            14
+          ],
+          "setAttempt": 0
+        }
+      },
+      "base": {
+        "accepted": 10,
+        "t1": 4371.2469,
+        "t10": 11140.9433,
+        "response": 11289.5202,
+        "resultDigest": "821178507c2fcabf1ac9c38421011b1479437db2abfa8d542768ee25b345818b",
+        "set": {
+          "area": 196,
+          "K": 19,
+          "sizes": [
+            6,
+            6,
+            7,
+            7,
+            8,
+            8,
+            9,
+            9,
+            11,
+            11,
+            11,
+            11,
+            12,
+            12,
+            13,
+            13,
+            14,
+            14,
+            14
+          ],
+          "setAttempt": 0
+        }
+      },
+      "log": {
+        "accepted": 10,
+        "t1": 4372.9703,
+        "t10": 11286.739,
+        "response": 11421.559,
+        "resultDigest": "821178507c2fcabf1ac9c38421011b1479437db2abfa8d542768ee25b345818b",
+        "set": {
+          "area": 196,
+          "K": 19,
+          "sizes": [
+            6,
+            6,
+            7,
+            7,
+            8,
+            8,
+            9,
+            9,
+            11,
+            11,
+            11,
+            11,
+            12,
+            12,
+            13,
+            13,
+            14,
+            14,
+            14
+          ],
+          "setAttempt": 0
+        }
+      },
+      "pairs": {
+        "mp12b1~base": {
+          "level": "different-source",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": [],
+          "sameResult": true
+        },
+        "mp12b1~log": {
+          "level": "different-source",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": [],
+          "sameResult": true
+        },
+        "base~log": {
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": []
+        }
+      },
+      "ratioBase": 1.0097733217462361,
+      "ratioLog": 1.021583323882145,
+      "ratioLogBase": 1.011695696332604
+    },
+    {
+      "case": "14x14-master",
+      "seed": "landscape/14x14-master/1",
+      "rep": 1,
+      "mp12b1": {
+        "accepted": 10,
+        "t1": 297.9317,
+        "t10": 2999.4805,
+        "response": 3124.7151,
+        "resultDigest": "567cb2bba4cf34a5d840493a44027284f0117ebb7c75f12f06b2e3481f31a77a",
+        "set": {
+          "area": 196,
+          "K": 17,
+          "sizes": [
+            7,
+            8,
+            9,
+            9,
+            10,
+            10,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            13,
+            14,
+            14,
+            15,
+            15
+          ],
+          "setAttempt": 0
+        }
+      },
+      "base": {
+        "accepted": 10,
+        "t1": 346.0252,
+        "t10": 3011.1852999999996,
+        "response": 3155.1531,
+        "resultDigest": "567cb2bba4cf34a5d840493a44027284f0117ebb7c75f12f06b2e3481f31a77a",
+        "set": {
+          "area": 196,
+          "K": 17,
+          "sizes": [
+            7,
+            8,
+            9,
+            9,
+            10,
+            10,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            13,
+            14,
+            14,
+            15,
+            15
+          ],
+          "setAttempt": 0
+        }
+      },
+      "log": {
+        "accepted": 10,
+        "t1": 337.8231,
+        "t10": 3092.0499999999997,
+        "response": 3224.0188,
+        "resultDigest": "567cb2bba4cf34a5d840493a44027284f0117ebb7c75f12f06b2e3481f31a77a",
+        "set": {
+          "area": 196,
+          "K": 17,
+          "sizes": [
+            7,
+            8,
+            9,
+            9,
+            10,
+            10,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            13,
+            14,
+            14,
+            15,
+            15
+          ],
+          "setAttempt": 0
+        }
+      },
+      "pairs": {
+        "mp12b1~base": {
+          "level": "different-source",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": [],
+          "sameResult": true
+        },
+        "mp12b1~log": {
+          "level": "different-source",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": [],
+          "sameResult": true
+        },
+        "base~log": {
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "acceptedA": 10,
+          "acceptedB": 10,
+          "digestEqual": true,
+          "keyPrefixEqual": null,
+          "setKeyEqual": null,
+          "setSummaryEqual": true,
+          "metricPrefixLength": 10,
+          "firstDifference": null,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)",
+          "problems": []
+        }
+      },
+      "ratioBase": 1.0097410480718707,
+      "ratioLog": 1.0317800813264544,
+      "ratioLogBase": 1.0218264210380155
+    }
+  ],
+  "summary": {
+    "seeds": 4,
+    "puzzleIdentity": 0,
+    "metricPrefixOnly": 0,
+    "differentSource": 4,
+    "differentSourceSameResult": 4,
+    "withoutMp12b1": 0,
+    "failures": 0,
+    "medianRatioBase": 1.0236291451740192,
+    "medianRatioLog": 1.0419434660747071,
+    "medianLogOverhead": 1.0128946404879602,
+    "appendCostMs": 0.396
+  },
+  "failures": [],
+  "journal": {
+    "14x14-master~0": {
+      "calls": 18,
+      "unfinished": 5,
+      "stages": [
+        "batch",
+        "set"
+      ],
+      "phases": [
+        "beam",
+        "p1"
+      ],
+      "rowSeed": "landscape/14x14-master/0"
+    },
+    "14x14-master~1": {
+      "calls": 23,
+      "unfinished": 5,
+      "stages": [
+        "batch",
+        "set"
+      ],
+      "phases": [
+        "beam",
+        "p1"
+      ],
+      "rowSeed": "landscape/14x14-master/1"
+    },
+    "26x26-nightmare~0": {
+      "calls": 17,
+      "unfinished": 5,
+      "stages": [
+        "batch",
+        "set"
+      ],
+      "phases": [
+        "beam",
+        "p1"
+      ],
+      "rowSeed": "landscape/26x26-nightmare/0"
+    },
+    "26x26-nightmare~1": {
+      "calls": 30,
+      "unfinished": 4,
+      "stages": [
+        "batch",
+        "set"
+      ],
+      "phases": [
+        "beam",
+        "p1"
+      ],
+      "rowSeed": "landscape/26x26-nightmare/1"
+    }
+  }
+}

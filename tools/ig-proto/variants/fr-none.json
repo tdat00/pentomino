@@ -1,0 +1,11 @@
+{
+  "id": "fr-none",
+  "extends": ["fr-base"],
+  "description": "Frozen-round arm (V4-T08): no screen in any class.",
+  "edits": [],
+  "files": [],
+  "params": {
+    "screenClasses": { "hell-1": null, "n-small": null, "n-mid": null, "n-large": null },
+    "screenTable": "tab-none"
+  }
+}

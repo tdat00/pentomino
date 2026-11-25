@@ -1,0 +1,26 @@
+[
+  {
+    "path": "tools/ig-proto/verdicts.mjs",
+    "sha256Lf": "6eb4c7c5f2e93e96192800040585a89c6805192f8bf50db87ed1f2b8a326f43a"
+  },
+  {
+    "path": "tools/ig-proto/plans/V4-S3P.json",
+    "sha256Lf": "5e6eede7b6920d698ec4b25125b77ee9e9391681337a2aace57c86131c337b8c"
+  },
+  {
+    "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1.runs.json",
+    "sha256Lf": "6549cc269efe9416188c16ce1e0440d3adbb9f9ebc1f6c07e81090ea16c22b8b"
+  },
+  {
+    "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1.runs.json",
+    "sha256Lf": "1baeaa5dbeb270f21f42f6cee56880f9608d4505072021192b621731fab8a8cc"
+  },
+  {
+    "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1.runs.json",
+    "sha256Lf": "4fa18ba0ac323905d0630437a3f7be9c89b5778021fd1d517c8626a17868e023"
+  },
+  {
+    "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1.runs.json",
+    "sha256Lf": "8aa7595a36fcd9a76ce5c14a01f0dc219db17463e3aa2bf2168b6001bb024edd"
+  }
+]

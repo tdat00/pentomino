@@ -1,0 +1,257 @@
+{
+  "factor": 1.0236291451740192,
+  "V4-S2B": {
+    "allocationMinutes": 23,
+    "guardS": 1694.6240407041143,
+    "guardMin": 28.24373401173524,
+    "steps": [
+      {
+        "id": "rows-fr-none-pilot-3x29-nightmare",
+        "rowS": 6.972338730636936,
+        "projectS": 36.86169365318468,
+        "invocations": 1,
+        "minHorizonS": 272
+      },
+      {
+        "id": "rows-fr-none-pilot-18x18-nightmare",
+        "rowS": 47.87882127231746,
+        "projectS": 241.3941063615873,
+        "invocations": 1,
+        "minHorizonS": 272
+      },
+      {
+        "id": "rows-fr-none-pilot-18x20-nightmare",
+        "rowS": 21.6901913071086,
+        "projectS": 110.45095653554299,
+        "invocations": 1,
+        "minHorizonS": 272
+      },
+      {
+        "id": "rows-fr-none-pilot-20x20-nightmare",
+        "rowS": 26.886183197770496,
+        "projectS": 136.4309159888525,
+        "invocations": 1,
+        "minHorizonS": 272
+      },
+      {
+        "id": "rows-fr-none-pilot-20x21-nightmare",
+        "rowS": 31.126033684846057,
+        "projectS": 157.63016842423028,
+        "invocations": 1,
+        "minHorizonS": 272
+      },
+      {
+        "id": "rows-fr-none-pilot-32x15-nightmare",
+        "rowS": 15.012559501883842,
+        "projectS": 77.06279750941921,
+        "invocations": 1,
+        "minHorizonS": 272
+      },
+      {
+        "id": "rows-fr-none-pilot-22x22-nightmare",
+        "rowS": 22.33553036855768,
+        "projectS": 113.6776518427884,
+        "invocations": 1,
+        "minHorizonS": 272
+      },
+      {
+        "id": "rows-fr-none-pilot-24x24-nightmare",
+        "rowS": 24.038188449537216,
+        "projectS": 122.19094224768608,
+        "invocations": 1,
+        "minHorizonS": 272
+      }
+    ]
+  },
+  "V4-S3P": {
+    "allocationMinutes": 139,
+    "guardS": 10416.596853815527,
+    "guardMin": 173.6099475635921,
+    "proofsGuardMin": 89,
+    "hellGuardMin": 84.60994756359212,
+    "proofsProjectedMin": 71.2,
+    "hellProjectedMin": 67.68795805087369,
+    "steps": [
+      {
+        "id": "parity-fr-frozen",
+        "locked": true,
+        "projectS": 978,
+        "invocations": 2,
+        "minHorizonS": 270
+      },
+      {
+        "id": "receipt-fr-frozen",
+        "locked": false,
+        "projectS": null,
+        "invocations": null,
+        "minHorizonS": null
+      },
+      {
+        "id": "accept-fr-frozen",
+        "locked": false,
+        "projectS": null,
+        "invocations": null,
+        "minHorizonS": null
+      },
+      {
+        "id": "parity-fr-frozen-none",
+        "locked": true,
+        "projectS": 978,
+        "invocations": 2,
+        "minHorizonS": 270
+      },
+      {
+        "id": "receipt-fr-frozen-none",
+        "locked": false,
+        "projectS": null,
+        "invocations": null,
+        "minHorizonS": null
+      },
+      {
+        "id": "accept-fr-frozen-none",
+        "locked": false,
+        "projectS": null,
+        "invocations": null,
+        "minHorizonS": null
+      },
+      {
+        "id": "parity-fr-frozen-uncapped",
+        "locked": true,
+        "projectS": 978,
+        "invocations": 2,
+        "minHorizonS": 270
+      },
+      {
+        "id": "receipt-fr-frozen-uncapped",
+        "locked": false,
+        "projectS": null,
+        "invocations": null,
+        "minHorizonS": null
+      },
+      {
+        "id": "accept-fr-frozen-uncapped",
+        "locked": false,
+        "projectS": null,
+        "invocations": null,
+        "minHorizonS": null
+      },
+      {
+        "id": "parity-fr-frozen-none-uncapped",
+        "locked": true,
+        "projectS": 978,
+        "invocations": 2,
+        "minHorizonS": 270
+      },
+      {
+        "id": "receipt-fr-frozen-none-uncapped",
+        "locked": false,
+        "projectS": null,
+        "invocations": null,
+        "minHorizonS": null
+      },
+      {
+        "id": "accept-fr-frozen-none-uncapped",
+        "locked": false,
+        "projectS": null,
+        "invocations": null,
+        "minHorizonS": null
+      },
+      {
+        "id": "rows-fr-frozen-none-uncapped-pilot-14x14-hell-1",
+        "locked": true,
+        "projectS": 737.8103443947482,
+        "invocations": 1,
+        "minHorizonS": 272
+      },
+      {
+        "id": "rows-fr-frozen-none-uncapped-pilot-20x20-hell-1",
+        "locked": true,
+        "projectS": 1304,
+        "invocations": 2,
+        "minHorizonS": 272
+      },
+      {
+        "id": "rows-fr-frozen-none-uncapped-pilot-24x24-hell-1",
+        "locked": true,
+        "projectS": 737.8295604728761,
+        "invocations": 1,
+        "minHorizonS": 272
+      },
+      {
+        "id": "rows-fr-frozen-none-uncapped-pilot-26x26-hell-1",
+        "locked": true,
+        "projectS": 1011.6375781847969,
+        "invocations": 2,
+        "minHorizonS": 272
+      }
+    ],
+    "parityNode": [
+      "tools\\ig-proto\\v4-check.mjs",
+      "run",
+      "--task",
+      "V4-S3P",
+      "--step",
+      "parity-fr-frozen",
+      "--manifest",
+      "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen.json"
+    ],
+    "receiptNode": [
+      "tools\\ig-proto\\v4-check.mjs",
+      "receipt",
+      "--kind",
+      "parity",
+      "--task",
+      "V4-S3P",
+      "--step",
+      "parity-fr-frozen",
+      "--manifest",
+      "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen.json",
+      "--arm",
+      "fr-frozen",
+      "--require-pass"
+    ],
+    "acceptNode": [
+      "tools\\ig-proto\\v4-check.mjs",
+      "accept",
+      "--task",
+      "V4-S3P",
+      "--step",
+      "parity-fr-frozen",
+      "--manifest",
+      "tools\\ig-proto\\plans\\items\\V4-S3P.parity-fr-frozen.json",
+      "--receipt",
+      "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.receipt.json",
+      "--binding",
+      "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.accepted.json",
+      "--by",
+      "V4-S3"
+    ],
+    "hellNode": [
+      "tools\\ig-proto\\arm.mjs",
+      "run",
+      "--task",
+      "V4-S3P",
+      "--arm",
+      "fr-frozen-none-uncapped",
+      "--shard",
+      "pilot-14x14-hell-1",
+      "--variant",
+      "fr-frozen-none-uncapped",
+      "--workers",
+      "4",
+      "--cases",
+      "14x14-hell-1:0-4",
+      "--row-limit-s",
+      "260"
+    ]
+  },
+  "account": {
+    "spentS": 10252.712,
+    "offLogS": 87.4,
+    "accountMin": 172.3352
+  },
+  "caps": {
+    "V4-S2B first": 201,
+    "V4-S3P first": 346
+  }
+}

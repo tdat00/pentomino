@@ -1,0 +1,8 @@
+{
+  "id": "p1p5-w760",
+  "extends": ["p1p5"],
+  "description": "The prototype without the screen: W equals the canonical limit DEDUCE.work (760 M), so the search is P1, P3 on canonical caps and P4 (IGP-03, IG-P-Q17's split).",
+  "edits": [],
+  "files": [],
+  "params": { "W": { "default": 760000000 } }
+}

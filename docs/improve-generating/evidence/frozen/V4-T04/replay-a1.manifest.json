@@ -1,0 +1,14 @@
+{
+  "format": "ig-proto-items",
+  "version": 1,
+  "task": "V4-T04",
+  "step": "replay",
+  "rows": [
+    { "kind": "v4-generate", "variant": "v4", "caseId": "14x14-master", "seedText": "ig-v4/replay/14x14-master", "quantity": 2 },
+    { "kind": "v4-replay", "variant": "v4", "caseId": "14x14-master", "seedText": "ig-v4/replay/14x14-master", "puzzles": 2 },
+    { "kind": "v4-generate", "variant": "v4", "caseId": "12x12-nightmare", "seedText": "ig-v4/replay/12x12-nightmare", "quantity": 2 },
+    { "kind": "v4-replay", "variant": "v4", "caseId": "12x12-nightmare", "seedText": "ig-v4/replay/12x12-nightmare", "puzzles": 2 },
+    { "kind": "v4-generate", "variant": "v4", "caseId": "26x26-nightmare", "seedText": "ig-v4/replay/26x26-nightmare", "quantity": 2 },
+    { "kind": "v4-replay", "variant": "v4", "caseId": "26x26-nightmare", "seedText": "ig-v4/replay/26x26-nightmare", "puzzles": 2 }
+  ]
+}

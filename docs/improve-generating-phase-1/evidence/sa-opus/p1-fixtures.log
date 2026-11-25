@@ -1,0 +1,3 @@
+p1-run: C:\Program Files\nodejs\node.exe v26.13.0; node tools/record-fixtures.mjs --check
+record-fixtures: OK
+p1-run: exit 0

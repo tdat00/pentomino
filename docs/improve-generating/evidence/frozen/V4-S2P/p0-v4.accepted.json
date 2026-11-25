@@ -1,0 +1,1803 @@
+{
+  "format": "ig-v4-accepted",
+  "version": 1,
+  "receipt": {
+    "path": "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.receipt.json",
+    "sha256": "8e2e4af1130aa4a9f41b5d0695c441ac8eae97e42d79c7950d30cbedf7232461"
+  },
+  "expected": {
+    "kind": "p0-identity",
+    "source": {
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b"
+    },
+    "harnessHash": "8833366cfc3c49f457dc9eda1c32e318ec99e3c502ed91fcc3daaa822ae05533",
+    "arms": [
+      {
+        "id": "base",
+        "treeId": "963c625a51af4aeb9132f41142f166c66cc4b02d4f912ee17764bea4f9c622d4",
+        "paramsHash": "5deeee15ee938f3f5f689a10dcf11137d9963ae23f24ec543967fbc6d34c7de3"
+      },
+      {
+        "id": "v4",
+        "treeId": "138aac46a56af95dfc5685d90d237454cb237d20d0e2aecee3eb6b9139eb19a6",
+        "paramsHash": "a7e53fac6614298bb4514a69035ed499891cf231c8ad77c5c7c77c4e7d60071d"
+      },
+      {
+        "id": "v4-w095",
+        "treeId": "c59eb7206603cc6ba7160eae9af15c1e3c2ada5fd5fd7e0d97fe33c912231751",
+        "paramsHash": "64d84efd736ff8622647618e080374f38a16be4d694a0fbe1d6378401dc383fe"
+      },
+      {
+        "id": "v4-w380",
+        "treeId": "6ff7a2d65dbdeaa532df565d985826623c48220001db122fe2f16557d3a12c23",
+        "paramsHash": "a39396f115b4d82569ee2d9c72814cb76a9299548431b52d9bbe4922e4f17907"
+      },
+      {
+        "id": "v4-w760",
+        "treeId": "55ee22bc12c07e7ce58f63b11b945f6ab085fcbb69fe18531244f2c28b33119f",
+        "paramsHash": "b2f76f0a5eff84320234562776fa576003226920abeef6e20d448400a6ebfc0d"
+      }
+    ],
+    "coverage": {
+      "expected": [
+        "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:absent",
+        "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:charge",
+        "p0-v4:v4:14x14-master:ig-v4/parity/14x14-master:record",
+        "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+        "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+        "p0-v4:v4:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+        "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:absent",
+        "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:charge",
+        "p0-v4:v4:26x26-nightmare:ig-v4/parity/26x26-nightmare:record",
+        "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+        "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+        "p0-v4:v4:26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+        "p0-v4:base:14x14-master:ig-v4/parity/14x14-master:absent",
+        "p0-v4:base:14x14-master:ig-v4/parity/14x14-master:record",
+        "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+        "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+        "p0-v4:v4-w760:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+        "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+        "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+        "p0-v4:v4-w095:12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+        "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+        "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+        "p0-v4:v4-w380:12x12-nightmare:ig-v4/parity/12x12-nightmare:record"
+      ]
+    },
+    "fields": {
+      "blocks": {
+        "parity": "pass",
+        "baseline": "pass"
+      }
+    }
+  },
+  "params": {
+    "base": {
+      "variant": "base"
+    },
+    "v4": {
+      "variant": "v4",
+      "diagnosticOffers": true,
+      "logAccepted": true,
+      "p6": false,
+      "U0": 8,
+      "rerateMax": 4,
+      "W": {
+        "default": 190000000
+      },
+      "priorTable": "prior-v1",
+      "screenTable": "w190",
+      "prior": {
+        "easy@100": {
+          "caseId": "10x10-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "easy@144": {
+          "caseId": "12x12-easy",
+          "share": 0.555556,
+          "n": 100
+        },
+        "easy@196": {
+          "caseId": "14x14-easy",
+          "share": 0.545455,
+          "n": 100
+        },
+        "easy@215": {
+          "caseId": "15x15b10-easy",
+          "share": 0.545455,
+          "n": 100
+        },
+        "easy@60": {
+          "caseId": "6x10-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "easy@87": {
+          "caseId": "3x29-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "expert@100": {
+          "caseId": "10x10-expert",
+          "share": 0.307692,
+          "n": 100
+        },
+        "expert@144": {
+          "caseId": "12x12-expert",
+          "share": 0.333333,
+          "n": 100
+        },
+        "expert@196": {
+          "caseId": "14x14-expert",
+          "share": 0.294118,
+          "n": 100
+        },
+        "expert@215": {
+          "caseId": "15x15b10-expert",
+          "share": 0.294118,
+          "n": 100
+        },
+        "expert@256": {
+          "caseId": "16x16-expert",
+          "share": 0.263889,
+          "n": 100
+        },
+        "expert@300": {
+          "caseId": "15x20-expert",
+          "share": 0.277778,
+          "n": 100
+        },
+        "expert@324": {
+          "caseId": "18x18-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@360": {
+          "caseId": "18x20-expert",
+          "share": 0.263158,
+          "n": 100
+        },
+        "expert@400": {
+          "caseId": "20x20-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@420": {
+          "caseId": "20x21-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@480": {
+          "caseId": "32x15-expert",
+          "share": 0.227273,
+          "n": 100
+        },
+        "expert@484": {
+          "caseId": "22x22-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@576": {
+          "caseId": "24x24-expert",
+          "share": 0.238095,
+          "n": 100
+        },
+        "expert@60": {
+          "caseId": "6x10-expert",
+          "share": 0.333333,
+          "n": 100
+        },
+        "expert@676": {
+          "caseId": "26x26-expert",
+          "share": 0.26087,
+          "n": 100
+        },
+        "expert@87": {
+          "caseId": "3x29-expert",
+          "share": 0.285714,
+          "n": 100
+        },
+        "hard@100": {
+          "caseId": "10x10-hard",
+          "share": 0.363636,
+          "n": 100
+        },
+        "hard@144": {
+          "caseId": "12x12-hard",
+          "share": 0.384615,
+          "n": 100
+        },
+        "hard@196": {
+          "caseId": "14x14-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@215": {
+          "caseId": "15x15b10-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@256": {
+          "caseId": "16x16-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@300": {
+          "caseId": "15x20-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@324": {
+          "caseId": "18x18-hard",
+          "share": 0.363971,
+          "n": 100
+        },
+        "hard@360": {
+          "caseId": "18x20-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@400": {
+          "caseId": "20x20-hard",
+          "share": 0.375,
+          "n": 100
+        },
+        "hard@420": {
+          "caseId": "20x21-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@480": {
+          "caseId": "32x15-hard",
+          "share": 0.368421,
+          "n": 100
+        },
+        "hard@484": {
+          "caseId": "22x22-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@576": {
+          "caseId": "24x24-hard",
+          "share": 0.35,
+          "n": 100
+        },
+        "hard@60": {
+          "caseId": "6x10-hard",
+          "share": 0.4,
+          "n": 100
+        },
+        "hard@676": {
+          "caseId": "26x26-hard",
+          "share": 0.380952,
+          "n": 100
+        },
+        "hard@87": {
+          "caseId": "3x29-hard",
+          "share": 0.363636,
+          "n": 100
+        },
+        "hell-1@196": {
+          "caseId": "14x14-hell-1",
+          "share": 0.265179,
+          "n": 2
+        },
+        "hell-1@576": {
+          "caseId": "24x24-hell-1",
+          "share": 0.141026,
+          "n": 4
+        },
+        "hell-1@676": {
+          "caseId": "26x26-hell-1",
+          "share": 0.128205,
+          "n": 50
+        },
+        "master@100": {
+          "caseId": "10x10-master",
+          "share": 0.25,
+          "n": 100
+        },
+        "master@144": {
+          "caseId": "12x12-master",
+          "share": 0.25,
+          "n": 100
+        },
+        "master@196": {
+          "caseId": "14x14-master",
+          "share": 0.222222,
+          "n": 100
+        },
+        "master@215": {
+          "caseId": "15x15b10-master",
+          "share": 0.222222,
+          "n": 100
+        },
+        "master@256": {
+          "caseId": "16x16-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@300": {
+          "caseId": "15x20-master",
+          "share": 0.210526,
+          "n": 100
+        },
+        "master@324": {
+          "caseId": "18x18-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@360": {
+          "caseId": "18x20-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@400": {
+          "caseId": "20x20-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@420": {
+          "caseId": "20x21-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@480": {
+          "caseId": "32x15-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@484": {
+          "caseId": "22x22-master",
+          "share": 0.208333,
+          "n": 100
+        },
+        "master@576": {
+          "caseId": "24x24-master",
+          "share": 0.192308,
+          "n": 100
+        },
+        "master@60": {
+          "caseId": "6x10-master",
+          "share": 0.230769,
+          "n": 100
+        },
+        "master@676": {
+          "caseId": "26x26-master",
+          "share": 0.192308,
+          "n": 100
+        },
+        "master@87": {
+          "caseId": "3x29-master",
+          "share": 0.214286,
+          "n": 100
+        },
+        "nightmare@100": {
+          "caseId": "10x10-nightmare",
+          "share": 0.2,
+          "n": 100
+        },
+        "nightmare@144": {
+          "caseId": "12x12-nightmare",
+          "share": 0.210526,
+          "n": 97
+        },
+        "nightmare@196": {
+          "caseId": "14x14-nightmare",
+          "share": 0.190476,
+          "n": 57
+        },
+        "nightmare@215": {
+          "caseId": "15x15b10-nightmare",
+          "share": 0.181818,
+          "n": 74
+        },
+        "nightmare@256": {
+          "caseId": "16x16-nightmare",
+          "share": 0.173913,
+          "n": 92
+        },
+        "nightmare@300": {
+          "caseId": "15x20-nightmare",
+          "share": 0.192308,
+          "n": 93
+        },
+        "nightmare@324": {
+          "caseId": "18x18-nightmare",
+          "share": 0.16,
+          "n": 100
+        },
+        "nightmare@360": {
+          "caseId": "18x20-nightmare",
+          "share": 0.16,
+          "n": 100
+        },
+        "nightmare@400": {
+          "caseId": "20x20-nightmare",
+          "share": 0.16313,
+          "n": 100
+        },
+        "nightmare@420": {
+          "caseId": "20x21-nightmare",
+          "share": 0.153846,
+          "n": 100
+        },
+        "nightmare@480": {
+          "caseId": "32x15-nightmare",
+          "share": 0.142857,
+          "n": 100
+        },
+        "nightmare@484": {
+          "caseId": "22x22-nightmare",
+          "share": 0.145503,
+          "n": 100
+        },
+        "nightmare@576": {
+          "caseId": "24x24-nightmare",
+          "share": 0.133333,
+          "n": 100
+        },
+        "nightmare@676": {
+          "caseId": "26x26-nightmare",
+          "share": 0.133333,
+          "n": 100
+        },
+        "nightmare@87": {
+          "caseId": "3x29-nightmare",
+          "share": 0.166667,
+          "n": 100
+        },
+        "normal@100": {
+          "caseId": "10x10-normal",
+          "share": 0.444444,
+          "n": 100
+        },
+        "normal@144": {
+          "caseId": "12x12-normal",
+          "share": 0.454545,
+          "n": 100
+        },
+        "normal@196": {
+          "caseId": "14x14-normal",
+          "share": 0.454545,
+          "n": 100
+        },
+        "normal@215": {
+          "caseId": "15x15b10-normal",
+          "share": 0.416667,
+          "n": 100
+        },
+        "normal@256": {
+          "caseId": "16x16-normal",
+          "share": 0.461538,
+          "n": 100
+        },
+        "normal@300": {
+          "caseId": "15x20-normal",
+          "share": 0.307692,
+          "n": 100
+        },
+        "normal@324": {
+          "caseId": "18x18-normal",
+          "share": 0.357143,
+          "n": 100
+        },
+        "normal@60": {
+          "caseId": "6x10-normal",
+          "share": 0.444444,
+          "n": 100
+        },
+        "normal@87": {
+          "caseId": "3x29-normal",
+          "share": 0.5,
+          "n": 100
+        },
+        "very-easy@60": {
+          "caseId": "6x10-very-easy",
+          "share": 0.714286,
+          "n": 95
+        },
+        "very-easy@87": {
+          "caseId": "3x29-very-easy",
+          "share": 0.714286,
+          "n": 98
+        }
+      }
+    },
+    "v4-w095": {
+      "variant": "v4-w095",
+      "diagnosticOffers": true,
+      "logAccepted": true,
+      "p6": false,
+      "U0": 8,
+      "rerateMax": 4,
+      "W": {
+        "default": 95000000
+      },
+      "priorTable": "prior-v1",
+      "screenTable": "w095",
+      "prior": {
+        "easy@100": {
+          "caseId": "10x10-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "easy@144": {
+          "caseId": "12x12-easy",
+          "share": 0.555556,
+          "n": 100
+        },
+        "easy@196": {
+          "caseId": "14x14-easy",
+          "share": 0.545455,
+          "n": 100
+        },
+        "easy@215": {
+          "caseId": "15x15b10-easy",
+          "share": 0.545455,
+          "n": 100
+        },
+        "easy@60": {
+          "caseId": "6x10-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "easy@87": {
+          "caseId": "3x29-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "expert@100": {
+          "caseId": "10x10-expert",
+          "share": 0.307692,
+          "n": 100
+        },
+        "expert@144": {
+          "caseId": "12x12-expert",
+          "share": 0.333333,
+          "n": 100
+        },
+        "expert@196": {
+          "caseId": "14x14-expert",
+          "share": 0.294118,
+          "n": 100
+        },
+        "expert@215": {
+          "caseId": "15x15b10-expert",
+          "share": 0.294118,
+          "n": 100
+        },
+        "expert@256": {
+          "caseId": "16x16-expert",
+          "share": 0.263889,
+          "n": 100
+        },
+        "expert@300": {
+          "caseId": "15x20-expert",
+          "share": 0.277778,
+          "n": 100
+        },
+        "expert@324": {
+          "caseId": "18x18-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@360": {
+          "caseId": "18x20-expert",
+          "share": 0.263158,
+          "n": 100
+        },
+        "expert@400": {
+          "caseId": "20x20-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@420": {
+          "caseId": "20x21-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@480": {
+          "caseId": "32x15-expert",
+          "share": 0.227273,
+          "n": 100
+        },
+        "expert@484": {
+          "caseId": "22x22-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@576": {
+          "caseId": "24x24-expert",
+          "share": 0.238095,
+          "n": 100
+        },
+        "expert@60": {
+          "caseId": "6x10-expert",
+          "share": 0.333333,
+          "n": 100
+        },
+        "expert@676": {
+          "caseId": "26x26-expert",
+          "share": 0.26087,
+          "n": 100
+        },
+        "expert@87": {
+          "caseId": "3x29-expert",
+          "share": 0.285714,
+          "n": 100
+        },
+        "hard@100": {
+          "caseId": "10x10-hard",
+          "share": 0.363636,
+          "n": 100
+        },
+        "hard@144": {
+          "caseId": "12x12-hard",
+          "share": 0.384615,
+          "n": 100
+        },
+        "hard@196": {
+          "caseId": "14x14-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@215": {
+          "caseId": "15x15b10-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@256": {
+          "caseId": "16x16-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@300": {
+          "caseId": "15x20-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@324": {
+          "caseId": "18x18-hard",
+          "share": 0.363971,
+          "n": 100
+        },
+        "hard@360": {
+          "caseId": "18x20-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@400": {
+          "caseId": "20x20-hard",
+          "share": 0.375,
+          "n": 100
+        },
+        "hard@420": {
+          "caseId": "20x21-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@480": {
+          "caseId": "32x15-hard",
+          "share": 0.368421,
+          "n": 100
+        },
+        "hard@484": {
+          "caseId": "22x22-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@576": {
+          "caseId": "24x24-hard",
+          "share": 0.35,
+          "n": 100
+        },
+        "hard@60": {
+          "caseId": "6x10-hard",
+          "share": 0.4,
+          "n": 100
+        },
+        "hard@676": {
+          "caseId": "26x26-hard",
+          "share": 0.380952,
+          "n": 100
+        },
+        "hard@87": {
+          "caseId": "3x29-hard",
+          "share": 0.363636,
+          "n": 100
+        },
+        "hell-1@196": {
+          "caseId": "14x14-hell-1",
+          "share": 0.265179,
+          "n": 2
+        },
+        "hell-1@576": {
+          "caseId": "24x24-hell-1",
+          "share": 0.141026,
+          "n": 4
+        },
+        "hell-1@676": {
+          "caseId": "26x26-hell-1",
+          "share": 0.128205,
+          "n": 50
+        },
+        "master@100": {
+          "caseId": "10x10-master",
+          "share": 0.25,
+          "n": 100
+        },
+        "master@144": {
+          "caseId": "12x12-master",
+          "share": 0.25,
+          "n": 100
+        },
+        "master@196": {
+          "caseId": "14x14-master",
+          "share": 0.222222,
+          "n": 100
+        },
+        "master@215": {
+          "caseId": "15x15b10-master",
+          "share": 0.222222,
+          "n": 100
+        },
+        "master@256": {
+          "caseId": "16x16-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@300": {
+          "caseId": "15x20-master",
+          "share": 0.210526,
+          "n": 100
+        },
+        "master@324": {
+          "caseId": "18x18-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@360": {
+          "caseId": "18x20-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@400": {
+          "caseId": "20x20-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@420": {
+          "caseId": "20x21-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@480": {
+          "caseId": "32x15-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@484": {
+          "caseId": "22x22-master",
+          "share": 0.208333,
+          "n": 100
+        },
+        "master@576": {
+          "caseId": "24x24-master",
+          "share": 0.192308,
+          "n": 100
+        },
+        "master@60": {
+          "caseId": "6x10-master",
+          "share": 0.230769,
+          "n": 100
+        },
+        "master@676": {
+          "caseId": "26x26-master",
+          "share": 0.192308,
+          "n": 100
+        },
+        "master@87": {
+          "caseId": "3x29-master",
+          "share": 0.214286,
+          "n": 100
+        },
+        "nightmare@100": {
+          "caseId": "10x10-nightmare",
+          "share": 0.2,
+          "n": 100
+        },
+        "nightmare@144": {
+          "caseId": "12x12-nightmare",
+          "share": 0.210526,
+          "n": 97
+        },
+        "nightmare@196": {
+          "caseId": "14x14-nightmare",
+          "share": 0.190476,
+          "n": 57
+        },
+        "nightmare@215": {
+          "caseId": "15x15b10-nightmare",
+          "share": 0.181818,
+          "n": 74
+        },
+        "nightmare@256": {
+          "caseId": "16x16-nightmare",
+          "share": 0.173913,
+          "n": 92
+        },
+        "nightmare@300": {
+          "caseId": "15x20-nightmare",
+          "share": 0.192308,
+          "n": 93
+        },
+        "nightmare@324": {
+          "caseId": "18x18-nightmare",
+          "share": 0.16,
+          "n": 100
+        },
+        "nightmare@360": {
+          "caseId": "18x20-nightmare",
+          "share": 0.16,
+          "n": 100
+        },
+        "nightmare@400": {
+          "caseId": "20x20-nightmare",
+          "share": 0.16313,
+          "n": 100
+        },
+        "nightmare@420": {
+          "caseId": "20x21-nightmare",
+          "share": 0.153846,
+          "n": 100
+        },
+        "nightmare@480": {
+          "caseId": "32x15-nightmare",
+          "share": 0.142857,
+          "n": 100
+        },
+        "nightmare@484": {
+          "caseId": "22x22-nightmare",
+          "share": 0.145503,
+          "n": 100
+        },
+        "nightmare@576": {
+          "caseId": "24x24-nightmare",
+          "share": 0.133333,
+          "n": 100
+        },
+        "nightmare@676": {
+          "caseId": "26x26-nightmare",
+          "share": 0.133333,
+          "n": 100
+        },
+        "nightmare@87": {
+          "caseId": "3x29-nightmare",
+          "share": 0.166667,
+          "n": 100
+        },
+        "normal@100": {
+          "caseId": "10x10-normal",
+          "share": 0.444444,
+          "n": 100
+        },
+        "normal@144": {
+          "caseId": "12x12-normal",
+          "share": 0.454545,
+          "n": 100
+        },
+        "normal@196": {
+          "caseId": "14x14-normal",
+          "share": 0.454545,
+          "n": 100
+        },
+        "normal@215": {
+          "caseId": "15x15b10-normal",
+          "share": 0.416667,
+          "n": 100
+        },
+        "normal@256": {
+          "caseId": "16x16-normal",
+          "share": 0.461538,
+          "n": 100
+        },
+        "normal@300": {
+          "caseId": "15x20-normal",
+          "share": 0.307692,
+          "n": 100
+        },
+        "normal@324": {
+          "caseId": "18x18-normal",
+          "share": 0.357143,
+          "n": 100
+        },
+        "normal@60": {
+          "caseId": "6x10-normal",
+          "share": 0.444444,
+          "n": 100
+        },
+        "normal@87": {
+          "caseId": "3x29-normal",
+          "share": 0.5,
+          "n": 100
+        },
+        "very-easy@60": {
+          "caseId": "6x10-very-easy",
+          "share": 0.714286,
+          "n": 95
+        },
+        "very-easy@87": {
+          "caseId": "3x29-very-easy",
+          "share": 0.714286,
+          "n": 98
+        }
+      }
+    },
+    "v4-w380": {
+      "variant": "v4-w380",
+      "diagnosticOffers": true,
+      "logAccepted": true,
+      "p6": false,
+      "U0": 8,
+      "rerateMax": 4,
+      "W": {
+        "default": 380000000
+      },
+      "priorTable": "prior-v1",
+      "screenTable": "w380",
+      "prior": {
+        "easy@100": {
+          "caseId": "10x10-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "easy@144": {
+          "caseId": "12x12-easy",
+          "share": 0.555556,
+          "n": 100
+        },
+        "easy@196": {
+          "caseId": "14x14-easy",
+          "share": 0.545455,
+          "n": 100
+        },
+        "easy@215": {
+          "caseId": "15x15b10-easy",
+          "share": 0.545455,
+          "n": 100
+        },
+        "easy@60": {
+          "caseId": "6x10-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "easy@87": {
+          "caseId": "3x29-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "expert@100": {
+          "caseId": "10x10-expert",
+          "share": 0.307692,
+          "n": 100
+        },
+        "expert@144": {
+          "caseId": "12x12-expert",
+          "share": 0.333333,
+          "n": 100
+        },
+        "expert@196": {
+          "caseId": "14x14-expert",
+          "share": 0.294118,
+          "n": 100
+        },
+        "expert@215": {
+          "caseId": "15x15b10-expert",
+          "share": 0.294118,
+          "n": 100
+        },
+        "expert@256": {
+          "caseId": "16x16-expert",
+          "share": 0.263889,
+          "n": 100
+        },
+        "expert@300": {
+          "caseId": "15x20-expert",
+          "share": 0.277778,
+          "n": 100
+        },
+        "expert@324": {
+          "caseId": "18x18-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@360": {
+          "caseId": "18x20-expert",
+          "share": 0.263158,
+          "n": 100
+        },
+        "expert@400": {
+          "caseId": "20x20-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@420": {
+          "caseId": "20x21-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@480": {
+          "caseId": "32x15-expert",
+          "share": 0.227273,
+          "n": 100
+        },
+        "expert@484": {
+          "caseId": "22x22-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@576": {
+          "caseId": "24x24-expert",
+          "share": 0.238095,
+          "n": 100
+        },
+        "expert@60": {
+          "caseId": "6x10-expert",
+          "share": 0.333333,
+          "n": 100
+        },
+        "expert@676": {
+          "caseId": "26x26-expert",
+          "share": 0.26087,
+          "n": 100
+        },
+        "expert@87": {
+          "caseId": "3x29-expert",
+          "share": 0.285714,
+          "n": 100
+        },
+        "hard@100": {
+          "caseId": "10x10-hard",
+          "share": 0.363636,
+          "n": 100
+        },
+        "hard@144": {
+          "caseId": "12x12-hard",
+          "share": 0.384615,
+          "n": 100
+        },
+        "hard@196": {
+          "caseId": "14x14-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@215": {
+          "caseId": "15x15b10-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@256": {
+          "caseId": "16x16-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@300": {
+          "caseId": "15x20-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@324": {
+          "caseId": "18x18-hard",
+          "share": 0.363971,
+          "n": 100
+        },
+        "hard@360": {
+          "caseId": "18x20-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@400": {
+          "caseId": "20x20-hard",
+          "share": 0.375,
+          "n": 100
+        },
+        "hard@420": {
+          "caseId": "20x21-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@480": {
+          "caseId": "32x15-hard",
+          "share": 0.368421,
+          "n": 100
+        },
+        "hard@484": {
+          "caseId": "22x22-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@576": {
+          "caseId": "24x24-hard",
+          "share": 0.35,
+          "n": 100
+        },
+        "hard@60": {
+          "caseId": "6x10-hard",
+          "share": 0.4,
+          "n": 100
+        },
+        "hard@676": {
+          "caseId": "26x26-hard",
+          "share": 0.380952,
+          "n": 100
+        },
+        "hard@87": {
+          "caseId": "3x29-hard",
+          "share": 0.363636,
+          "n": 100
+        },
+        "hell-1@196": {
+          "caseId": "14x14-hell-1",
+          "share": 0.265179,
+          "n": 2
+        },
+        "hell-1@576": {
+          "caseId": "24x24-hell-1",
+          "share": 0.141026,
+          "n": 4
+        },
+        "hell-1@676": {
+          "caseId": "26x26-hell-1",
+          "share": 0.128205,
+          "n": 50
+        },
+        "master@100": {
+          "caseId": "10x10-master",
+          "share": 0.25,
+          "n": 100
+        },
+        "master@144": {
+          "caseId": "12x12-master",
+          "share": 0.25,
+          "n": 100
+        },
+        "master@196": {
+          "caseId": "14x14-master",
+          "share": 0.222222,
+          "n": 100
+        },
+        "master@215": {
+          "caseId": "15x15b10-master",
+          "share": 0.222222,
+          "n": 100
+        },
+        "master@256": {
+          "caseId": "16x16-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@300": {
+          "caseId": "15x20-master",
+          "share": 0.210526,
+          "n": 100
+        },
+        "master@324": {
+          "caseId": "18x18-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@360": {
+          "caseId": "18x20-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@400": {
+          "caseId": "20x20-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@420": {
+          "caseId": "20x21-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@480": {
+          "caseId": "32x15-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@484": {
+          "caseId": "22x22-master",
+          "share": 0.208333,
+          "n": 100
+        },
+        "master@576": {
+          "caseId": "24x24-master",
+          "share": 0.192308,
+          "n": 100
+        },
+        "master@60": {
+          "caseId": "6x10-master",
+          "share": 0.230769,
+          "n": 100
+        },
+        "master@676": {
+          "caseId": "26x26-master",
+          "share": 0.192308,
+          "n": 100
+        },
+        "master@87": {
+          "caseId": "3x29-master",
+          "share": 0.214286,
+          "n": 100
+        },
+        "nightmare@100": {
+          "caseId": "10x10-nightmare",
+          "share": 0.2,
+          "n": 100
+        },
+        "nightmare@144": {
+          "caseId": "12x12-nightmare",
+          "share": 0.210526,
+          "n": 97
+        },
+        "nightmare@196": {
+          "caseId": "14x14-nightmare",
+          "share": 0.190476,
+          "n": 57
+        },
+        "nightmare@215": {
+          "caseId": "15x15b10-nightmare",
+          "share": 0.181818,
+          "n": 74
+        },
+        "nightmare@256": {
+          "caseId": "16x16-nightmare",
+          "share": 0.173913,
+          "n": 92
+        },
+        "nightmare@300": {
+          "caseId": "15x20-nightmare",
+          "share": 0.192308,
+          "n": 93
+        },
+        "nightmare@324": {
+          "caseId": "18x18-nightmare",
+          "share": 0.16,
+          "n": 100
+        },
+        "nightmare@360": {
+          "caseId": "18x20-nightmare",
+          "share": 0.16,
+          "n": 100
+        },
+        "nightmare@400": {
+          "caseId": "20x20-nightmare",
+          "share": 0.16313,
+          "n": 100
+        },
+        "nightmare@420": {
+          "caseId": "20x21-nightmare",
+          "share": 0.153846,
+          "n": 100
+        },
+        "nightmare@480": {
+          "caseId": "32x15-nightmare",
+          "share": 0.142857,
+          "n": 100
+        },
+        "nightmare@484": {
+          "caseId": "22x22-nightmare",
+          "share": 0.145503,
+          "n": 100
+        },
+        "nightmare@576": {
+          "caseId": "24x24-nightmare",
+          "share": 0.133333,
+          "n": 100
+        },
+        "nightmare@676": {
+          "caseId": "26x26-nightmare",
+          "share": 0.133333,
+          "n": 100
+        },
+        "nightmare@87": {
+          "caseId": "3x29-nightmare",
+          "share": 0.166667,
+          "n": 100
+        },
+        "normal@100": {
+          "caseId": "10x10-normal",
+          "share": 0.444444,
+          "n": 100
+        },
+        "normal@144": {
+          "caseId": "12x12-normal",
+          "share": 0.454545,
+          "n": 100
+        },
+        "normal@196": {
+          "caseId": "14x14-normal",
+          "share": 0.454545,
+          "n": 100
+        },
+        "normal@215": {
+          "caseId": "15x15b10-normal",
+          "share": 0.416667,
+          "n": 100
+        },
+        "normal@256": {
+          "caseId": "16x16-normal",
+          "share": 0.461538,
+          "n": 100
+        },
+        "normal@300": {
+          "caseId": "15x20-normal",
+          "share": 0.307692,
+          "n": 100
+        },
+        "normal@324": {
+          "caseId": "18x18-normal",
+          "share": 0.357143,
+          "n": 100
+        },
+        "normal@60": {
+          "caseId": "6x10-normal",
+          "share": 0.444444,
+          "n": 100
+        },
+        "normal@87": {
+          "caseId": "3x29-normal",
+          "share": 0.5,
+          "n": 100
+        },
+        "very-easy@60": {
+          "caseId": "6x10-very-easy",
+          "share": 0.714286,
+          "n": 95
+        },
+        "very-easy@87": {
+          "caseId": "3x29-very-easy",
+          "share": 0.714286,
+          "n": 98
+        }
+      }
+    },
+    "v4-w760": {
+      "variant": "v4-w760",
+      "diagnosticOffers": true,
+      "logAccepted": true,
+      "p6": false,
+      "U0": 8,
+      "rerateMax": 4,
+      "W": {
+        "default": 760000000
+      },
+      "priorTable": "prior-v1",
+      "screenTable": "none",
+      "prior": {
+        "easy@100": {
+          "caseId": "10x10-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "easy@144": {
+          "caseId": "12x12-easy",
+          "share": 0.555556,
+          "n": 100
+        },
+        "easy@196": {
+          "caseId": "14x14-easy",
+          "share": 0.545455,
+          "n": 100
+        },
+        "easy@215": {
+          "caseId": "15x15b10-easy",
+          "share": 0.545455,
+          "n": 100
+        },
+        "easy@60": {
+          "caseId": "6x10-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "easy@87": {
+          "caseId": "3x29-easy",
+          "share": 0.5,
+          "n": 100
+        },
+        "expert@100": {
+          "caseId": "10x10-expert",
+          "share": 0.307692,
+          "n": 100
+        },
+        "expert@144": {
+          "caseId": "12x12-expert",
+          "share": 0.333333,
+          "n": 100
+        },
+        "expert@196": {
+          "caseId": "14x14-expert",
+          "share": 0.294118,
+          "n": 100
+        },
+        "expert@215": {
+          "caseId": "15x15b10-expert",
+          "share": 0.294118,
+          "n": 100
+        },
+        "expert@256": {
+          "caseId": "16x16-expert",
+          "share": 0.263889,
+          "n": 100
+        },
+        "expert@300": {
+          "caseId": "15x20-expert",
+          "share": 0.277778,
+          "n": 100
+        },
+        "expert@324": {
+          "caseId": "18x18-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@360": {
+          "caseId": "18x20-expert",
+          "share": 0.263158,
+          "n": 100
+        },
+        "expert@400": {
+          "caseId": "20x20-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@420": {
+          "caseId": "20x21-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@480": {
+          "caseId": "32x15-expert",
+          "share": 0.227273,
+          "n": 100
+        },
+        "expert@484": {
+          "caseId": "22x22-expert",
+          "share": 0.25,
+          "n": 100
+        },
+        "expert@576": {
+          "caseId": "24x24-expert",
+          "share": 0.238095,
+          "n": 100
+        },
+        "expert@60": {
+          "caseId": "6x10-expert",
+          "share": 0.333333,
+          "n": 100
+        },
+        "expert@676": {
+          "caseId": "26x26-expert",
+          "share": 0.26087,
+          "n": 100
+        },
+        "expert@87": {
+          "caseId": "3x29-expert",
+          "share": 0.285714,
+          "n": 100
+        },
+        "hard@100": {
+          "caseId": "10x10-hard",
+          "share": 0.363636,
+          "n": 100
+        },
+        "hard@144": {
+          "caseId": "12x12-hard",
+          "share": 0.384615,
+          "n": 100
+        },
+        "hard@196": {
+          "caseId": "14x14-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@215": {
+          "caseId": "15x15b10-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@256": {
+          "caseId": "16x16-hard",
+          "share": 0.357143,
+          "n": 100
+        },
+        "hard@300": {
+          "caseId": "15x20-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@324": {
+          "caseId": "18x18-hard",
+          "share": 0.363971,
+          "n": 100
+        },
+        "hard@360": {
+          "caseId": "18x20-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@400": {
+          "caseId": "20x20-hard",
+          "share": 0.375,
+          "n": 100
+        },
+        "hard@420": {
+          "caseId": "20x21-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@480": {
+          "caseId": "32x15-hard",
+          "share": 0.368421,
+          "n": 100
+        },
+        "hard@484": {
+          "caseId": "22x22-hard",
+          "share": 0.352941,
+          "n": 100
+        },
+        "hard@576": {
+          "caseId": "24x24-hard",
+          "share": 0.35,
+          "n": 100
+        },
+        "hard@60": {
+          "caseId": "6x10-hard",
+          "share": 0.4,
+          "n": 100
+        },
+        "hard@676": {
+          "caseId": "26x26-hard",
+          "share": 0.380952,
+          "n": 100
+        },
+        "hard@87": {
+          "caseId": "3x29-hard",
+          "share": 0.363636,
+          "n": 100
+        },
+        "hell-1@196": {
+          "caseId": "14x14-hell-1",
+          "share": 0.265179,
+          "n": 2
+        },
+        "hell-1@576": {
+          "caseId": "24x24-hell-1",
+          "share": 0.141026,
+          "n": 4
+        },
+        "hell-1@676": {
+          "caseId": "26x26-hell-1",
+          "share": 0.128205,
+          "n": 50
+        },
+        "master@100": {
+          "caseId": "10x10-master",
+          "share": 0.25,
+          "n": 100
+        },
+        "master@144": {
+          "caseId": "12x12-master",
+          "share": 0.25,
+          "n": 100
+        },
+        "master@196": {
+          "caseId": "14x14-master",
+          "share": 0.222222,
+          "n": 100
+        },
+        "master@215": {
+          "caseId": "15x15b10-master",
+          "share": 0.222222,
+          "n": 100
+        },
+        "master@256": {
+          "caseId": "16x16-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@300": {
+          "caseId": "15x20-master",
+          "share": 0.210526,
+          "n": 100
+        },
+        "master@324": {
+          "caseId": "18x18-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@360": {
+          "caseId": "18x20-master",
+          "share": 0.2,
+          "n": 100
+        },
+        "master@400": {
+          "caseId": "20x20-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@420": {
+          "caseId": "20x21-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@480": {
+          "caseId": "32x15-master",
+          "share": 0.181818,
+          "n": 100
+        },
+        "master@484": {
+          "caseId": "22x22-master",
+          "share": 0.208333,
+          "n": 100
+        },
+        "master@576": {
+          "caseId": "24x24-master",
+          "share": 0.192308,
+          "n": 100
+        },
+        "master@60": {
+          "caseId": "6x10-master",
+          "share": 0.230769,
+          "n": 100
+        },
+        "master@676": {
+          "caseId": "26x26-master",
+          "share": 0.192308,
+          "n": 100
+        },
+        "master@87": {
+          "caseId": "3x29-master",
+          "share": 0.214286,
+          "n": 100
+        },
+        "nightmare@100": {
+          "caseId": "10x10-nightmare",
+          "share": 0.2,
+          "n": 100
+        },
+        "nightmare@144": {
+          "caseId": "12x12-nightmare",
+          "share": 0.210526,
+          "n": 97
+        },
+        "nightmare@196": {
+          "caseId": "14x14-nightmare",
+          "share": 0.190476,
+          "n": 57
+        },
+        "nightmare@215": {
+          "caseId": "15x15b10-nightmare",
+          "share": 0.181818,
+          "n": 74
+        },
+        "nightmare@256": {
+          "caseId": "16x16-nightmare",
+          "share": 0.173913,
+          "n": 92
+        },
+        "nightmare@300": {
+          "caseId": "15x20-nightmare",
+          "share": 0.192308,
+          "n": 93
+        },
+        "nightmare@324": {
+          "caseId": "18x18-nightmare",
+          "share": 0.16,
+          "n": 100
+        },
+        "nightmare@360": {
+          "caseId": "18x20-nightmare",
+          "share": 0.16,
+          "n": 100
+        },
+        "nightmare@400": {
+          "caseId": "20x20-nightmare",
+          "share": 0.16313,
+          "n": 100
+        },
+        "nightmare@420": {
+          "caseId": "20x21-nightmare",
+          "share": 0.153846,
+          "n": 100
+        },
+        "nightmare@480": {
+          "caseId": "32x15-nightmare",
+          "share": 0.142857,
+          "n": 100
+        },
+        "nightmare@484": {
+          "caseId": "22x22-nightmare",
+          "share": 0.145503,
+          "n": 100
+        },
+        "nightmare@576": {
+          "caseId": "24x24-nightmare",
+          "share": 0.133333,
+          "n": 100
+        },
+        "nightmare@676": {
+          "caseId": "26x26-nightmare",
+          "share": 0.133333,
+          "n": 100
+        },
+        "nightmare@87": {
+          "caseId": "3x29-nightmare",
+          "share": 0.166667,
+          "n": 100
+        },
+        "normal@100": {
+          "caseId": "10x10-normal",
+          "share": 0.444444,
+          "n": 100
+        },
+        "normal@144": {
+          "caseId": "12x12-normal",
+          "share": 0.454545,
+          "n": 100
+        },
+        "normal@196": {
+          "caseId": "14x14-normal",
+          "share": 0.454545,
+          "n": 100
+        },
+        "normal@215": {
+          "caseId": "15x15b10-normal",
+          "share": 0.416667,
+          "n": 100
+        },
+        "normal@256": {
+          "caseId": "16x16-normal",
+          "share": 0.461538,
+          "n": 100
+        },
+        "normal@300": {
+          "caseId": "15x20-normal",
+          "share": 0.307692,
+          "n": 100
+        },
+        "normal@324": {
+          "caseId": "18x18-normal",
+          "share": 0.357143,
+          "n": 100
+        },
+        "normal@60": {
+          "caseId": "6x10-normal",
+          "share": 0.444444,
+          "n": 100
+        },
+        "normal@87": {
+          "caseId": "3x29-normal",
+          "share": 0.5,
+          "n": 100
+        },
+        "very-easy@60": {
+          "caseId": "6x10-very-easy",
+          "share": 0.714286,
+          "n": 95
+        },
+        "very-easy@87": {
+          "caseId": "3x29-very-easy",
+          "share": 0.714286,
+          "n": 98
+        }
+      }
+    }
+  },
+  "acceptedAt": "2026-11-20T11:31:40.082Z",
+  "acceptedBy": "V4-S2"
+}

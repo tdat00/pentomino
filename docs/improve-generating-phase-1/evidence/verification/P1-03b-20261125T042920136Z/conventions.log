@@ -1,0 +1,6 @@
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK

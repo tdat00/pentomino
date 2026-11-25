@@ -1,0 +1,188 @@
+{
+  "version": 1,
+  "id": "prior-s3-v1",
+  "rule": "Nightmare: prior-v1; Hell 1: the seed-balanced window share of V4-S2's fr-base pilots on 196, 400, 576 and 676 cells, else of IGP-05's eligible in-band windows (plan 4.1, D-S24-21)",
+  "source": {
+    "priorV1": {
+      "path": "tools/ig-proto/data/prior-v1.json",
+      "sha256": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+    },
+    "pilots": [
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-14x14-hell-1.calls.jsonl",
+        "sha256": "478483580e1f49ba83249cb61540f1ef09c6fb95bf70efc23f5ad06c36a66384"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-20x20-hell-1.calls.jsonl",
+        "sha256": "26a60b21670e0b6b2672ff884664fc859a2b6b82ce96bd087918877b95cfa19c"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-24x24-hell-1.calls.jsonl",
+        "sha256": "70c9e5f4c62ebc6bd44bac69e27144d0219654de95eb975575fdafac623e79f5"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-26x26-hell-1.calls.jsonl",
+        "sha256": "b1c230b3d4a549480c7ba0757fde7b3401778f0496902ae4ab0781f4e861d8bc"
+      }
+    ],
+    "families": [
+      {
+        "path": "docs/improve-generating/evidence/provisional/IGP-05/families-windows.jsonl",
+        "sha256": "469fb5094a7d366b191ae457d4d48d555a4288403f1623ff5c8a46adaabad552"
+      },
+      {
+        "path": "docs/improve-generating/evidence/provisional/IGP-05/families-failed-sets.jsonl",
+        "sha256": "01e0e8286c9d2ac5b89c4166a460f75855db4b89365eb05dec7eabf62f1cb666"
+      }
+    ]
+  },
+  "cells": {
+    "hell-1@196": {
+      "caseId": "14x14-hell-1",
+      "share": 0.4,
+      "n": 68,
+      "source": "V4-S2 fr-base window share"
+    },
+    "hell-1@215": {
+      "caseId": "15x15b10-hell-1",
+      "share": 0.404412,
+      "n": 3,
+      "source": "IGP-05 window share"
+    },
+    "hell-1@256": {
+      "caseId": "16x16-hell-1",
+      "share": 0.358108,
+      "n": 3,
+      "source": "IGP-05 window share"
+    },
+    "hell-1@300": {
+      "caseId": "15x20-hell-1",
+      "share": 0.443429,
+      "n": 4,
+      "source": "IGP-05 window share"
+    },
+    "hell-1@324": {
+      "caseId": "18x18-hell-1",
+      "share": 0.347222,
+      "n": 6,
+      "source": "IGP-05 window share"
+    },
+    "hell-1@360": {
+      "caseId": "18x20-hell-1",
+      "share": 0.331514,
+      "n": 6,
+      "source": "IGP-05 window share"
+    },
+    "hell-1@400": {
+      "caseId": "20x20-hell-1",
+      "share": 0.368421,
+      "n": 75,
+      "source": "V4-S2 fr-base window share"
+    },
+    "hell-1@420": {
+      "caseId": "20x21-hell-1",
+      "share": 0.390244,
+      "n": 3,
+      "source": "IGP-05 window share"
+    },
+    "hell-1@480": {
+      "caseId": "32x15-hell-1",
+      "share": 0.297161,
+      "n": 6,
+      "source": "IGP-05 window share"
+    },
+    "hell-1@484": {
+      "caseId": "22x22-hell-1",
+      "share": 0.2875,
+      "n": 5,
+      "source": "IGP-05 window share"
+    },
+    "hell-1@576": {
+      "caseId": "24x24-hell-1",
+      "share": 0.219512,
+      "n": 70,
+      "source": "V4-S2 fr-base window share"
+    },
+    "hell-1@676": {
+      "caseId": "26x26-hell-1",
+      "share": 0.2,
+      "n": 64,
+      "source": "V4-S2 fr-base window share"
+    },
+    "nightmare@100": {
+      "caseId": "10x10-nightmare",
+      "share": 0.2,
+      "n": 100
+    },
+    "nightmare@144": {
+      "caseId": "12x12-nightmare",
+      "share": 0.210526,
+      "n": 97
+    },
+    "nightmare@196": {
+      "caseId": "14x14-nightmare",
+      "share": 0.190476,
+      "n": 57
+    },
+    "nightmare@215": {
+      "caseId": "15x15b10-nightmare",
+      "share": 0.181818,
+      "n": 74
+    },
+    "nightmare@256": {
+      "caseId": "16x16-nightmare",
+      "share": 0.173913,
+      "n": 92
+    },
+    "nightmare@300": {
+      "caseId": "15x20-nightmare",
+      "share": 0.192308,
+      "n": 93
+    },
+    "nightmare@324": {
+      "caseId": "18x18-nightmare",
+      "share": 0.16,
+      "n": 100
+    },
+    "nightmare@360": {
+      "caseId": "18x20-nightmare",
+      "share": 0.16,
+      "n": 100
+    },
+    "nightmare@400": {
+      "caseId": "20x20-nightmare",
+      "share": 0.16313,
+      "n": 100
+    },
+    "nightmare@420": {
+      "caseId": "20x21-nightmare",
+      "share": 0.153846,
+      "n": 100
+    },
+    "nightmare@480": {
+      "caseId": "32x15-nightmare",
+      "share": 0.142857,
+      "n": 100
+    },
+    "nightmare@484": {
+      "caseId": "22x22-nightmare",
+      "share": 0.145503,
+      "n": 100
+    },
+    "nightmare@576": {
+      "caseId": "24x24-nightmare",
+      "share": 0.133333,
+      "n": 100
+    },
+    "nightmare@676": {
+      "caseId": "26x26-nightmare",
+      "share": 0.133333,
+      "n": 100
+    },
+    "nightmare@87": {
+      "caseId": "3x29-nightmare",
+      "share": 0.166667,
+      "n": 100
+    }
+  }
+}

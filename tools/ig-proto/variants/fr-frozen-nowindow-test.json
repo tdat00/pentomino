@@ -1,0 +1,20 @@
+{
+  "id": "fr-frozen-nowindow-test",
+  "extends": ["fr-frozen"],
+  "description": "Test only (stages 2 to 4 pack T08c, plan 4.4): fr-frozen whose set-stage calibration rates every probe below its band (synthetic ratings), so that a real worker returns no-window-below; never an arm, a plan step or a binding's current id.",
+  "edits": [
+    {
+      "id": "nw-1",
+      "file": "core/engine/generate.js",
+      "find": "    record,\n    recordSource: 'calibration',\n    charge,\n  });\n",
+      "replace": "    record,\n    recordSource: 'calibration',\n    charge,\n    ...igNoWindowSeams(),\n  });\n"
+    },
+    {
+      "id": "nw-2",
+      "file": "core/engine/generate.js",
+      "append": "\n// ig-proto, variant fr-frozen-nowindow-test (stages 2 to 4 pack T08c): test only. With IG.testNoWindow 'below', the\n// set stage's calibration call rates every probe at the synthetic score 30, below every gen-v4 band, so that a real\n// worker returns the reason no-window-below (plan 4.4); never an arm or a plan step.\nimport { IG as IG_NW } from './ig-params.js';\n\n/** @returns {Record<string, unknown>} */\nfunction igNoWindowSeams() {\n  if (IG_NW.testNoWindow !== 'below') {\n    return {};\n  }\n  const rating = () => ({\n    model: 'difficulty-v3', score: 30, level: 'st', saturated: false,\n    metrics: { work: 1, censusWork: 0, nodes: 1, censusNodes: 0, searchStop: 'exhausted', Gproved: 1, censusComplete: true },\n  });\n  return { igScreen: rating, igCanonical: rating };\n}\n"
+    }
+  ],
+  "files": [],
+  "params": { "testNoWindow": "below" }
+}

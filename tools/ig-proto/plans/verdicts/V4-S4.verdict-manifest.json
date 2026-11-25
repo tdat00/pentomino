@@ -1,0 +1,646 @@
+{
+  "task": "V4-S4",
+  "label": "frozen",
+  "purpose": "selection",
+  "quantity": 10,
+  "capMs": 120000,
+  "responseBoundMs": 120000,
+  "resampleSeed": 20261116,
+  "resamples": 10000,
+  "validationReps": [
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39
+  ],
+  "masterReps": [
+    20,
+    21,
+    22,
+    23,
+    24
+  ],
+  "collection": {
+    "activation": {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/activation.json",
+      "sha256": "0f9e868cb02c5915f133221fb873c57c971e9a8e239f7261da0425d7a6096d6f"
+    },
+    "closure": null
+  },
+  "arms": [
+    {
+      "id": "fr-frozen",
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "variant": "fr-frozen",
+      "treeId": "b3e530b1bca515e551f240faccc327f9868da0f475a60761986faf4884b781f7",
+      "files": [
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-10x10-master.runs.json",
+          "sha256": "f67b9cc1b501f8ecc21f711ff8df96d934f9b0a84991221b977197261dd19b2e"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-12x12-master.runs.json",
+          "sha256": "b8114a9382f80e21466d2ebd186e7f79dfd7f7308e37ba5751385fa1d2477b7c"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-14x14-master.runs.json",
+          "sha256": "b8016605965fa941498bcf475ed13504c4c00789685cbf5ef1786cc438c3daf2"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-15x15b10-master.runs.json",
+          "sha256": "68f81367a5c173df6d6368248343536eb691a53bff108e30a08acba086c17f68"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-15x20-master.runs.json",
+          "sha256": "9060add22144d232e0205ff8523a2e6b110063da0e14385773b38fded775715a"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-16x16-master.runs.json",
+          "sha256": "bf68c89eefd31f11012b86d7aa163e8fc79b173f7c14bcbbdf55ae8504a0b582"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-18x18-master.runs.json",
+          "sha256": "970ca21cdfa7a4077c1d29aef93078ac23a19bf5bc75fcb3f582f7a52f2b491d"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-18x20-master.runs.json",
+          "sha256": "0f5a83b3dfbc6702754ca34d09157d8c8306ef7317001793afe412455c08ba17"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-20x20-master.runs.json",
+          "sha256": "16402e57a4c4b992b96f54fd37b8bf1cec4dc07c79043a5bf73dac2d3150f3f1"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-20x21-master.runs.json",
+          "sha256": "f41879f786037a5e3ab0892c9a56171cfb7a540a8cd7e161c27e8d3383bc9df9"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-22x22-master.runs.json",
+          "sha256": "c8b989ff7e263971107f208f54b1b93ee72932cee74154f9da6b2b3ca6cfceeb"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-24x24-master.runs.json",
+          "sha256": "b8a82effbe9d555685b726b6cba1355d0fff641b9e01941f9a0c700f118fb076"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-26x26-master.runs.json",
+          "sha256": "550e9d36e705d83d1af06bf7bb0ad088a4825cf0ea9cf4add9a55899e85b9920"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-32x15-master.runs.json",
+          "sha256": "de0dbb04d78d29e7ae748d293a815ecb76c3e20b3056f61ea75af59459d6dcc8"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-3x29-master.runs.json",
+          "sha256": "a68fa7c06d1a7cfc1b2cf00713b5e9b65a13345154ad2a92b160684847978b6d"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-6x10-master.runs.json",
+          "sha256": "835eebe86a891061ad8fabee6cc055397e3fca0a7f6eb47533c9603389353be0"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-10x10-nightmare.runs.json",
+          "sha256": "a8d0608eeef7a386c0630951666be4afecf1ec0bf048bc98670e032e9e7253c0"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-12x12-nightmare.runs.json",
+          "sha256": "7463dea8b12f12ff508ad29f08b18b71fa3a49284e3e36a8f813c4aeae517823"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-hell-1.runs.json",
+          "sha256": "23d5721c97ce55ad149a31d8788a55e5fb755290a1457104ca2e43478ba28e5a"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-nightmare.runs.json",
+          "sha256": "0ba800b45c53faefc74a6cc237cf003850084a45d150b7d86e2b5098f1ed410c"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x15b10-nightmare.runs.json",
+          "sha256": "bfd897fb1bf2ad17a29540de4d1462bb716f8014e01ef870936fe24977c803b3"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x20-nightmare.runs.json",
+          "sha256": "5138cfcf9439d4f9b94ddae6c1b391a168105dc4108f58f2cf098d4800ba0cc1"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-16x16-nightmare.runs.json",
+          "sha256": "055d049120884daa93a2bd97ff672704c3ff56a66f62fc58d5f18f650e8a3d09"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-18x18-nightmare.runs.json",
+          "sha256": "2390162c8973b1f2b42059512d1883cd6c2d4544796472a05b3f2cbee691ba62"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-18x20-nightmare.runs.json",
+          "sha256": "abf0f42d2c8d9a4fe87d3737cf4fecb903342d8bc16ad54e21c217dae199be27"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x20-hell-1.runs.json",
+          "sha256": "496f7e686711f066335d06a37c469302926dc74a0d08006c5949f55bc3dd6fe2"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x20-nightmare.runs.json",
+          "sha256": "3f35bb44c791b4eff54bb64c824a4993d5e1f5c22715dc1e793ba569e3fe048f"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x21-nightmare.runs.json",
+          "sha256": "1b05bc25308c3326fc0733c66cd8acf0e556c39d1b70db0e3c0b64bfe838e879"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-22x22-nightmare.runs.json",
+          "sha256": "6285f4fec995f671fc5cb18ff5dd57d7d29069b69c7bfde6002a10920bc90142"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-24x24-hell-1.runs.json",
+          "sha256": "3e9741c4fc0c3c5a4bdb117bb25d7f77a719844482e5e7aaee9c5fd25834b674"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-24x24-nightmare.runs.json",
+          "sha256": "0d3664b3a168f4c717ba433581cc3dc4399b9328c7888e583f99ea3afd4cc909"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-hell-1.runs.json",
+          "sha256": "961fa46ce62456b6b1fb71137b20f5ad5db4b4073b286033702be9e2c6f98c68"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-nightmare.runs.json",
+          "sha256": "281dcb44eba08e85d8214131692ba3d62451d185524eadeee3ef1034eaa01fa2"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-32x15-nightmare.runs.json",
+          "sha256": "16b8753f153f01bad4e8d3221a435718f797a4f19ba503c5837147f0fbd464bf"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-3x29-nightmare.runs.json",
+          "sha256": "d2d57c96488163c13ccc92db8348678bf896720b6e67bad41893f8015d14248e"
+        }
+      ]
+    },
+    {
+      "id": "fr-frozen-none",
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "variant": "fr-frozen-none",
+      "treeId": "fa903f397ef6dce86ef70f3afb771c5de258b12836ae314bf796dbbf798ec6b3",
+      "files": [
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-10x10-nightmare.runs.json",
+          "sha256": "e3394480ef18aaea6c2266ce0b78a5264a407e5a808571cb0b9897ff01cf0ec9"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-12x12-nightmare.runs.json",
+          "sha256": "4ef97e56a6af028d837827807a531af8f3394916193109ac5a0ce712bf7d518b"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-hell-1.runs.json",
+          "sha256": "20f2fc53ff7d9fe46d82f1203eb5bfaee325376cb8c1bce9a3536159da8ecfa9"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-nightmare.runs.json",
+          "sha256": "eaa56f9b3bc9840c91c5489fc1d6218adb45e5639fa618fb7dafec26553002a0"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x15b10-nightmare.runs.json",
+          "sha256": "848c30027796c31373925bc5df0b811693a61f0fdad2c77a1f6871f493b272ca"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x20-nightmare.runs.json",
+          "sha256": "3dbed064eb4f179f9360ca93fe42cf955587cde2fbdb32be34f020e12e1b1c23"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-16x16-nightmare.runs.json",
+          "sha256": "c14c4fd842c9f1504046ce0c98d576c781a824f0ce0e79ccf7a57930a1d96a7b"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x18-nightmare.runs.json",
+          "sha256": "39325473dc32cc28cf7d76f7005a9c38ca497b16950da817e206683e423b4e9c"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x20-nightmare.runs.json",
+          "sha256": "6fd2011815d76f891dce343cb8b2e540b7a76a539520818d494d4d657fbe8827"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-hell-1.runs.json",
+          "sha256": "aa7d0f0e857fb3a6b2730ee3feaccd87fc574d91a88d75705628fb45c408b012"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-nightmare.runs.json",
+          "sha256": "b68d0762ddfc6b5122fe5c63e360bfad2e97c0b6ad4becad0ec1c8bf8e70647c"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x21-nightmare.runs.json",
+          "sha256": "602275a9621ac459aef8d74851d5f7a74249b2ed3044f46e56a3ec96ae4bf933"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+          "sha256": "0f2d6778536f3bc73b5e6efa6ae1c562b9ff0d16ceb01b55c9cb7aa43b7a49be"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-hell-1.runs.json",
+          "sha256": "dc87fed3209eacd875eea2ee52dcb8aa308c8f82f19cedc360062576e8d2bcb9"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-nightmare.runs.json",
+          "sha256": "643e48afff0d74570a3e829075b1e2a1f34676f1e2fd4cbd922542df49cc8361"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-hell-1.runs.json",
+          "sha256": "44cba6d34511bf245deed8970f6fbb5251087123e3eae5135d083cd1dc321a1f"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-nightmare.runs.json",
+          "sha256": "e5bdbc7c663165a30ad353464b545f67c09596840832c58b6ab14d7ab7d31b0e"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+          "sha256": "684911fd1fed61aff78a606ff292b202ccb0044c62ca0667aa0898e5f1ebe774"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+          "sha256": "5f36a7bd8d9f5fa7c9d8b5aba60a7b3615da18f9e8a9350a9e112cdaa22af44e"
+        }
+      ]
+    },
+    {
+      "id": "log-link",
+      "task": "V4-S4",
+      "arm": "log-link",
+      "variant": "log-link",
+      "treeId": "4141156d7f8cde98df5d3ee8e04e3386703e8ab360470b38f100cede8757033c",
+      "files": [
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-10x10-master.runs.json",
+          "sha256": "ba715a8eb8e902dbcc52ab84bb671aa09e90f85179e300bfb15ac4c5b7e25429"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-12x12-master.runs.json",
+          "sha256": "3886b5c9d73d66441f9253b7c4f353457867d11c207dfb4e894ea646fb6b308c"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-14x14-master.runs.json",
+          "sha256": "724ae6786958600520ba565553f9b6fdd5ca74ed69f5fe966c39fcef77f501d4"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x15b10-master.runs.json",
+          "sha256": "a3ca53feed62a8c7259daa9675954ede75d0bd6313aac2e8cc2d4493986a36ba"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x20-master.runs.json",
+          "sha256": "ac6949b43d86eaf7791fb807a4463e8281f838d8bff718a5e9d77c2efef030e0"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-16x16-master.runs.json",
+          "sha256": "c49cab2610ad529fad43a818b6c22d567cf0262e4fd80eac54d12660ad251e0f"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x18-master.runs.json",
+          "sha256": "7516878ba833de342460fcf7f0b5a34759f768721797fdf00d8ed33651cfa634"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x20-master.runs.json",
+          "sha256": "34e75ed6acbe4b6ade58fb33b347af1ce78d2948a88441a6acfc9f9cdf8b9f7f"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x20-master.runs.json",
+          "sha256": "4aaa08d44c44b8d16dd0d515d1b86685c95b229f4ac8fb7a8eab11167a4e417e"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x21-master.runs.json",
+          "sha256": "6c7f414c95ad0b0e1d32b1d59723962aecf361a1f8e80d449fc472d06fddf840"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-22x22-master.runs.json",
+          "sha256": "5a90e5a44fdd828f2fba978751545cfa6738263282bfa51c42e6823c8c03d691"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-24x24-master.runs.json",
+          "sha256": "c55b861d8552aedb908d5080f0b2f8d790c27afcea4bc578d4af1eb5f7aace19"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-26x26-master.runs.json",
+          "sha256": "4581f393821677f647a7da31e387b4c6b205ccac7e6efee75f56036f1b946ed6"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-32x15-master.runs.json",
+          "sha256": "13831cbd5556052134558e32f2acf91e1d0b04bc0cf1d0699672983cc8af50c1"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-3x29-master.runs.json",
+          "sha256": "637f9af058fd0f34a33702962bb0bf853524d5327e1af521c83f36687bbb6423"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-6x10-master.runs.json",
+          "sha256": "37d69916e5f4cd51bb356745fb2f22652b553415fe386ac4c3855b5b040f62a9"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-10x10-nightmare.runs.json",
+          "sha256": "a2b2f147fcb936be1de16838f89478b83c153db28d450d816f2d190952361c64"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x18-nightmare.runs.json",
+          "sha256": "ef641499368987f1f6008aaca608cf8361ac726181507a78dad24c224cb17842"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x20-nightmare.runs.json",
+          "sha256": "a091aeff0280bf48043fb9e3b952db209c660d29976ccd231e062fce30f1d9d3"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x20-nightmare.runs.json",
+          "sha256": "d59d2f372be2ccb14899ee50f471215cf7b052c22d9ea9aa828d664b5e11299e"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x21-nightmare.runs.json",
+          "sha256": "1531ed6156759c57a68306b52849c2a77eff378468592fde92efd7409e094b75"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+          "sha256": "7abdf3bf687d4c7f435a9407f75d2336f6eaeb396e71f2d339988c35d304a33a"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-24x24-nightmare.runs.json",
+          "sha256": "b77192bf44179801d4383f486c3c4aaee597bfb893dbf391cc58b35cfc266e97"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-26x26-nightmare.runs.json",
+          "sha256": "3892ef49ab6159c30419ed7f10018ff91dccf7a811c222d9d53a1f11fcef00dd"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+          "sha256": "29cf2f9c25d77b88a135e915c324594595189c5bf4c0b82b50c4481718e000bc"
+        },
+        {
+          "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+          "sha256": "5daaa11582da4c2d988ee522713160a9c7f16b1abeae1cc214d9dc1759e7afc5"
+        }
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "n-small",
+      "cells": [
+        "3x29-nightmare",
+        "10x10-nightmare",
+        "12x12-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "n-mid",
+      "cells": [
+        "14x14-nightmare",
+        "15x15b10-nightmare",
+        "16x16-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "n-upper",
+      "cells": [
+        "15x20-nightmare",
+        "18x18-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "n-large",
+      "cells": [
+        "18x20-nightmare",
+        "20x20-nightmare",
+        "20x21-nightmare",
+        "32x15-nightmare",
+        "22x22-nightmare",
+        "24x24-nightmare",
+        "26x26-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "hell-1",
+      "cells": [
+        "14x14-hell-1",
+        "20x20-hell-1",
+        "24x24-hell-1",
+        "26x26-hell-1"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    }
+  ],
+  "failingCells": [
+    "14x14-nightmare",
+    "15x15b10-nightmare",
+    "12x12-nightmare",
+    "16x16-nightmare",
+    "15x20-nightmare"
+  ],
+  "controls": [
+    {
+      "cell": "3x29-nightmare",
+      "today": "log-link"
+    },
+    {
+      "cell": "10x10-nightmare",
+      "today": "log-link"
+    },
+    {
+      "cell": "18x18-nightmare",
+      "today": "log-link"
+    },
+    {
+      "cell": "18x20-nightmare",
+      "today": "log-link"
+    },
+    {
+      "cell": "20x20-nightmare",
+      "today": "log-link"
+    },
+    {
+      "cell": "20x21-nightmare",
+      "today": "log-link"
+    },
+    {
+      "cell": "32x15-nightmare",
+      "today": "log-link"
+    },
+    {
+      "cell": "22x22-nightmare",
+      "today": "log-link"
+    },
+    {
+      "cell": "24x24-nightmare",
+      "today": "log-link"
+    },
+    {
+      "cell": "26x26-nightmare",
+      "today": "log-link"
+    }
+  ],
+  "masters": [
+    {
+      "cell": "6x10-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "3x29-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "10x10-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "12x12-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "14x14-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "15x15b10-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "16x16-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "15x20-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "18x18-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "18x20-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "20x20-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "20x21-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "32x15-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "22x22-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "24x24-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    },
+    {
+      "cell": "26x26-master",
+      "today": "log-link",
+      "after": "fr-frozen"
+    }
+  ],
+  "hell1": [
+    "26x26-hell-1",
+    "20x20-hell-1",
+    "24x24-hell-1",
+    "14x14-hell-1"
+  ],
+  "p5": [],
+  "deadlineProjection": {
+    "arms": [
+      "fr-frozen",
+      "fr-frozen-none"
+    ],
+    "reserves": [
+      0.3,
+      0.4,
+      0.5
+    ],
+    "deadlineMs": 115000
+  },
+  "prerequisites": {
+    "stage1": {
+      "binding": "docs/improve-generating/evidence/frozen/V4-T04/accepted-binding.json",
+      "current": []
+    },
+    "parity": [
+      {
+        "binding": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen.accepted.json",
+        "current": [
+          "fr-frozen"
+        ]
+      },
+      {
+        "binding": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none.accepted.json",
+        "current": [
+          "fr-frozen-none"
+        ]
+      },
+      {
+        "binding": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-uncapped.accepted.json",
+        "current": [
+          "fr-frozen-uncapped"
+        ]
+      },
+      {
+        "binding": "docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none-uncapped.accepted.json",
+        "current": [
+          "fr-frozen-none-uncapped"
+        ]
+      },
+      {
+        "binding": "docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json",
+        "current": [
+          "v4"
+        ]
+      }
+    ],
+    "liveDeadline": {
+      "binding": "docs/improve-generating/evidence/frozen/V4-LIVE/live-deadline.accepted.json",
+      "current": [
+        "fr-frozen",
+        "fr-frozen-none"
+      ]
+    }
+  }
+}

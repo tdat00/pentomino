@@ -1,0 +1,4612 @@
+{
+  "meta": {
+    "format": "ig-proto-compare",
+    "version": 1,
+    "task": "IGP-04",
+    "label": "provisional",
+    "labelText": "provisional (pre-freeze)",
+    "createdAt": "2026-11-14T22:31:16.787Z",
+    "source": {
+      "label": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": true,
+      "firewall": "c617f9eab21d8cd3fb556784ba851972be68e3859002122dea9bfdac222d672e"
+    },
+    "harness": {
+      "harnessHash": "1ed38f49ccd785d7ab68dca54ce20bf4e55f3176571e10d127e8bc3f553a2a32",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "fd931d9f44d1fc5bc481db2e2d2c99ed46790150ade8c62e836b729e11410801",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/lane-worker.mjs": "7a705736a276ee17e07095526ae467d4ac62a26ccb5becc0e53cfcebcd158e24",
+        "tools/ig-proto/lib/lanes.mjs": "628e3f217541435c9065599ba5053231ea217fdd3bfeb9aaad76ab8eb936b235",
+        "tools/ig-proto/lib/paths.mjs": "6db4a7adeedf3500390cb84875667f44478dd8e486d6d55919149c2af6bede62",
+        "tools/ig-proto/lib/records.mjs": "c9f3b021096bb57a93445c8156e4cbf77654ee32128343359690508a42d5bf2c",
+        "tools/ig-proto/lib/sets.mjs": "66fecf6372dc30badd94f018b171e4bc12555426e446768dc4f6c29c443d7a2d",
+        "tools/ig-proto/lib/tree.mjs": "ff7ea5d67ad0dd40f1dc105e1584181b59078d4ca6392b9eb7b3078293068f83",
+        "tools/ig-proto/arm.mjs": "5fe5854f1fb183d6827b7c18f55bd5fc16de6206db4d73c7e1b7543f0aec2165",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "243862cbd3f5997a7d3ccb0e43f4fb8a318c3349fa8b640679d8811d6dea123c",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/identity.mjs": "8b9123dcfc0f31ba4d2c06b134544a6e219358d009ae5f935b49d9ac6febe1fc",
+        "tools/ig-proto/pm4.mjs": "6b3a58e53ea3b56fe8c151dc97948aef0a73abe685ec094cc7ecb52b764f9b53",
+        "tools/ig-proto/run-task.ps1": "5d5bc46ee095e16315522f8bc6a2a47c5d8cc891ec151236d31e2652708a86ac",
+        "tools/ig-proto/self-test.mjs": "94f8d06aae3d62b72820bcc679089f57bcf5411816eab2429612d06c903bf7ce",
+        "tools/ig-proto/verify.mjs": "1d013ed389fd0f65922c3bd6f7559a8f5a431dbcd8a7fc3c27fccef7d07431eb",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+      }
+    },
+    "trees": {
+      "log": {
+        "treeId": "fd26e5f873f3617fd385228f5c70d58727a1e0d26d2d0db10fe6e0c53cef08a8",
+        "copyDigest": "dd150c96bd5a326804b65f420487ba7e6ef76051923cd6871f069c0c8f5099ef",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "log",
+          "diagnosticOffers": true,
+          "logAccepted": false,
+          "p6": false
+        }
+      },
+      "log-p6": {
+        "treeId": "98e76fd01686067fe3d00e71e04866c6abd1e0d636848642b5501d94be431693",
+        "copyDigest": "c1e98315e488b59166a2389f3ee73df72ed3c56f09386816f2356609b31a587f",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p6-1",
+          "p6-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "log-p6",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": true
+        }
+      },
+      "log-p6-w8": {
+        "treeId": "3194a883800d5b4761e4dfbe3c6aecdc16af3785d208ca7096cdb12be76cf551",
+        "copyDigest": "5cc0727d41a507fb163fed456d61278a8e67734de2ceb0b352aae63bd1e165cb",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p6-1",
+          "p6-2",
+          "w8-1",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "log-p6-w8",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": true
+        }
+      },
+      "p1p5-main": {
+        "treeId": "b704d84ea95a0ce6b4a1a95dd7965b10e5db0148e874e276368bb560cc826ec4",
+        "copyDigest": "cc404176f3b8cacbd1cc8fea536ca88b99e5ec7a7fc2271c630c5d8ad645bbf8",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p1p5-1",
+          "p1p5-2",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "p1p5-main",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "rerate": "end",
+          "a3": false,
+          "W": {
+            "default": 190000000,
+            "hell-1": 380000000,
+            "hell-2": 380000000,
+            "hell-3": 380000000
+          },
+          "prior": {
+            "easy@100": {
+              "caseId": "10x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@144": {
+              "caseId": "12x12-easy",
+              "share": 0.555556,
+              "n": 100
+            },
+            "easy@196": {
+              "caseId": "14x14-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@215": {
+              "caseId": "15x15b10-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@60": {
+              "caseId": "6x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@87": {
+              "caseId": "3x29-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "expert@100": {
+              "caseId": "10x10-expert",
+              "share": 0.307692,
+              "n": 100
+            },
+            "expert@144": {
+              "caseId": "12x12-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@196": {
+              "caseId": "14x14-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@215": {
+              "caseId": "15x15b10-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@256": {
+              "caseId": "16x16-expert",
+              "share": 0.263889,
+              "n": 100
+            },
+            "expert@300": {
+              "caseId": "15x20-expert",
+              "share": 0.277778,
+              "n": 100
+            },
+            "expert@324": {
+              "caseId": "18x18-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@360": {
+              "caseId": "18x20-expert",
+              "share": 0.263158,
+              "n": 100
+            },
+            "expert@400": {
+              "caseId": "20x20-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@420": {
+              "caseId": "20x21-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@480": {
+              "caseId": "32x15-expert",
+              "share": 0.227273,
+              "n": 100
+            },
+            "expert@484": {
+              "caseId": "22x22-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@576": {
+              "caseId": "24x24-expert",
+              "share": 0.238095,
+              "n": 100
+            },
+            "expert@60": {
+              "caseId": "6x10-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@676": {
+              "caseId": "26x26-expert",
+              "share": 0.26087,
+              "n": 100
+            },
+            "expert@87": {
+              "caseId": "3x29-expert",
+              "share": 0.285714,
+              "n": 100
+            },
+            "hard@100": {
+              "caseId": "10x10-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hard@144": {
+              "caseId": "12x12-hard",
+              "share": 0.384615,
+              "n": 100
+            },
+            "hard@196": {
+              "caseId": "14x14-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@215": {
+              "caseId": "15x15b10-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@256": {
+              "caseId": "16x16-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@300": {
+              "caseId": "15x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@324": {
+              "caseId": "18x18-hard",
+              "share": 0.363971,
+              "n": 100
+            },
+            "hard@360": {
+              "caseId": "18x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@400": {
+              "caseId": "20x20-hard",
+              "share": 0.375,
+              "n": 100
+            },
+            "hard@420": {
+              "caseId": "20x21-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@480": {
+              "caseId": "32x15-hard",
+              "share": 0.368421,
+              "n": 100
+            },
+            "hard@484": {
+              "caseId": "22x22-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@576": {
+              "caseId": "24x24-hard",
+              "share": 0.35,
+              "n": 100
+            },
+            "hard@60": {
+              "caseId": "6x10-hard",
+              "share": 0.4,
+              "n": 100
+            },
+            "hard@676": {
+              "caseId": "26x26-hard",
+              "share": 0.380952,
+              "n": 100
+            },
+            "hard@87": {
+              "caseId": "3x29-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.265179,
+              "n": 2
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.141026,
+              "n": 4
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.128205,
+              "n": 50
+            },
+            "master@100": {
+              "caseId": "10x10-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@144": {
+              "caseId": "12x12-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@196": {
+              "caseId": "14x14-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@215": {
+              "caseId": "15x15b10-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@256": {
+              "caseId": "16x16-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@300": {
+              "caseId": "15x20-master",
+              "share": 0.210526,
+              "n": 100
+            },
+            "master@324": {
+              "caseId": "18x18-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@360": {
+              "caseId": "18x20-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@400": {
+              "caseId": "20x20-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@420": {
+              "caseId": "20x21-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@480": {
+              "caseId": "32x15-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@484": {
+              "caseId": "22x22-master",
+              "share": 0.208333,
+              "n": 100
+            },
+            "master@576": {
+              "caseId": "24x24-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@60": {
+              "caseId": "6x10-master",
+              "share": 0.230769,
+              "n": 100
+            },
+            "master@676": {
+              "caseId": "26x26-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@87": {
+              "caseId": "3x29-master",
+              "share": 0.214286,
+              "n": 100
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            },
+            "normal@100": {
+              "caseId": "10x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@144": {
+              "caseId": "12x12-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@196": {
+              "caseId": "14x14-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@215": {
+              "caseId": "15x15b10-normal",
+              "share": 0.416667,
+              "n": 100
+            },
+            "normal@256": {
+              "caseId": "16x16-normal",
+              "share": 0.461538,
+              "n": 100
+            },
+            "normal@300": {
+              "caseId": "15x20-normal",
+              "share": 0.307692,
+              "n": 100
+            },
+            "normal@324": {
+              "caseId": "18x18-normal",
+              "share": 0.357143,
+              "n": 100
+            },
+            "normal@60": {
+              "caseId": "6x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@87": {
+              "caseId": "3x29-normal",
+              "share": 0.5,
+              "n": 100
+            },
+            "very-easy@60": {
+              "caseId": "6x10-very-easy",
+              "share": 0.714286,
+              "n": 95
+            },
+            "very-easy@87": {
+              "caseId": "3x29-very-easy",
+              "share": 0.714286,
+              "n": 98
+            }
+          }
+        }
+      },
+      "p1p5-main-p6-w8": {
+        "treeId": "40642bfd3ea3deaba84b3a9d303eb268bcd37d16bbf514747a8f62a94ff73705",
+        "copyDigest": "a13cd40a2ff8d1a27db0941eb32bd83fc13edff45e6bbdfcfaddfff22f25c2ff",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "p1p5-1",
+          "p1p5-2",
+          "p6-1",
+          "p6-2",
+          "w8-1",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "p1p5-main-p6-w8",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": true,
+          "U0": 8,
+          "rerateMax": 4,
+          "rerate": "end",
+          "a3": false,
+          "W": {
+            "default": 190000000,
+            "hell-1": 380000000,
+            "hell-2": 380000000,
+            "hell-3": 380000000
+          },
+          "prior": {
+            "easy@100": {
+              "caseId": "10x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@144": {
+              "caseId": "12x12-easy",
+              "share": 0.555556,
+              "n": 100
+            },
+            "easy@196": {
+              "caseId": "14x14-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@215": {
+              "caseId": "15x15b10-easy",
+              "share": 0.545455,
+              "n": 100
+            },
+            "easy@60": {
+              "caseId": "6x10-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "easy@87": {
+              "caseId": "3x29-easy",
+              "share": 0.5,
+              "n": 100
+            },
+            "expert@100": {
+              "caseId": "10x10-expert",
+              "share": 0.307692,
+              "n": 100
+            },
+            "expert@144": {
+              "caseId": "12x12-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@196": {
+              "caseId": "14x14-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@215": {
+              "caseId": "15x15b10-expert",
+              "share": 0.294118,
+              "n": 100
+            },
+            "expert@256": {
+              "caseId": "16x16-expert",
+              "share": 0.263889,
+              "n": 100
+            },
+            "expert@300": {
+              "caseId": "15x20-expert",
+              "share": 0.277778,
+              "n": 100
+            },
+            "expert@324": {
+              "caseId": "18x18-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@360": {
+              "caseId": "18x20-expert",
+              "share": 0.263158,
+              "n": 100
+            },
+            "expert@400": {
+              "caseId": "20x20-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@420": {
+              "caseId": "20x21-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@480": {
+              "caseId": "32x15-expert",
+              "share": 0.227273,
+              "n": 100
+            },
+            "expert@484": {
+              "caseId": "22x22-expert",
+              "share": 0.25,
+              "n": 100
+            },
+            "expert@576": {
+              "caseId": "24x24-expert",
+              "share": 0.238095,
+              "n": 100
+            },
+            "expert@60": {
+              "caseId": "6x10-expert",
+              "share": 0.333333,
+              "n": 100
+            },
+            "expert@676": {
+              "caseId": "26x26-expert",
+              "share": 0.26087,
+              "n": 100
+            },
+            "expert@87": {
+              "caseId": "3x29-expert",
+              "share": 0.285714,
+              "n": 100
+            },
+            "hard@100": {
+              "caseId": "10x10-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hard@144": {
+              "caseId": "12x12-hard",
+              "share": 0.384615,
+              "n": 100
+            },
+            "hard@196": {
+              "caseId": "14x14-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@215": {
+              "caseId": "15x15b10-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@256": {
+              "caseId": "16x16-hard",
+              "share": 0.357143,
+              "n": 100
+            },
+            "hard@300": {
+              "caseId": "15x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@324": {
+              "caseId": "18x18-hard",
+              "share": 0.363971,
+              "n": 100
+            },
+            "hard@360": {
+              "caseId": "18x20-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@400": {
+              "caseId": "20x20-hard",
+              "share": 0.375,
+              "n": 100
+            },
+            "hard@420": {
+              "caseId": "20x21-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@480": {
+              "caseId": "32x15-hard",
+              "share": 0.368421,
+              "n": 100
+            },
+            "hard@484": {
+              "caseId": "22x22-hard",
+              "share": 0.352941,
+              "n": 100
+            },
+            "hard@576": {
+              "caseId": "24x24-hard",
+              "share": 0.35,
+              "n": 100
+            },
+            "hard@60": {
+              "caseId": "6x10-hard",
+              "share": 0.4,
+              "n": 100
+            },
+            "hard@676": {
+              "caseId": "26x26-hard",
+              "share": 0.380952,
+              "n": 100
+            },
+            "hard@87": {
+              "caseId": "3x29-hard",
+              "share": 0.363636,
+              "n": 100
+            },
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.265179,
+              "n": 2
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.141026,
+              "n": 4
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.128205,
+              "n": 50
+            },
+            "master@100": {
+              "caseId": "10x10-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@144": {
+              "caseId": "12x12-master",
+              "share": 0.25,
+              "n": 100
+            },
+            "master@196": {
+              "caseId": "14x14-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@215": {
+              "caseId": "15x15b10-master",
+              "share": 0.222222,
+              "n": 100
+            },
+            "master@256": {
+              "caseId": "16x16-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@300": {
+              "caseId": "15x20-master",
+              "share": 0.210526,
+              "n": 100
+            },
+            "master@324": {
+              "caseId": "18x18-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@360": {
+              "caseId": "18x20-master",
+              "share": 0.2,
+              "n": 100
+            },
+            "master@400": {
+              "caseId": "20x20-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@420": {
+              "caseId": "20x21-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@480": {
+              "caseId": "32x15-master",
+              "share": 0.181818,
+              "n": 100
+            },
+            "master@484": {
+              "caseId": "22x22-master",
+              "share": 0.208333,
+              "n": 100
+            },
+            "master@576": {
+              "caseId": "24x24-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@60": {
+              "caseId": "6x10-master",
+              "share": 0.230769,
+              "n": 100
+            },
+            "master@676": {
+              "caseId": "26x26-master",
+              "share": 0.192308,
+              "n": 100
+            },
+            "master@87": {
+              "caseId": "3x29-master",
+              "share": 0.214286,
+              "n": 100
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            },
+            "normal@100": {
+              "caseId": "10x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@144": {
+              "caseId": "12x12-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@196": {
+              "caseId": "14x14-normal",
+              "share": 0.454545,
+              "n": 100
+            },
+            "normal@215": {
+              "caseId": "15x15b10-normal",
+              "share": 0.416667,
+              "n": 100
+            },
+            "normal@256": {
+              "caseId": "16x16-normal",
+              "share": 0.461538,
+              "n": 100
+            },
+            "normal@300": {
+              "caseId": "15x20-normal",
+              "share": 0.307692,
+              "n": 100
+            },
+            "normal@324": {
+              "caseId": "18x18-normal",
+              "share": 0.357143,
+              "n": 100
+            },
+            "normal@60": {
+              "caseId": "6x10-normal",
+              "share": 0.444444,
+              "n": 100
+            },
+            "normal@87": {
+              "caseId": "3x29-normal",
+              "share": 0.5,
+              "n": 100
+            },
+            "very-easy@60": {
+              "caseId": "6x10-very-easy",
+              "share": 0.714286,
+              "n": 95
+            },
+            "very-easy@87": {
+              "caseId": "3x29-very-easy",
+              "share": 0.714286,
+              "n": 98
+            }
+          }
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 11,
+      "nodeSeconds": 762.378,
+      "countedSeconds": 1257.378,
+      "lockWaitSeconds": 6131.681
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\IGP-04.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "pairs": [
+    {
+      "name": "A:B",
+      "before": "A",
+      "after": "B",
+      "kind": "p6",
+      "label": "P6 alone, on today's search at four workers: the isolated P6 factor",
+      "variants": {
+        "before": "log",
+        "after": "log-p6"
+      },
+      "workers": {
+        "before": 4,
+        "after": 4
+      },
+      "journal": {
+        "before": [
+          "12x12-nightmare: published journal",
+          "fast: published journal"
+        ],
+        "after": [
+          "fast: published journal"
+        ]
+      },
+      "cells": {
+        "26x26-nightmare": {
+          "seeds": [
+            "landscape/26x26-nightmare/0",
+            "landscape/26x26-nightmare/1",
+            "landscape/26x26-nightmare/2",
+            "landscape/26x26-nightmare/3"
+          ],
+          "factors": {
+            "t10": {
+              "n": 4,
+              "median": 1.3221713632508845,
+              "min": 1.2541063535567858,
+              "max": 1.3891695401896875
+            },
+            "t1": {
+              "n": 4,
+              "median": 1.297603294889504,
+              "min": 1.0195678429304331,
+              "max": 1.3304902682778519
+            },
+            "batch": {
+              "n": 4,
+              "median": 1.3360356835574985,
+              "min": 1.283443129240603,
+              "max": 1.4132099991024065
+            },
+            "response": {
+              "n": 4,
+              "median": 1.3194862779179348,
+              "min": 1.2447843576374156,
+              "max": 1.386515631109387
+            }
+          },
+          "n": 4,
+          "completion": {
+            "before": 4,
+            "after": 4,
+            "of": 4
+          },
+          "t10Median": {
+            "before": 25771.265100000004,
+            "after": 19466.28035
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/26x26-nightmare/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1069.841,
+                1049.3083000000001
+              ],
+              "t10Ms": [
+                8788.3419,
+                7007.6528
+              ],
+              "responseMs": [
+                8923.0619,
+                7168.3596
+              ]
+            },
+            {
+              "seed": "landscape/26x26-nightmare/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                5723.7755,
+                4397.7447
+              ],
+              "t10Ms": [
+                28381.5836,
+                20430.6118
+              ],
+              "responseMs": [
+                28535.925900000002,
+                20581.0344
+              ]
+            },
+            {
+              "seed": "landscape/26x26-nightmare/2",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                10011.0129,
+                7738.3913
+              ],
+              "t10Ms": [
+                27506.912500000002,
+                20447.328999999998
+              ],
+              "responseMs": [
+                27639.4093,
+                20611.7011
+              ]
+            },
+            {
+              "seed": "landscape/26x26-nightmare/3",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                8184.738,
+                6151.6707
+              ],
+              "t10Ms": [
+                24035.617700000003,
+                18501.9489
+              ],
+              "responseMs": [
+                24199.091200000003,
+                18643.1473
+              ]
+            }
+          ],
+          "label": "P6 alone, on today's search at four workers: the isolated P6 factor",
+          "identity": [
+            {
+              "seed": "landscape/26x26-nightmare/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/2",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/3",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ],
+          "workSaving": {
+            "matchedCalls": 62,
+            "unmatchedBefore": 3,
+            "unmatchedAfter": 3,
+            "ratingMs": {
+              "before": 240050,
+              "after": 170156,
+              "recompute": 15112
+            },
+            "ratingRatio": {
+              "gross": 1.4107646290683271,
+              "net": 1.29568929024446
+            },
+            "savingShare": 0.2282100288014819,
+            "callMs": {
+              "before": 240604,
+              "after": 185795
+            },
+            "callRatio": 1.2949964300793269
+          }
+        },
+        "14x14-master": {
+          "seeds": [
+            "landscape/14x14-master/0",
+            "landscape/14x14-master/1",
+            "landscape/14x14-master/2",
+            "landscape/14x14-master/3"
+          ],
+          "factors": {
+            "t10": {
+              "n": 4,
+              "median": 1.1807823539186735,
+              "min": 1.1293934374778067,
+              "max": 1.217682075240451
+            },
+            "t1": {
+              "n": 4,
+              "median": 1.1375965130375643,
+              "min": 0.9428440186136611,
+              "max": 1.2868078746029241
+            },
+            "batch": {
+              "n": 4,
+              "median": 1.182454803645547,
+              "min": 1.0533615988882066,
+              "max": 1.2888907672818954
+            },
+            "response": {
+              "n": 4,
+              "median": 1.1625149071835323,
+              "min": 1.1293449417256365,
+              "max": 1.1826977065285278
+            }
+          },
+          "n": 4,
+          "completion": {
+            "before": 4,
+            "after": 4,
+            "of": 4
+          },
+          "t10Median": {
+            "before": 2367.0585,
+            "after": 2006.8413
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/14x14-master/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                4586.7639,
+                3629.7379
+              ],
+              "t10Ms": [
+                11338.779199999999,
+                10039.707
+              ],
+              "responseMs": [
+                11480.4424,
+                10165.576500000001
+              ]
+            },
+            {
+              "seed": "landscape/14x14-master/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                272.1705,
+                288.66970000000003
+              ],
+              "t10Ms": [
+                2983.9429,
+                2537.5544
+              ],
+              "responseMs": [
+                3123.6652999999997,
+                2690.6418
+              ]
+            },
+            {
+              "seed": "landscape/14x14-master/2",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                365.40840000000003,
+                361.24309999999997
+              ],
+              "t10Ms": [
+                1713.3448,
+                1407.0543
+              ],
+              "responseMs": [
+                1836.463,
+                1577.5914
+              ]
+            },
+            {
+              "seed": "landscape/14x14-master/3",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                395.1639,
+                307.08849999999995
+              ],
+              "t10Ms": [
+                1750.1741000000002,
+                1476.1282
+              ],
+              "responseMs": [
+                1905.0256000000002,
+                1610.746
+              ]
+            }
+          ],
+          "label": "P6 alone, on today's search at four workers: the isolated P6 factor",
+          "identity": [
+            {
+              "seed": "landscape/14x14-master/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/2",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/3",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ],
+          "workSaving": {
+            "matchedCalls": 56,
+            "unmatchedBefore": 4,
+            "unmatchedAfter": 6,
+            "ratingMs": {
+              "before": 42243,
+              "after": 34285,
+              "recompute": 1455
+            },
+            "ratingRatio": {
+              "gross": 1.2321362491393035,
+              "net": 1.1819743487185903
+            },
+            "savingShare": 0.1539579508775918,
+            "callMs": {
+              "before": 42593,
+              "after": 36100
+            },
+            "callRatio": 1.179854934944546
+          }
+        },
+        "26x26-master": {
+          "seeds": [
+            "landscape/26x26-master/0",
+            "landscape/26x26-master/1",
+            "landscape/26x26-master/2",
+            "landscape/26x26-master/3"
+          ],
+          "factors": {
+            "t10": {
+              "n": 4,
+              "median": 1.1173796907051643,
+              "min": 1.072152715446118,
+              "max": 1.1633737394575012
+            },
+            "t1": {
+              "n": 4,
+              "median": 0.9657820425595621,
+              "min": 0.9061094496635568,
+              "max": 1.0346747197527923
+            },
+            "batch": {
+              "n": 4,
+              "median": 1.1452344561181622,
+              "min": 1.0838707007326245,
+              "max": 1.1962664365410491
+            },
+            "response": {
+              "n": 4,
+              "median": 1.1094754040096442,
+              "min": 1.0706924361468604,
+              "max": 1.1612728661287444
+            }
+          },
+          "n": 4,
+          "completion": {
+            "before": 4,
+            "after": 4,
+            "of": 4
+          },
+          "t10Median": {
+            "before": 10855.2274,
+            "after": 9520.65645
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/26x26-master/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                2727.2396,
+                2635.8425
+              ],
+              "t10Ms": [
+                11864.5913,
+                11066.139299999999
+              ],
+              "responseMs": [
+                12022.35,
+                11228.5747
+              ]
+            },
+            {
+              "seed": "landscape/26x26-master/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1114.9858,
+                1230.52
+              ],
+              "t10Ms": [
+                9845.8635,
+                8690.9677
+              ],
+              "responseMs": [
+                9998.050299999999,
+                8866.9327
+              ]
+            },
+            {
+              "seed": "landscape/26x26-master/2",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                791.7070000000001,
+                807.5968
+              ],
+              "t10Ms": [
+                6798.7158,
+                6170.1347
+              ],
+              "responseMs": [
+                6930.139,
+                6349.8574
+              ]
+            },
+            {
+              "seed": "landscape/26x26-master/3",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1321.6923000000002,
+                1389.4422
+              ],
+              "t10Ms": [
+                12041.3198,
+                10350.345200000002
+              ],
+              "responseMs": [
+                12191.4872,
+                10498.3829
+              ]
+            }
+          ],
+          "label": "P6 alone, on today's search at four workers: the isolated P6 factor",
+          "identity": [
+            {
+              "seed": "landscape/26x26-master/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/2",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/3",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ],
+          "workSaving": {
+            "matchedCalls": 60,
+            "unmatchedBefore": 3,
+            "unmatchedAfter": 3,
+            "ratingMs": {
+              "before": 124974,
+              "after": 105857,
+              "recompute": 6734
+            },
+            "ratingRatio": {
+              "gross": 1.1805977760936317,
+              "net": 1.109983450875154
+            },
+            "savingShare": 0.0990856672578665,
+            "callMs": {
+              "before": 125741,
+              "after": 113373
+            },
+            "callRatio": 1.1090899019592626
+          }
+        }
+      },
+      "levels": {
+        "Nightmare": {
+          "t10": {
+            "n": 4,
+            "median": 1.3221713632508845,
+            "min": 1.2541063535567858,
+            "max": 1.3891695401896875
+          },
+          "t1": {
+            "n": 4,
+            "median": 1.297603294889504,
+            "min": 1.0195678429304331,
+            "max": 1.3304902682778519
+          },
+          "batch": {
+            "n": 4,
+            "median": 1.3360356835574985,
+            "min": 1.283443129240603,
+            "max": 1.4132099991024065
+          },
+          "response": {
+            "n": 4,
+            "median": 1.3194862779179348,
+            "min": 1.2447843576374156,
+            "max": 1.386515631109387
+          }
+        },
+        "Master": {
+          "t10": {
+            "n": 8,
+            "median": 1.1481291716602144,
+            "min": 1.072152715446118,
+            "max": 1.217682075240451
+          },
+          "t1": {
+            "n": 8,
+            "median": 0.9959275250827068,
+            "min": 0.9061094496635568,
+            "max": 1.2868078746029241
+          },
+          "batch": {
+            "n": 8,
+            "median": 1.164684210520806,
+            "min": 1.0533615988882066,
+            "max": 1.2888907672818954
+          },
+          "response": {
+            "n": 8,
+            "median": 1.1451409115151563,
+            "min": 1.0706924361468604,
+            "max": 1.1826977065285278
+          }
+        }
+      }
+    },
+    {
+      "name": "B:C",
+      "before": "B",
+      "after": "C",
+      "kind": "w8",
+      "label": "eight workers alone, on today's search: an unadmitted upper bound, not P8 as IG-P-Q05 admits it",
+      "variants": {
+        "before": "log-p6",
+        "after": "log-p6-w8"
+      },
+      "workers": {
+        "before": 4,
+        "after": 8
+      },
+      "journal": {
+        "before": [
+          "fast: published journal"
+        ],
+        "after": [
+          "12x12-nightmare: published journal",
+          "fast: published journal"
+        ]
+      },
+      "cells": {
+        "26x26-nightmare": {
+          "seeds": [
+            "landscape/26x26-nightmare/0",
+            "landscape/26x26-nightmare/1",
+            "landscape/26x26-nightmare/2",
+            "landscape/26x26-nightmare/3"
+          ],
+          "factors": {
+            "t10": {
+              "n": 4,
+              "median": 1.1335244076846673,
+              "min": 1.1014431368057669,
+              "max": 1.2243030251199838
+            },
+            "t1": {
+              "n": 4,
+              "median": 0.9390653798656334,
+              "min": 0.8773230629461152,
+              "max": 0.9695447516767148
+            },
+            "batch": {
+              "n": 4,
+              "median": 1.2567029109767818,
+              "min": 1.1526480257164067,
+              "max": 1.3573825336875547
+            },
+            "response": {
+              "n": 4,
+              "median": 1.1336359331997192,
+              "min": 1.101234886170381,
+              "max": 1.220947422659552
+            }
+          },
+          "n": 4,
+          "completion": {
+            "before": 4,
+            "after": 4,
+            "of": 4
+          },
+          "t10Median": {
+            "before": 19466.28035,
+            "after": 17170.283150000003
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/26x26-nightmare/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1049.3083000000001,
+                1196.0340999999999
+              ],
+              "t10Ms": [
+                7007.6528,
+                5723.7895
+              ],
+              "responseMs": [
+                7168.3596,
+                5871.1452
+              ]
+            },
+            {
+              "seed": "landscape/26x26-nightmare/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                4397.7447,
+                4639.3534
+              ],
+              "t10Ms": [
+                20430.6118,
+                18548.9483
+              ],
+              "responseMs": [
+                20581.0344,
+                18689.0505
+              ]
+            },
+            {
+              "seed": "landscape/26x26-nightmare/2",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                7738.3913,
+                8318.9826
+              ],
+              "t10Ms": [
+                20447.328999999998,
+                17681.809500000003
+              ],
+              "responseMs": [
+                20611.7011,
+                17829.300300000003
+              ]
+            },
+            {
+              "seed": "landscape/26x26-nightmare/3",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                6151.6707,
+                6344.906400000001
+              ],
+              "t10Ms": [
+                18501.9489,
+                16658.756800000003
+              ],
+              "responseMs": [
+                18643.1473,
+                16777.2775
+              ]
+            }
+          ],
+          "label": "eight workers alone, on today's search: an unadmitted upper bound, not P8 as IG-P-Q05 admits it",
+          "identity": [
+            {
+              "seed": "landscape/26x26-nightmare/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/2",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/3",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ]
+        },
+        "14x14-master": {
+          "seeds": [
+            "landscape/14x14-master/0",
+            "landscape/14x14-master/1",
+            "landscape/14x14-master/2",
+            "landscape/14x14-master/3"
+          ],
+          "factors": {
+            "t10": {
+              "n": 4,
+              "median": 0.7742712073862711,
+              "min": 0.7076510957955561,
+              "max": 0.9359075095783933
+            },
+            "t1": {
+              "n": 4,
+              "median": 0.6609762582704151,
+              "min": 0.6350980072065999,
+              "max": 0.9295757135700248
+            },
+            "batch": {
+              "n": 4,
+              "median": 0.8097924996303326,
+              "min": 0.7217441215659823,
+              "max": 0.9395313808878138
+            },
+            "response": {
+              "n": 4,
+              "median": 0.8098907760007628,
+              "min": 0.7313286441312609,
+              "max": 0.933591081697573
+            }
+          },
+          "n": 4,
+          "completion": {
+            "before": 4,
+            "after": 4,
+            "of": 4
+          },
+          "t10Median": {
+            "before": 2006.8413,
+            "after": 2689.01675
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/14x14-master/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                3629.7379,
+                3904.7254
+              ],
+              "t10Ms": [
+                10039.707,
+                10727.2427
+              ],
+              "responseMs": [
+                10165.576500000001,
+                10888.6821
+              ]
+            },
+            {
+              "seed": "landscape/14x14-master/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                288.66970000000003,
+                454.5278
+              ],
+              "t10Ms": [
+                2537.5544,
+                3292.0787
+              ],
+              "responseMs": [
+                2690.6418,
+                3403.0507
+              ]
+            },
+            {
+              "seed": "landscape/14x14-master/2",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                361.24309999999997,
+                544.6442999999999
+              ],
+              "t10Ms": [
+                1407.0543,
+                1809.1663
+              ],
+              "responseMs": [
+                1577.5914,
+                1902.7167
+              ]
+            },
+            {
+              "seed": "landscape/14x14-master/3",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                307.08849999999995,
+                466.2122
+              ],
+              "t10Ms": [
+                1476.1282,
+                2085.9548
+              ],
+              "responseMs": [
+                1610.746,
+                2202.4927000000002
+              ]
+            }
+          ],
+          "label": "eight workers alone, on today's search: an unadmitted upper bound, not P8 as IG-P-Q05 admits it",
+          "identity": [
+            {
+              "seed": "landscape/14x14-master/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/2",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/3",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ]
+        },
+        "26x26-master": {
+          "seeds": [
+            "landscape/26x26-master/0",
+            "landscape/26x26-master/1",
+            "landscape/26x26-master/2",
+            "landscape/26x26-master/3"
+          ],
+          "factors": {
+            "t10": {
+              "n": 4,
+              "median": 0.9670279622694179,
+              "min": 0.9324915456628944,
+              "max": 1.1234221452366149
+            },
+            "t1": {
+              "n": 4,
+              "median": 0.8045872165096449,
+              "min": 0.6287805913753166,
+              "max": 0.9736764366307291
+            },
+            "batch": {
+              "n": 4,
+              "median": 1.0275104982256331,
+              "min": 0.9532170249216667,
+              "max": 1.180171570186231
+            },
+            "response": {
+              "n": 4,
+              "median": 0.9672121317420825,
+              "min": 0.9357133952805557,
+              "max": 1.1225556147951814
+            }
+          },
+          "n": 4,
+          "completion": {
+            "before": 4,
+            "after": 4,
+            "of": 4
+          },
+          "t10Median": {
+            "before": 9520.65645,
+            "after": 9585.27045
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/26x26-master/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                2635.8425,
+                2707.1031
+              ],
+              "t10Ms": [
+                11066.139299999999,
+                9850.3838
+              ],
+              "responseMs": [
+                11228.5747,
+                10002.689
+              ]
+            },
+            {
+              "seed": "landscape/26x26-master/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1230.52,
+                1493.5578
+              ],
+              "t10Ms": [
+                8690.9677,
+                9320.1571
+              ],
+              "responseMs": [
+                8866.9327,
+                9476.1203
+              ]
+            },
+            {
+              "seed": "landscape/26x26-master/2",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                807.5968,
+                1284.3857
+              ],
+              "t10Ms": [
+                6170.1347,
+                6395.9854000000005
+              ],
+              "responseMs": [
+                6349.8574,
+                6592.619500000001
+              ]
+            },
+            {
+              "seed": "landscape/26x26-master/3",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1389.4422,
+                1769.3379
+              ],
+              "t10Ms": [
+                10350.345200000002,
+                10677.4241
+              ],
+              "responseMs": [
+                10498.3829,
+                10809.1728
+              ]
+            }
+          ],
+          "label": "eight workers alone, on today's search: an unadmitted upper bound, not P8 as IG-P-Q05 admits it",
+          "identity": [
+            {
+              "seed": "landscape/26x26-master/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/2",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/3",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ]
+        }
+      },
+      "levels": {
+        "Nightmare": {
+          "t10": {
+            "n": 4,
+            "median": 1.1335244076846673,
+            "min": 1.1014431368057669,
+            "max": 1.2243030251199838
+          },
+          "t1": {
+            "n": 4,
+            "median": 0.9390653798656334,
+            "min": 0.8773230629461152,
+            "max": 0.9695447516767148
+          },
+          "batch": {
+            "n": 4,
+            "median": 1.2567029109767818,
+            "min": 1.1526480257164067,
+            "max": 1.3573825336875547
+          },
+          "response": {
+            "n": 4,
+            "median": 1.1336359331997192,
+            "min": 1.101234886170381,
+            "max": 1.220947422659552
+          }
+        },
+        "Master": {
+          "t10": {
+            "n": 8,
+            "median": 0.9341995276206438,
+            "min": 0.7076510957955561,
+            "max": 1.1234221452366149
+          },
+          "t1": {
+            "n": 8,
+            "median": 0.7242768036203489,
+            "min": 0.6287805913753166,
+            "max": 0.9736764366307291
+          },
+          "batch": {
+            "n": 8,
+            "median": 0.9463742029047403,
+            "min": 0.7217441215659823,
+            "max": 1.180171570186231
+          },
+          "response": {
+            "n": 8,
+            "median": 0.9346522384890643,
+            "min": 0.7313286441312609,
+            "max": 1.1225556147951814
+          }
+        }
+      }
+    },
+    {
+      "name": "A:C",
+      "before": "A",
+      "after": "C",
+      "kind": "p6-w8",
+      "label": "P6 x eight workers combined, on today's search: an unadmitted upper bound, not P6 alone",
+      "variants": {
+        "before": "log",
+        "after": "log-p6-w8"
+      },
+      "workers": {
+        "before": 4,
+        "after": 8
+      },
+      "journal": {
+        "before": [
+          "12x12-nightmare: published journal",
+          "fast: published journal"
+        ],
+        "after": [
+          "12x12-nightmare: published journal",
+          "fast: published journal"
+        ]
+      },
+      "cells": {
+        "12x12-nightmare": {
+          "seeds": [
+            "landscape/12x12-nightmare/0",
+            "landscape/12x12-nightmare/1"
+          ],
+          "factors": {
+            "t10": {
+              "n": 2,
+              "median": 0.994299194471018,
+              "min": 0.952256489633681,
+              "max": 1.0363418993083549
+            },
+            "t1": {
+              "n": 2,
+              "median": 0.8414298468975165,
+              "min": 0.6785842086343491,
+              "max": 1.004275485160684
+            },
+            "batch": {
+              "n": 2,
+              "median": 1.0006543413827926,
+              "min": 0.9488684642474521,
+              "max": 1.0524402185181332
+            },
+            "response": {
+              "n": 2,
+              "median": 0.994803048536914,
+              "min": 0.9521645051689864,
+              "max": 1.0374415919048416
+            }
+          },
+          "n": 2,
+          "completion": {
+            "before": 2,
+            "after": 2,
+            "of": 2
+          },
+          "t10Median": {
+            "before": 48678.99055,
+            "after": 49988.6883
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/12x12-nightmare/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                4566.5273,
+                4547.0863
+              ],
+              "t10Ms": [
+                70811.7426,
+                74362.0478
+              ],
+              "responseMs": [
+                70955.9125,
+                74520.6444
+              ]
+            },
+            {
+              "seed": "landscape/12x12-nightmare/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                748.4793999999999,
+                1103.0014999999999
+              ],
+              "t10Ms": [
+                26546.238500000003,
+                25615.3288
+              ],
+              "responseMs": [
+                26676.6264,
+                25713.8586
+              ]
+            }
+          ],
+          "label": "P6 x eight workers combined, on today's search: an unadmitted upper bound, not P6 alone",
+          "identity": [
+            {
+              "seed": "landscape/12x12-nightmare/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/12x12-nightmare/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ]
+        },
+        "26x26-nightmare": {
+          "seeds": [
+            "landscape/26x26-nightmare/0",
+            "landscape/26x26-nightmare/1",
+            "landscape/26x26-nightmare/2",
+            "landscape/26x26-nightmare/3"
+          ],
+          "factors": {
+            "t10": {
+              "n": 4,
+              "median": 1.5327487291916597,
+              "min": 1.4428218136902027,
+              "max": 1.5556616250163762
+            },
+            "t1": {
+              "n": 4,
+              "median": 1.2185690653694636,
+              "min": 0.8944903828410913,
+              "max": 1.2899698567657356
+            },
+            "batch": {
+              "n": 4,
+              "median": 1.6668208629479424,
+              "min": 1.5368537534730964,
+              "max": 1.868655672786175
+            },
+            "response": {
+              "n": 4,
+              "median": 1.5233478182112639,
+              "min": 1.4423729475774603,
+              "max": 1.5502240040233095
+            }
+          },
+          "n": 4,
+          "completion": {
+            "before": 4,
+            "after": 4,
+            "of": 4
+          },
+          "t10Median": {
+            "before": 25771.265100000004,
+            "after": 17170.283150000003
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/26x26-nightmare/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1069.841,
+                1196.0340999999999
+              ],
+              "t10Ms": [
+                8788.3419,
+                5723.7895
+              ],
+              "responseMs": [
+                8923.0619,
+                5871.1452
+              ]
+            },
+            {
+              "seed": "landscape/26x26-nightmare/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                5723.7755,
+                4639.3534
+              ],
+              "t10Ms": [
+                28381.5836,
+                18548.9483
+              ],
+              "responseMs": [
+                28535.925900000002,
+                18689.0505
+              ]
+            },
+            {
+              "seed": "landscape/26x26-nightmare/2",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                10011.0129,
+                8318.9826
+              ],
+              "t10Ms": [
+                27506.912500000002,
+                17681.809500000003
+              ],
+              "responseMs": [
+                27639.4093,
+                17829.300300000003
+              ]
+            },
+            {
+              "seed": "landscape/26x26-nightmare/3",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                8184.738,
+                6344.906400000001
+              ],
+              "t10Ms": [
+                24035.617700000003,
+                16658.756800000003
+              ],
+              "responseMs": [
+                24199.091200000003,
+                16777.2775
+              ]
+            }
+          ],
+          "label": "P6 x eight workers combined, on today's search: an unadmitted upper bound, not P6 alone",
+          "identity": [
+            {
+              "seed": "landscape/26x26-nightmare/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/2",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-nightmare/3",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ]
+        },
+        "14x14-master": {
+          "seeds": [
+            "landscape/14x14-master/0",
+            "landscape/14x14-master/1",
+            "landscape/14x14-master/2",
+            "landscape/14x14-master/3"
+          ],
+          "factors": {
+            "t10": {
+              "n": 4,
+              "median": 0.9267181946056854,
+              "min": 0.8390278159430876,
+              "max": 1.057007799404035
+            },
+            "t1": {
+              "n": 4,
+              "median": 0.7592586191817907,
+              "min": 0.5987983573281986,
+              "max": 1.174670029293225
+            },
+            "batch": {
+              "n": 4,
+              "median": 0.9726699240249856,
+              "min": 0.8365589693078395,
+              "max": 1.0659651631209262
+            },
+            "response": {
+              "n": 4,
+              "median": 0.9415404535690148,
+              "min": 0.8649407101326602,
+              "max": 1.0543463657553194
+            }
+          },
+          "n": 4,
+          "completion": {
+            "before": 4,
+            "after": 4,
+            "of": 4
+          },
+          "t10Median": {
+            "before": 2367.0585,
+            "after": 2689.01675
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/14x14-master/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                4586.7639,
+                3904.7254
+              ],
+              "t10Ms": [
+                11338.779199999999,
+                10727.2427
+              ],
+              "responseMs": [
+                11480.4424,
+                10888.6821
+              ]
+            },
+            {
+              "seed": "landscape/14x14-master/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                272.1705,
+                454.5278
+              ],
+              "t10Ms": [
+                2983.9429,
+                3292.0787
+              ],
+              "responseMs": [
+                3123.6652999999997,
+                3403.0507
+              ]
+            },
+            {
+              "seed": "landscape/14x14-master/2",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                365.40840000000003,
+                544.6442999999999
+              ],
+              "t10Ms": [
+                1713.3448,
+                1809.1663
+              ],
+              "responseMs": [
+                1836.463,
+                1902.7167
+              ]
+            },
+            {
+              "seed": "landscape/14x14-master/3",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                395.1639,
+                466.2122
+              ],
+              "t10Ms": [
+                1750.1741000000002,
+                2085.9548
+              ],
+              "responseMs": [
+                1905.0256000000002,
+                2202.4927000000002
+              ]
+            }
+          ],
+          "label": "P6 x eight workers combined, on today's search: an unadmitted upper bound, not P6 alone",
+          "identity": [
+            {
+              "seed": "landscape/14x14-master/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/2",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-master/3",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ]
+        },
+        "26x26-master": {
+          "seeds": [
+            "landscape/26x26-master/0",
+            "landscape/26x26-master/1",
+            "landscape/26x26-master/2",
+            "landscape/26x26-master/3"
+          ],
+          "factors": {
+            "t10": {
+              "n": 4,
+              "median": 1.095351260493787,
+              "min": 1.0564053153138373,
+              "max": 1.2044801036077397
+            },
+            "t1": {
+              "n": 4,
+              "median": 0.7467641527655401,
+              "min": 0.6164090740032375,
+              "max": 1.0074383942007972
+            },
+            "batch": {
+              "n": 4,
+              "median": 1.1892655967733106,
+              "min": 1.115539120547541,
+              "max": 1.2791533867624718
+            },
+            "response": {
+              "n": 4,
+              "median": 1.0914809532380279,
+              "min": 1.051196569133104,
+              "max": 1.2019118059153893
+            }
+          },
+          "n": 4,
+          "completion": {
+            "before": 4,
+            "after": 4,
+            "of": 4
+          },
+          "t10Median": {
+            "before": 10855.2274,
+            "after": 9585.27045
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/26x26-master/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                2727.2396,
+                2707.1031
+              ],
+              "t10Ms": [
+                11864.5913,
+                9850.3838
+              ],
+              "responseMs": [
+                12022.35,
+                10002.689
+              ]
+            },
+            {
+              "seed": "landscape/26x26-master/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1114.9858,
+                1493.5578
+              ],
+              "t10Ms": [
+                9845.8635,
+                9320.1571
+              ],
+              "responseMs": [
+                9998.050299999999,
+                9476.1203
+              ]
+            },
+            {
+              "seed": "landscape/26x26-master/2",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                791.7070000000001,
+                1284.3857
+              ],
+              "t10Ms": [
+                6798.7158,
+                6395.9854000000005
+              ],
+              "responseMs": [
+                6930.139,
+                6592.619500000001
+              ]
+            },
+            {
+              "seed": "landscape/26x26-master/3",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1321.6923000000002,
+                1769.3379
+              ],
+              "t10Ms": [
+                12041.3198,
+                10677.4241
+              ],
+              "responseMs": [
+                12191.4872,
+                10809.1728
+              ]
+            }
+          ],
+          "label": "P6 x eight workers combined, on today's search: an unadmitted upper bound, not P6 alone",
+          "identity": [
+            {
+              "seed": "landscape/26x26-master/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/2",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/26x26-master/3",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ]
+        }
+      },
+      "levels": {
+        "Nightmare": {
+          "t10": {
+            "n": 6,
+            "median": 1.4864565347958785,
+            "min": 0.952256489633681,
+            "max": 1.5556616250163762
+          },
+          "t1": {
+            "n": 6,
+            "median": 1.1038346916760164,
+            "min": 0.6785842086343491,
+            "max": 1.2899698567657356
+          },
+          "batch": {
+            "n": 6,
+            "median": 1.5828937344305851,
+            "min": 0.9488684642474521,
+            "max": 1.868655672786175
+          },
+          "response": {
+            "n": 6,
+            "median": 1.4810946004008945,
+            "min": 0.9521645051689864,
+            "max": 1.5502240040233095
+          }
+        },
+        "Master": {
+          "t10": {
+            "n": 8,
+            "median": 1.056706557358936,
+            "min": 0.8390278159430876,
+            "max": 1.2044801036077397
+          },
+          "t1": {
+            "n": 8,
+            "median": 0.7467641527655401,
+            "min": 0.5987983573281986,
+            "max": 1.174670029293225
+          },
+          "batch": {
+            "n": 8,
+            "median": 1.0907521418342334,
+            "min": 0.8365589693078395,
+            "max": 1.2791533867624718
+          },
+          "response": {
+            "n": 8,
+            "median": 1.0527714674442117,
+            "min": 0.8649407101326602,
+            "max": 1.2019118059153893
+          }
+        }
+      }
+    },
+    {
+      "name": "E:F",
+      "before": "E",
+      "after": "F",
+      "kind": "p6-w8",
+      "label": "P6 x eight workers combined, on the prototype (P1 to P5): an unadmitted upper bound, not P6 alone",
+      "variants": {
+        "before": "p1p5-main",
+        "after": "p1p5-main-p6-w8"
+      },
+      "workers": {
+        "before": 4,
+        "after": 8
+      },
+      "journal": {
+        "before": [
+          "14x14-nightmare: published journal"
+        ],
+        "after": [
+          "14x14-nightmare: published journal"
+        ]
+      },
+      "cells": {
+        "14x14-nightmare": {
+          "seeds": [
+            "landscape/14x14-nightmare/0",
+            "landscape/14x14-nightmare/1"
+          ],
+          "factors": {
+            "t10": {
+              "n": 2,
+              "median": 1.0139127279846445,
+              "min": 0.9652089374488306,
+              "max": 1.0626165185204584
+            },
+            "t1": {
+              "n": 2,
+              "median": 0.7385325061975261,
+              "min": 0.7321763984191061,
+              "max": 0.7448886139759462
+            },
+            "batch": {
+              "n": 2,
+              "median": 1.1417942001567811,
+              "min": 1.0310045208264311,
+              "max": 1.2525838794871311
+            },
+            "response": {
+              "n": 2,
+              "median": 1.0157606712042728,
+              "min": 0.9708465691997903,
+              "max": 1.0606747732087554
+            }
+          },
+          "n": 2,
+          "completion": {
+            "before": 2,
+            "after": 2,
+            "of": 2
+          },
+          "t10Median": {
+            "before": 7244.73325,
+            "after": 7246.314200000001
+          },
+          "perSeed": [
+            {
+              "seed": "landscape/14x14-nightmare/0",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1374.8055,
+                1877.6970999999999
+              ],
+              "t10Ms": [
+                5465.9624,
+                5143.871099999999
+              ],
+              "responseMs": [
+                5616.8826,
+                5295.574799999999
+              ]
+            },
+            {
+              "seed": "landscape/14x14-nightmare/1",
+              "accepted": [
+                10,
+                10
+              ],
+              "reachedTen": [
+                true,
+                true
+              ],
+              "censored": [
+                false,
+                false
+              ],
+              "t1Ms": [
+                1601.4005,
+                2149.8523
+              ],
+              "t10Ms": [
+                9023.5041,
+                9348.757300000001
+              ],
+              "responseMs": [
+                9186.0083,
+                9461.8538
+              ]
+            }
+          ],
+          "label": "P6 x eight workers combined, on the prototype (P1 to P5): an unadmitted upper bound, not P6 alone",
+          "identity": [
+            {
+              "seed": "landscape/14x14-nightmare/0",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            },
+            {
+              "seed": "landscape/14x14-nightmare/1",
+              "level": "puzzle-identity",
+              "prefixIdentity": true,
+              "digestEqual": true,
+              "accepted": [
+                10,
+                10
+              ],
+              "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+            }
+          ]
+        }
+      },
+      "levels": {
+        "Nightmare": {
+          "t10": {
+            "n": 2,
+            "median": 1.0139127279846445,
+            "min": 0.9652089374488306,
+            "max": 1.0626165185204584
+          },
+          "t1": {
+            "n": 2,
+            "median": 0.7385325061975261,
+            "min": 0.7321763984191061,
+            "max": 0.7448886139759462
+          },
+          "batch": {
+            "n": 2,
+            "median": 1.1417942001567811,
+            "min": 1.0310045208264311,
+            "max": 1.2525838794871311
+          },
+          "response": {
+            "n": 2,
+            "median": 1.0157606712042728,
+            "min": 0.9708465691997903,
+            "max": 1.0606747732087554
+          }
+        }
+      }
+    }
+  ],
+  "firstPhase": {
+    "measured": {
+      "today": {
+        "pair": "A:C",
+        "label": "P6 x eight workers combined, on today's search: an unadmitted upper bound, not P6 alone",
+        "cells": {
+          "12x12-nightmare": {
+            "n": 2,
+            "t10": {
+              "n": 2,
+              "median": 0.994299194471018,
+              "min": 0.952256489633681,
+              "max": 1.0363418993083549
+            },
+            "projection": {
+              "likely": 1.2925889528123233,
+              "low": 1.0937291139181198,
+              "high": 1.7897385500478324,
+              "p7NeededFor19": 1.9108936329882358,
+              "aboveAssumptionLikely": false
+            }
+          },
+          "26x26-nightmare": {
+            "n": 4,
+            "t10": {
+              "n": 4,
+              "median": 1.5327487291916597,
+              "min": 1.4428218136902027,
+              "max": 1.5556616250163762
+            },
+            "projection": {
+              "likely": 1.9925733479491576,
+              "low": 1.686023602110826,
+              "high": 2.7589477125449875,
+              "p7NeededFor19": 1.2396030502677506,
+              "aboveAssumptionLikely": true
+            }
+          },
+          "14x14-master": {
+            "n": 4,
+            "t10": {
+              "n": 4,
+              "median": 0.9267181946056854,
+              "min": 0.8390278159430876,
+              "max": 1.057007799404035
+            },
+            "projection": {
+              "likely": 1.204733652987391,
+              "low": 1.019390014066254,
+              "high": 1.6680927502902336,
+              "p7NeededFor19": 2.0502457069038575,
+              "aboveAssumptionLikely": false
+            }
+          },
+          "26x26-master": {
+            "n": 4,
+            "t10": {
+              "n": 4,
+              "median": 1.095351260493787,
+              "min": 1.0564053153138373,
+              "max": 1.2044801036077397
+            },
+            "projection": {
+              "likely": 1.4239566386419231,
+              "low": 1.2048863865431658,
+              "high": 1.9716322688888166,
+              "p7NeededFor19": 1.7346033811505137,
+              "aboveAssumptionLikely": false
+            }
+          }
+        },
+        "levels": {
+          "Nightmare": {
+            "n": 6,
+            "t10": {
+              "n": 6,
+              "median": 1.4864565347958785,
+              "min": 0.952256489633681,
+              "max": 1.5556616250163762
+            },
+            "projection": {
+              "likely": 1.932393495234642,
+              "low": 1.6351021882754664,
+              "high": 2.675621762632581,
+              "p7NeededFor19": 1.278207573194133,
+              "aboveAssumptionLikely": true
+            }
+          },
+          "Master": {
+            "n": 8,
+            "t10": {
+              "n": 8,
+              "median": 1.056706557358936,
+              "min": 0.8390278159430876,
+              "max": 1.2044801036077397
+            },
+            "projection": {
+              "likely": 1.3737185245666168,
+              "low": 1.1623772130948298,
+              "high": 1.9020718032460848,
+              "p7NeededFor19": 1.7980393769380374,
+              "aboveAssumptionLikely": false
+            }
+          }
+        }
+      },
+      "prototype": {
+        "pair": "E:F",
+        "label": "P6 x eight workers combined, on the prototype (P1 to P5): an unadmitted upper bound, not P6 alone",
+        "cells": {
+          "14x14-nightmare": {
+            "n": 2,
+            "t10": {
+              "n": 2,
+              "median": 1.0139127279846445,
+              "min": 0.9652089374488306,
+              "max": 1.0626165185204584
+            },
+            "projection": {
+              "likely": 1.318086546380038,
+              "low": 1.115304000783109,
+              "high": 1.8250429103723602,
+              "p7NeededFor19": 1.8739285419334188,
+              "aboveAssumptionLikely": false
+            }
+          }
+        },
+        "levels": {
+          "Nightmare": {
+            "n": 2,
+            "t10": {
+              "n": 2,
+              "median": 1.0139127279846445,
+              "min": 0.9652089374488306,
+              "max": 1.0626165185204584
+            },
+            "projection": {
+              "likely": 1.318086546380038,
+              "low": 1.115304000783109,
+              "high": 1.8250429103723602,
+              "p7NeededFor19": 1.8739285419334188,
+              "aboveAssumptionLikely": false
+            }
+          }
+        }
+      }
+    },
+    "p7Assumption": {
+      "likely": 1.3,
+      "low": 1.1,
+      "high": 1.8
+    },
+    "projection": "measured T10 factor of the combined pair x the P7 assumption (P7 is not prototyped: IGP-06 gives a sensitivity)",
+    "against": 1.9,
+    "kind": "Projection; every eight-worker figure is an unadmitted upper bound"
+  },
+  "memory": {
+    "A": {
+      "variant": "log",
+      "workers": 4,
+      "rows": 14,
+      "maxPoolSize": 4,
+      "workerLimitBytes": 234881024,
+      "mainBudgetBytes": 314572800,
+      "accountedLimit": 1254096896,
+      "maxAccounted": 240995213,
+      "maxAccountedRow": "26x26-nightmare~1",
+      "passAccounted": true,
+      "processLimit": 1610612736,
+      "maxProcess": 568852480,
+      "maxProcessRow": "26x26-master~0",
+      "passProcess": true,
+      "pass": true,
+      "worstCaseOverProcessLimit": false,
+      "perCell": {
+        "12x12-nightmare": {
+          "rows": 2,
+          "maxAccounted": 17663135,
+          "maxProcess": 176975872
+        },
+        "26x26-nightmare": {
+          "rows": 4,
+          "maxAccounted": 240995213,
+          "maxProcess": 547840000
+        },
+        "26x26-master": {
+          "rows": 4,
+          "maxAccounted": 228448751,
+          "maxProcess": 568852480
+        },
+        "14x14-master": {
+          "rows": 4,
+          "maxAccounted": 17000696,
+          "maxProcess": 225210368
+        }
+      }
+    },
+    "B": {
+      "variant": "log-p6",
+      "workers": 4,
+      "rows": 12,
+      "maxPoolSize": 4,
+      "workerLimitBytes": 234881024,
+      "mainBudgetBytes": 314572800,
+      "accountedLimit": 1254096896,
+      "maxAccounted": 240613042,
+      "maxAccountedRow": "26x26-nightmare~3",
+      "passAccounted": true,
+      "processLimit": 1610612736,
+      "maxProcess": 584749056,
+      "maxProcessRow": "26x26-master~3",
+      "passProcess": true,
+      "pass": true,
+      "worstCaseOverProcessLimit": false,
+      "perCell": {
+        "26x26-nightmare": {
+          "rows": 4,
+          "maxAccounted": 240613042,
+          "maxProcess": 538562560
+        },
+        "26x26-master": {
+          "rows": 4,
+          "maxAccounted": 224997664,
+          "maxProcess": 584749056
+        },
+        "14x14-master": {
+          "rows": 4,
+          "maxAccounted": 17419522,
+          "maxProcess": 225353728
+        }
+      }
+    },
+    "C": {
+      "variant": "log-p6-w8",
+      "workers": 8,
+      "rows": 14,
+      "maxPoolSize": 8,
+      "workerLimitBytes": 234881024,
+      "mainBudgetBytes": 314572800,
+      "accountedLimit": 2193620992,
+      "maxAccounted": 471742914,
+      "maxAccountedRow": "26x26-nightmare~2",
+      "passAccounted": true,
+      "processLimit": 1610612736,
+      "maxProcess": 958222336,
+      "maxProcessRow": "26x26-master~3",
+      "passProcess": true,
+      "pass": true,
+      "worstCaseOverProcessLimit": true,
+      "perCell": {
+        "12x12-nightmare": {
+          "rows": 2,
+          "maxAccounted": 39114357,
+          "maxProcess": 287539200
+        },
+        "26x26-nightmare": {
+          "rows": 4,
+          "maxAccounted": 471742914,
+          "maxProcess": 919076864
+        },
+        "26x26-master": {
+          "rows": 4,
+          "maxAccounted": 446405768,
+          "maxProcess": 958222336
+        },
+        "14x14-master": {
+          "rows": 4,
+          "maxAccounted": 34734017,
+          "maxProcess": 372817920
+        }
+      }
+    },
+    "E": {
+      "variant": "p1p5-main",
+      "workers": 4,
+      "rows": 2,
+      "maxPoolSize": 4,
+      "workerLimitBytes": 234881024,
+      "mainBudgetBytes": 314572800,
+      "accountedLimit": 1254096896,
+      "maxAccounted": 17596016,
+      "maxAccountedRow": "14x14-nightmare~0",
+      "passAccounted": true,
+      "processLimit": 1610612736,
+      "maxProcess": 220602368,
+      "maxProcessRow": "14x14-nightmare~0",
+      "passProcess": true,
+      "pass": true,
+      "worstCaseOverProcessLimit": false,
+      "perCell": {
+        "14x14-nightmare": {
+          "rows": 2,
+          "maxAccounted": 17596016,
+          "maxProcess": 220602368
+        }
+      }
+    },
+    "F": {
+      "variant": "p1p5-main-p6-w8",
+      "workers": 8,
+      "rows": 2,
+      "maxPoolSize": 8,
+      "workerLimitBytes": 234881024,
+      "mainBudgetBytes": 314572800,
+      "accountedLimit": 2193620992,
+      "maxAccounted": 35360652,
+      "maxAccountedRow": "14x14-nightmare~1",
+      "passAccounted": true,
+      "processLimit": 1610612736,
+      "maxProcess": 356229120,
+      "maxProcessRow": "14x14-nightmare~1",
+      "passProcess": true,
+      "pass": true,
+      "worstCaseOverProcessLimit": true,
+      "perCell": {
+        "14x14-nightmare": {
+          "rows": 2,
+          "maxAccounted": 35360652,
+          "maxProcess": 356229120
+        }
+      }
+    }
+  },
+  "reproduction": {
+    "arm": "E",
+    "reference": "IGP-01/after",
+    "ok": true,
+    "perSeed": [
+      {
+        "caseId": "14x14-nightmare",
+        "seed": "landscape/14x14-nightmare/0",
+        "ok": true,
+        "accepted": {
+          "igp01": 10,
+          "arm": 10
+        },
+        "digestEqual": true,
+        "setKeyEqual": true,
+        "keysEqual": true,
+        "resultDigest": "2d3a4359d5df3207f1fbc00e2f503a79e0bc63e7f456db9080eabfcbebd0ad56",
+        "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+      },
+      {
+        "caseId": "14x14-nightmare",
+        "seed": "landscape/14x14-nightmare/1",
+        "ok": true,
+        "accepted": {
+          "igp01": 10,
+          "arm": 10
+        },
+        "digestEqual": true,
+        "setKeyEqual": true,
+        "keysEqual": true,
+        "resultDigest": "c79ba50c897071e535ea31114b041f1e89987f684e6a7a9ac500193a771a964a",
+        "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+      }
+    ]
+  },
+  "identityMp12b1": {
+    "A": {
+      "12x12-nightmare": [
+        {
+          "seed": "landscape/12x12-nightmare/0",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        },
+        {
+          "seed": "landscape/12x12-nightmare/1",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        }
+      ],
+      "26x26-nightmare": [
+        {
+          "seed": "landscape/26x26-nightmare/0",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        },
+        {
+          "seed": "landscape/26x26-nightmare/1",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        },
+        {
+          "seed": "landscape/26x26-nightmare/2",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        },
+        {
+          "seed": "landscape/26x26-nightmare/3",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        }
+      ],
+      "26x26-master": [
+        {
+          "seed": "landscape/26x26-master/0",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        },
+        {
+          "seed": "landscape/26x26-master/1",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        },
+        {
+          "seed": "landscape/26x26-master/2",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        },
+        {
+          "seed": "landscape/26x26-master/3",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        }
+      ],
+      "14x14-master": [
+        {
+          "seed": "landscape/14x14-master/0",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        },
+        {
+          "seed": "landscape/14x14-master/1",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        },
+        {
+          "seed": "landscape/14x14-master/2",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        },
+        {
+          "seed": "landscape/14x14-master/3",
+          "level": "puzzle-identity",
+          "countsEqual": true,
+          "note": "puzzle identity (resultDigest equal at equal accepted counts, 10)"
+        }
+      ]
+    }
+  },
+  "rows": {
+    "R22": {
+      "value": {
+        "pair": "A:B",
+        "label": "P6 alone, on today's search at four workers: the isolated P6 factor",
+        "cells": {
+          "26x26-nightmare": {
+            "n": 4,
+            "completion": {
+              "before": 4,
+              "after": 4,
+              "of": 4
+            },
+            "t10": {
+              "n": 4,
+              "median": 1.3221713632508845,
+              "min": 1.2541063535567858,
+              "max": 1.3891695401896875
+            },
+            "response": {
+              "n": 4,
+              "median": 1.3194862779179348,
+              "min": 1.2447843576374156,
+              "max": 1.386515631109387
+            }
+          },
+          "14x14-master": {
+            "n": 4,
+            "completion": {
+              "before": 4,
+              "after": 4,
+              "of": 4
+            },
+            "t10": {
+              "n": 4,
+              "median": 1.1807823539186735,
+              "min": 1.1293934374778067,
+              "max": 1.217682075240451
+            },
+            "response": {
+              "n": 4,
+              "median": 1.1625149071835323,
+              "min": 1.1293449417256365,
+              "max": 1.1826977065285278
+            }
+          },
+          "26x26-master": {
+            "n": 4,
+            "completion": {
+              "before": 4,
+              "after": 4,
+              "of": 4
+            },
+            "t10": {
+              "n": 4,
+              "median": 1.1173796907051643,
+              "min": 1.072152715446118,
+              "max": 1.1633737394575012
+            },
+            "response": {
+              "n": 4,
+              "median": 1.1094754040096442,
+              "min": 1.0706924361468604,
+              "max": 1.1612728661287444
+            }
+          }
+        },
+        "levels": {
+          "Nightmare": {
+            "t10": {
+              "n": 4,
+              "median": 1.3221713632508845,
+              "min": 1.2541063535567858,
+              "max": 1.3891695401896875
+            },
+            "response": {
+              "n": 4,
+              "median": 1.3194862779179348,
+              "min": 1.2447843576374156,
+              "max": 1.386515631109387
+            }
+          },
+          "Master": {
+            "t10": {
+              "n": 8,
+              "median": 1.1481291716602144,
+              "min": 1.072152715446118,
+              "max": 1.217682075240451
+            },
+            "response": {
+              "n": 8,
+              "median": 1.1451409115151563,
+              "min": 1.0706924361468604,
+              "max": 1.1826977065285278
+            }
+          }
+        },
+        "workSaving": {
+          "26x26-nightmare": {
+            "matchedCalls": 62,
+            "unmatchedBefore": 3,
+            "unmatchedAfter": 3,
+            "ratingMs": {
+              "before": 240050,
+              "after": 170156,
+              "recompute": 15112
+            },
+            "ratingRatio": {
+              "gross": 1.4107646290683271,
+              "net": 1.29568929024446
+            },
+            "savingShare": 0.2282100288014819,
+            "callMs": {
+              "before": 240604,
+              "after": 185795
+            },
+            "callRatio": 1.2949964300793269
+          },
+          "14x14-master": {
+            "matchedCalls": 56,
+            "unmatchedBefore": 4,
+            "unmatchedAfter": 6,
+            "ratingMs": {
+              "before": 42243,
+              "after": 34285,
+              "recompute": 1455
+            },
+            "ratingRatio": {
+              "gross": 1.2321362491393035,
+              "net": 1.1819743487185903
+            },
+            "savingShare": 0.1539579508775918,
+            "callMs": {
+              "before": 42593,
+              "after": 36100
+            },
+            "callRatio": 1.179854934944546
+          },
+          "26x26-master": {
+            "matchedCalls": 60,
+            "unmatchedBefore": 3,
+            "unmatchedAfter": 3,
+            "ratingMs": {
+              "before": 124974,
+              "after": 105857,
+              "recompute": 6734
+            },
+            "ratingRatio": {
+              "gross": 1.1805977760936317,
+              "net": 1.109983450875154
+            },
+            "savingShare": 0.0990856672578665,
+            "callMs": {
+              "before": 125741,
+              "after": 113373
+            },
+            "callRatio": 1.1090899019592626
+          }
+        }
+      },
+      "kind": "Measured; ratios Derived",
+      "formula": "median of the paired per-seed T10 ratios A / B (both reached ten) on matched seeds, per cell and per level; the work saving from the twin calls of the journals"
+    },
+    "R23": {
+      "value": {
+        "label": "eight workers: unadmitted upper bound",
+        "widthAlone": {
+          "pair": "B:C",
+          "label": "eight workers alone, on today's search: an unadmitted upper bound, not P8 as IG-P-Q05 admits it",
+          "cells": {
+            "26x26-nightmare": {
+              "n": 4,
+              "completion": {
+                "before": 4,
+                "after": 4,
+                "of": 4
+              },
+              "t10": {
+                "n": 4,
+                "median": 1.1335244076846673,
+                "min": 1.1014431368057669,
+                "max": 1.2243030251199838
+              },
+              "t1": {
+                "n": 4,
+                "median": 0.9390653798656334,
+                "min": 0.8773230629461152,
+                "max": 0.9695447516767148
+              },
+              "batch": {
+                "n": 4,
+                "median": 1.2567029109767818,
+                "min": 1.1526480257164067,
+                "max": 1.3573825336875547
+              }
+            },
+            "14x14-master": {
+              "n": 4,
+              "completion": {
+                "before": 4,
+                "after": 4,
+                "of": 4
+              },
+              "t10": {
+                "n": 4,
+                "median": 0.7742712073862711,
+                "min": 0.7076510957955561,
+                "max": 0.9359075095783933
+              },
+              "t1": {
+                "n": 4,
+                "median": 0.6609762582704151,
+                "min": 0.6350980072065999,
+                "max": 0.9295757135700248
+              },
+              "batch": {
+                "n": 4,
+                "median": 0.8097924996303326,
+                "min": 0.7217441215659823,
+                "max": 0.9395313808878138
+              }
+            },
+            "26x26-master": {
+              "n": 4,
+              "completion": {
+                "before": 4,
+                "after": 4,
+                "of": 4
+              },
+              "t10": {
+                "n": 4,
+                "median": 0.9670279622694179,
+                "min": 0.9324915456628944,
+                "max": 1.1234221452366149
+              },
+              "t1": {
+                "n": 4,
+                "median": 0.8045872165096449,
+                "min": 0.6287805913753166,
+                "max": 0.9736764366307291
+              },
+              "batch": {
+                "n": 4,
+                "median": 1.0275104982256331,
+                "min": 0.9532170249216667,
+                "max": 1.180171570186231
+              }
+            }
+          },
+          "levels": {
+            "Nightmare": {
+              "t10": {
+                "n": 4,
+                "median": 1.1335244076846673,
+                "min": 1.1014431368057669,
+                "max": 1.2243030251199838
+              },
+              "t1": {
+                "n": 4,
+                "median": 0.9390653798656334,
+                "min": 0.8773230629461152,
+                "max": 0.9695447516767148
+              },
+              "batch": {
+                "n": 4,
+                "median": 1.2567029109767818,
+                "min": 1.1526480257164067,
+                "max": 1.3573825336875547
+              }
+            },
+            "Master": {
+              "t10": {
+                "n": 8,
+                "median": 0.9341995276206438,
+                "min": 0.7076510957955561,
+                "max": 1.1234221452366149
+              },
+              "t1": {
+                "n": 8,
+                "median": 0.7242768036203489,
+                "min": 0.6287805913753166,
+                "max": 0.9736764366307291
+              },
+              "batch": {
+                "n": 8,
+                "median": 0.9463742029047403,
+                "min": 0.7217441215659823,
+                "max": 1.180171570186231
+              }
+            }
+          }
+        },
+        "p6AndWidth": {
+          "pair": "A:C",
+          "label": "P6 x eight workers combined, on today's search: an unadmitted upper bound, not P6 alone",
+          "cells": {
+            "12x12-nightmare": {
+              "n": 2,
+              "completion": {
+                "before": 2,
+                "after": 2,
+                "of": 2
+              },
+              "t10": {
+                "n": 2,
+                "median": 0.994299194471018,
+                "min": 0.952256489633681,
+                "max": 1.0363418993083549
+              },
+              "t1": {
+                "n": 2,
+                "median": 0.8414298468975165,
+                "min": 0.6785842086343491,
+                "max": 1.004275485160684
+              },
+              "batch": {
+                "n": 2,
+                "median": 1.0006543413827926,
+                "min": 0.9488684642474521,
+                "max": 1.0524402185181332
+              }
+            },
+            "26x26-nightmare": {
+              "n": 4,
+              "completion": {
+                "before": 4,
+                "after": 4,
+                "of": 4
+              },
+              "t10": {
+                "n": 4,
+                "median": 1.5327487291916597,
+                "min": 1.4428218136902027,
+                "max": 1.5556616250163762
+              },
+              "t1": {
+                "n": 4,
+                "median": 1.2185690653694636,
+                "min": 0.8944903828410913,
+                "max": 1.2899698567657356
+              },
+              "batch": {
+                "n": 4,
+                "median": 1.6668208629479424,
+                "min": 1.5368537534730964,
+                "max": 1.868655672786175
+              }
+            },
+            "14x14-master": {
+              "n": 4,
+              "completion": {
+                "before": 4,
+                "after": 4,
+                "of": 4
+              },
+              "t10": {
+                "n": 4,
+                "median": 0.9267181946056854,
+                "min": 0.8390278159430876,
+                "max": 1.057007799404035
+              },
+              "t1": {
+                "n": 4,
+                "median": 0.7592586191817907,
+                "min": 0.5987983573281986,
+                "max": 1.174670029293225
+              },
+              "batch": {
+                "n": 4,
+                "median": 0.9726699240249856,
+                "min": 0.8365589693078395,
+                "max": 1.0659651631209262
+              }
+            },
+            "26x26-master": {
+              "n": 4,
+              "completion": {
+                "before": 4,
+                "after": 4,
+                "of": 4
+              },
+              "t10": {
+                "n": 4,
+                "median": 1.095351260493787,
+                "min": 1.0564053153138373,
+                "max": 1.2044801036077397
+              },
+              "t1": {
+                "n": 4,
+                "median": 0.7467641527655401,
+                "min": 0.6164090740032375,
+                "max": 1.0074383942007972
+              },
+              "batch": {
+                "n": 4,
+                "median": 1.1892655967733106,
+                "min": 1.115539120547541,
+                "max": 1.2791533867624718
+              }
+            }
+          },
+          "levels": {
+            "Nightmare": {
+              "t10": {
+                "n": 6,
+                "median": 1.4864565347958785,
+                "min": 0.952256489633681,
+                "max": 1.5556616250163762
+              },
+              "t1": {
+                "n": 6,
+                "median": 1.1038346916760164,
+                "min": 0.6785842086343491,
+                "max": 1.2899698567657356
+              },
+              "batch": {
+                "n": 6,
+                "median": 1.5828937344305851,
+                "min": 0.9488684642474521,
+                "max": 1.868655672786175
+              }
+            },
+            "Master": {
+              "t10": {
+                "n": 8,
+                "median": 1.056706557358936,
+                "min": 0.8390278159430876,
+                "max": 1.2044801036077397
+              },
+              "t1": {
+                "n": 8,
+                "median": 0.7467641527655401,
+                "min": 0.5987983573281986,
+                "max": 1.174670029293225
+              },
+              "batch": {
+                "n": 8,
+                "median": 1.0907521418342334,
+                "min": 0.8365589693078395,
+                "max": 1.2791533867624718
+              }
+            }
+          }
+        }
+      },
+      "kind": "Measured; ratios Derived",
+      "formula": "paired per-seed ratios B / C (the width alone) and A / C (P6 x the width): T10, T1 (the set stage) and T10 - T1 (the batch)"
+    },
+    "R25": {
+      "value": {
+        "measured": {
+          "today": {
+            "pair": "A:C",
+            "label": "P6 x eight workers combined, on today's search: an unadmitted upper bound, not P6 alone",
+            "cells": {
+              "12x12-nightmare": {
+                "n": 2,
+                "t10": {
+                  "n": 2,
+                  "median": 0.994299194471018,
+                  "min": 0.952256489633681,
+                  "max": 1.0363418993083549
+                },
+                "projection": {
+                  "likely": 1.2925889528123233,
+                  "low": 1.0937291139181198,
+                  "high": 1.7897385500478324,
+                  "p7NeededFor19": 1.9108936329882358,
+                  "aboveAssumptionLikely": false
+                }
+              },
+              "26x26-nightmare": {
+                "n": 4,
+                "t10": {
+                  "n": 4,
+                  "median": 1.5327487291916597,
+                  "min": 1.4428218136902027,
+                  "max": 1.5556616250163762
+                },
+                "projection": {
+                  "likely": 1.9925733479491576,
+                  "low": 1.686023602110826,
+                  "high": 2.7589477125449875,
+                  "p7NeededFor19": 1.2396030502677506,
+                  "aboveAssumptionLikely": true
+                }
+              },
+              "14x14-master": {
+                "n": 4,
+                "t10": {
+                  "n": 4,
+                  "median": 0.9267181946056854,
+                  "min": 0.8390278159430876,
+                  "max": 1.057007799404035
+                },
+                "projection": {
+                  "likely": 1.204733652987391,
+                  "low": 1.019390014066254,
+                  "high": 1.6680927502902336,
+                  "p7NeededFor19": 2.0502457069038575,
+                  "aboveAssumptionLikely": false
+                }
+              },
+              "26x26-master": {
+                "n": 4,
+                "t10": {
+                  "n": 4,
+                  "median": 1.095351260493787,
+                  "min": 1.0564053153138373,
+                  "max": 1.2044801036077397
+                },
+                "projection": {
+                  "likely": 1.4239566386419231,
+                  "low": 1.2048863865431658,
+                  "high": 1.9716322688888166,
+                  "p7NeededFor19": 1.7346033811505137,
+                  "aboveAssumptionLikely": false
+                }
+              }
+            },
+            "levels": {
+              "Nightmare": {
+                "n": 6,
+                "t10": {
+                  "n": 6,
+                  "median": 1.4864565347958785,
+                  "min": 0.952256489633681,
+                  "max": 1.5556616250163762
+                },
+                "projection": {
+                  "likely": 1.932393495234642,
+                  "low": 1.6351021882754664,
+                  "high": 2.675621762632581,
+                  "p7NeededFor19": 1.278207573194133,
+                  "aboveAssumptionLikely": true
+                }
+              },
+              "Master": {
+                "n": 8,
+                "t10": {
+                  "n": 8,
+                  "median": 1.056706557358936,
+                  "min": 0.8390278159430876,
+                  "max": 1.2044801036077397
+                },
+                "projection": {
+                  "likely": 1.3737185245666168,
+                  "low": 1.1623772130948298,
+                  "high": 1.9020718032460848,
+                  "p7NeededFor19": 1.7980393769380374,
+                  "aboveAssumptionLikely": false
+                }
+              }
+            }
+          },
+          "prototype": {
+            "pair": "E:F",
+            "label": "P6 x eight workers combined, on the prototype (P1 to P5): an unadmitted upper bound, not P6 alone",
+            "cells": {
+              "14x14-nightmare": {
+                "n": 2,
+                "t10": {
+                  "n": 2,
+                  "median": 1.0139127279846445,
+                  "min": 0.9652089374488306,
+                  "max": 1.0626165185204584
+                },
+                "projection": {
+                  "likely": 1.318086546380038,
+                  "low": 1.115304000783109,
+                  "high": 1.8250429103723602,
+                  "p7NeededFor19": 1.8739285419334188,
+                  "aboveAssumptionLikely": false
+                }
+              }
+            },
+            "levels": {
+              "Nightmare": {
+                "n": 2,
+                "t10": {
+                  "n": 2,
+                  "median": 1.0139127279846445,
+                  "min": 0.9652089374488306,
+                  "max": 1.0626165185204584
+                },
+                "projection": {
+                  "likely": 1.318086546380038,
+                  "low": 1.115304000783109,
+                  "high": 1.8250429103723602,
+                  "p7NeededFor19": 1.8739285419334188,
+                  "aboveAssumptionLikely": false
+                }
+              }
+            }
+          }
+        },
+        "p7Assumption": {
+          "likely": 1.3,
+          "low": 1.1,
+          "high": 1.8
+        },
+        "projection": "measured T10 factor of the combined pair x the P7 assumption (P7 is not prototyped: IGP-06 gives a sensitivity)",
+        "against": 1.9,
+        "kind": "Projection; every eight-worker figure is an unadmitted upper bound"
+      },
+      "kind": "Projection (P7 assumed)",
+      "formula": "the T10 factor of A:C and of E:F x the P7 assumption 1.3 (1.1 to 1.8), against ÷1.9"
+    },
+    "R26": {
+      "value": {
+        "A": {
+          "workers": 4,
+          "accountedLimit": 1254096896,
+          "maxAccounted": 240995213,
+          "processLimit": 1610612736,
+          "maxProcess": 568852480,
+          "pass": true
+        },
+        "B": {
+          "workers": 4,
+          "accountedLimit": 1254096896,
+          "maxAccounted": 240613042,
+          "processLimit": 1610612736,
+          "maxProcess": 584749056,
+          "pass": true
+        },
+        "C": {
+          "workers": 8,
+          "accountedLimit": 2193620992,
+          "maxAccounted": 471742914,
+          "processLimit": 1610612736,
+          "maxProcess": 958222336,
+          "pass": true
+        },
+        "E": {
+          "workers": 4,
+          "accountedLimit": 1254096896,
+          "maxAccounted": 17596016,
+          "processLimit": 1610612736,
+          "maxProcess": 220602368,
+          "pass": true
+        },
+        "F": {
+          "workers": 8,
+          "accountedLimit": 2193620992,
+          "maxAccounted": 35360652,
+          "processLimit": 1610612736,
+          "maxProcess": 356229120,
+          "pass": true
+        }
+      },
+      "kind": "Measured",
+      "formula": "the largest peakAccountedBytes of the rows against workers x WORKER_LIMIT_BYTES + MAIN_BUDGET_BYTES, and the largest peakProcessBytes against 1.5 GiB"
+    }
+  },
+  "journal": {
+    "appendCostMs": 0.303
+  },
+  "failures": []
+}

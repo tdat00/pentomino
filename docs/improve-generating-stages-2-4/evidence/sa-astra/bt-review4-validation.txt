@@ -1,0 +1,16 @@
+SA-Astra final task-pack recheck: review-3 findings R3-01, R3-02 and R3-03.
+COMMAND: node docs\improve-generating-stages-2-4\evidence\sa-astra\bt-review4-checks.mjs
+PASS: 35 tasks; 68.5 developer hours; maximum 3; links, estimates and dependencies agree.
+PASS: only the five declared pack inputs changed; 17 code inputs unchanged; 37 pack files formatted.
+COMMAND: node docs\improve-generating-stages-2-4\evidence\sa-opus\bt-r3-witness.mjs --label frozen
+bt-r3-witness: 63 checks, 0 failed; v4Cases appenders T03a, T03d, T06b, T07a, T07b, T07c, T08a, T08c
+COMMAND: npm run check
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+PASS: all 38 recheck input hashes unchanged.
+PASS: new evidence is CRLF, UTF-8 without BOM, no trailing whitespace, final newline; prior review evidence preserved.
+SA-Astra verdict: accept. R3-01, R3-02 and R3-03 are closed. No remaining finding or owner question.

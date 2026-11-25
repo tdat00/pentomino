@@ -1,0 +1,190 @@
+# T04c: Stage-1 checks: `v4-check run`, the item manifests and the parity and replay verdicts
+
+| Item | Value |
+|---|---|
+| Feature, plan | improve-generating, `docs/improve-generating/plan.md` §5.1 ("Observers"; "Parity passes": "the puzzles, work units and skip ordinals are equal with observers absent, with `charge` alone and with `record` and `charge`"; "One running version"), §6 ("Replay", "Observers"); decisions D-V4-04, D-V4-06, D-V4-14; review RV1-04, RV1-06 (R06), RV2-14 (R2-14) |
+| Repository, branch, base | `Q:\git\pentomino`, `improve-generating`, the commit of T04b |
+| Depends on | T04b |
+| Pack author / reviewer | SA-Opus / SA-Astra |
+| Executor | Dev-Sonnet (claude-sonnet-5.5) |
+| Estimate | developer 3 h, machine 0 min (pure cases; nothing locked runs here) |
+
+## Goal
+
+The stage-1 receipt needs, for every prototype arm, the proof that observers change nothing: equal results and skips,
+equal total work including uniqueness counts in every mode, the observed modes' charge sequences equal to that work,
+and the detail of recorded ratings equal to a canonical re-rating; and the proof that its own records replay in full.
+This task writes the tool that runs the stage-1 item manifests, the two manifests, and the two verdicts with their
+rules; T04d writes the receipt around them.
+
+## Authority and fixed points
+
+- Review R06 (accepted): explicit, hashed item manifests; rows with `item`, `variant`, `caseId`, `mode`, `status`; the
+  exact required set first; absent work evidence is incomplete, never equality; a short generation is an outcome, not
+  a tool error; "no candidate obtained" differs from a mismatch and leaves the proof incomplete.
+- Review R2-14 (accepted): on the new route every mode needs a complete ledger and equal `totalWork`, and the observed
+  modes `units === totalWork` with equal charge sequences; on the legacy route the recorded mode, which bypasses the
+  journal, is compared through the charged mode with the complete absent ledger; the `base` recorded total is compared
+  with the `v4` legacy recorded total; detail: `scored === rated + rejected`, the first `Math.min(2, scored)` scored
+  events rechecked; no scored event is insufficient proof (`incomplete`), a missing detail or an unequal recheck a
+  failure.
+- T04a's runner and T04b's kinds are used unchanged. The bounds of D-V4-04: a `v4`-family call of a Nightmare or Hell 1
+  target has subset ordinals below 2,192; every other call below 2,128 (`core/engine/pack.js:53`).
+- No production file changes; no locked run in this task.
+
+## Scope
+
+- Create: `tools/ig-proto/v4-check.mjs` (steps 1 to 3); `tools/ig-proto/plans/V4-T04.parity.json` and
+  `tools/ig-proto/plans/V4-T04.replay.json` (step 4).
+- Change: `tools/ig-proto/self-test.mjs` (cases appended to `--items`), `tools/ig-proto/README.md` (a section).
+- Do not change: everything else. Guards: `node tools\ig-proto\firewall.mjs check --task V4-T04c --label frozen`,
+  expected `files unchanged`; `git status --short -- core generator tests tools/ig-proto/variants tools/ig-proto/lib`,
+  expected no output.
+
+## Steps
+
+0. `node tools\ig-proto\firewall.mjs snapshot --task V4-T04c --label frozen`.
+1. **`v4-check.mjs`** (`// @ts-check`): `node tools\ig-proto\v4-check.mjs run --task <T> --step <S> --manifest <path>
+   --label frozen --source-label <SL> [--horizon-s <H>]` (`parseArgs` values `task`, `step`, `manifest`, `label`,
+   `source-label`, `horizon-s`; another label: exit 1 with `v4-check: --label frozen only`). `run` reads the manifest,
+   calls `expandManifest`, then `runItems` of `lib/items.mjs` with `horizonS` (default 285) and sets
+   `process.exitCode` to its `exitCode`. T04d adds the subcommands `summary` and `pm4-gate`.
+2. **Manifests** (format `{ "format": "ig-proto-items", "version": 1, "task", "step", "rows": [...] }`) and `export
+   function expandManifest(manifest, rawDir, isV4)` (pure apart from `caseBoard`), which returns the ordered `Item[]`;
+   `safe(id)` replaces every character outside `[A-Za-z0-9._-]` by `_`; `entry = caseBoard(row.caseId)`; `isV4(variant)`
+   is true when the variant's tree chain (`readTreeInfo(variant).chain`, `lib/records.mjs:141`) contains `v4` (the
+   self-test passes `(v) => v !== 'base'`):
+   - row `{ kind: 'v4-select', variant, caseId, seedText, modes }`: one item per mode, in order: `id =
+     '<step>:<variant>:<caseId>:<seedText>:<mode>'`, payload `{ boardRows: entry.boardRows, levelId: entry.levelId,
+     seedText, mode, logDir: join(rawDir, 'logs', safe(id)), row: safe(id), route }` with `route` `base` when
+     `!isV4(variant)`, `new` when the level is `nightmare` or `hell-1`, `legacy-recorded` for the mode `record`, else
+     `legacy`;
+   - row `{ kind: 'v4-generate', variant, caseId, seedText, quantity }`: `id = '<step>:<variant>:<caseId>:<seedText>:gen'`,
+     payload `{ boardRows, rotation: entry.rotation, levelId, seedText, uniqueness: 'require', maxActive:
+     entry.maxActive, quantity, packPath: join(rawDir, 'packs', safe(id) + '.pack.json'), logDir, row }`;
+   - row `{ kind: 'v4-replay', variant, caseId, seedText, puzzles, packStep? }`: items
+     `'<step>:<variant>:<caseId>:<seedText>:puzzle-<i>'` for `i` from 0 to `puzzles - 1`, payload `{ packPath,
+     puzzleIndex: i }` where `packPath` is the pack path of the generation item `'<P>:<variant>:<caseId>:<seedText>:gen'`
+     in `artifactDir('frozen', manifest.task, P)`, `P = packStep ?? step`;
+   - a row of another kind, a mode outside `absent`, `charge`, `record`, or two items with one id: throw
+     `Error('v4-check: <reason>')` (the run exits 1).
+   `rawDir = artifactDir('frozen', manifest.task, manifest.step)`.
+3. **Verdicts** (pure exports; each returns `{ verdict, reasons, rows }` with `verdict` one of `pass`, `fail`,
+   `incomplete`; `fail` wins over `incomplete`). `rows` are the expanded items joined with their `item-end` lines:
+   `{ item, variant, caseId, mode, route, status, result }` (`status` `missing` when there is no end line).
+   - `parityVerdict(rows)`. For each `(variant, caseId)` group: the required modes of the manifest present (else
+     `incomplete`, naming the item); a row `missing` or `censored`: `incomplete`; `error` or an outcome other than `ok`:
+     `fail`. Then, by the group's route:
+     - `new` (all three modes): every mode's `ledger.complete` (else `incomplete`, `no complete work evidence`); the
+       `digest` of every mode equal; `ledger.totalWork` equal in every mode; in `charge` and `record`: `units ===
+       ledger.totalWork` and `chargeUnits` deep-equal between the two; `maxSequence` below 2,192.
+     - `legacy` (modes `absent`, `charge`; `legacy-recorded` for `record`): `absent` and `charge` ledgers complete
+       (else `incomplete`); the `digest` of every mode equal; the two ledgers' `totalWork` equal; `charge`'s `units ===
+       ledger.totalWork`; `record`'s `units === charge.units` and its `chargeUnits` deep-equal to `charge`'s;
+       `maxSequence` below 2,128.
+     - every `record` row: `events > 0`; `detail.scored === detail.rated + detail.rejected`; `detail.missing === 0`
+       (else `fail`); `detail.scored === 0`: `incomplete` (`no completed scored event`); else
+       `detail.rechecked.length === Math.min(2, detail.scored)` and every `equal` true (else `fail`).
+     - `base` (modes `absent`, `record`): its `absent` digest equals the `absent` digest of `v4` on the same case, its
+       `record` `eventsDigest` equals `v4`'s `record` `eventsDigest` and its `record` `units` equal `v4`'s `record`
+       `units` (the legacy identity case); the `record` detail rules above.
+   - `replayVerdict(rows)`. Per generation item: `ok` with `puzzles >= 1`: the case has records; `no-set` or `no-pack`:
+     `incomplete` (`no record obtained for <case>`); `censored`: `incomplete`; `error`: `fail`. Per replay item:
+     outcome `no-record`: not a proof; `packSha256` different from its generation item's: `fail`; status `matched`:
+     a full proof when `detailStep !== null` (else `fail`, R04); `incomplete`: a finding (listed with reason, work,
+     bytes; not a proof); `mismatch` or `unavailable`: `fail`. Each generation case needs at least one `candidate`
+     replay with a full proof, else `incomplete` (`no matched candidate replay for <case>`). `pass` needs no `fail`
+     and every case proven.
+4. **Manifests.**
+   - `plans/V4-T04.parity.json` (`task` `V4-T04`, `step` `parity`), rows in this order (`seedText`
+     `ig-v4/parity/<caseId>`; modes `["absent", "charge", "record"]` unless stated): `v4` on `14x14-master`,
+     `12x12-nightmare`, `26x26-nightmare`, `26x26-hell-1`; `base` on `14x14-master` with modes `["absent", "record"]`;
+     `v4-w760`, `v4-w095` and `v4-w380` on `12x12-nightmare`. 23 items.
+   - `plans/V4-T04.replay.json` (`task` `V4-T04`, `step` `replay`; `seedText` `ig-v4/replay/<caseId>`): for each of
+     `14x14-master`, `12x12-nightmare`, `26x26-nightmare` in that order, a `v4-generate` row of `v4` with `quantity: 2`,
+     then a `v4-replay` row with `puzzles: 2`. 9 items.
+5. **Self-test** cases appended to `--items` (Tests table).
+6. **README.md**: a section "## Stage 1 checks (task pack v4)": the manifests, `v4-check run`, the routes and the
+   verdict rules of step 3.
+
+## Tests
+
+All in `tools/ig-proto/self-test.mjs --items`, on synthetic rows (no run). `ok(mode, over)` builds an `ok` row of the
+group with `digest: 'd'`, a complete ledger of `ratingWork` 7, `countWork` 5, `totalWork` 12, and for `charge` and
+`record` `chargeUnits: [3, 4, 5]` (`units` 12, `charges` 3), for `record` `events: 9`, `detail: { rated: 1, rejected:
+2, scored: 3, missing: 0, rechecked: [{ equal: true }, { equal: true }] }`, `maxSequence: 40`, merged with `over`.
+
+| Case name | Input | Expected |
+|---|---|---|
+| `checks: manifest expansion` | `expandManifest` of the two plan manifests, then of a manifest with a mode `twice` and of one with a row repeated | 23 and 9 items in manifest order, the routes `legacy` / `legacy` / `legacy-recorded` on `v4 14x14-master`, `new` on the Nightmare and Hell 1 cases, `base` on `base`; the replay items' `packPath` equal to their generation item's; the last two throw (`unknown mode`, `duplicate item id`) |
+| `checks: parity on the new route` | the three `ok` rows of `v4` on `12x12-nightmare` (route `new`) | `pass` |
+| `checks: equal rating work, unequal count work` | the same with the `absent` ledger's `countWork` 6 and `totalWork` 13 | `fail` (total work differs) |
+| `checks: equal charged modes, unequal absent total` | the same with only the `absent` ledger's `ratingWork` 6 and `totalWork` 11 (charge and record unchanged) | `fail` |
+| `checks: incomplete ledger` | the same with the `absent` ledger `complete: false` | `incomplete` (`no complete work evidence`) |
+| `checks: detail counts` | `record` with `detail` `{ rated: 1, rejected: 3, scored: 4, missing: 0, rechecked: [two equal] }`; then `scored: 0, rated: 0, rejected: 0, rechecked: []`; then `missing: 1` | `pass`; `incomplete` (`no completed scored event`); `fail` |
+| `checks: legacy route and base` | `v4` on `14x14-master`: `absent` and `charge` (route `legacy`, complete ledgers of `totalWork` 12), `record` (route `legacy-recorded`, ledger not complete, `units` 12, `chargeUnits` as `charge`'s); `base` `absent` and `record` with equal digests, `eventsDigest` and `units` 12; then `base` `record` `units` 13 | `pass`; then `fail` naming the base recorded total |
+| `checks: replay proofs` | (a) no rows; (b) generation `ok` with 2 puzzles, replays `incomplete` (reason `work`) twice; (c) calibration `matched` and candidate `matched` with `detailStep` 3; (d) the same with candidate `mismatch`; (e) generation `no-pack` | (a) `incomplete`; (b) `incomplete`, two findings listed; (c) `pass`; (d) `fail`; (e) `incomplete` (`no record obtained`) |
+
+## Documentation
+
+`tools/ig-proto/README.md` (step 6).
+
+## Commands and gates
+
+| Command | Where | Expected | Time limit |
+|---|---|---|---|
+| `node tools\ig-proto\self-test.mjs --label frozen --source-label "frozen 3fc65f4" --items --task V4-T04c` | root | every `--items` case passes, exit 0 | 3 min |
+| `node tools\ig-proto\firewall.mjs check --task V4-T04c --label frozen` | root | `files unchanged` | 1 min |
+| `npm run check` | root | exit 0 | 2 min |
+
+## Stop points and questions
+
+- `QUESTION:` when a manifest expands to other counts than 23 and 9.
+- Send `QUESTION:` to the pack author (through the orchestrator) when: the task looks wrong or contradicts the code;
+  an ambiguity changes behaviour or a contract; a gate fails for a reason not covered here; a change is needed outside
+  the scope; a recorded decision would change. Never decide such a point yourself.
+
+## Acceptance criteria
+
+### Business
+
+| ID | Criterion | How it is verified | Evidence |
+|---|---|---|---|
+| T04c-B01 | Parity can pass only with equal results, equal complete total work and equal charge sequences in every mode, and full, rechecked detail; replay only with a full candidate proof per case | cases 2 to 8 | self-test output |
+
+### Technical
+
+| ID | Criterion | How it is verified | Evidence |
+|---|---|---|---|
+| T04c-T01 | Manifest expansion and routes | case 1 | self-test output |
+| T04c-T02 | The verdict rules of step 3 | cases 2 to 8 | self-test output |
+| T04c-T03 | Nothing else changed; formats | guards; `npm run check` | command output |
+
+## Checklist (the developer confirms every item in the final report)
+
+- [ ] Every step done; nothing outside the scope changed (guard command output)
+- [ ] Tests added and green; the full gate green
+- [ ] Documents updated (each language)
+- [ ] File format checks pass
+- [ ] Evidence files written
+- [ ] Every AC row has its evidence
+
+## Final report (the developer's reply)
+
+The start and end times; the files changed; the gate results with numbers; each AC row with its evidence; the
+questions and rulings; the deviations; and the named items for later.
+
+## Execution log (filled by the orchestrator, not by the developer)
+
+| Item | Value |
+|---|---|
+| Start, end, duration | |
+| Waiting for rulings | |
+| Agent id, model | |
+| Calls; input, output and cache-read tokens | |
+| AI credits | |
+| Questions and rulings | |
+| Fix rounds | |
+| Gates re-run by the orchestrator | |
+| Commit | |
+| Issues and named items | |

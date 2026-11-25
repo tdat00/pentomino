@@ -1,0 +1,114 @@
+{
+  "task": "IGP-03h",
+  "allocationMinutes": 6,
+  "optionalMinutes": 12,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "IGP-03h"]
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": ["tools\\ig-proto\\lib\\tree.mjs", "build", "base", "p1p5-w760", "p1p5-main"]
+    },
+    {
+      "id": "w760-hell1",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 130,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03h", "--arm", "w760", "--shard", "26x26-hell-1", "--variant", "p1p5-w760", "--workers", "4", "--cases", "26x26-hell-1:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03h\\w760\\26x26-hell-1\\state.json"
+    },
+    {
+      "id": "w760-hell1-20x20",
+      "locked": true,
+      "optional": true,
+      "repeatUntilDone": true,
+      "projectS": 260,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03h", "--arm", "w760", "--shard", "20x20-hell-1", "--variant", "p1p5-w760", "--workers", "4", "--cases", "20x20-hell-1:0-1", "--row-limit-s", "260"],
+      "state": "IGP-03h\\w760\\20x20-hell-1\\state.json"
+    },
+    {
+      "id": "w760-12x12",
+      "locked": true,
+      "optional": true,
+      "repeatUntilDone": true,
+      "projectS": 60,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03h", "--arm", "w760", "--shard", "12x12-nightmare", "--variant", "p1p5-w760", "--workers", "4", "--cases", "12x12-nightmare:2-5", "--row-limit-s", "260"],
+      "state": "IGP-03h\\w760\\12x12-nightmare\\state.json"
+    },
+    {
+      "id": "main-12x12",
+      "locked": true,
+      "optional": true,
+      "repeatUntilDone": true,
+      "projectS": 50,
+      "minHorizonS": 280,
+      "invocations": 2,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-03h", "--arm", "main", "--shard", "12x12-nightmare", "--variant", "p1p5-main", "--workers", "4", "--cases", "12x12-nightmare:2-5", "--row-limit-s", "260"],
+      "state": "IGP-03h\\main\\12x12-nightmare\\state.json"
+    },
+    {
+      "id": "verify",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 90,
+      "minHorizonS": 60,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\verify.mjs", "--task", "IGP-03h", "--arm", "w760"],
+      "state": "IGP-03h\\verify-w760\\state.json"
+    },
+    {
+      "id": "verify-main",
+      "locked": true,
+      "optional": true,
+      "repeatUntilDone": true,
+      "projectS": 40,
+      "minHorizonS": 60,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\verify.mjs", "--task", "IGP-03h", "--arm", "main"],
+      "state": "IGP-03h\\verify-main\\state.json"
+    },
+    {
+      "id": "publish-w760",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "IGP-03h", "--arm", "w760"]
+    },
+    {
+      "id": "publish-main",
+      "locked": false,
+      "optional": true,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "IGP-03h", "--arm", "main"]
+    },
+    {
+      "id": "reproduce-main",
+      "locked": false,
+      "optional": true,
+      "node": ["tools\\ig-proto\\compare.mjs", "--task", "IGP-03h", "--reproduce", "main:IGP-01/after", "--common-seeds"]
+    },
+    {
+      "id": "compare",
+      "locked": false,
+      "node": ["tools\\ig-proto\\compare.mjs", "--task", "IGP-03h", "--pairs", "IGP-01/before:w760,IGP-01/after:w760", "--reference", "mp12b1", "--pm4", "IGP-02", "--pm1", "IGP-05"]
+    },
+    {
+      "id": "compare-c5",
+      "locked": false,
+      "optional": true,
+      "node": ["tools\\ig-proto\\compare.mjs", "--task", "IGP-03h", "--pairs", "IGP-03h/main:IGP-03h/w760,IGP-01/after:IGP-03/w760", "--reference", "mp12b1", "--out-dir", "docs\\improve-generating\\evidence\\provisional\\IGP-03h\\c5"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "IGP-03h"]
+    }
+  ]
+}

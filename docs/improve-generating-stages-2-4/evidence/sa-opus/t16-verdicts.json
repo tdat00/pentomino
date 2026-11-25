@@ -1,0 +1,2108 @@
+{
+  "script": "docs/improve-generating-stages-2-4/evidence/sa-opus/t16-verdicts.mjs",
+  "record": "docs/improve-generating/evidence/frozen/V4-S4F/verdicts.json",
+  "purpose": "final",
+  "phase0": "Phase 0: FAIL (control 26x26-nightmare: fail)",
+  "declared": 1120,
+  "published": 1500,
+  "missing": 0,
+  "classes": [
+    {
+      "class": "n-small",
+      "verdict": "failed",
+      "decidedBy": "faster",
+      "ships": "fr-frozen-none"
+    },
+    {
+      "class": "n-mid",
+      "verdict": "admitted",
+      "decidedBy": null,
+      "ships": "fr-frozen"
+    },
+    {
+      "class": "n-upper",
+      "verdict": "inconclusive",
+      "decidedBy": "work-unknown",
+      "ships": "fr-frozen-none"
+    },
+    {
+      "class": "n-large",
+      "verdict": "inconclusive",
+      "decidedBy": "work-unknown",
+      "ships": "fr-frozen-none"
+    },
+    {
+      "class": "hell-1",
+      "verdict": "failed",
+      "decidedBy": "faster",
+      "ships": "fr-frozen-none"
+    }
+  ],
+  "failing": [
+    {
+      "cell": "14x14-nightmare",
+      "class": "n-mid",
+      "shipped": "fr-frozen",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadEnds": 0,
+      "deadlineViolations": 0,
+      "p95S": 12
+    },
+    {
+      "cell": "15x15b10-nightmare",
+      "class": "n-mid",
+      "shipped": "fr-frozen",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadEnds": 0,
+      "deadlineViolations": 0,
+      "p95S": 22.3
+    },
+    {
+      "cell": "12x12-nightmare",
+      "class": "n-small",
+      "shipped": "fr-frozen-none",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadEnds": 0,
+      "deadlineViolations": 0,
+      "p95S": 37.4
+    },
+    {
+      "cell": "16x16-nightmare",
+      "class": "n-mid",
+      "shipped": "fr-frozen",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadEnds": 0,
+      "deadlineViolations": 0,
+      "p95S": 13.8
+    },
+    {
+      "cell": "15x20-nightmare",
+      "class": "n-upper",
+      "shipped": "fr-frozen-none",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadEnds": 0,
+      "deadlineViolations": 0,
+      "p95S": 22.4
+    }
+  ],
+  "controls": [
+    {
+      "cell": "3x29-nightmare",
+      "class": "n-small",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadlineViolations": 0,
+      "p95S": 6.4,
+      "geoMean": 1.0592,
+      "lower": 0.9473,
+      "reasons": []
+    },
+    {
+      "cell": "10x10-nightmare",
+      "class": "n-small",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadlineViolations": 0,
+      "p95S": 29.7,
+      "geoMean": 1.5221,
+      "lower": 1.3173,
+      "reasons": []
+    },
+    {
+      "cell": "18x18-nightmare",
+      "class": "n-upper",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadlineViolations": 0,
+      "p95S": 29.8,
+      "geoMean": 2.0012,
+      "lower": 1.6984,
+      "reasons": []
+    },
+    {
+      "cell": "18x20-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadlineViolations": 0,
+      "p95S": 34.4,
+      "geoMean": 1.6591,
+      "lower": 1.4374,
+      "reasons": []
+    },
+    {
+      "cell": "20x20-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadlineViolations": 0,
+      "p95S": 24.2,
+      "geoMean": 2.0889,
+      "lower": 1.733,
+      "reasons": []
+    },
+    {
+      "cell": "20x21-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadlineViolations": 0,
+      "p95S": 25.3,
+      "geoMean": 1.584,
+      "lower": 1.3793,
+      "reasons": []
+    },
+    {
+      "cell": "32x15-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadlineViolations": 0,
+      "p95S": 25.6,
+      "geoMean": 1.054,
+      "lower": 0.9127,
+      "reasons": []
+    },
+    {
+      "cell": "22x22-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadlineViolations": 0,
+      "p95S": 19.2,
+      "geoMean": 1.1554,
+      "lower": 1.0388,
+      "reasons": []
+    },
+    {
+      "cell": "24x24-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "gate": "pass",
+      "reachedTen": 20,
+      "deadlineViolations": 0,
+      "p95S": 23.9,
+      "geoMean": 1.2434,
+      "lower": 1.1271,
+      "reasons": []
+    },
+    {
+      "cell": "26x26-nightmare",
+      "class": "n-large",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "gate": "fail",
+      "reachedTen": 20,
+      "deadlineViolations": 0,
+      "p95S": 26.2,
+      "geoMean": 1.0006,
+      "lower": 0.8864,
+      "reasons": [
+        "no regression: the lower bound 0.886429539656821 is below 0.9"
+      ]
+    }
+  ],
+  "masters": [
+    {
+      "cell": "6x10-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 1.6,
+      "medianAfterS": 1.6,
+      "ratioGeoMean": 0.9775
+    },
+    {
+      "cell": "3x29-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 1.4,
+      "medianAfterS": 1.5,
+      "ratioGeoMean": 0.9658
+    },
+    {
+      "cell": "10x10-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 4,
+      "reachedTenAfter": 4,
+      "medianTodayS": 10.8,
+      "medianAfterS": 10.9,
+      "ratioGeoMean": 0.9757
+    },
+    {
+      "cell": "12x12-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 4,
+      "medianAfterS": 4,
+      "ratioGeoMean": 1.0088
+    },
+    {
+      "cell": "14x14-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 2.6,
+      "medianAfterS": 2.7,
+      "ratioGeoMean": 1.0091
+    },
+    {
+      "cell": "15x15b10-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 4.5,
+      "medianAfterS": 4.6,
+      "ratioGeoMean": 0.9889
+    },
+    {
+      "cell": "16x16-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 2.1,
+      "medianAfterS": 2.1,
+      "ratioGeoMean": 0.9767
+    },
+    {
+      "cell": "15x20-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 6.1,
+      "medianAfterS": 5.8,
+      "ratioGeoMean": 1.0424
+    },
+    {
+      "cell": "18x18-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 2.1,
+      "medianAfterS": 2.4,
+      "ratioGeoMean": 0.9329
+    },
+    {
+      "cell": "18x20-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 3.1,
+      "medianAfterS": 3.2,
+      "ratioGeoMean": 0.9945
+    },
+    {
+      "cell": "20x20-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 3.7,
+      "medianAfterS": 3.8,
+      "ratioGeoMean": 0.9932
+    },
+    {
+      "cell": "20x21-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 4.8,
+      "medianAfterS": 4.7,
+      "ratioGeoMean": 1.0024
+    },
+    {
+      "cell": "32x15-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 5.1,
+      "medianAfterS": 4.8,
+      "ratioGeoMean": 1.0683
+    },
+    {
+      "cell": "22x22-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 3.7,
+      "medianAfterS": 3.7,
+      "ratioGeoMean": 1.0026
+    },
+    {
+      "cell": "24x24-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 5.6,
+      "medianAfterS": 5.5,
+      "ratioGeoMean": 1.0135
+    },
+    {
+      "cell": "26x26-master",
+      "verdict": "pass",
+      "differences": 0,
+      "reps": 5,
+      "reachedTenToday": 5,
+      "reachedTenAfter": 5,
+      "medianTodayS": 9.4,
+      "medianAfterS": 9.3,
+      "ratioGeoMean": 1.0002
+    }
+  ],
+  "hell1": [
+    {
+      "cell": "26x26-hell-1",
+      "arm": "fr-frozen-none",
+      "requests": 20,
+      "valid": 20,
+      "reachedTen": 20,
+      "candidate": true
+    },
+    {
+      "cell": "20x20-hell-1",
+      "arm": "fr-frozen-none",
+      "requests": 20,
+      "valid": 20,
+      "reachedTen": 20,
+      "candidate": true
+    },
+    {
+      "cell": "24x24-hell-1",
+      "arm": "fr-frozen-none",
+      "requests": 20,
+      "valid": 20,
+      "reachedTen": 20,
+      "candidate": true
+    },
+    {
+      "cell": "14x14-hell-1",
+      "arm": "fr-frozen-none",
+      "requests": 20,
+      "valid": 20,
+      "reachedTen": 10,
+      "candidate": false
+    }
+  ],
+  "p5": [
+    {
+      "cell": "14x14-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "15x15b10-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "12x12-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "16x16-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "15x20-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "26x26-hell-1",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "20x20-hell-1",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "3x29-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "10x10-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "18x18-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "18x20-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "20x20-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "20x21-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "32x15-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "22x22-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "24x24-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "26x26-nightmare",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "24x24-hell-1",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 0,
+      "unknown": 0,
+      "lostReps": [],
+      "falseStopReps": [],
+      "unexpected": 0
+    },
+    {
+      "cell": "14x14-hell-1",
+      "declared": 20,
+      "pairs": 20,
+      "falseStops": 0,
+      "lostCompletions": 2,
+      "unknown": 0,
+      "lostReps": [
+        26,
+        38
+      ],
+      "falseStopReps": [],
+      "unexpected": 0
+    }
+  ],
+  "population": [
+    {
+      "cell": "10x10-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 4,
+          "puzzles": 44,
+          "clueShareMedian": 0.25,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.0909,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 4,
+          "puzzles": 44,
+          "clueShareMedian": 0.25,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.0909,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "10x10-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2105,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.9,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2105,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.9,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1667,
+          "scorePositionMedian": 0.625,
+          "censusEstimateShare": 0.97,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2105,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.9,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "12x12-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.25,
+          "scorePositionMedian": 0.4375,
+          "censusEstimateShare": 0,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.25,
+          "scorePositionMedian": 0.4375,
+          "censusEstimateShare": 0,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "12x12-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.25,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.565,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.25,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.565,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.25,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.565,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "14x14-hell-1",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 10,
+          "puzzles": 141,
+          "clueShareMedian": 0.4,
+          "scorePositionMedian": 0.3714,
+          "censusEstimateShare": 0.7305,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 10,
+          "puzzles": 141,
+          "clueShareMedian": 0.4,
+          "scorePositionMedian": 0.3714,
+          "censusEstimateShare": 0.7305,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 12,
+          "puzzles": 160,
+          "clueShareMedian": 0.3939,
+          "scorePositionMedian": 0.3714,
+          "censusEstimateShare": 0.7125,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "14x14-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2353,
+          "scorePositionMedian": 0.375,
+          "censusEstimateShare": 0,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2353,
+          "scorePositionMedian": 0.375,
+          "censusEstimateShare": 0,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "14x14-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2857,
+          "scorePositionMedian": 0.4583,
+          "censusEstimateShare": 0.15,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2609,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.25,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2857,
+          "scorePositionMedian": 0.4583,
+          "censusEstimateShare": 0.15,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "15x15b10-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2105,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.02,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2105,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.02,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "15x15b10-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2727,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.125,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2609,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.24,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2727,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.125,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "15x20-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.06,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.06,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "15x20-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2308,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.23,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2308,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.27,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2308,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.27,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "16x16-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2105,
+          "scorePositionMedian": 0.4688,
+          "censusEstimateShare": 0.04,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2105,
+          "scorePositionMedian": 0.4688,
+          "censusEstimateShare": 0.04,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "16x16-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2174,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.21,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2174,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.295,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2174,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.21,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "18x18-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2,
+          "scorePositionMedian": 0.4375,
+          "censusEstimateShare": 0.02,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2,
+          "scorePositionMedian": 0.4375,
+          "censusEstimateShare": 0.02,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "18x18-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2083,
+          "scorePositionMedian": 0.4583,
+          "censusEstimateShare": 0.315,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1923,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.37,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 20,
+          "reachedTen": 18,
+          "puzzles": 185,
+          "clueShareMedian": 0.1667,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.4865,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1923,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.37,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "18x20-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2174,
+          "scorePositionMedian": 0.4375,
+          "censusEstimateShare": 0.1,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2174,
+          "scorePositionMedian": 0.4375,
+          "censusEstimateShare": 0.1,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "18x20-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1923,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.375,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1852,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.48,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 20,
+          "reachedTen": 19,
+          "puzzles": 192,
+          "clueShareMedian": 0.16,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.5052,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1852,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.48,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "20x20-hell-1",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.3571,
+          "scorePositionMedian": 0.4286,
+          "censusEstimateShare": 0.595,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.3571,
+          "scorePositionMedian": 0.4286,
+          "censusEstimateShare": 0.595,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.3571,
+          "scorePositionMedian": 0.4286,
+          "censusEstimateShare": 0.595,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "20x20-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.1905,
+          "scorePositionMedian": 0.4688,
+          "censusEstimateShare": 0.14,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.1905,
+          "scorePositionMedian": 0.4688,
+          "censusEstimateShare": 0.14,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "20x20-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2069,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.345,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1923,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.41,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1786,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.53,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1923,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.41,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "20x21-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.1905,
+          "scorePositionMedian": 0.4375,
+          "censusEstimateShare": 0.1,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.1905,
+          "scorePositionMedian": 0.4375,
+          "censusEstimateShare": 0.1,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "20x21-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1887,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.42,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1852,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.5,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 20,
+          "reachedTen": 19,
+          "puzzles": 198,
+          "clueShareMedian": 0.1724,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.6313,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1852,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.5,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "22x22-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.1951,
+          "scorePositionMedian": 0.4375,
+          "censusEstimateShare": 0.04,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.1951,
+          "scorePositionMedian": 0.4375,
+          "censusEstimateShare": 0.04,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "22x22-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1481,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.62,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1481,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.685,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1429,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.715,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1481,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.685,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "24x24-hell-1",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2381,
+          "scorePositionMedian": 0.4571,
+          "censusEstimateShare": 0.855,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2381,
+          "scorePositionMedian": 0.4571,
+          "censusEstimateShare": 0.855,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2381,
+          "scorePositionMedian": 0.4571,
+          "censusEstimateShare": 0.855,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "24x24-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.38,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.38,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "24x24-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.164,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.73,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1613,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.77,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1429,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.845,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1613,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.77,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "26x26-hell-1",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2051,
+          "scorePositionMedian": 0.4857,
+          "censusEstimateShare": 0.955,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2051,
+          "scorePositionMedian": 0.4857,
+          "censusEstimateShare": 0.955,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.2051,
+          "scorePositionMedian": 0.4857,
+          "censusEstimateShare": 0.955,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "26x26-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.1852,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.42,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.1852,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.42,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "26x26-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1515,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.835,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1515,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.865,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1515,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.91,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1515,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.865,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "32x15-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.1818,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.14,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.1818,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.14,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "32x15-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1481,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.595,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1481,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.635,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1429,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.63,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1481,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.635,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "3x29-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2143,
+          "scorePositionMedian": 0.375,
+          "censusEstimateShare": 0,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2143,
+          "scorePositionMedian": 0.375,
+          "censusEstimateShare": 0,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "3x29-nightmare",
+      "arms": {
+        "fr-frozen": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1667,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.915,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1667,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.915,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1579,
+          "scorePositionMedian": 0.5417,
+          "censusEstimateShare": 0.92,
+          "evidenceProblems": 0
+        },
+        "fr-frozen-none-uncapped": {
+          "requests": 20,
+          "reachedTen": 20,
+          "puzzles": 200,
+          "clueShareMedian": 0.1667,
+          "scorePositionMedian": 0.5,
+          "censusEstimateShare": 0.915,
+          "evidenceProblems": 0
+        }
+      }
+    },
+    {
+      "cell": "6x10-master",
+      "arms": {
+        "fr-frozen": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2404,
+          "scorePositionMedian": 0.375,
+          "censusEstimateShare": 0.04,
+          "evidenceProblems": 0
+        },
+        "log-link": {
+          "requests": 5,
+          "reachedTen": 5,
+          "puzzles": 50,
+          "clueShareMedian": 0.2404,
+          "scorePositionMedian": 0.375,
+          "censusEstimateShare": 0.04,
+          "evidenceProblems": 0
+        }
+      }
+    }
+  ],
+  "selection": {
+    "verdict": "pass",
+    "changed": []
+  },
+  "prerequisites": [
+    {
+      "name": "stage1",
+      "status": "pass"
+    },
+    {
+      "name": "liveDeadline",
+      "status": "pass"
+    },
+    {
+      "name": "parity:docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen.accepted.json",
+      "status": "pass"
+    },
+    {
+      "name": "parity:docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none.accepted.json",
+      "status": "pass"
+    },
+    {
+      "name": "parity:docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-uncapped.accepted.json",
+      "status": "pass"
+    },
+    {
+      "name": "parity:docs/improve-generating/evidence/frozen/V4-S4P/parity-fr-frozen-none-uncapped.accepted.json",
+      "status": "pass"
+    },
+    {
+      "name": "parity:docs/improve-generating/evidence/frozen/V4-S2P/p0-v4.accepted.json",
+      "status": "pass"
+    }
+  ],
+  "inputs": {
+    "entries": 34,
+    "sha256Lf": "f510334393cfe77e3b3f441ce7995846eb94700fd35c9b3f0a9cd0e85e0998af"
+  },
+  "twoSided": [
+    {
+      "cell": "3x29-nightmare",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "clueShare": {
+        "shipped": [
+          0.1053,
+          0.1667,
+          0.2632
+        ],
+        "today": [
+          0.1053,
+          0.1579,
+          0.2222
+        ],
+        "medianDiff": 0.0088
+      },
+      "scorePosition": {
+        "shipped": 0.5,
+        "today": 0.5417,
+        "medianDiff": -0.0417
+      },
+      "censusEstimateShare": {
+        "shipped": 0.915,
+        "today": 0.92,
+        "diff": -0.005
+      },
+      "reachedTen": {
+        "shipped": 20,
+        "today": 20,
+        "requests": 20
+      }
+    },
+    {
+      "cell": "10x10-nightmare",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "clueShare": {
+        "shipped": [
+          0.15,
+          0.2105,
+          0.35
+        ],
+        "today": [
+          0.1176,
+          0.1667,
+          0.25
+        ],
+        "medianDiff": 0.0439
+      },
+      "scorePosition": {
+        "shipped": 0.5417,
+        "today": 0.625,
+        "medianDiff": -0.0833
+      },
+      "censusEstimateShare": {
+        "shipped": 0.9,
+        "today": 0.97,
+        "diff": -0.07
+      },
+      "reachedTen": {
+        "shipped": 20,
+        "today": 20,
+        "requests": 20
+      }
+    },
+    {
+      "cell": "18x18-nightmare",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "clueShare": {
+        "shipped": [
+          0.1111,
+          0.1923,
+          0.375
+        ],
+        "today": [
+          0.0833,
+          0.1667,
+          0.2692
+        ],
+        "medianDiff": 0.0256
+      },
+      "scorePosition": {
+        "shipped": 0.5,
+        "today": 0.5,
+        "medianDiff": 0
+      },
+      "censusEstimateShare": {
+        "shipped": 0.37,
+        "today": 0.4865,
+        "diff": -0.1165
+      },
+      "reachedTen": {
+        "shipped": 20,
+        "today": 18,
+        "requests": 20
+      }
+    },
+    {
+      "cell": "18x20-nightmare",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "clueShare": {
+        "shipped": [
+          0.08,
+          0.1852,
+          0.3333
+        ],
+        "today": [
+          0.12,
+          0.16,
+          0.2857
+        ],
+        "medianDiff": 0.0252
+      },
+      "scorePosition": {
+        "shipped": 0.5417,
+        "today": 0.5,
+        "medianDiff": 0.0417
+      },
+      "censusEstimateShare": {
+        "shipped": 0.48,
+        "today": 0.5052,
+        "diff": -0.0252
+      },
+      "reachedTen": {
+        "shipped": 20,
+        "today": 19,
+        "requests": 20
+      }
+    },
+    {
+      "cell": "20x20-nightmare",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "clueShare": {
+        "shipped": [
+          0.1111,
+          0.1923,
+          0.4286
+        ],
+        "today": [
+          0.1154,
+          0.1786,
+          0.2857
+        ],
+        "medianDiff": 0.0137
+      },
+      "scorePosition": {
+        "shipped": 0.5417,
+        "today": 0.5,
+        "medianDiff": 0.0417
+      },
+      "censusEstimateShare": {
+        "shipped": 0.41,
+        "today": 0.53,
+        "diff": -0.12
+      },
+      "reachedTen": {
+        "shipped": 20,
+        "today": 20,
+        "requests": 20
+      }
+    },
+    {
+      "cell": "20x21-nightmare",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "clueShare": {
+        "shipped": [
+          0.1071,
+          0.1852,
+          0.3929
+        ],
+        "today": [
+          0.1379,
+          0.1724,
+          0.2414
+        ],
+        "medianDiff": 0.0128
+      },
+      "scorePosition": {
+        "shipped": 0.5,
+        "today": 0.5417,
+        "medianDiff": -0.0417
+      },
+      "censusEstimateShare": {
+        "shipped": 0.5,
+        "today": 0.6313,
+        "diff": -0.1313
+      },
+      "reachedTen": {
+        "shipped": 20,
+        "today": 19,
+        "requests": 20
+      }
+    },
+    {
+      "cell": "32x15-nightmare",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "clueShare": {
+        "shipped": [
+          0.0741,
+          0.1481,
+          0.3667
+        ],
+        "today": [
+          0.1,
+          0.1429,
+          0.2069
+        ],
+        "medianDiff": 0.0053
+      },
+      "scorePosition": {
+        "shipped": 0.5,
+        "today": 0.5,
+        "medianDiff": 0
+      },
+      "censusEstimateShare": {
+        "shipped": 0.635,
+        "today": 0.63,
+        "diff": 0.005
+      },
+      "reachedTen": {
+        "shipped": 20,
+        "today": 20,
+        "requests": 20
+      }
+    },
+    {
+      "cell": "22x22-nightmare",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "clueShare": {
+        "shipped": [
+          0.0741,
+          0.1481,
+          0.2857
+        ],
+        "today": [
+          0.1034,
+          0.1429,
+          0.2069
+        ],
+        "medianDiff": 0.0053
+      },
+      "scorePosition": {
+        "shipped": 0.5,
+        "today": 0.5,
+        "medianDiff": 0
+      },
+      "censusEstimateShare": {
+        "shipped": 0.685,
+        "today": 0.715,
+        "diff": -0.03
+      },
+      "reachedTen": {
+        "shipped": 20,
+        "today": 20,
+        "requests": 20
+      }
+    },
+    {
+      "cell": "24x24-nightmare",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "clueShare": {
+        "shipped": [
+          0.0714,
+          0.1613,
+          0.2903
+        ],
+        "today": [
+          0.1034,
+          0.1429,
+          0.2069
+        ],
+        "medianDiff": 0.0184
+      },
+      "scorePosition": {
+        "shipped": 0.5417,
+        "today": 0.5417,
+        "medianDiff": 0
+      },
+      "censusEstimateShare": {
+        "shipped": 0.77,
+        "today": 0.845,
+        "diff": -0.075
+      },
+      "reachedTen": {
+        "shipped": 20,
+        "today": 20,
+        "requests": 20
+      }
+    },
+    {
+      "cell": "26x26-nightmare",
+      "shipped": "fr-frozen-none",
+      "today": "log-link",
+      "clueShare": {
+        "shipped": [
+          0.0909,
+          0.1515,
+          0.2903
+        ],
+        "today": [
+          0.0909,
+          0.1515,
+          0.1935
+        ],
+        "medianDiff": 0
+      },
+      "scorePosition": {
+        "shipped": 0.5417,
+        "today": 0.5417,
+        "medianDiff": 0
+      },
+      "censusEstimateShare": {
+        "shipped": 0.865,
+        "today": 0.91,
+        "diff": -0.045
+      },
+      "reachedTen": {
+        "shipped": 20,
+        "today": 20,
+        "requests": 20
+      }
+    }
+  ],
+  "twoSidedCounts": {
+    "clueShareMedian": {
+      "up": 9,
+      "equal": 1,
+      "down": 0
+    },
+    "scorePositionMedian": {
+      "up": 2,
+      "equal": 5,
+      "down": 3
+    },
+    "censusEstimateShare": {
+      "up": 1,
+      "equal": 0,
+      "down": 9
+    }
+  }
+}

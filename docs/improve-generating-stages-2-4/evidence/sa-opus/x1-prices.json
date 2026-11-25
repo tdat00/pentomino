@@ -1,0 +1,145 @@
+{
+  "accountS": 10340.112,
+  "p1NodeS": 285.6455,
+  "V4-S2F (SA-Astra: 5 cells x 2 arms x 5 reps + 2 P-1)": {
+    "counted": 204.5034700968193,
+    "guard": 255.62933762102415,
+    "ceiling": 1165.5,
+    "invocations": 20,
+    "rows": 74,
+    "censored": 0,
+    "completed": 74,
+    "cap": 428,
+    "realistic": {
+      "idle": 52.06111666666667,
+      "full": 58.06111666666667
+    }
+  },
+  "P7 spike, three candidates (SA-Astra's assumption)": {
+    "counted": 15.49562499999999,
+    "guard": 19.369531249999987,
+    "ceiling": 4252.5,
+    "invocations": 3,
+    "rows": 270,
+    "censored": 0,
+    "completed": 270,
+    "cap": 192,
+    "realistic": null
+  },
+  "P7 spike, one candidate": {
+    "counted": 5.16520833333333,
+    "guard": 6.456510416666663,
+    "ceiling": 1417.5,
+    "invocations": 1,
+    "rows": 90,
+    "censored": 0,
+    "completed": 90,
+    "cap": 179,
+    "realistic": null
+  },
+  "V4-S4 (initial + both conditional boards, no S4-6)": {
+    "counted": 1185.486485133807,
+    "guard": 1481.858106417258,
+    "ceiling": 18396,
+    "invocations": 137,
+    "rows": 1168,
+    "censored": 200,
+    "completed": 968,
+    "cap": 1655,
+    "realistic": {
+      "idle": 468.3120707884842,
+      "full": 513.8120707884842
+    }
+  },
+  "V4-S4C (same collection)": {
+    "counted": 585.617103595435,
+    "guard": 732.0213794942938,
+    "ceiling": 5985,
+    "invocations": 51,
+    "rows": 380,
+    "censored": 0,
+    "completed": 380,
+    "cap": 905,
+    "realistic": {
+      "idle": 169.83342821004217,
+      "full": 182.83342821004217
+    }
+  },
+  "duplicates": {},
+  "N-V4-18 saving, SA-Astra (n-small, 216-324, 360+, Hell 1 fixed none: 17 cells)": {
+    "counted": 390.6075340533199,
+    "guard": 488.25941756665,
+    "ceiling": 5355,
+    "invocations": 35,
+    "rows": 340,
+    "censored": 60,
+    "completed": 280,
+    "cap": 661,
+    "realistic": {
+      "idle": 164.9061707233755,
+      "full": 174.9061707233755
+    }
+  },
+  "N-V4-18 saving, SA-Opus cross-review (n-small and Hell 1 fixed none: 7 cells)": {
+    "counted": 240.37080630897228,
+    "guard": 300.4635078862153,
+    "ceiling": 2205,
+    "invocations": 21,
+    "rows": 140,
+    "censored": 60,
+    "completed": 80,
+    "cap": 473,
+    "realistic": {
+      "idle": 90.27792840816984,
+      "full": 94.77792840816984
+    }
+  },
+  "V4-S2B": {
+    "formalCountedMin": 22.59498720938819,
+    "formalGuardMin": 28.243734011735235,
+    "realisticIdleMin": 15.959042207510551,
+    "realisticFullMin": 19.959042207510553
+  },
+  "Hell 1 composite check, one uncapped candidate arm (4 boards x 5 reps) + its P-1": {
+    "counted": 85.48795805087369,
+    "guard": 106.85994756359212,
+    "ceiling": 504,
+    "invocations": 8,
+    "rows": 32,
+    "censored": 0,
+    "completed": 32,
+    "cap": 280,
+    "realistic": {
+      "idle": 24.983675,
+      "full": 27.483675
+    }
+  },
+  "Hell 1 composite check, rows only (arm with an accepted binding)": {
+    "counted": 67.68795805087369,
+    "guard": 84.60994756359212,
+    "ceiling": 315,
+    "invocations": 6,
+    "rows": 20,
+    "censored": 0,
+    "completed": 20,
+    "cap": 257,
+    "realistic": {
+      "idle": 19.972916666666666,
+      "full": 21.972916666666666
+    }
+  },
+  "V4-S3P: the four frozen arms' P-1 passes": {
+    "counted": 71.2,
+    "guard": 89,
+    "ceiling": 756,
+    "invocations": 8,
+    "rows": 48,
+    "censored": 0,
+    "completed": 48,
+    "cap": 262,
+    "realistic": {
+      "idle": 20.043033333333334,
+      "full": 22.043033333333334
+    }
+  }
+}

@@ -1,0 +1,137 @@
+SA-Astra task-pack review 3: unlocked static and pure checks; no engine or git command.
+COMMAND: node --experimental-vm-modules --no-warnings docs\improve-generating-stages-2-4\evidence\sa-astra\bt-review3-checks.mjs --label frozen
+{
+  "index": {
+    "tasks": 35,
+    "totalHours": 68,
+    "maximumHours": 3,
+    "brokenLinks": [],
+    "badDependencies": []
+  },
+  "staleReferences": [],
+  "variants": [
+    [
+      "fr-frozen",
+      90
+    ],
+    [
+      "fr-frozen-live-test",
+      91
+    ],
+    [
+      "fr-frozen-none",
+      90
+    ],
+    [
+      "fr-frozen-none-live-test",
+      91
+    ],
+    [
+      "fr-frozen-none-uncapped",
+      90
+    ],
+    [
+      "fr-frozen-nowindow-test",
+      92
+    ],
+    [
+      "fr-frozen-uncapped",
+      90
+    ],
+    [
+      "live",
+      76
+    ],
+    [
+      "live-test",
+      77
+    ],
+    [
+      "p5-mode",
+      42
+    ],
+    [
+      "p7-c1",
+      9
+    ],
+    [
+      "p7-c1r5",
+      10
+    ],
+    [
+      "p7-c1r5c5",
+      13
+    ],
+    [
+      "ps-levels",
+      49
+    ]
+  ],
+  "bound": {
+    "state": "resolved",
+    "at": 119000,
+    "cancels": 1,
+    "sameSnapshot": true,
+    "unchangedAfter125000": true
+  },
+  "inputConstructor": {
+    "instrDeclared": true,
+    "usesMaker": true,
+    "hellVerification": true
+  },
+  "bindingSpecification": {
+    "listed": [
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/10x10-nightmare/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/12x12-nightmare/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/14x14-nightmare/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/15x15b10-nightmare/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-hell-1/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-master/calls.json",
+      "tests/artifacts/ig-proto/frozen/IGP-02/main/26x26-nightmare/calls.json",
+      "tools/ig-proto/data/p7-memory-fixtures.json",
+      "tools/ig-proto/data/boards-v1.json"
+    ],
+    "passesSpecifiedNonemptyRequiredPathAndHashChecks": true,
+    "absentCanonicalRunFiles": [
+      "tests/artifacts/ig-proto/frozen/V4-P7E-p7-x-quick/equal/experiment.json",
+      "tests/artifacts/ig-proto/frozen/V4-P7E-p7-x-quick/equal/state.json",
+      "tests/artifacts/ig-proto/frozen/V4-P7E-p7-x-quick/equal/items.jsonl"
+    ]
+  },
+  "rawIdentitySpecification": {
+    "missingBothProducerIdentities": [],
+    "duplicateShardDeclaration": [],
+    "duplicateRowIdentity": []
+  },
+  "formattedFiles": 37
+}
+COMMAND: node docs\improve-generating-stages-2-4\evidence\sa-opus\bt-bound.mjs --label frozen
+ok an unlisted level returns the promises unchanged
+ok an unlisted level sets no timer
+ok a held set is pending at t0 + 118999
+ok a held set ends at t0 + 119000 with response-bound (resolved, 119000)
+ok the client is cancelled once at the bound
+ok driving the clock through 120 s changes nothing
+ok a held batch ends at t0 + 119000 with the prefix snapshot (resolved, 119000)
+ok releasing the held batch at t0 + 125000 changes nothing
+ok a batch without a prefix snapshot is a fault, not an invented result
+ok a failing snapshot rejects the batch with its error
+ok a batch that settles first is returned unchanged; the cleared timer never fires
+ok a set fault before the bound is propagated
+ok a batch called after the bound is cancelled and cut at once
+ok the live tree composes (no error)
+ok both assemblies were found in the composed client
+ok the snapshot builds its pack from the same parts as the final assembly
+ok the snapshot imports the synchronous validator
+ok the assembly gate is read at the set and the batch assembly only
+bt-bound: every check passed
+COMMAND: npm run check
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+PASS: 54 reviewed input hashes unchanged.
+PASS: review-3.md, bt-review3-checks.mjs and .json are CRLF, UTF-8 without BOM, no trailing whitespace, final newline.
+PASS: this log normalized to the same format.

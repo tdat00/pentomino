@@ -1,0 +1,8 @@
+{
+  "id": "v4-w095",
+  "extends": ["v4"],
+  "description": "gen-v4 prototype with a 95 M screen (V4-T02a): W 95,000,000, screenTable w095.",
+  "edits": [],
+  "files": [],
+  "params": { "W": { "default": 95000000 }, "screenTable": "w095" }
+}

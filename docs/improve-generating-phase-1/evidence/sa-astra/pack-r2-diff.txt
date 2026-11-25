@@ -1,0 +1,131 @@
+Phase-1 pack review-2 diff: R2-1, R2-2, R2-4 and the conditional SA-Opus sign-off.
+R2-3 remains the orchestrator action. No task, commit or remote mutation was executed.
+Command for each file: git --no-pager -c color.ui=false diff --no-index --unified=0 -- <owned-before-copy> <task-file>
+
+diff --git "a/tests\\artifacts\\sa-astra-p1-r2-diff\\check-list.md" "b/tasks\\improve-generating-phase-1\\check-list.md"
+index 633d0dd..18bd85f 100644
+--- "a/tests\\artifacts\\sa-astra-p1-r2-diff\\check-list.md"
++++ "b/tasks\\improve-generating-phase-1\\check-list.md"
+@@ -134,2 +134 @@ function Test-GateLog([string]$Log, [string]$Helper, [string]$Task, [int]$Major,
+-Run from the root, with `$ErrorActionPreference = 'Stop'`. Every native command's exit must be checked;
+-PowerShell's error preference alone does not make a nonzero native exit fail.
++Run from the root, with `$ErrorActionPreference = 'Stop'`. Every native command's exit must be checked; PowerShell's error preference alone does not make a nonzero native exit fail. Each tool command is a fresh process. Put a guard in the same command as the `$Allowed`, `$FormatFiles` or other variables it reads, after them, and re-paste those definitions in every command that runs the guard.
+@@ -299 +298 @@ the final result/fork. Do not make a second commit just to mark the local checkl
+-- SA-Opus:
++- SA-Opus: **accepted**, on the condition that R2-1 to R2-4 are applied verbatim. The orchestrator records the sign-off in check-list §7 once a diff shows the four edits. Any other change to the pack needs a new review.
+
+diff --git "a/tests\\artifacts\\sa-astra-p1-r2-diff\\P1-01-source-bound-adoption.md" "b/tasks\\improve-generating-phase-1\\P1-01-source-bound-adoption.md"
+index f55d022..531d0b5 100644
+--- "a/tests\\artifacts\\sa-astra-p1-r2-diff\\P1-01-source-bound-adoption.md"
++++ "b/tasks\\improve-generating-phase-1\\P1-01-source-bound-adoption.md"
+@@ -65,3 +65,3 @@ measurements and current source checks explicit. Preserve every original observa
+-   Apply `E/sa-opus/p1-01-edit-proto.mjs`'s 26 `EDITS` entries (:22-144), each find anchor occurring
+-   exactly once, then its two block deletions and final `console.log` replacement (:146-163).
+-   Do not copy its scratch runner/report writer.
++   Apply `E/sa-opus/p1-01-edit-proto.mjs`'s 26 `EDITS` entries (:22-124), each find anchor occurring
++   exactly once, then its two block deletions and final `console.log` replacement (:135-144).
++   Do not copy its leftover check or scratch runner/report writer (:145-178).
+
+diff --git "a/tests\\artifacts\\sa-astra-p1-r2-diff\\P1-02-fold-width-eight.md" "b/tasks\\improve-generating-phase-1\\P1-02-fold-width-eight.md"
+index 784d497..76eaa92 100644
+--- "a/tests\\artifacts\\sa-astra-p1-r2-diff\\P1-02-fold-width-eight.md"
++++ "b/tasks\\improve-generating-phase-1\\P1-02-fold-width-eight.md"
+@@ -99 +99 @@ its serial reference and other assertions. Document exactly what the test covers
+-6. In the **same session** run:
++6. Append this to step 5's command. The gate and these checks are one command: a later command has neither `$dir` nor the shared functions.
+
+diff --git "a/tests\\artifacts\\sa-astra-p1-r2-diff\\P1-03b-current-qualification.md" "b/tasks\\improve-generating-phase-1\\P1-03b-current-qualification.md"
+index cedec00..0aa75e0 100644
+--- "a/tests\\artifacts\\sa-astra-p1-r2-diff\\P1-03b-current-qualification.md"
++++ "b/tasks\\improve-generating-phase-1\\P1-03b-current-qualification.md"
+@@ -43 +43 @@ later documentary commits can reuse them without repeating the suites.
+-   in order in **one PowerShell session**. No variable survives a new tool call.
++   in order as **one PowerShell command**. No variable survives a new tool command.
+@@ -248 +248 @@ later documentary commits can reuse them without repeating the suites.
+-3. Set the scope/format lists, run G-PROTECTED, G-STAGE, G-WORKTREE and G-FORMAT:
++3. In a new command, set the scope and format lists, then run G-PROTECTED, G-STAGE, G-WORKTREE and G-FORMAT in the same command. `$dir` comes from `index.json`.
+@@ -250,0 +251,6 @@ later documentary commits can reuse them without repeating the suites.
++   Set-Location Q:\git\pentomino
++   [Environment]::CurrentDirectory = (Get-Location).Path
++   $ErrorActionPreference = 'Stop'
++   $V = 'docs\improve-generating-phase-1\evidence\verification'
++   $dir = "$V\" + (Get-Content -Raw -LiteralPath "$V\index.json" | ConvertFrom-Json).attempt
++   if (-not (Test-Path -LiteralPath $dir -PathType Container)) { throw 'QUESTION: the attempt folder named by index.json is missing' }
+
+diff --git "a/tests\\artifacts\\sa-astra-p1-r2-diff\\P1-05-publish-phase-one.md" "b/tasks\\improve-generating-phase-1\\P1-05-publish-phase-one.md"
+index f852490..e7f2828 100644
+--- "a/tests\\artifacts\\sa-astra-p1-r2-diff\\P1-05-publish-phase-one.md"
++++ "b/tasks\\improve-generating-phase-1\\P1-05-publish-phase-one.md"
+@@ -45,3 +45 @@ unambiguous fork for phase 2. Do not start phase 2 or change the live site.
+-Run steps 1-5 in **one PowerShell session**. Set a sufficiently long tool wait; if an external
+-command is still running, read that session instead of repeating it. A failure is a stop, not an
+-automatic retry. All writes below are relative to the repository after the shared directory fix.
++Steps 1-5 run as **two PowerShell commands**. Each tool command is a fresh process: no variable, function or location survives it, and no file edit can happen inside one.
+@@ -49,2 +47,13 @@ automatic retry. All writes below are relative to the repository after the share
+-1. **Preflight, read-only.** Paste the first three lines of check-list §3.2. Run G-PROTECTED,
+-   G-QUALIFIED and `npm run check` (check exit 0), then:
++- **Command 1** is step 1 and is read-only.
++- The orchestrator then reviews the state and edits the bookkeeping (step 2's first paragraph).
++- **Command 2** is the rest of step 2 and steps 3-5, run without a pause. It starts by repeating step 1's checks, so a change of state between the two commands stops it.
++
++Set a long tool wait; if a command is still running, read its output instead of starting it again. A failure is a stop, not an automatic retry. All writes below are relative to the repository after the shared directory fix.
++
++1. **Preflight, read-only (command 1).** In one command, run:
++
++   - the first three lines of check-list §3.2;
++   - G-PROTECTED and G-QUALIFIED;
++   - `npm run check`, followed by `if ($LASTEXITCODE -ne 0) { throw 'QUESTION: npm run check failed' }`;
++   - the block below;
++   - G-WORKTREE.
+@@ -92 +101 @@ automatic retry. All writes below are relative to the repository after the share
+-   Run G-WORKTREE with the list above. Review `git --no-pager log --oneline eca0f94..HEAD` (exit 0)
++   After command 1, review `git --no-pager log --oneline eca0f94..HEAD` (exit 0)
+@@ -98 +107 @@ automatic retry. All writes below are relative to the repository after the share
+-2. **Bookkeeping commit.** Record the start time, preflight/gates and state "publication pending at
++2. **Bookkeeping, then command 2.** Record the start time, preflight/gates and state "publication pending at
+@@ -105,2 +114,13 @@ automatic retry. All writes below are relative to the repository after the share
+-   Run G-WORKTREE and G-FORMAT with
+-   `$FormatFiles = @($Allowed | ForEach-Object { $_.Replace('/', '\') })` after those edits, then:
++   Then run **command 2**, in this order:
++
++   1. the first three lines of check-list §3.2;
++   2. step 1's code block again (it re-checks the refs, PR #11, ancestry and scope, and defines the constants, `$Allowed` and `Get-Remote`);
++   3. G-WORKTREE;
++   4. G-FORMAT with `$FormatFiles = @($Allowed | ForEach-Object { $_.Replace('/', '\') })`;
++   5. the code block below;
++   6. step 3's block;
++   7. step 4's body block;
++   8. G-FORMAT with `$FormatFiles = @("$raw\body.md")`;
++   9. step 4's edit block;
++   10. step 5's block;
++   11. step 5's closing checks.
+@@ -143 +163 @@ automatic retry. All writes below are relative to the repository after the share
+-   Run G-FORMAT with `$FormatFiles = @("$raw\body.md")` before the edit:
++   In command 2, G-FORMAT with `$FormatFiles = @("$raw\body.md")` runs between this block and the edit:
+@@ -173,2 +193,7 @@ automatic retry. All writes below are relative to the repository after the share
+-   Run G-FORMAT on the two transient files, G-QUALIFIED and `git --no-pager status --porcelain
+-   --untracked-files=all` (exit 0, empty). Keep the ignored read/body until hand-over; do not stage them.
++   End command 2 with three checks:
++
++   - G-FORMAT with `$FormatFiles = @("$raw\body.md", "$raw\pr-after.json")`;
++   - G-QUALIFIED;
++   - `$st = @(git --no-pager status --porcelain --untracked-files=all); if ($LASTEXITCODE -ne 0 -or $st.Count) { throw 'QUESTION: the worktree is not clean after publication' }`.
++
++   Keep the ignored read and body until hand-over; do not stage them.
+@@ -200 +225,2 @@ Post-push completion facts live in the final report/footer, not a self-referenci
+-| Step 1 read-only commands | Root | No throw; exact origin/refs/PR state | 2 min per network command |
++| Command 1 (step 1, read-only) | Root | No throw; exact origin/refs/PR state | 2 min per network command |
++| Command 2 (step 1 again, then steps 2-5) | Root, orchestrator | No throw; one commit, one push, one edit, verified | 10 min; read the same command if still running |
+
+Validation
+R2 verbatim checks: 43 pass; R2-3 reserved to the orchestrator.
+PowerShell syntax: 23 task/shared blocks parse; no commands executed.
+Command: npm run check
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+format: OK (10 files)
+Protected source/plan diff empty; owned before-copy folder removed. No commit, engine run or remote mutation.

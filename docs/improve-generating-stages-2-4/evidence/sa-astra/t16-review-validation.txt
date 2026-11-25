@@ -1,0 +1,316 @@
+{
+  "rows": 1500,
+  "comparatorCells": 19,
+  "requestPairs": 380,
+  "phase0": {
+    "verdict": "fail",
+    "deciding": [
+      "control 26x26-nightmare: fail"
+    ],
+    "line": "Phase 0: FAIL (control 26x26-nightmare: fail)"
+  },
+  "raw": [
+    {
+      "arm": "fr-frozen-none",
+      "calls": 7852,
+      "setCalls": 1517,
+      "inBandSet": 784,
+      "setNoEnd": 733,
+      "setNoWindow": 0,
+      "budgetStops": 0,
+      "boundCondition": 0,
+      "glue": 0,
+      "maxByLevel": {
+        "nightmare": {
+          "endedG": 8.39,
+          "terminatedG": 4.65,
+          "allKnownPrefixG": 8.39,
+          "beginAboveBudget": 0,
+          "terminatedPrefixAtBudget": 0
+        },
+        "hell-1": {
+          "endedG": 23.08,
+          "terminatedG": 17.16,
+          "allKnownPrefixG": 23.08,
+          "beginAboveBudget": 0,
+          "terminatedPrefixAtBudget": 0
+        }
+      }
+    },
+    {
+      "arm": "fr-frozen",
+      "calls": 9318,
+      "setCalls": 1836,
+      "inBandSet": 954,
+      "setNoEnd": 882,
+      "setNoWindow": 0,
+      "budgetStops": 0,
+      "boundCondition": 0,
+      "glue": 0,
+      "maxByLevel": {
+        "master": {
+          "endedG": 3.1,
+          "terminatedG": 1.6,
+          "allKnownPrefixG": 3.1,
+          "beginAboveBudget": 0,
+          "terminatedPrefixAtBudget": 0
+        },
+        "nightmare": {
+          "endedG": 6.8,
+          "terminatedG": 4.06,
+          "allKnownPrefixG": 6.8,
+          "beginAboveBudget": 0,
+          "terminatedPrefixAtBudget": 0
+        },
+        "hell-1": {
+          "endedG": 23.08,
+          "terminatedG": 17.16,
+          "allKnownPrefixG": 23.08,
+          "beginAboveBudget": 0,
+          "terminatedPrefixAtBudget": 0
+        }
+      }
+    },
+    {
+      "arm": "fr-frozen-none-uncapped",
+      "calls": 6640,
+      "setCalls": 1277,
+      "inBandSet": 674,
+      "setNoEnd": 603,
+      "setNoWindow": 0,
+      "budgetStops": 0,
+      "boundCondition": 0,
+      "glue": 0,
+      "maxByLevel": {
+        "nightmare": {
+          "endedG": 8.39,
+          "terminatedG": 4,
+          "allKnownPrefixG": 8.39,
+          "beginAboveBudget": 0,
+          "terminatedPrefixAtBudget": 0
+        },
+        "hell-1": {
+          "endedG": 23.08,
+          "terminatedG": 17.16,
+          "allKnownPrefixG": 23.08,
+          "beginAboveBudget": 0,
+          "terminatedPrefixAtBudget": 0
+        }
+      }
+    },
+    {
+      "arm": "fr-frozen-uncapped",
+      "calls": 1198,
+      "setCalls": 240,
+      "inBandSet": 119,
+      "setNoEnd": 121,
+      "setNoWindow": 0,
+      "budgetStops": 0,
+      "boundCondition": 0,
+      "glue": 0,
+      "maxByLevel": {
+        "nightmare": {
+          "endedG": 3.71,
+          "terminatedG": 1.65,
+          "allKnownPrefixG": 3.71,
+          "beginAboveBudget": 0,
+          "terminatedPrefixAtBudget": 0
+        }
+      }
+    }
+  ],
+  "losses": [
+    {
+      "cell": "14x14-hell-1",
+      "rep": 26,
+      "boundedCount": 7,
+      "boundedResponseMs": 115127.18239999999,
+      "uncappedT10Ms": 129370.20969999999,
+      "uncappedResponseMs": 129527.6442,
+      "boundedLastAcceptMs": 110418.54609999999,
+      "observedBudgetStops": 0
+    },
+    {
+      "cell": "14x14-hell-1",
+      "rep": 38,
+      "boundedCount": 9,
+      "boundedResponseMs": 115171.1951,
+      "uncappedT10Ms": 119751.0061,
+      "uncappedResponseMs": 119901.6887,
+      "boundedLastAcceptMs": 106639.8432,
+      "observedBudgetStops": 0
+    }
+  ],
+  "reserve": [
+    {
+      "arm": "fr-frozen",
+      "boundedResponseMs": 46008.4605,
+      "uncappedSetMs": 52020.2376,
+      "uncappedResponseMs": 167129.6979,
+      "uncappedCount": 5
+    },
+    {
+      "arm": "fr-frozen-none",
+      "boundedResponseMs": 46009.1184,
+      "uncappedSetMs": 52020.2376,
+      "uncappedResponseMs": 167129.6979,
+      "uncappedCount": 5
+    }
+  ],
+  "deadline": [
+    {
+      "arm": "fr-frozen",
+      "rows": 460,
+      "prototypeRows": 380,
+      "violations": 0,
+      "reasons": {
+        "complete": 449,
+        "layouts-not-found": 1,
+        "time-limit": 9,
+        "set:reserve-cut": 1
+      },
+      "maximum": {
+        "rowKey": "14x14-hell-1~38",
+        "responseMs": 115161.3443
+      }
+    },
+    {
+      "arm": "fr-frozen-none",
+      "rows": 380,
+      "prototypeRows": 380,
+      "violations": 0,
+      "reasons": {
+        "complete": 370,
+        "time-limit": 9,
+        "set:reserve-cut": 1
+      },
+      "maximum": {
+        "rowKey": "14x14-hell-1~38",
+        "responseMs": 115171.1951
+      }
+    }
+  ],
+  "liveMetrics": {
+    "responseMinMs": 5586.6039,
+    "responseMaxMs": 41240.860199999996,
+    "setMaxMs": 18105.6351,
+    "live": true,
+    "postHoc": false,
+    "workCutoffMs": 115000,
+    "responseBoundMs": 120000,
+    "reserveChecked": true
+  },
+  "populationDirections": {
+    "clue": {
+      "up": 9,
+      "equal": 1,
+      "down": 0
+    },
+    "score": {
+      "up": 2,
+      "equal": 5,
+      "down": 3
+    },
+    "census": {
+      "up": 1,
+      "equal": 0,
+      "down": 9
+    }
+  },
+  "cell26": {
+    "bounded": {
+      "geoMean": 1.0006219645915206,
+      "lower": 0.886429539656821,
+      "pass": false
+    },
+    "uncapped": {
+      "geoMean": 1.0151137936276584,
+      "lower": 0.8987118517173951,
+      "pass": false
+    },
+    "screen": {
+      "geoMean": 1.4665780100036852,
+      "lower": 1.2929807789805263,
+      "pass": true
+    },
+    "twinOverBounded": {
+      "geometricMean": 0.9857239364422887,
+      "min": 0.9474750665718458,
+      "max": 1.0081782304324516,
+      "reciprocalPercent": 1.4482821234144794
+    },
+    "rep21SetCall": [
+      {
+        "task": "V4-S4",
+        "arm": "log-link",
+        "path": "tests/artifacts/ig-proto/frozen/V4-S4/log-link/val-26x26-nightmare/logs/26x26-nightmare~21.18752.1.jsonl",
+        "call": "26x26-nightmare~21:18752:1:1",
+        "K": 33,
+        "initial": 5,
+        "prior": null,
+        "W": null,
+        "ms": 2277.016,
+        "work": 522672460,
+        "profiles": 2
+      },
+      {
+        "task": "V4-S4",
+        "arm": "fr-frozen-none",
+        "path": "tests/artifacts/ig-proto/frozen/V4-S4/fr-frozen-none/val-26x26-nightmare/logs/26x26-nightmare~21.7080.1.jsonl",
+        "call": "26x26-nightmare~21:7080:1:1",
+        "K": 33,
+        "initial": 5,
+        "prior": 4,
+        "W": 760000000,
+        "ms": 25258.13,
+        "work": 5606363111,
+        "profiles": 13
+      },
+      {
+        "task": "V4-S4C",
+        "arm": "fr-frozen-none-uncapped",
+        "path": "tests/artifacts/ig-proto/frozen/V4-S4C/fr-frozen-none-uncapped/val-26x26-nightmare/logs/26x26-nightmare~21.13276.1.jsonl",
+        "call": "26x26-nightmare~21:13276:1:1",
+        "K": 33,
+        "initial": 5,
+        "prior": 4,
+        "W": 760000000,
+        "ms": 25443.086,
+        "work": 5606363111,
+        "profiles": 13
+      }
+    ],
+    "rep21SetCallWorkRatio": 10.726341141065669
+  },
+  "round": {
+    "loggedS": 52184.59700000001,
+    "loggedInvocations": 207,
+    "offLogS": 87.4,
+    "totalS": 52271.99700000001,
+    "minutes": 871.1999500000002,
+    "grant": 1725,
+    "qualification": "207 logged invocations; the earlier externally killed 87.4-s invocation is accounted separately off-log."
+  },
+  "rowStudyProxy": {
+    "twentyRowCosts": [
+      {
+        "arm": "fr-frozen-none",
+        "countedS": 412.07
+      },
+      {
+        "arm": "log-link",
+        "countedS": 415.472
+      }
+    ],
+    "fortyFreshPairsMinutes": 27.58473333333333,
+    "note": "Linear timing proxy for rows only, not a fully priced or approved study."
+  },
+  "inputCount": 12309
+}
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+T16 review validation: 12309 input hashes unchanged; index verified; four own artifacts CRLF/UTF-8 without BOM; main report unchanged and unsigned.

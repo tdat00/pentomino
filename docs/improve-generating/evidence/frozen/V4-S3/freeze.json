@@ -1,0 +1,1672 @@
+{
+  "format": "ig-v4-freeze",
+  "version": 1,
+  "classes": [
+    {
+      "id": "n-small",
+      "cells": [
+        "3x29-nightmare",
+        "10x10-nightmare",
+        "12x12-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "n-mid",
+      "cells": [
+        "14x14-nightmare",
+        "15x15b10-nightmare",
+        "16x16-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "n-upper",
+      "cells": [
+        "15x20-nightmare",
+        "18x18-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "n-large",
+      "cells": [
+        "18x20-nightmare",
+        "20x20-nightmare",
+        "20x21-nightmare",
+        "32x15-nightmare",
+        "22x22-nightmare",
+        "24x24-nightmare",
+        "26x26-nightmare"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    },
+    {
+      "id": "hell-1",
+      "cells": [
+        "14x14-hell-1",
+        "20x20-hell-1",
+        "24x24-hell-1",
+        "26x26-hell-1"
+      ],
+      "screen": "fr-frozen",
+      "noScreen": "fr-frozen-none"
+    }
+  ],
+  "bounds": {
+    "n-small": [
+      "nightmare",
+      1,
+      144
+    ],
+    "n-mid": [
+      "nightmare",
+      196,
+      256
+    ],
+    "n-upper": [
+      "nightmare",
+      257,
+      324
+    ],
+    "n-large": [
+      "nightmare",
+      360,
+      null
+    ],
+    "hell-1": [
+      "hell-1",
+      1,
+      null
+    ]
+  },
+  "tables": {
+    "screen": "screen-s3-v1",
+    "prior": "prior-s3-v1",
+    "budget": "budget-s3-v1",
+    "deadline": "deadline-s3-v1"
+  },
+  "values": {
+    "W": {
+      "n-small": null,
+      "n-mid": 190000000,
+      "n-upper": 190000000,
+      "n-large": 190000000,
+      "hell-1": null
+    },
+    "callBudget": {
+      "any": {
+        "nightmare": 10000000000,
+        "hell-1": 40000000000
+      },
+      "require": {
+        "nightmare": 32000000000,
+        "hell-1": 40000000000
+      }
+    },
+    "setAttemptsBound": 4,
+    "deadline": {
+      "reserve": 0.6,
+      "setStageCapMs": 46000,
+      "generationStopMs": 115000,
+      "responseBoundMs": 120000
+    },
+    "c4": false,
+    "rerate": "rescue",
+    "rerateMax": 4,
+    "ranker": null,
+    "perSetLevels": [
+      "hell-1"
+    ]
+  },
+  "variants": {
+    "fr-frozen": {
+      "treeId": "b3e530b1bca515e551f240faccc327f9868da0f475a60761986faf4884b781f7",
+      "paramsHash": "8d88421dd28da637585e3add86da5d69b7a780dbc3115fc67967ca25b206bd19"
+    },
+    "fr-frozen-none": {
+      "treeId": "fa903f397ef6dce86ef70f3afb771c5de258b12836ae314bf796dbbf798ec6b3",
+      "paramsHash": "2fb012457857019b1b6a08cc1a7a2d6cf3147b3682c838c6d1351a688b0c528c"
+    },
+    "fr-frozen-uncapped": {
+      "treeId": "96ef38e2fd6d8f0ad07f1858275377f5d4bf788d7a2ae4cd80a813afdd829599",
+      "paramsHash": "a65b581dff5d038446347400c16669d15ca1b383b0aa428d091b5409a5a0f5bc"
+    },
+    "fr-frozen-none-uncapped": {
+      "treeId": "e31d829dee8d15a58c3e0d796afa35665222cd30fa707f3a52c5e5f868e6779c",
+      "paramsHash": "bedc1ecdfde3ecd52cccc9dfaa0da8ed5136ada5bdebb88ad34a96279bec08cf"
+    }
+  },
+  "seeds": {
+    "used": [
+      {
+        "source": "V4-S2",
+        "arms": [
+          "fr-base",
+          "fr-screen",
+          "fr-none",
+          "fr-close",
+          "fr-c4",
+          "fr-ps",
+          "fr-p5"
+        ],
+        "reps": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "source": "V4-S2B",
+        "arms": [
+          "fr-none"
+        ],
+        "reps": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "source": "V4-S3P",
+        "arms": [
+          "fr-frozen-none-uncapped"
+        ],
+        "reps": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "source": "MP12b1",
+        "reps": "landscape reps 0-19 of docs/difficulty-v3/landscape-v3-full (today's search)"
+      },
+      {
+        "source": "IGP-05",
+        "reps": "PM1's first slice (ig-pm1/...)"
+      },
+      {
+        "source": "V4-S2K, V4-T10a-c",
+        "reps": "the kernel streams ig-v4/kernel/<case>"
+      }
+    ],
+    "fitting": [
+      "landscape/<cell>/<rep>, reps 0-4: V4-S2, V4-S2B and the Hell 1 check of V4-S3P",
+      "the provisional reps 0-5",
+      "MP12b1 reps 0-19 (reps 10-19 fitted prior-v1)",
+      "PM1's first slice (ig-pm1/...; IGP-05)",
+      "R28",
+      "the parity, replay and kernel streams (ig-v4/parity/..., ig-v4/replay/..., ig-v4/kernel/...)"
+    ],
+    "excluded": [
+      "validation reps 20-39",
+      "Master reps 20-24",
+      "second validation reps 40-59"
+    ]
+  },
+  "fit": {
+    "hash": "sha256Lf: the SHA-256 of the UTF-8 text with every CRLF replaced by LF (lib/records.mjs sha256Text); the fit-read records name it sha256",
+    "indices": [
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/input-index.json",
+        "key": "sha256Lf",
+        "entries": 1324,
+        "sha256": "9771ea9a379af90645a61d9a388a310c7c127acc447a5cb92bb1f24cc1c2a0ca"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/review-input-index.json",
+        "key": "sha256Lf",
+        "entries": 1251,
+        "sha256": "b2ea60862a9e21c5ca83b19f1c2cac3be53c788786424b7169ed95517cf15117"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/freeze-inputs.json",
+        "key": "sha256Lf",
+        "entries": 39,
+        "sha256": "e2f80b1d1844dd72be2f7939351ae3314a6006bccef7ccae5d7f3663fcafa162"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/fit-input-index.json",
+        "key": "sha256Lf",
+        "entries": 2403,
+        "sha256": "2fbbb4e3d898b0aa58334ebcb461be57d82bf64789f9ca39986824a37958412e"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-transport-inputs.json",
+        "key": "sha256Lf",
+        "entries": 145,
+        "sha256": "de2b3ae568c57f256fea71bf92921c3ad660ffffabc5303f26475f1042a5ea9f"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-projection-inputs.json",
+        "key": "sha256Lf",
+        "entries": 6,
+        "sha256": "26445856a9352960d9a23325961bca1b1a0750ea45695c1a76683d16a8563c80"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S2B/fit-read-preview-fr-none.json",
+        "key": "sha256",
+        "entries": 17,
+        "sha256": "58ca83c4380ee5e5eeb78430f6de13dd8dcbdf267e120b6c7ded065a4793d856"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S2B/fit-read-prefixes-fr-none.json",
+        "key": "sha256",
+        "entries": 334,
+        "sha256": "b5d93dbe64274807970546d89ecfe3b0a88f601c191f305f43e168fbc37a7aa3"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/s01-review-checks.json",
+        "key": "sha256",
+        "entries": 8,
+        "sha256": "ab193f629dbed441b738bad597bb3734846ce0227014b6006f6c43fa18fc2573"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S3P/fit-read-prefixes-fr-frozen-none-uncapped.json",
+        "key": "sha256",
+        "entries": 173,
+        "sha256": "081ca6ed4df44190674fa2860efb1b59f97774761eeaa3aaa4f6d84a495e3a07"
+      }
+    ],
+    "files": [
+      {
+        "path": "tools/ig-proto/freeze.mjs",
+        "sha256": "a5789ed1a82f1f5cf10e7de79855a77ae4165ed0440046f9fda8448fad0443b4"
+      },
+      {
+        "path": "tools/ig-proto/fit-prior-s3.mjs",
+        "sha256": "4c6351acc67bdb2353a5335ccf1aae05ca1b40fe3977e9ef8119f921f843c3fa"
+      },
+      {
+        "path": "tools/ig-proto/data/prior-s3-v1.json",
+        "sha256": "536dfd5d70dcdd3fa89f0b18141c161656e5ca968b7a18c52ec218c17cb1e0e1"
+      },
+      {
+        "path": "tools/ig-proto/data/prior-v1.json",
+        "sha256": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-14x14-hell-1.calls.jsonl",
+        "sha256": "478483580e1f49ba83249cb61540f1ef09c6fb95bf70efc23f5ad06c36a66384"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-20x20-hell-1.calls.jsonl",
+        "sha256": "26a60b21670e0b6b2672ff884664fc859a2b6b82ce96bd087918877b95cfa19c"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-24x24-hell-1.calls.jsonl",
+        "sha256": "70c9e5f4c62ebc6bd44bac69e27144d0219654de95eb975575fdafac623e79f5"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S2/fr-base/pilot-26x26-hell-1.calls.jsonl",
+        "sha256": "b1c230b3d4a549480c7ba0757fde7b3401778f0496902ae4ab0781f4e861d8bc"
+      },
+      {
+        "path": "docs/improve-generating/evidence/provisional/IGP-05/families-windows.jsonl",
+        "sha256": "469fb5094a7d366b191ae457d4d48d555a4288403f1623ff5c8a46adaabad552"
+      },
+      {
+        "path": "docs/improve-generating/evidence/provisional/IGP-05/families-failed-sets.jsonl",
+        "sha256": "01e0e8286c9d2ac5b89c4166a460f75855db4b89365eb05dec7eabf62f1cb666"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/analyze-records.mjs",
+        "sha256": "8d0b1b607fe1296181457a0f114126db85d0c4ee9164287195706b301dde1174"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/freeze-inputs.mjs",
+        "sha256": "84601a74eb3f5e2c7881c8faa990c93e7f8b0c43f183cc2e4d39e88e9f8388a2"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/review-records.mjs",
+        "sha256": "49144724c834e464e2fe886c6c47896bebdce49f263ffe9f2558b998d3095ee1"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/stage2-computed.json",
+        "sha256": "379e7c8793c3d130e3c8cabc5fba5682994b59e25bbcbf60ee20b6c376cb8b65"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/stage2-computed.md",
+        "sha256": "72c568204f3dd0090449a3f3ff9b32bac2b3f2e09d178ee22a3e94966e4dbb8f"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/rows-computed.json",
+        "sha256": "ab911184885ced042d3300d495c0b8d098810cf104ef21dca16dbc6b89bdbe15"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/calls-computed.json",
+        "sha256": "99d3b383c2a0c199f33a524aeb94332660690e6217a7c7a8372d2b2e554d067d"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/review-records.json",
+        "sha256": "40afa5416f82f6e0206fd482b9e5f0234199bfba66ff089bef75109fed02494f"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-astra/s01-review-checks.mjs",
+        "sha256": "7adbafa9cae703a8ded5d34357a54ee2fa8e890844ef0a01f019e11f3db59765"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/bt-fit-index.mjs",
+        "sha256": "1ac42bc1c410fa936f57df67085d39e34f8090a6ab71f1915ce16f03a9acec33"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-transport.mjs",
+        "sha256": "6c66a6c69a9b4e1b956531fdd6b75aaf23fc534e78f03c1daf0d917b73e76830"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/t11-projection.mjs",
+        "sha256": "5b8cb2b253e3de163c92ba642fce900e9de9bbc26306b75c816ccf0fe1093945"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/report.md",
+        "sha256": "018d4d350bd9cd0e1b7ad33eee644def90db66de07a316bc57ae989745931800"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/plan.md",
+        "sha256": "2fa90684e990179debe55eed21066d46f0cbd71d4a0bd41b3d150f7bb6499838"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/s01-reading.md",
+        "sha256": "499dd68911a598037de05693663773a647e55c7d02b9c39779e471e68a17b92f"
+      },
+      {
+        "path": "docs/improve-generating-stages-2-4/t11-reading.md",
+        "sha256": "e5ca5784b6211fd01e815cff615a130080a156d38a5f85b4e627c92c21d832c4"
+      }
+    ],
+    "checked": 5697,
+    "captures": [
+      {
+        "path": "tools/ig-proto/lib/lane-worker.mjs",
+        "sourceCommit": "57ef5cf",
+        "capturedPath": "docs/improve-generating/evidence/frozen/V4-S3/fit-sources/tools/ig-proto/lib/lane-worker.mjs",
+        "hash": "0f04190fc96b6bbb6a990aa6a081419ddceff50fcce9a765c556c8240b48aefe",
+        "index": "docs/improve-generating-stages-2-4/evidence/sa-astra/review-input-index.json",
+        "kind": "normalized-text"
+      },
+      {
+        "path": "tools/ig-proto/manifest.mjs",
+        "sourceCommit": "57ef5cf",
+        "capturedPath": "docs/improve-generating/evidence/frozen/V4-S3/fit-sources/tools/ig-proto/manifest.mjs",
+        "hash": "75135bc251ed050d6cc97860d161f91a956d9f6a89b1a45cee45dacc5e28ce12",
+        "index": "docs/improve-generating-stages-2-4/evidence/sa-astra/review-input-index.json",
+        "kind": "normalized-text"
+      },
+      {
+        "path": "tools/ig-proto/v4-check.mjs",
+        "sourceCommit": "57ef5cf",
+        "capturedPath": "docs/improve-generating/evidence/frozen/V4-S3/fit-sources/tools/ig-proto/v4-check.mjs",
+        "hash": "16184834d4e680fb8a013df2e77c3dc1e8fa8433b659e3b8b46e27344a46c811",
+        "index": "docs/improve-generating-stages-2-4/evidence/sa-astra/review-input-index.json",
+        "kind": "normalized-text"
+      }
+    ]
+  },
+  "proofs": [
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen.accepted.json",
+      "sha256": "6e2a984ab8a460dbd0e887e4941eaf77420bad914bbd3650c0521b632c7e2315"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none.accepted.json",
+      "sha256": "8f6d5db4d479d716ccbe10423133de617fc50c640ba67ead8aaad55629813358"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-uncapped.accepted.json",
+      "sha256": "73f7733fe8a6b66f7fcebd01863ee59c0763a5de29bbd5313a3f7b27064adc3d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/parity-fr-frozen-none-uncapped.accepted.json",
+      "sha256": "244b0d242160eeb93abee57ebd8785496738793c934ff0ebf2c30970ad325c23"
+    }
+  ],
+  "meta": {
+    "format": "ig-proto-freeze",
+    "version": 1,
+    "task": "V4-S3",
+    "label": "frozen",
+    "labelText": "frozen (3fc65f4)",
+    "createdAt": "2026-11-24T02:13:13.650Z",
+    "source": {
+      "label": "frozen 3fc65f4",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": false,
+      "kind": "frozen",
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "equalsFrozenSource": true,
+      "firewall": "471ca7e6897dae9b8d42fd34700bfc4358f1e200cb6a690dcc1f34f205efdd89"
+    },
+    "harness": {
+      "harnessHash": "feca53fa268596e671fde545b37830ed760ee636a088a0f299e231b1c7f3bfad",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "84a198615646925fb64eb00d0ed23238b827e497a130f3f2dbe31f3f18803d66",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/fake-pool.mjs": "132bd8accf1453b82d1f38a7869c9642c9fc8ac5c645a03b7250c8c2f672813a",
+        "tools/ig-proto/lib/items.mjs": "5b5c020d74053d038b09168be35402f22adaded8e225a59a081300e083455541",
+        "tools/ig-proto/lib/lane-worker.mjs": "6228dda5413bd89ffc86088a96d21fd394dd9ce9185def924951ef89a58fb061",
+        "tools/ig-proto/lib/lanes.mjs": "469fa13f056e5ee7409913e8b2bb269472f99fe7b9c69dfe5806d16abee9a010",
+        "tools/ig-proto/lib/ledger.mjs": "53c2760b88d9f0a83bf1442f61119fbafadcb7225e8ead6e3faadf78baeb777b",
+        "tools/ig-proto/lib/p7-core.mjs": "894999855c24557c9b5bf77cb9ad8158249fe1a5428c9ac527eb16de10d5bfc2",
+        "tools/ig-proto/lib/packs.mjs": "ce449eecb938202e487b9e99c6c153bb897480e38ba475b87f070e26f22559d4",
+        "tools/ig-proto/lib/paths.mjs": "c0e9a057708264a2c6d83f197b18dfaffa327774b93b14fa9af797d08fdf7637",
+        "tools/ig-proto/lib/proof.mjs": "db22a68a3aac1d14f08db9abec1e1f3d114f938ee0c69b9b0beda738fa0a778a",
+        "tools/ig-proto/lib/records.mjs": "80b56021f1ae45189b3b811784c0fefb1bfac1d457cfbd12bc379bb7d3612f9a",
+        "tools/ig-proto/lib/sets.mjs": "23671cfa598ee767f405d18a1d2f8c1f95f9ca0356cbbbcd677b5fbd82050954",
+        "tools/ig-proto/lib/tree.mjs": "c35e4f5509687f2f84f5c008d834b1d70eea141718bbd869dba05155251f3675",
+        "tools/ig-proto/lib/width-worker-test.mjs": "82bff97154cdb13eb08ac5f12ea3cea5bf611deb77c932ebb4e92cb18873276f",
+        "tools/ig-proto/lib/width-worker.mjs": "fbc6c9291267c760d8b16fdea36e4b44364e95b686ed2d2b3cefe20ca2106270",
+        "tools/ig-proto/arm.mjs": "051de0ec22363dc133c483bcbe9ba0b8502cb4a3daade01fee37400d0dba4300",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "fa372834239566783c8faeb866b908701067af1d8b7bffca7736130c57f01983",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior-s3.mjs": "4c6351acc67bdb2353a5335ccf1aae05ca1b40fe3977e9ef8119f921f843c3fa",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/fit-read.mjs": "6df34ca93e8bd48295e2d9d06e91cd0db34f94269d1a9fa06f03f4576db4751e",
+        "tools/ig-proto/freeze.mjs": "a5789ed1a82f1f5cf10e7de79855a77ae4165ed0440046f9fda8448fad0443b4",
+        "tools/ig-proto/identity.mjs": "6a6e554c592e9178a930329625e7fe08a854add6a3668c7f0ff95cccc830df9d",
+        "tools/ig-proto/kernel-probe.mjs": "e8507e3d1cc2873012df429bb908b1545e90ce36c47b3bc70eaf3fa66684d474",
+        "tools/ig-proto/linkage.mjs": "3c0e4acb2ef9b10e49c8a4d57445f0b7c0176c467aa8a86a175a92afbc1ca47a",
+        "tools/ig-proto/live-deadline.mjs": "9a19ad6dc6ff020227df3cc664bba476b2d282e08424782f79d5c55764f65bfd",
+        "tools/ig-proto/manifest.mjs": "e7547558a1172825db6aaac87b0c72d619cf5d864e9477e68e69a32a06cd24e2",
+        "tools/ig-proto/p7-probe.mjs": "8eaf0baff3d073075d3521519cf4b5ec5ec767d7f010eabde2e6e9a8f8091603",
+        "tools/ig-proto/pm1-inventory.mjs": "25a4f82515a20ea41804f7958da4c12aa1779c5f530ea2a2c041663a5e0e05de",
+        "tools/ig-proto/pm1.mjs": "eb5448500ed81ab97ebb92aad040bbaec781d3224587ce60ec9248a59e644177",
+        "tools/ig-proto/pm2-worker.mjs": "4e126db9770ebc7a056643541ce8fed3b82030cccc30b226ef5c343508269215",
+        "tools/ig-proto/pm2.mjs": "4e308b6f85cc2f2d9b1de3c48c929b96c3781c16341e0e558e84b58be8495d92",
+        "tools/ig-proto/pm4.mjs": "9a7cc13d8a98eb104b6c0a534c7eb7ddbbae7972da52b4bbd1cf25090b83bf63",
+        "tools/ig-proto/receipt.mjs": "16b74bb4dfc81f781e288cf111795a2da0d812faed1addc70e55f411698e4506",
+        "tools/ig-proto/run-task.ps1": "999ca9f639ab393651744f149723b7ec850df695418820907d9daecd38f12611",
+        "tools/ig-proto/self-test.mjs": "93b466aec207deefbc4beb626fba17ce016898ec9dc85f8414edc8f3e2a4bed7",
+        "tools/ig-proto/snapshot.mjs": "45c1624e0ec8af04069d1ee5b9a3a6fa0a74e989148de80b7df8fffc4209792a",
+        "tools/ig-proto/summary.mjs": "ab5ed7c65f358c6c43d46c89de9554e5bf93badd538611ba6890c6235fa7b5e9",
+        "tools/ig-proto/v4-check.mjs": "16ed282803acf58406a55d15e10f8640256c7cf6befcc8e6e4d3b10c6636dc91",
+        "tools/ig-proto/verdicts.mjs": "6eb4c7c5f2e93e96192800040585a89c6805192f8bf50db87ed1f2b8a326f43a",
+        "tools/ig-proto/verify.mjs": "ea594451955ca2e954e37da38eb53f01a0dddffc1bc2697ae6b27d050ecb5d73",
+        "tools/ig-proto/width-probe.mjs": "5e7fc422a795a758a81ac4a3d968ac0699345844e5430f80f62a28dd920658dc",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/frozen-round-v1.json": "be7428d10b91cdf37a9893d373660a23e2c0deea66427a15db0deafe823b6a4b",
+        "tools/ig-proto/data/git-guard-cases.json": "6280530a5d7635305f68610c3c25d745bd633249f775ad8361f374723854fe5d",
+        "tools/ig-proto/data/p7-memory-fixtures.json": "d196b2e7b360db1635d2b85a4c86ab57b4ba6bb8085d79097ba453ddb0d763d4",
+        "tools/ig-proto/data/prior-s3-v1.json": "536dfd5d70dcdd3fa89f0b18141c161656e5ca968b7a18c52ec218c17cb1e0e1",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133",
+        "tools/ig-proto/data/verdict-manifest.example.json": "ffff98ba065c024f9e99f9416cdef046e04243279f3e8d951d749e9cc76aa32d",
+        "tools/ig-proto/data/verdict-manifest.schema.md": "416d4da2749f5f158fae8cfd25929671c7fd7a6e5ff3647f8bef7a0a804eafbf"
+      }
+    },
+    "trees": {
+      "fr-frozen": {
+        "treeId": "b3e530b1bca515e551f240faccc327f9868da0f475a60761986faf4884b781f7",
+        "copyDigest": "d595ad752e7d7adf5b5601d5ecc4d131a01bb3532e4befda50c5f71f28d4dfec",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "v4-1",
+          "v4-2",
+          "v4-3",
+          "v4-4",
+          "pv-1",
+          "pv-2",
+          "pv-3",
+          "pv-4",
+          "pv-5",
+          "pv-6",
+          "pv-7",
+          "pv-8",
+          "pv-9",
+          "pv-10",
+          "pv-11",
+          "pv-12",
+          "pv-13",
+          "pv-14",
+          "pv-15",
+          "pv-16",
+          "pv-17",
+          "link-1",
+          "link-2",
+          "link-3",
+          "link-4",
+          "link-5",
+          "link-6",
+          "link-7",
+          "link-8",
+          "link-9",
+          "link-10",
+          "link-11",
+          "link-12",
+          "link-13",
+          "link-14",
+          "link-15",
+          "link-16",
+          "link-17",
+          "ps-1",
+          "ps-2",
+          "ps-3",
+          "ps-4",
+          "ps-5",
+          "ps-6",
+          "ps-7",
+          "p5-1",
+          "p5-2",
+          "p5-3",
+          "lv-1",
+          "lv-2",
+          "lv-3",
+          "lv-4",
+          "lv-5",
+          "lv-6",
+          "lv-7",
+          "lv-8",
+          "lv-9",
+          "lv-10",
+          "lv-11",
+          "lv-12",
+          "lv-13",
+          "lv-14",
+          "lv-15",
+          "lv-16",
+          "lv-17",
+          "lv-18",
+          "lv-19",
+          "fz-1",
+          "fz-2",
+          "fz-3",
+          "fz-4",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "fr-frozen",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "W": {
+            "default": 190000000
+          },
+          "priorTable": "prior-s3-v1",
+          "screenTable": "screen-s3-v1",
+          "link": true,
+          "screenClasses": {
+            "hell-1": null,
+            "n-small": null,
+            "n-mid": 190000000,
+            "n-large": 190000000
+          },
+          "perSetPrior": true,
+          "callBudget": {
+            "id": "budget-s3-v1",
+            "any": {
+              "nightmare": 10000000000,
+              "hell-1": 40000000000
+            },
+            "require": {
+              "nightmare": 32000000000,
+              "hell-1": 40000000000
+            }
+          },
+          "setAttemptsBound": 4,
+          "liveDeadline": {
+            "id": "deadline-s3-v1",
+            "levels": [
+              "nightmare",
+              "hell-1"
+            ],
+            "reserve": 0.6,
+            "setStageCapMs": 46000,
+            "generationStopMs": 115000,
+            "responseBoundMs": 120000,
+            "hostMarginMs": 1000
+          },
+          "rerate": "rescue",
+          "c4": false,
+          "perSetLevels": [
+            "hell-1"
+          ],
+          "prior": {
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.4,
+              "n": 68,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@215": {
+              "caseId": "15x15b10-hell-1",
+              "share": 0.404412,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@256": {
+              "caseId": "16x16-hell-1",
+              "share": 0.358108,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@300": {
+              "caseId": "15x20-hell-1",
+              "share": 0.443429,
+              "n": 4,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@324": {
+              "caseId": "18x18-hell-1",
+              "share": 0.347222,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@360": {
+              "caseId": "18x20-hell-1",
+              "share": 0.331514,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@400": {
+              "caseId": "20x20-hell-1",
+              "share": 0.368421,
+              "n": 75,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@420": {
+              "caseId": "20x21-hell-1",
+              "share": 0.390244,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@480": {
+              "caseId": "32x15-hell-1",
+              "share": 0.297161,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@484": {
+              "caseId": "22x22-hell-1",
+              "share": 0.2875,
+              "n": 5,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.219512,
+              "n": 70,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.2,
+              "n": 64,
+              "source": "V4-S2 fr-base window share"
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            }
+          }
+        }
+      },
+      "fr-frozen-none": {
+        "treeId": "fa903f397ef6dce86ef70f3afb771c5de258b12836ae314bf796dbbf798ec6b3",
+        "copyDigest": "a7cec158d13d999135b745ca5d91c0bbc55d961c1c5ba902d9297330ff620951",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "v4-1",
+          "v4-2",
+          "v4-3",
+          "v4-4",
+          "pv-1",
+          "pv-2",
+          "pv-3",
+          "pv-4",
+          "pv-5",
+          "pv-6",
+          "pv-7",
+          "pv-8",
+          "pv-9",
+          "pv-10",
+          "pv-11",
+          "pv-12",
+          "pv-13",
+          "pv-14",
+          "pv-15",
+          "pv-16",
+          "pv-17",
+          "link-1",
+          "link-2",
+          "link-3",
+          "link-4",
+          "link-5",
+          "link-6",
+          "link-7",
+          "link-8",
+          "link-9",
+          "link-10",
+          "link-11",
+          "link-12",
+          "link-13",
+          "link-14",
+          "link-15",
+          "link-16",
+          "link-17",
+          "ps-1",
+          "ps-2",
+          "ps-3",
+          "ps-4",
+          "ps-5",
+          "ps-6",
+          "ps-7",
+          "p5-1",
+          "p5-2",
+          "p5-3",
+          "lv-1",
+          "lv-2",
+          "lv-3",
+          "lv-4",
+          "lv-5",
+          "lv-6",
+          "lv-7",
+          "lv-8",
+          "lv-9",
+          "lv-10",
+          "lv-11",
+          "lv-12",
+          "lv-13",
+          "lv-14",
+          "lv-15",
+          "lv-16",
+          "lv-17",
+          "lv-18",
+          "lv-19",
+          "fz-1",
+          "fz-2",
+          "fz-3",
+          "fz-4",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "fr-frozen-none",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "W": {
+            "default": 190000000
+          },
+          "priorTable": "prior-s3-v1",
+          "screenTable": "screen-s3-none",
+          "link": true,
+          "screenClasses": {
+            "hell-1": null,
+            "n-small": null,
+            "n-mid": null,
+            "n-large": null
+          },
+          "perSetPrior": true,
+          "callBudget": {
+            "id": "budget-s3-v1",
+            "any": {
+              "nightmare": 10000000000,
+              "hell-1": 40000000000
+            },
+            "require": {
+              "nightmare": 32000000000,
+              "hell-1": 40000000000
+            }
+          },
+          "setAttemptsBound": 4,
+          "liveDeadline": {
+            "id": "deadline-s3-v1",
+            "levels": [
+              "nightmare",
+              "hell-1"
+            ],
+            "reserve": 0.6,
+            "setStageCapMs": 46000,
+            "generationStopMs": 115000,
+            "responseBoundMs": 120000,
+            "hostMarginMs": 1000
+          },
+          "rerate": "rescue",
+          "c4": false,
+          "perSetLevels": [
+            "hell-1"
+          ],
+          "prior": {
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.4,
+              "n": 68,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@215": {
+              "caseId": "15x15b10-hell-1",
+              "share": 0.404412,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@256": {
+              "caseId": "16x16-hell-1",
+              "share": 0.358108,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@300": {
+              "caseId": "15x20-hell-1",
+              "share": 0.443429,
+              "n": 4,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@324": {
+              "caseId": "18x18-hell-1",
+              "share": 0.347222,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@360": {
+              "caseId": "18x20-hell-1",
+              "share": 0.331514,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@400": {
+              "caseId": "20x20-hell-1",
+              "share": 0.368421,
+              "n": 75,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@420": {
+              "caseId": "20x21-hell-1",
+              "share": 0.390244,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@480": {
+              "caseId": "32x15-hell-1",
+              "share": 0.297161,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@484": {
+              "caseId": "22x22-hell-1",
+              "share": 0.2875,
+              "n": 5,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.219512,
+              "n": 70,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.2,
+              "n": 64,
+              "source": "V4-S2 fr-base window share"
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            }
+          }
+        }
+      },
+      "fr-frozen-uncapped": {
+        "treeId": "96ef38e2fd6d8f0ad07f1858275377f5d4bf788d7a2ae4cd80a813afdd829599",
+        "copyDigest": "10dfd45aa3d411bdf1b0d2ed0900dc7210952aa0805061106e0f389836cbdcb9",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "v4-1",
+          "v4-2",
+          "v4-3",
+          "v4-4",
+          "pv-1",
+          "pv-2",
+          "pv-3",
+          "pv-4",
+          "pv-5",
+          "pv-6",
+          "pv-7",
+          "pv-8",
+          "pv-9",
+          "pv-10",
+          "pv-11",
+          "pv-12",
+          "pv-13",
+          "pv-14",
+          "pv-15",
+          "pv-16",
+          "pv-17",
+          "link-1",
+          "link-2",
+          "link-3",
+          "link-4",
+          "link-5",
+          "link-6",
+          "link-7",
+          "link-8",
+          "link-9",
+          "link-10",
+          "link-11",
+          "link-12",
+          "link-13",
+          "link-14",
+          "link-15",
+          "link-16",
+          "link-17",
+          "ps-1",
+          "ps-2",
+          "ps-3",
+          "ps-4",
+          "ps-5",
+          "ps-6",
+          "ps-7",
+          "p5-1",
+          "p5-2",
+          "p5-3",
+          "lv-1",
+          "lv-2",
+          "lv-3",
+          "lv-4",
+          "lv-5",
+          "lv-6",
+          "lv-7",
+          "lv-8",
+          "lv-9",
+          "lv-10",
+          "lv-11",
+          "lv-12",
+          "lv-13",
+          "lv-14",
+          "lv-15",
+          "lv-16",
+          "lv-17",
+          "lv-18",
+          "lv-19",
+          "fz-1",
+          "fz-2",
+          "fz-3",
+          "fz-4",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "fr-frozen-uncapped",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "W": {
+            "default": 190000000
+          },
+          "priorTable": "prior-s3-v1",
+          "screenTable": "screen-s3-v1",
+          "link": true,
+          "screenClasses": {
+            "hell-1": null,
+            "n-small": null,
+            "n-mid": 190000000,
+            "n-large": 190000000
+          },
+          "perSetPrior": true,
+          "callBudget": null,
+          "setAttemptsBound": null,
+          "liveDeadline": null,
+          "rerate": "rescue",
+          "c4": false,
+          "perSetLevels": [
+            "hell-1"
+          ],
+          "prior": {
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.4,
+              "n": 68,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@215": {
+              "caseId": "15x15b10-hell-1",
+              "share": 0.404412,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@256": {
+              "caseId": "16x16-hell-1",
+              "share": 0.358108,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@300": {
+              "caseId": "15x20-hell-1",
+              "share": 0.443429,
+              "n": 4,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@324": {
+              "caseId": "18x18-hell-1",
+              "share": 0.347222,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@360": {
+              "caseId": "18x20-hell-1",
+              "share": 0.331514,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@400": {
+              "caseId": "20x20-hell-1",
+              "share": 0.368421,
+              "n": 75,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@420": {
+              "caseId": "20x21-hell-1",
+              "share": 0.390244,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@480": {
+              "caseId": "32x15-hell-1",
+              "share": 0.297161,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@484": {
+              "caseId": "22x22-hell-1",
+              "share": 0.2875,
+              "n": 5,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.219512,
+              "n": 70,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.2,
+              "n": 64,
+              "source": "V4-S2 fr-base window share"
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            }
+          }
+        }
+      },
+      "fr-frozen-none-uncapped": {
+        "treeId": "e31d829dee8d15a58c3e0d796afa35665222cd30fa707f3a52c5e5f868e6779c",
+        "copyDigest": "d374ef7d6cebd4c444813167cff98ffc37a85f12ad0677632f92b1ac3307085f",
+        "edits": [
+          "meta-1",
+          "instr-1",
+          "instr-2",
+          "instr-3",
+          "instr-4",
+          "instr-5",
+          "instr-6",
+          "instr-7",
+          "diag-1",
+          "diag-2",
+          "log-1",
+          "log-2",
+          "log-3",
+          "log-4",
+          "log-5",
+          "log-6",
+          "log-7",
+          "log-8",
+          "v4-1",
+          "v4-2",
+          "v4-3",
+          "v4-4",
+          "pv-1",
+          "pv-2",
+          "pv-3",
+          "pv-4",
+          "pv-5",
+          "pv-6",
+          "pv-7",
+          "pv-8",
+          "pv-9",
+          "pv-10",
+          "pv-11",
+          "pv-12",
+          "pv-13",
+          "pv-14",
+          "pv-15",
+          "pv-16",
+          "pv-17",
+          "link-1",
+          "link-2",
+          "link-3",
+          "link-4",
+          "link-5",
+          "link-6",
+          "link-7",
+          "link-8",
+          "link-9",
+          "link-10",
+          "link-11",
+          "link-12",
+          "link-13",
+          "link-14",
+          "link-15",
+          "link-16",
+          "link-17",
+          "ps-1",
+          "ps-2",
+          "ps-3",
+          "ps-4",
+          "ps-5",
+          "ps-6",
+          "ps-7",
+          "p5-1",
+          "p5-2",
+          "p5-3",
+          "lv-1",
+          "lv-2",
+          "lv-3",
+          "lv-4",
+          "lv-5",
+          "lv-6",
+          "lv-7",
+          "lv-8",
+          "lv-9",
+          "lv-10",
+          "lv-11",
+          "lv-12",
+          "lv-13",
+          "lv-14",
+          "lv-15",
+          "lv-16",
+          "lv-17",
+          "lv-18",
+          "lv-19",
+          "fz-1",
+          "fz-2",
+          "fz-3",
+          "fz-4",
+          "meta-2"
+        ],
+        "params": {
+          "variant": "fr-frozen-none-uncapped",
+          "diagnosticOffers": true,
+          "logAccepted": true,
+          "p6": false,
+          "U0": 8,
+          "rerateMax": 4,
+          "W": {
+            "default": 190000000
+          },
+          "priorTable": "prior-s3-v1",
+          "screenTable": "screen-s3-none",
+          "link": true,
+          "screenClasses": {
+            "hell-1": null,
+            "n-small": null,
+            "n-mid": null,
+            "n-large": null
+          },
+          "perSetPrior": true,
+          "callBudget": null,
+          "setAttemptsBound": null,
+          "liveDeadline": null,
+          "rerate": "rescue",
+          "c4": false,
+          "perSetLevels": [
+            "hell-1"
+          ],
+          "prior": {
+            "hell-1@196": {
+              "caseId": "14x14-hell-1",
+              "share": 0.4,
+              "n": 68,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@215": {
+              "caseId": "15x15b10-hell-1",
+              "share": 0.404412,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@256": {
+              "caseId": "16x16-hell-1",
+              "share": 0.358108,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@300": {
+              "caseId": "15x20-hell-1",
+              "share": 0.443429,
+              "n": 4,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@324": {
+              "caseId": "18x18-hell-1",
+              "share": 0.347222,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@360": {
+              "caseId": "18x20-hell-1",
+              "share": 0.331514,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@400": {
+              "caseId": "20x20-hell-1",
+              "share": 0.368421,
+              "n": 75,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@420": {
+              "caseId": "20x21-hell-1",
+              "share": 0.390244,
+              "n": 3,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@480": {
+              "caseId": "32x15-hell-1",
+              "share": 0.297161,
+              "n": 6,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@484": {
+              "caseId": "22x22-hell-1",
+              "share": 0.2875,
+              "n": 5,
+              "source": "IGP-05 window share"
+            },
+            "hell-1@576": {
+              "caseId": "24x24-hell-1",
+              "share": 0.219512,
+              "n": 70,
+              "source": "V4-S2 fr-base window share"
+            },
+            "hell-1@676": {
+              "caseId": "26x26-hell-1",
+              "share": 0.2,
+              "n": 64,
+              "source": "V4-S2 fr-base window share"
+            },
+            "nightmare@100": {
+              "caseId": "10x10-nightmare",
+              "share": 0.2,
+              "n": 100
+            },
+            "nightmare@144": {
+              "caseId": "12x12-nightmare",
+              "share": 0.210526,
+              "n": 97
+            },
+            "nightmare@196": {
+              "caseId": "14x14-nightmare",
+              "share": 0.190476,
+              "n": 57
+            },
+            "nightmare@215": {
+              "caseId": "15x15b10-nightmare",
+              "share": 0.181818,
+              "n": 74
+            },
+            "nightmare@256": {
+              "caseId": "16x16-nightmare",
+              "share": 0.173913,
+              "n": 92
+            },
+            "nightmare@300": {
+              "caseId": "15x20-nightmare",
+              "share": 0.192308,
+              "n": 93
+            },
+            "nightmare@324": {
+              "caseId": "18x18-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@360": {
+              "caseId": "18x20-nightmare",
+              "share": 0.16,
+              "n": 100
+            },
+            "nightmare@400": {
+              "caseId": "20x20-nightmare",
+              "share": 0.16313,
+              "n": 100
+            },
+            "nightmare@420": {
+              "caseId": "20x21-nightmare",
+              "share": 0.153846,
+              "n": 100
+            },
+            "nightmare@480": {
+              "caseId": "32x15-nightmare",
+              "share": 0.142857,
+              "n": 100
+            },
+            "nightmare@484": {
+              "caseId": "22x22-nightmare",
+              "share": 0.145503,
+              "n": 100
+            },
+            "nightmare@576": {
+              "caseId": "24x24-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@676": {
+              "caseId": "26x26-nightmare",
+              "share": 0.133333,
+              "n": 100
+            },
+            "nightmare@87": {
+              "caseId": "3x29-nightmare",
+              "share": 0.166667,
+              "n": 100
+            }
+          }
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 0,
+      "nodeSeconds": 0,
+      "countedSeconds": 0,
+      "lockWaitSeconds": 0
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\V4-S3.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  }
+}

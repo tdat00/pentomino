@@ -1,0 +1,112 @@
+{
+  "format": "ig-proto-state",
+  "version": 1,
+  "task": "V4-LIVE-verify",
+  "step": "self-test",
+  "label": "frozen",
+  "done": true,
+  "results": [
+    {
+      "name": "fz: the live deadline on the frozen trees",
+      "pass": true,
+      "reason": null,
+      "ms": 598
+    },
+    {
+      "name": "live fr-frozen-live-test: the set stage is cut by the reserve",
+      "pass": true,
+      "reason": null,
+      "ms": 2272
+    },
+    {
+      "name": "live fr-frozen-live-test: one clock from the request start and the prefix at the stop",
+      "pass": true,
+      "reason": null,
+      "ms": 1663
+    },
+    {
+      "name": "live fr-frozen-live-test: the same puzzles at widths 1, 2, 4 and 8 without a cut",
+      "pass": true,
+      "reason": null,
+      "ms": 681
+    },
+    {
+      "name": "live fr-frozen-live-test: a cut leaves a prefix of the same fold at every width",
+      "pass": true,
+      "reason": null,
+      "ms": 15199
+    },
+    {
+      "name": "live fr-frozen-live-test: the deadline applies to the listed levels only",
+      "pass": true,
+      "reason": null,
+      "ms": 0
+    },
+    {
+      "name": "live fr-frozen-live-test: the host bound around a held assembly",
+      "pass": true,
+      "reason": null,
+      "ms": 2280
+    },
+    {
+      "name": "live fr-frozen-live-test: the host's hard response bound",
+      "pass": true,
+      "reason": null,
+      "ms": 2661
+    },
+    {
+      "name": "live fr-frozen-none-live-test: the set stage is cut by the reserve",
+      "pass": true,
+      "reason": null,
+      "ms": 2264
+    },
+    {
+      "name": "live fr-frozen-none-live-test: one clock from the request start and the prefix at the stop",
+      "pass": true,
+      "reason": null,
+      "ms": 1647
+    },
+    {
+      "name": "live fr-frozen-none-live-test: the same puzzles at widths 1, 2, 4 and 8 without a cut",
+      "pass": true,
+      "reason": null,
+      "ms": 681
+    },
+    {
+      "name": "live fr-frozen-none-live-test: a cut leaves a prefix of the same fold at every width",
+      "pass": true,
+      "reason": null,
+      "ms": 15134
+    },
+    {
+      "name": "live fr-frozen-none-live-test: the deadline applies to the listed levels only",
+      "pass": true,
+      "reason": null,
+      "ms": 0
+    },
+    {
+      "name": "live fr-frozen-none-live-test: the host bound around a held assembly",
+      "pass": true,
+      "reason": null,
+      "ms": 2279
+    },
+    {
+      "name": "live fr-frozen-none-live-test: the host's hard response bound",
+      "pass": true,
+      "reason": null,
+      "ms": 2661
+    }
+  ],
+  "appendCostMs": null,
+  "protoNotes": null,
+  "p6Notes": null,
+  "lastInvocation": {
+    "start": "2026-11-24T02:24:52.388Z",
+    "end": "2026-11-24T02:25:42.518Z",
+    "seconds": 50.13,
+    "horizonS": 285,
+    "progress": {
+      "cases": 15
+    }
+  }
+}

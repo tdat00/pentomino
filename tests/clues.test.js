@@ -978,6 +978,61 @@ test('invalid inputs are refused', () => {
   assert.throws(() => run({ pieces: two, layout: layout.filter((p) => p.piece === 'F' || p.piece === 'I') }), RangeError);
 });
 
+// P6: a call that nobody observes rates its profiles without the DLX diagnostic; `conclude` gives the returned rating
+// its diagnostic with one more model on the returned clues, which the count of `reserve` calls tells apart.
+test('P6: the returned rating carries the DLX diagnostic and the puzzles are those of an observed search', () => {
+  for (const [id, uniqueness] of /** @type {['easy' | 'normal' | 'hard', 'any' | 'require'][]} */ ([
+    ['easy', 'any'], ['normal', 'any'], ['hard', 'require'],
+  ])) {
+    /** @param {Partial<Context>} [observers] */
+    const call = (observers = {}) => {
+      const counted = createWorkspace(MAIN_WORKSPACE_BYTES);
+      const reserve = counted.reserve;
+      let models = 0;
+      counted.reserve = (...args) => {
+        models += 1;
+        return reserve.apply(counted, args);
+      };
+      const result = selectClues({
+        board, pieces, layout, target: level(id), rng: createRng(`p6-${id}`), uniqueness,
+        excludeClueKeys: new Set(), ws: counted, ...observers,
+      });
+      return { result, models };
+    };
+    const plain = call();
+    assert.ok(plain.result.ok, `${id}: ${plain.result.ok ? '' : plain.result.reason}`);
+    assert.equal(JSON.stringify(plain.result.rating), JSON.stringify(rate(board, pieces, plain.result.clues, ws)), id);
+
+    /** @type {Rating[]} */
+    const seen = [];
+    const observed = call({ onRate: (_clues, rating) => seen.push(rating) });
+    assert.deepEqual(observed.result, plain.result, id);
+    assert.equal(JSON.stringify(observed.result), JSON.stringify(plain.result), id);
+    assert.ok(seen.length > 0, id);
+    for (const rating of seen) {
+      assert.notEqual(/** @type {import('../core/engine/types.js').MetricsV3} */ (rating.metrics).dlxStop, 'skipped', id);
+    }
+
+    /** @type {Rating[]} */
+    const recorded = [];
+    const recorder = call({
+      record: (event) => {
+        if ('rating' in event && event.rating !== null) {
+          recorded.push(event.rating);
+        }
+      },
+    });
+    assert.deepEqual(recorder.result, plain.result, id);
+    assert.ok(recorded.length > 0, id);
+    for (const rating of recorded) {
+      assert.notEqual(/** @type {import('../core/engine/types.js').MetricsV3} */ (rating.metrics).dlxStop, 'skipped', id);
+    }
+
+    assert.equal(plain.models, observed.models + 1, `${id}: one model more, for the diagnostic of the returned rating`);
+    assert.equal(recorder.models, observed.models, `${id}: observed ratings already have it`);
+  }
+});
+
 test('generated ratings are the same under piece id, color and order permutations', () => {
   const { result } = run({ seed: 'perm', target: level('hard') });
   assert.ok(result.ok);

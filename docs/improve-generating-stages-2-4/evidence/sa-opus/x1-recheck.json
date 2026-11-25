@@ -1,0 +1,999 @@
+{
+  "spentChecked": 2567,
+  "spentMismatch": 0,
+  "timelineRows": 165,
+  "timelineProblems": 0,
+  "calls": 3410,
+  "noEnd": 843,
+  "noEndOpen": 839,
+  "pools": {
+    "196-215 (14x14, 15x15b10)": {
+      "screen": [
+        968309216.61,
+        1925158821.55
+      ],
+      "none": [
+        2634979420.59,
+        3936346693.37
+      ],
+      "verdict": "pass"
+    },
+    "196-256 (14x14, 15x15b10, 16x16)": {
+      "screen": [
+        978925131.3866667,
+        2283682210.2933335
+      ],
+      "none": [
+        2512291904.7733335,
+        4234248830.64
+      ],
+      "verdict": "pass"
+    },
+    "216-324 piloted (16x16, 15x20)": {
+      "screen": [
+        930118025.87,
+        3470303266.31
+      ],
+      "none": [
+        1838490336.5,
+        4805318984.42
+      ],
+      "verdict": "unknown"
+    },
+    "257-324 piloted (15x20)": {
+      "screen": [
+        860079090.8,
+        3939877544.84
+      ],
+      "none": [
+        1410063799.86,
+        4780584863.66
+      ],
+      "verdict": "unknown"
+    },
+    "216-256 (16x16)": {
+      "screen": [
+        1000156960.94,
+        3000728987.78
+      ],
+      "none": [
+        2266916873.14,
+        4830053105.18
+      ],
+      "verdict": "unknown"
+    }
+  },
+  "robust": {
+    "196-215 (14x14, 15x15b10)": {
+      "margin": 0.7098205990399997,
+      "z": [
+        5.947575411008586,
+        2.973787705504293,
+        1.9825251370028616
+      ],
+      "worstHi": 2.3164980035,
+      "worstLo": 1.8528453094000001
+    },
+    "196-256 (14x14, 15x15b10, 16x16)": {
+      "margin": 0.22860969448000024,
+      "z": [
+        2.2085660362473893,
+        1.1042830181236947,
+        0.7361886787491295
+      ],
+      "worstHi": 2.660706773133333,
+      "worstLo": 1.8282724221333335
+    }
+  },
+  "hellPrior": {
+    "14x14-hell-1": {
+      "n": 42,
+      "pooled": 0.38235294117647056,
+      "perReq": [
+        0.375,
+        0.38235294117647056,
+        0.4,
+        0.359375,
+        0.40625
+      ],
+      "perReqMedian": 0.38235294117647056,
+      "wcK": 0.403125
+    },
+    "20x20-hell-1": {
+      "n": 50,
+      "pooled": 0.34962406015037595,
+      "perReq": [
+        0.38095238095238093,
+        0.34210526315789475,
+        0.2948717948717949,
+        0.32894736842105265,
+        0.3684210526315789
+      ],
+      "perReqMedian": 0.34210526315789475,
+      "wcK": 0.368421
+    },
+    "24x24-hell-1": {
+      "n": 50,
+      "pooled": 0.21689895470383275,
+      "perReq": [
+        0.23076923076923078,
+        0.25,
+        0.21250000000000002,
+        0.21794871794871795,
+        0.1951219512195122
+      ],
+      "perReqMedian": 0.21794871794871795,
+      "wcK": 0.219512
+    },
+    "26x26-hell-1": {
+      "n": 50,
+      "pooled": 0.2,
+      "perReq": [
+        0.15476190476190477,
+        0.20731707317073172,
+        0.1923076923076923,
+        0.2,
+        0.2
+      ],
+      "perReqMedian": 0.2,
+      "wcK": 0.2
+    }
+  },
+  "pm1": {
+    "196": {
+      "cases": [
+        "14x14-hell-1"
+      ],
+      "seeds": 4,
+      "seedShares": [
+        0.40625,
+        0.35294117647058826,
+        0.375,
+        0.4117647058823529
+      ],
+      "share": 0.390625
+    },
+    "215": {
+      "cases": [
+        "15x15b10-hell-1"
+      ],
+      "seeds": 1,
+      "seedShares": [
+        0.40441176470588236
+      ],
+      "share": 0.40441176470588236
+    },
+    "256": {
+      "cases": [
+        "16x16-hell-1"
+      ],
+      "seeds": 1,
+      "seedShares": [
+        0.3581081081081081
+      ],
+      "share": 0.3581081081081081
+    },
+    "300": {
+      "cases": [
+        "15x20-hell-1"
+      ],
+      "seeds": 2,
+      "seedShares": [
+        0.4125,
+        0.47435897435897434
+      ],
+      "share": 0.44342948717948716
+    },
+    "324": {
+      "cases": [
+        "18x18-hell-1"
+      ],
+      "seeds": 2,
+      "seedShares": [
+        0.3333333333333333,
+        0.3611111111111111
+      ],
+      "share": 0.3472222222222222
+    },
+    "360": {
+      "cases": [
+        "18x20-hell-1"
+      ],
+      "seeds": 2,
+      "seedShares": [
+        0.30405405405405406,
+        0.358974358974359
+      ],
+      "share": 0.3315142065142065
+    },
+    "400": {
+      "cases": [
+        "20x20-hell-1"
+      ],
+      "seeds": 2,
+      "seedShares": [
+        0.34375,
+        0.4207317073170732
+      ],
+      "share": 0.3822408536585366
+    },
+    "420": {
+      "cases": [
+        "20x21-hell-1"
+      ],
+      "seeds": 1,
+      "seedShares": [
+        0.3902439024390244
+      ],
+      "share": 0.3902439024390244
+    },
+    "480": {
+      "cases": [
+        "32x15-hell-1"
+      ],
+      "seeds": 2,
+      "seedShares": [
+        0.3205128205128205,
+        0.27380952380952384
+      ],
+      "share": 0.29716117216117216
+    },
+    "484": {
+      "cases": [
+        "22x22-hell-1"
+      ],
+      "seeds": 2,
+      "seedShares": [
+        0.30000000000000004,
+        0.275
+      ],
+      "share": 0.28750000000000003
+    },
+    "576": {
+      "cases": [
+        "24x24-hell-1"
+      ],
+      "seeds": 3,
+      "seedShares": [
+        0.2857142857142857,
+        0.1794871794871795,
+        0.24404761904761907
+      ],
+      "share": 0.24404761904761907
+    }
+  },
+  "budget": {
+    "classes": {
+      "nightmare": {
+        "n": 1613,
+        "rows": 105,
+        "maxBefore": 6.183840193,
+        "maxTotal": 6.61019604,
+        "q90": 1.609901951,
+        "q99": 3.795955313,
+        "tailN": 161,
+        "s": 0.917934432416149
+      },
+      "hell-1 <=215": {
+        "n": 68,
+        "rows": 5,
+        "maxBefore": 25.560435618,
+        "maxTotal": 26.167589073,
+        "q90": 13.598913562,
+        "q99": 25.560435618,
+        "tailN": 6,
+        "s": 5.4426723746666665
+      },
+      "hell-1 >=216": {
+        "n": 577,
+        "rows": 40,
+        "maxBefore": 13.632667094,
+        "maxTotal": 13.848522825,
+        "q90": 4.524167987,
+        "q99": 7.110514466,
+        "tailN": 57,
+        "s": 1.5676824150877189
+      }
+    },
+    "tables": {
+      "SA-Astra (8 / 32 / 16 G)": [
+        {
+          "cls": "nightmare",
+          "B": 8,
+          "pilot": 0,
+          "expected": 0.8719574398807727
+        },
+        {
+          "cls": "hell-1 <=215",
+          "B": 32,
+          "pilot": 0,
+          "expected": 1.6328210170567568
+        },
+        {
+          "cls": "hell-1 >=216",
+          "B": 16,
+          "pilot": 0,
+          "expected": 0.11320108660861423
+        }
+      ],
+      "SA-Opus round 1 (10 / 40 / 40 G)": [
+        {
+          "cls": "nightmare",
+          "B": 10,
+          "pilot": 0,
+          "expected": 0.09868527619696667
+        },
+        {
+          "cls": "hell-1 <=215",
+          "B": 40,
+          "pilot": 0,
+          "expected": 0.3754774112057137
+        },
+        {
+          "cls": "hell-1 >=216",
+          "B": 40,
+          "pilot": 0,
+          "expected": 2.5417886579860518e-8
+        }
+      ],
+      "x1.5 rule per class (10 / 40 / 21 G)": [
+        {
+          "cls": "nightmare",
+          "B": 10,
+          "pilot": 0,
+          "expected": 0.09868527619696667
+        },
+        {
+          "cls": "hell-1 <=215",
+          "B": 40,
+          "pilot": 0,
+          "expected": 0.3754774112057137
+        },
+        {
+          "cls": "hell-1 >=216",
+          "B": 21,
+          "pilot": 0,
+          "expected": 0.004663397522860025
+        }
+      ]
+    },
+    "h14": {
+      "okCalls": 68,
+      "okBatch": 59,
+      "batchBeforeFinalAtLeast2G": 48,
+      "batchTotalAbove2G": 53,
+      "allBeforeFinalAtLeast2G": 55
+    }
+  },
+  "require": {
+    "fr-base": {
+      "setStarts": 1,
+      "batchStarts": 1,
+      "ends": 2,
+      "setEnds": [
+        {
+          "result": "ok",
+          "spent": 5816758768,
+          "budgetStop": null
+        }
+      ],
+      "items": [
+        {
+          "item": "12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": 10273954138,
+          "ms": 35990
+        },
+        {
+          "item": "12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": 10273954138,
+          "ms": 35996
+        },
+        {
+          "item": "12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": 10273954138,
+          "ms": 38181
+        },
+        {
+          "item": "26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+          "outcome": "ok",
+          "ok": false,
+          "reason": "not-in-band",
+          "totalWork": 20608465971,
+          "ms": 92560
+        },
+        {
+          "item": "26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+          "outcome": "ok",
+          "ok": false,
+          "reason": "not-in-band",
+          "totalWork": 20608465971,
+          "ms": 92638
+        },
+        {
+          "item": "14x14-master:ig-v4/parity/14x14-master:absent",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": 1148088666,
+          "ms": 5234
+        },
+        {
+          "item": "14x14-master:ig-v4/parity/14x14-master:charge",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": 1148088666,
+          "ms": 5213
+        },
+        {
+          "item": "14x14-master:ig-v4/parity/14x14-master:record",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": null,
+          "ms": 5449
+        },
+        {
+          "item": "26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+          "outcome": "ok",
+          "ok": false,
+          "reason": "not-in-band",
+          "totalWork": 20608465971,
+          "ms": 93544
+        },
+        {
+          "item": "12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+          "outcome": "ok",
+          "reason": null,
+          "totalWork": null,
+          "ms": 42045
+        },
+        {
+          "item": "12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+          "outcome": "ok",
+          "reason": null,
+          "totalWork": 5816758806,
+          "ms": 19162
+        },
+        {
+          "item": "12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+          "outcome": "ok",
+          "reason": null,
+          "totalWork": 12646225540,
+          "ms": 41631
+        }
+      ]
+    },
+    "fr-p5": {
+      "setStarts": 16,
+      "batchStarts": 0,
+      "ends": 15,
+      "setEnds": [
+        {
+          "result": "not-in-band",
+          "spent": 2038336712,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2038336712,
+            "overshoot": 38336712
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2019296705,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2019296705,
+            "overshoot": 19296705
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2691503689,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2691503689,
+            "overshoot": 691503689
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2538328068,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2538328068,
+            "overshoot": 538328068
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2179332478,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2179332478,
+            "overshoot": 179332478
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2371864741,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2371864741,
+            "overshoot": 371864741
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2011141717,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2011141717,
+            "overshoot": 11141717
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2391175486,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2391175486,
+            "overshoot": 391175486
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2553856215,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2553856215,
+            "overshoot": 553856215
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2695981227,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2695981227,
+            "overshoot": 695981227
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2235325101,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2235325101,
+            "overshoot": 235325101
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2677031778,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2677031778,
+            "overshoot": 677031778
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2352999669,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2352999669,
+            "overshoot": 352999669
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2078510311,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2078510311,
+            "overshoot": 78510311
+          }
+        },
+        {
+          "result": "not-in-band",
+          "spent": 2580665099,
+          "budgetStop": {
+            "limit": 2000000000,
+            "spent": 2580665099,
+            "overshoot": 580665099
+          }
+        }
+      ],
+      "items": [
+        {
+          "item": "12x12-nightmare:ig-v4/parity/12x12-nightmare:charge",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": 2005384500,
+          "ms": 7256
+        },
+        {
+          "item": "12x12-nightmare:ig-v4/parity/12x12-nightmare:absent",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": 2005384500,
+          "ms": 7279
+        },
+        {
+          "item": "26x26-hell-1:ig-v4/parity/26x26-hell-1:absent",
+          "outcome": "ok",
+          "ok": false,
+          "reason": "not-in-band",
+          "totalWork": 2165659155,
+          "ms": 6423
+        },
+        {
+          "item": "12x12-nightmare:ig-v4/parity/12x12-nightmare:record",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": 2005384500,
+          "ms": 9489
+        },
+        {
+          "item": "26x26-hell-1:ig-v4/parity/26x26-hell-1:charge",
+          "outcome": "ok",
+          "ok": false,
+          "reason": "not-in-band",
+          "totalWork": 2165659155,
+          "ms": 6339
+        },
+        {
+          "item": "26x26-hell-1:ig-v4/parity/26x26-hell-1:record",
+          "outcome": "ok",
+          "ok": false,
+          "reason": "not-in-band",
+          "totalWork": 2165659155,
+          "ms": 7877
+        },
+        {
+          "item": "14x14-master:ig-v4/parity/14x14-master:absent",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": 1148088666,
+          "ms": 5266
+        },
+        {
+          "item": "14x14-master:ig-v4/parity/14x14-master:charge",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": 1148088666,
+          "ms": 5294
+        },
+        {
+          "item": "14x14-master:ig-v4/parity/14x14-master:record",
+          "outcome": "ok",
+          "ok": true,
+          "reason": null,
+          "totalWork": null,
+          "ms": 5601
+        },
+        {
+          "item": "12x12-nightmare:ig-v4/replay/12x12-nightmare:gen",
+          "outcome": "no-set",
+          "reason": "time-limit",
+          "totalWork": null,
+          "ms": 115014
+        },
+        {
+          "item": "12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-0",
+          "outcome": "no-record",
+          "reason": "no pack",
+          "totalWork": null,
+          "ms": 1
+        },
+        {
+          "item": "12x12-nightmare:ig-v4/replay/12x12-nightmare:puzzle-1",
+          "outcome": "no-record",
+          "reason": "no pack",
+          "totalWork": null,
+          "ms": 1
+        }
+      ]
+    },
+    "fbGenCalls": [
+      {
+        "call": "parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen:20844:4:1",
+        "result": "ok",
+        "spent": 5816758768
+      },
+      {
+        "call": "parity-fr-base_fr-base_12x12-nightmare_ig-v4_replay_12x12-nightmare_gen:20844:4:2",
+        "result": "ok",
+        "spent": 6829466707
+      }
+    ]
+  },
+  "perSet": {
+    "20x20-hell-1": {
+      "batch": 93,
+      "match": 93,
+      "meanLocateBase": 5.536585365853658,
+      "meanLocatePs": 2.5913978494623655
+    },
+    "26x26-hell-1": {
+      "batch": 90,
+      "match": 90,
+      "meanLocateBase": 3.013888888888889,
+      "meanLocatePs": 1.7444444444444445
+    }
+  },
+  "idle": [
+    {
+      "arm": "fr-base",
+      "cell": "12x12-nightmare",
+      "idleS": 0.031248,
+      "awaitS": 63.922737
+    },
+    {
+      "arm": "fr-base",
+      "cell": "14x14-hell-1",
+      "idleS": 0.030609,
+      "awaitS": 458.534762
+    },
+    {
+      "arm": "fr-base",
+      "cell": "14x14-nightmare",
+      "idleS": 0.032411999999999996,
+      "awaitS": 32.698957
+    },
+    {
+      "arm": "fr-base",
+      "cell": "20x20-hell-1",
+      "idleS": 0.032281,
+      "awaitS": 160.430792
+    },
+    {
+      "arm": "fr-base",
+      "cell": "24x24-hell-1",
+      "idleS": 0.028440999999999994,
+      "awaitS": 130.054993
+    },
+    {
+      "arm": "fr-base",
+      "cell": "26x26-hell-1",
+      "idleS": 0.02904,
+      "awaitS": 126.47728700000002
+    },
+    {
+      "arm": "fr-base",
+      "cell": "26x26-nightmare",
+      "idleS": 0.032753,
+      "awaitS": 69.506681
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "10x10-nightmare",
+      "idleS": 0.043169000000000006,
+      "awaitS": 100.10261600000001
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "12x12-nightmare",
+      "idleS": 0.031165,
+      "awaitS": 35.932289999999995
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "14x14-nightmare",
+      "idleS": 0.033858000000000006,
+      "awaitS": 33.767019
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "15x15b10-nightmare",
+      "idleS": 0.035135999999999994,
+      "awaitS": 36.843872
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "15x20-nightmare",
+      "idleS": 0.032144,
+      "awaitS": 33.957964999999994
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "16x16-nightmare",
+      "idleS": 0.035777,
+      "awaitS": 38.458415
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "26x26-hell-1",
+      "idleS": 0.030663000000000003,
+      "awaitS": 119.05627799999999
+    },
+    {
+      "arm": "fr-screen",
+      "cell": "26x26-nightmare",
+      "idleS": 0.025182000000000003,
+      "awaitS": 41.294125
+    },
+    {
+      "arm": "fr-none",
+      "cell": "10x10-nightmare",
+      "idleS": 0.039037999999999996,
+      "awaitS": 75.75772900000001
+    },
+    {
+      "arm": "fr-none",
+      "cell": "12x12-nightmare",
+      "idleS": 0.032602,
+      "awaitS": 64.08879
+    },
+    {
+      "arm": "fr-none",
+      "cell": "14x14-nightmare",
+      "idleS": 0.032068,
+      "awaitS": 81.44795500000001
+    },
+    {
+      "arm": "fr-none",
+      "cell": "15x15b10-nightmare",
+      "idleS": 0.035084000000000004,
+      "awaitS": 91.545987
+    },
+    {
+      "arm": "fr-none",
+      "cell": "15x20-nightmare",
+      "idleS": 0.035938000000000005,
+      "awaitS": 56.089202
+    },
+    {
+      "arm": "fr-none",
+      "cell": "16x16-nightmare",
+      "idleS": 0.035378,
+      "awaitS": 83.18641099999999
+    },
+    {
+      "arm": "fr-none",
+      "cell": "26x26-hell-1",
+      "idleS": 0.0282,
+      "awaitS": 127.627224
+    },
+    {
+      "arm": "fr-none",
+      "cell": "26x26-nightmare",
+      "idleS": 0.031955,
+      "awaitS": 71.00028200000001
+    },
+    {
+      "arm": "fr-close",
+      "cell": "12x12-nightmare",
+      "idleS": 0.03295800000000001,
+      "awaitS": 63.687328
+    },
+    {
+      "arm": "fr-close",
+      "cell": "14x14-nightmare",
+      "idleS": 0.031249000000000002,
+      "awaitS": 35.177585
+    },
+    {
+      "arm": "fr-close",
+      "cell": "26x26-hell-1",
+      "idleS": 0.027984,
+      "awaitS": 126.87145000000001
+    },
+    {
+      "arm": "fr-c4",
+      "cell": "14x14-nightmare",
+      "idleS": 0.02969,
+      "awaitS": 38.212132999999994
+    },
+    {
+      "arm": "fr-c4",
+      "cell": "26x26-nightmare",
+      "idleS": 0.030184999999999997,
+      "awaitS": 85.86645200000001
+    },
+    {
+      "arm": "fr-ps",
+      "cell": "20x20-hell-1",
+      "idleS": 0.036645000000000004,
+      "awaitS": 144.460142
+    },
+    {
+      "arm": "fr-ps",
+      "cell": "26x26-hell-1",
+      "idleS": 0.037801,
+      "awaitS": 116.626019
+    },
+    {
+      "arm": "fr-p5",
+      "cell": "14x14-nightmare",
+      "idleS": 0.030863999999999996,
+      "awaitS": 32.412294
+    },
+    {
+      "arm": "fr-p5",
+      "cell": "20x20-hell-1",
+      "idleS": 0.049758000000000004,
+      "awaitS": 153.796764
+    },
+    {
+      "arm": "fr-p5",
+      "cell": "26x26-hell-1",
+      "idleS": 0.05017799999999999,
+      "awaitS": 165.692
+    }
+  ],
+  "starts": {
+    "14x14-hell-1": {
+      "8": 7,
+      "9": 13
+    },
+    "20x20-hell-1": {
+      "null": 20
+    },
+    "24x24-hell-1": {
+      "6": 20
+    },
+    "26x26-hell-1": {
+      "5": 20
+    }
+  },
+  "profiles": {
+    "fr-c4 14x14-nightmare": {
+      "ended": 61,
+      "open": 3
+    },
+    "fr-c4 26x26-nightmare": {
+      "ended": 71,
+      "open": 4
+    },
+    "fr-close 12x12-nightmare": {
+      "ended": 0,
+      "open": 0
+    },
+    "fr-close 14x14-nightmare": {
+      "ended": 8,
+      "open": 0
+    },
+    "fr-close 26x26-hell-1": {
+      "ended": 0,
+      "open": 0
+    }
+  },
+  "p5SetStops": [
+    {
+      "row": "20x20-hell-1~0",
+      "attempt": 0,
+      "spent": 2298471303
+    },
+    {
+      "row": "20x20-hell-1~0",
+      "attempt": 3,
+      "spent": 2339719457
+    },
+    {
+      "row": "20x20-hell-1~2",
+      "attempt": 3,
+      "spent": 2363961420
+    },
+    {
+      "row": "20x20-hell-1~4",
+      "attempt": 0,
+      "spent": 2421547354
+    }
+  ]
+}

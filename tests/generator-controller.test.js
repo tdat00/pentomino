@@ -8,7 +8,7 @@ import { HandoffError } from '../core/browser/handoff.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { boardFromRows, boardKey, rectangle } from '../core/engine/board.js';
 import { provenanceVersions } from '../core/engine/generate.js';
-import { layoutKey } from '../core/engine/keys.js';
+import { clueKey, layoutKey } from '../core/engine/keys.js';
 import { packBoard, parsePack, validatePack } from '../core/engine/pack.js';
 import { BUDGETS } from '../core/engine/policy.js';
 import { isValidLayout } from '../core/engine/tiling.js';
@@ -476,6 +476,57 @@ describe('puzzle batches', () => {
     assert.deepEqual(after.checking, []);
     assert.ok(hooks);
     h.destroy();
+  });
+
+  test('a shown puzzle stays in the history however the batch ends', async () => {
+    const endings = /** @type {Array<[string, (accepted: any[]) => any]>} */ ([
+      ['short', (accepted) => ({ status: 'partial', reason: 'time-limit', accepted, seenLayouts: [], seenClues: [] })],
+      ['cancelled', (accepted) => ({ status: 'cancelled', accepted, seenLayouts: [], seenClues: [] })],
+      ['failed', (accepted) => {
+        throw new GenerationError('internal', 'worker lost', { accepted });
+      }],
+    ]);
+    for (const [ending, end] of endings) {
+      const client = fakeClient({
+        batch: (input, hooks) => {
+          const puzzles = makePuzzles(2, 80);
+          puzzles.forEach((puzzle, index) => hooks.onAccepted({ revision: input.revision, index, puzzle, accepted: index + 1, quantity: input.quantity }));
+          return end(puzzles);
+        },
+      });
+      const h = harness({ client, accepted: true, state: { quantity: 3 } });
+      assert.deepEqual([h.store.getState().seenLayouts, h.store.getState().seenClues], [[], []], `${ending}: no history before the batch`);
+      await h.controller.addMore();
+      const state = h.store.getState();
+      assert.deepEqual(state.puzzles.map((p) => p.id), ['q80', 'q81'], ending);
+      for (const p of state.puzzles) {
+        assert.ok(state.seenLayouts.includes(layoutKey(SET.board, SET.pieces, /** @type {any} */ (p.solution))), `${ending}: the layout of ${p.id}`);
+        assert.ok(state.seenClues.includes(clueKey(SET.board, SET.pieces, p.clues)), `${ending}: the clues of ${p.id}`);
+      }
+      h.destroy();
+    }
+
+    // The Generator drops a puzzle that no longer fits the pack; its keys stay.
+    const huge = (/** @type {number} */ i) => ({
+      ...makePuzzle(i, 0),
+      solution: Array.from({ length: 4000 }, () => /** @type {any} */ (makePuzzle(0).solution)[0]),
+    });
+    const dropping = fakeClient({
+      batch: (input, hooks) => {
+        const puzzles = [huge(200), huge(201)];
+        puzzles.forEach((puzzle, index) => hooks.onAccepted({ revision: input.revision, index, puzzle, accepted: index + 1, quantity: input.quantity }));
+        return { status: 'complete', accepted: puzzles, seenLayouts: ['layout-200', 'layout-201'], seenClues: ['clue-200', 'clue-201'] };
+      },
+    });
+    const full = harness({ client: dropping, accepted: true, state: { puzzles: [huge(300)], quantity: 2 } });
+    assert.equal(full.store.getState().seenLayouts.includes('layout-201'), false);
+    await full.controller.addMore();
+    const state = full.store.getState();
+    assert.equal(state.notice?.code, 'M-PACK-SIZE');
+    assert.equal(state.puzzles.some((p) => p.id === 'q201'), false, 'the puzzle past the limit is not listed');
+    assert.ok(state.seenLayouts.includes('layout-201'));
+    assert.ok(state.seenClues.includes('clue-201'));
+    full.destroy();
   });
 
   test('a fault keeps the prefix the client reports, and a full history asks for a reset', async () => {

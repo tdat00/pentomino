@@ -1,0 +1,82 @@
+{
+  "task": "IGP-00",
+  "allocationMinutes": 9,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "IGP-00"]
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": ["tools\\ig-proto\\lib\\tree.mjs", "build", "base", "instr", "log"]
+    },
+    {
+      "id": "self-test",
+      "locked": true,
+      "repeatUntilDone": false,
+      "projectS": 105,
+      "minHorizonS": 120,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\self-test.mjs"],
+      "state": "IGP-00\\self-test\\state.json"
+    },
+    {
+      "id": "resume-test",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 60,
+      "minHorizonS": 110,
+      "invocations": 3,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-00", "--arm", "resume", "--shard", "s1", "--variant", "log", "--workers", "4", "--cases", "6x10-very-easy:0-2", "--row-limit-s", "90", "--max-rows", "1"],
+      "state": "IGP-00\\resume\\s1\\state.json"
+    },
+    {
+      "id": "resume-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "status", "--task", "IGP-00", "--arm", "resume", "--shard", "s1", "--check-rows"]
+    },
+    {
+      "id": "identity-base",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 120,
+      "minHorizonS": 110,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-00", "--arm", "base", "--shard", "s1", "--variant", "base", "--workers", "4", "--cases", "26x26-nightmare:0-1,14x14-master:0-1", "--row-limit-s", "90"],
+      "state": "IGP-00\\base\\s1\\state.json"
+    },
+    {
+      "id": "identity-log",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 120,
+      "minHorizonS": 110,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\arm.mjs", "run", "--task", "IGP-00", "--arm", "log", "--shard", "s1", "--variant", "log", "--workers", "4", "--cases", "26x26-nightmare:0-1,14x14-master:0-1", "--row-limit-s", "90"],
+      "state": "IGP-00\\log\\s1\\state.json"
+    },
+    {
+      "id": "publish-base",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "IGP-00", "--arm", "base"]
+    },
+    {
+      "id": "publish-log",
+      "locked": false,
+      "node": ["tools\\ig-proto\\arm.mjs", "publish", "--task", "IGP-00", "--arm", "log"]
+    },
+    {
+      "id": "identity",
+      "locked": false,
+      "node": ["tools\\ig-proto\\identity.mjs", "--task", "IGP-00", "--arms", "base,log"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "IGP-00"]
+    }
+  ]
+}

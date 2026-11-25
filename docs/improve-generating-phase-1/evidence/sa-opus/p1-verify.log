@@ -1,0 +1,32 @@
+p1-verify: base 006ca68, started 2026-11-25 06:41:38 +07:00
+P1-SAO full node26: IG P1-SAO full node26 exit=0 seconds=119.73 quiet=45
+P1-SAO full node26: p1-run: C:\Program Files\nodejs\node.exe v26.13.0; node --test --test-reporter=tap tests/**/*.test.js
+P1-SAO full node26: # tests 1514
+P1-SAO full node26: # suites 128
+P1-SAO full node26: # pass 1514
+P1-SAO full node26: # fail 0
+P1-SAO full node26: # cancelled 0
+P1-SAO full node26: # skipped 0
+P1-SAO full node26: # todo 0
+P1-SAO full node26: # duration_ms 119519.3573
+P1-SAO full node26: p1-run: exit 0
+P1-SAO fixtures: IG P1-SAO fixtures exit=0 seconds=0.665 quiet=45
+P1-SAO fixtures: p1-run: C:\Program Files\nodejs\node.exe v26.13.0; node tools/record-fixtures.mjs --check
+P1-SAO fixtures: record-fixtures: OK
+P1-SAO fixtures: p1-run: exit 0
+P1-SAO replay case: IG P1-SAO replay case exit=0 seconds=1.243 quiet=45
+P1-SAO replay case: p1-run: C:\Program Files\nodejs\node.exe v26.13.0; node tools/record-fixtures.mjs --replay-case --check
+P1-SAO replay case: record-fixtures: replay case OK
+P1-SAO replay case: p1-run: exit 0
+P1-SAO full node22: IG P1-SAO full node22 exit=0 seconds=144.391 quiet=45
+P1-SAO full node22: p1-run: Q:\.tools\.npm\_npx\52027bd8fc0022aa\node_modules\node\bin\node.exe v22.23.5; node --test --test-reporter=tap tests/**/*.test.js
+P1-SAO full node22: # tests 1514
+P1-SAO full node22: # suites 128
+P1-SAO full node22: # pass 1514
+P1-SAO full node22: # fail 0
+P1-SAO full node22: # cancelled 0
+P1-SAO full node22: # skipped 0
+P1-SAO full node22: # todo 0
+P1-SAO full node22: # duration_ms 142864.9186
+P1-SAO full node22: p1-run: exit 0
+p1-verify: ended 2026-11-25 06:49:05 +07:00

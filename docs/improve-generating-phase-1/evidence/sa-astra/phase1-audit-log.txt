@@ -1,0 +1,46 @@
+{
+  "base": "006ca68ff447c8e39c33deaf517df82b3dc6d602",
+  "branch": "improve-generating",
+  "digest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+  "commits": {
+    "p6": "fb893c3876e1bc2adaafbe258c7cf857f652d008 improve-generating T12: P6: the DLX diagnostic only for returned ratings",
+    "streaming": "373e74a57a7c05de0b92eb03cb6eb7ee4e6f8281 improve-generating T13: Progressive presentation: fold order and the history policy",
+    "benchmark": "826ce79dcc4a77daaaea00894a6dcea46bcbd8b7 improve-generating T14: Phase-1 bench of P6, old and new generation time"
+  },
+  "sourceDiff": [
+    "core/engine/clues.js",
+    "core/engine/difficulty.js",
+    "core/engine/types.js"
+  ],
+  "rows": 70,
+  "equalPairs": 35,
+  "memory": {
+    "processLimit": 1610612736,
+    "accountedLimit": 1254096896,
+    "processPeak": 589246464,
+    "accountedPeak": 242014758,
+    "sideCells": 14,
+    "bothChecksPass": true
+  },
+  "historicalCountedSeconds": 2244.925,
+  "kernelClosureFiles": 9,
+  "equalityItems": 713,
+  "fixtureVerification": {
+    "semanticChanges": false,
+    "change": "tools/record-fixtures.mjs now normalizes LF/CRLF before its replay-case text comparison; no recipe or fixture change.",
+    "historicalT13FullTests": 1514,
+    "projectedRefreshSeconds": 260.233,
+    "upperThreeInvocationsSeconds": 1035,
+    "note": "Projection for full npm-test-equivalent plus both fixture checks, not a new measurement or allowance. A four-width test extension can change the full-suite duration; each invocation must fit 300 s."
+  },
+  "sourceInputCount": 110,
+  "inputIndexHash": "b83940b86106593228381cc829bb4da139c7cf0f3107a0bdf76373d5f2a9cbda",
+  "newMeasuredSeconds": 0
+}
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+Final validation: 110 input hashes unchanged; 5 own files CRLF/UTF-8 without BOM; ten sections and ten summary lines; npm run check passed; no production/test/tool diff from 006ca68. Analysis SHA256 e66c50f8981152e476f366988595866fddcd25c85b9efe563cd223092b5a48ee.

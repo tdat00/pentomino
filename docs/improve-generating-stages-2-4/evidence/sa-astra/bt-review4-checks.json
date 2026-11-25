@@ -1,0 +1,170 @@
+{
+  "base": "57ef5cf",
+  "tasks": 35,
+  "totalHours": 68.5,
+  "maximumHours": 3,
+  "changedPackInputs": [
+    "T02c-fit-reader-commands.md",
+    "T03b-p7-probe-declaration-and-verdicts.md",
+    "T03c-p7-probe-bindings-and-commands.md",
+    "T06b-budget-by-mode-and-per-set-levels.md",
+    "check-list.md"
+  ],
+  "unchangedCodeInputs": 17,
+  "inputs": [
+    {
+      "path": "tasks/improve-generating-stages-2-4/S01-run-v4-s2b.md",
+      "sha256": "aa4f428e7c7a0515b211e579b6ba778ba1fc577726841a5cb1830160e168abfb"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S02-run-v4-p7-and-spike-report.md",
+      "sha256": "89a3edcccf50674bc7c895a084ba6b5f32fef05d97e15c7bc90f7e75ff3771a7"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S03-run-v4-s3p.md",
+      "sha256": "d91320f1d6e5f19446731be998fd71dbb96ed807e9857e820a675e55ae851729"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S04-run-v4-live.md",
+      "sha256": "8a48cd99f75456d98e251e8bfe7506df7a5f052165b69e9bdb709d596c4ce49b"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S05-activation.md",
+      "sha256": "3b43c63a4ab6917a4401ad4b9a1f860cbadf2852213719ce2cbac5787bc37333"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S06-run-v4-s4.md",
+      "sha256": "b3c3cbf984cabe32d650e66d9df22b6aec05bc693d99868d7865a403face8298"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S07-run-v4-s4c.md",
+      "sha256": "9884fa5f1efa2eb96684985805be55677c1ccaafc3b85e663e31038cd863f7ff"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T01a-publish-done-shards.md",
+      "sha256": "ace5fcf31d070ea9b1d2bf92cb6ff38fd637b6356a81c784c1a61190ebef0e0f"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T01b-git-guard.md",
+      "sha256": "c53d2c42ac12d0bbdbb381b0bb2f9a6d3eed3e70c093ef473acce6d6d425ae25"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T02a-plan-writer-and-v4-s2b.md",
+      "sha256": "c5001d7814f3994b5a7e147c90d94a900cfd4a0b334a48241cac85cced540ab6"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T02b-fit-reader-core.md",
+      "sha256": "b77f18176085af316ae47d0572bee72a09ab3e2ddbbf10d4ee41a9e0c1693946"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T02c-fit-reader-commands.md",
+      "sha256": "6f46b7603cca9bd40c14c91085c62bca8784c99c783c0cace75a9ca76f550bb2"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03a-p7-probe-items.md",
+      "sha256": "344f91fa27cbb59270dd7902078fc564217b8a8f7d8bb47f9798506a3d07b2c7"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03b-p7-probe-declaration-and-verdicts.md",
+      "sha256": "75ea562d3ba49f582daa21274b6594aafe7c30fde4eddd45a0c200930a1d6d4b"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03c-p7-probe-bindings-and-commands.md",
+      "sha256": "87a9e977ca2baf6e44822d4d1ccb79c907335cadc94b92fb1382fc2e3121deab"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03d-p7-c1-live-row-lists.md",
+      "sha256": "153677315143600ed6febd857d1f68e1a21c04c3e12ce266c53deaf825ec600c"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T04-p7-r5-on-lists.md",
+      "sha256": "24002078a360617464be332f4c29915072dc7ddbbc56a6f69bbced5d56345e2f"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T05a-p7-c5-select-on-lists.md",
+      "sha256": "ac2eb70838d4a96bbaed98f0436926d31d625a306b5a6082d840c90b36ce6778"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T05b-p7-full-equality-and-v4-p7.md",
+      "sha256": "d99ea028e72f185ba1190965d16f752e7a35499422a2411e357c4af042607992"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T06a-prior-s3-v1.md",
+      "sha256": "ce0a634a1f17534d39117c8278b837e00ea329bfd5569c9f803900aedb3f5a39"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T06b-budget-by-mode-and-per-set-levels.md",
+      "sha256": "3d670f908a264e55c0d14030a23917f7330638a599d80689d4b2c80c937c531a"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T07a-live-deadline-client-and-pool.md",
+      "sha256": "d9f066a1ef0f1a63b22ee36f8ee0c3b3358904e2e42f800261c93b1a1b178720"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T07b-live-deadline-host-bound.md",
+      "sha256": "4231d8387f454f3b1549c4a9f9d97921900d7bc6f3d71d128e8c1ada69a2c655"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T07c-live-deadline-scripted-cases.md",
+      "sha256": "7ccb3a2516cc31a5cf9ffae8b3af85743ae3683b53504681549fcf444d6a8af9"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T08a-frozen-variants.md",
+      "sha256": "fbdcce84f04bd8d7b366234515cb27e0a17d298d9a782723370693ca2ee214ee"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T08b-freeze-checks.md",
+      "sha256": "7ddfcf4f97d694e27e1d90c89d4910c837ceb2ee21b43da9ee075d2516b38b2a"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T08c-frozen-real-calls.md",
+      "sha256": "61f74de12993c7be7e49cfd057c267b9783851b19d7a0746562b21b1491ca14d"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09a-live-deadline-checks.md",
+      "sha256": "273871e9eecb5de451fccce48ea900159fe610ced99e2963517db7c513f237af"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09b-live-deadline-receipt.md",
+      "sha256": "59f0d655efaf5d8655a23e6e00c0d618e98c13727336bfebe92f6a1a6575c182"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09c-accept-live-deadline.md",
+      "sha256": "cb1c65be5e83777f3d0cce2c77aeb95a624549b76a22632d962debc83ba627c3"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T10-plan-v4-s3p.md",
+      "sha256": "f48845f58a3984ac168bfdced1093e66faf6af47ed61cb4118339bed71f0e593"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T11-sa-reading-of-the-fit-runs.md",
+      "sha256": "fa88f1960851b6009d432c686636064d8ef018c52194b481a18e6b1cb7d96b4c"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T12a-fit-index.md",
+      "sha256": "c32ea69932c5f1e398500c89ca4248c2601fac3054b496f7e466d9c3ad1e5083"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T12b-freeze-record.md",
+      "sha256": "9ad735f926fe36c536b0a9e4249146e176d1557299d334e242688b2684f98b69"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T16-stage4-report-and-phase0.md",
+      "sha256": "b5a09d3a9e5a416cc6c80c656aa7a992d8fc64f4aff6c21f04a76c244d0ece58"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/check-list.md",
+      "sha256": "fce66f2b8e4af1ba5c1c105917542ac2389dab934bee346f76fddb876c835c6b"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/review-3-response.md",
+      "sha256": "6c0276bd45f0dcb42d0dd7efd280d707bae736c8d30af600b4120d5536ac58d7"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/evidence/sa-opus/bt-r3-witness.mjs",
+      "sha256": "35ceb465a8e7390de8e61bdefef0859dfb6d0b269fdd2b01bc395aaa5062bc02"
+    }
+  ],
+  "priorEvidencePreserved": true,
+  "noEngineExecution": true
+}

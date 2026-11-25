@@ -1,0 +1,61 @@
+{
+  "id": "instr",
+  "extends": ["base"],
+  "description": "Instrumentation: work and nodes at the first solution and R7 work-limit cuts (igTake), test-side puzzle keys in run records, diagnostic offers. No rating changes.",
+  "edits": [
+    {
+      "id": "instr-1",
+      "file": "core/engine/deduce.js",
+      "find": "  let first = null;\n",
+      "replace": "  let first = null;\n  let igWorkFirst = -1;\n  let igNodesFirst = -1;\n  let igR7Cut = 0;\n  let igR7CutCensus = 0;\n"
+    },
+    {
+      "id": "instr-2",
+      "file": "core/engine/deduce.js",
+      "find": "        first = snapshot();\n",
+      "replace": "        first = snapshot();\n        igWorkFirst = work;\n        igNodesFirst = nodes;\n"
+    },
+    {
+      "id": "instr-3",
+      "file": "core/engine/deduce.js",
+      "find": "      if (work > workLimit) {\n        return NONE;\n      }\n      if (!reachable(n, -1, compSize[i], compImb[i])) {\n",
+      "replace": "      if (work > workLimit) {\n        if (inCensus) {\n          igR7CutCensus += 1;\n        } else {\n          igR7Cut += 1;\n        }\n        return NONE;\n      }\n      if (!reachable(n, -1, compSize[i], compImb[i])) {\n"
+    },
+    {
+      "id": "instr-4",
+      "file": "core/engine/deduce.js",
+      "find": "          if (work > workLimit) {\n            return NONE;\n          }\n          const imbalance = option === OPT_PLUS ? pieceK[p] : -pieceK[p];\n",
+      "replace": "          if (work > workLimit) {\n            if (inCensus) {\n              igR7CutCensus += 1;\n            } else {\n              igR7Cut += 1;\n            }\n            return NONE;\n          }\n          const imbalance = option === OPT_PLUS ? pieceK[p] : -pieceK[p];\n"
+    },
+    {
+      "id": "instr-5",
+      "file": "core/engine/deduce.js",
+      "find": "  function result() {\n",
+      "replace": "  function result() {\n    igLast = { workFirst: igWorkFirst, nodesFirst: igNodesFirst, r7Cut: igR7Cut, r7CutCensus: igR7CutCensus };\n"
+    },
+    {
+      "id": "instr-6",
+      "file": "core/engine/deduce.js",
+      "append": "\n/** @type {?{ workFirst: number, nodesFirst: number, r7Cut: number, r7CutCensus: number }} Instrumentation of the last measurement (ig-proto). */\nlet igLast = null;\n\n/** Returns and clears the instrumentation of the last measurement (null when there was none). */\nexport function igTake() {\n  const value = igLast;\n  igLast = null;\n  return value;\n}\n"
+    },
+    {
+      "id": "instr-7",
+      "file": "tools/bench/runner.js",
+      "find": "      resultDigest: sha256Hex(canonicalJson({\n",
+      "replace": "      igSetKey: sha256Hex(canonicalJson(set.pieces.map((p) => p.cells))),\n      igPuzzleKeys: kept.map((v) => sha256Hex(canonicalJson({ layoutKey: v.layoutKey, clueKey: v.clueKey }))),\n      resultDigest: sha256Hex(canonicalJson({\n"
+    },
+    {
+      "id": "diag-1",
+      "file": "core/engine/policy.js",
+      "find": "  if (area < lv.areas[0] || area > lv.areas[1]) return null;\n",
+      "replace": "  if (IG.diagnosticOffers !== true && (area < lv.areas[0] || area > lv.areas[1])) return null;\n"
+    },
+    {
+      "id": "diag-2",
+      "file": "core/engine/policy.js",
+      "append": "\nimport { IG } from './ig-params.js';\n"
+    }
+  ],
+  "files": [],
+  "params": { "variant": "instr", "diagnosticOffers": true }
+}

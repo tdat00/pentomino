@@ -1,0 +1,981 @@
+{
+ "classes": {
+  "n-small (10x10, 12x12)": {
+   "cells": [
+    "10x10-nightmare",
+    "12x12-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 154510342779,
+     "hi": 180745214441,
+     "accepted": 100,
+     "loRatio": 1545103427.79,
+     "hiRatio": 1807452144.41,
+     "completedRatio": 1545103427.79,
+     "complete": true,
+     "rows": 10,
+     "terminatedCalls": 46
+    },
+    "noScreen": {
+     "lo": 165008810549,
+     "hi": 220931865025,
+     "accepted": 100,
+     "loRatio": 1650088105.49,
+     "hiRatio": 2209318650.25,
+     "completedRatio": 1650088105.49,
+     "complete": true,
+     "rows": 10,
+     "terminatedCalls": 47
+    },
+    "verdict": "unknown"
+   },
+   "faster": {
+    "geoMean": 1.0814067988710638,
+    "lower": 0.9211198965638345,
+    "cellGeoMeans": {
+     "10x10-nightmare": 0.6872161434676678,
+     "12x12-nightmare": 1.701707207784157
+    },
+    "pass": false
+   },
+   "clue": {
+    "n": 10,
+    "medianDiff": 1,
+    "moved2": 0,
+    "pass": false
+   }
+  },
+  "n-mid (14x14, 15x15b10, 16x16, 15x20)": {
+   "cells": [
+    "14x14-nightmare",
+    "15x15b10-nightmare",
+    "16x16-nightmare",
+    "15x20-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 189842724248,
+     "hi": 539546208786,
+     "accepted": 200,
+     "loRatio": 949213621.24,
+     "hiRatio": 2697731043.93,
+     "completedRatio": 949213621.24,
+     "complete": true,
+     "rows": 20,
+     "terminatedCalls": 102
+    },
+    "noScreen": {
+     "lo": 447346975709,
+     "hi": 874166567779,
+     "accepted": 200,
+     "loRatio": 2236734878.545,
+     "hiRatio": 4370832838.895,
+     "completedRatio": 2236734878.545,
+     "complete": true,
+     "rows": 20,
+     "terminatedCalls": 103
+    },
+    "verdict": "unknown"
+   },
+   "faster": {
+    "geoMean": 2.2084116552528243,
+    "lower": 2.04979928974534,
+    "cellGeoMeans": {
+     "14x14-nightmare": 2.601069472036843,
+     "15x15b10-nightmare": 2.473560521927144,
+     "16x16-nightmare": 2.238564669398984,
+     "15x20-nightmare": 1.6514901361245806
+    },
+    "pass": true
+   },
+   "clue": {
+    "n": 20,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   }
+  },
+  "n-mid-a (14x14, 15x15b10, 16x16)": {
+   "cells": [
+    "14x14-nightmare",
+    "15x15b10-nightmare",
+    "16x16-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 146838769708,
+     "hi": 342552331544,
+     "accepted": 150,
+     "loRatio": 978925131.3866667,
+     "hiRatio": 2283682210.2933335,
+     "completedRatio": 978925131.3866667,
+     "complete": true,
+     "rows": 15,
+     "terminatedCalls": 78
+    },
+    "noScreen": {
+     "lo": 376843785716,
+     "hi": 635137324596,
+     "accepted": 150,
+     "loRatio": 2512291904.7733335,
+     "hiRatio": 4234248830.64,
+     "completedRatio": 2512291904.7733335,
+     "complete": true,
+     "rows": 15,
+     "terminatedCalls": 79
+    },
+    "verdict": "pass"
+   },
+   "faster": {
+    "geoMean": 2.4330332608465537,
+    "lower": 2.3485776761745654,
+    "cellGeoMeans": {
+     "14x14-nightmare": 2.601069472036843,
+     "15x15b10-nightmare": 2.473560521927144,
+     "16x16-nightmare": 2.238564669398984
+    },
+    "pass": true
+   },
+   "clue": {
+    "n": 15,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   }
+  },
+  "n-mid-b (14x14, 15x15b10)": {
+   "cells": [
+    "14x14-nightmare",
+    "15x15b10-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 96830921661,
+     "hi": 192515882155,
+     "accepted": 100,
+     "loRatio": 968309216.61,
+     "hiRatio": 1925158821.55,
+     "completedRatio": 968309216.61,
+     "complete": true,
+     "rows": 10,
+     "terminatedCalls": 52
+    },
+    "noScreen": {
+     "lo": 263497942059,
+     "hi": 393634669337,
+     "accepted": 100,
+     "loRatio": 2634979420.59,
+     "hiRatio": 3936346693.37,
+     "completedRatio": 2634979420.59,
+     "complete": true,
+     "rows": 10,
+     "terminatedCalls": 52
+    },
+    "verdict": "pass"
+   },
+   "faster": {
+    "geoMean": 2.536513899197127,
+    "lower": 2.406151964166613,
+    "cellGeoMeans": {
+     "14x14-nightmare": 2.601069472036843,
+     "15x15b10-nightmare": 2.473560521927144
+    },
+    "pass": true
+   },
+   "clue": {
+    "n": 10,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   }
+  },
+  "n-large (26x26)": {
+   "cells": [
+    "26x26-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 55563522501,
+     "hi": 3082320346269,
+     "accepted": 50,
+     "loRatio": 1111270450.02,
+     "hiRatio": 61646406925.38,
+     "completedRatio": 1111270450.02,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 22
+    },
+    "noScreen": {
+     "lo": 79211099011,
+     "hi": 3444012467875,
+     "accepted": 50,
+     "loRatio": 1584221980.22,
+     "hiRatio": 68880249357.5,
+     "completedRatio": 1584221980.22,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 24
+    },
+    "verdict": "unknown"
+   },
+   "faster": {
+    "geoMean": 1.4579122491649414,
+    "lower": 1.348220072001125,
+    "cellGeoMeans": {
+     "26x26-nightmare": 1.4579122491649414
+    },
+    "pass": true
+   },
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   }
+  },
+  "hell-1 (26x26)": {
+   "cells": [
+    "26x26-hell-1"
+   ],
+   "work": {
+    "screen": {
+     "lo": 192804300732,
+     "hi": 2627619192598,
+     "accepted": 50,
+     "loRatio": 3856086014.64,
+     "hiRatio": 52552383851.96,
+     "completedRatio": 3856086014.64,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 24
+    },
+    "noScreen": {
+     "lo": 211973207633,
+     "hi": 3209713696251,
+     "accepted": 50,
+     "loRatio": 4239464152.66,
+     "hiRatio": 64194273925.02,
+     "completedRatio": 4239464152.66,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 28
+    },
+    "verdict": "unknown"
+   },
+   "faster": {
+    "geoMean": 1.074303216261525,
+    "lower": 0.9187849925639404,
+    "cellGeoMeans": {
+     "26x26-hell-1": 1.074303216261525
+    },
+    "pass": false
+   },
+   "clue": {
+    "n": 5,
+    "medianDiff": 0.5,
+    "moved2": 0,
+    "pass": true
+   }
+  },
+  "cell 10x10-nightmare": {
+   "cells": [
+    "10x10-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 110008999069,
+     "hi": 118685774761,
+     "accepted": 50,
+     "loRatio": 2200179981.38,
+     "hiRatio": 2373715495.22,
+     "completedRatio": 2200179981.38,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 21
+    },
+    "noScreen": {
+     "lo": 82095093380,
+     "hi": 101107464178,
+     "accepted": 50,
+     "loRatio": 1641901867.6,
+     "hiRatio": 2022149283.56,
+     "completedRatio": 1641901867.6,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 19
+    },
+    "verdict": "worse"
+   },
+   "faster": {
+    "geoMean": 0.6872161434676678,
+    "lower": 0.5821431722976447,
+    "cellGeoMeans": {
+     "10x10-nightmare": 0.6872161434676678
+    },
+    "pass": false
+   },
+   "clue": {
+    "n": 5,
+    "medianDiff": 1,
+    "moved2": 0,
+    "pass": false
+   }
+  },
+  "cell 12x12-nightmare": {
+   "cells": [
+    "12x12-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 44501343710,
+     "hi": 62059439680,
+     "accepted": 50,
+     "loRatio": 890026874.2,
+     "hiRatio": 1241188793.6,
+     "completedRatio": 890026874.2,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 25
+    },
+    "noScreen": {
+     "lo": 82913717169,
+     "hi": 119824400847,
+     "accepted": 50,
+     "loRatio": 1658274343.38,
+     "hiRatio": 2396488016.94,
+     "completedRatio": 1658274343.38,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 28
+    },
+    "verdict": "pass"
+   },
+   "faster": {
+    "geoMean": 1.701707207784157,
+    "lower": 1.3509095231834696,
+    "cellGeoMeans": {
+     "12x12-nightmare": 1.701707207784157
+    },
+    "pass": true
+   },
+   "clue": {
+    "n": 5,
+    "medianDiff": 1,
+    "moved2": 0,
+    "pass": false
+   }
+  },
+  "cell 14x14-nightmare": {
+   "cells": [
+    "14x14-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 47483017448,
+     "hi": 87714908614,
+     "accepted": 50,
+     "loRatio": 949660348.96,
+     "hiRatio": 1754298172.28,
+     "completedRatio": 949660348.96,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 26
+    },
+    "noScreen": {
+     "lo": 129104809095,
+     "hi": 186479964757,
+     "accepted": 50,
+     "loRatio": 2582096181.9,
+     "hiRatio": 3729599295.14,
+     "completedRatio": 2582096181.9,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 26
+    },
+    "verdict": "pass"
+   },
+   "faster": {
+    "geoMean": 2.601069472036843,
+    "lower": 2.4019040253209893,
+    "cellGeoMeans": {
+     "14x14-nightmare": 2.601069472036843
+    },
+    "pass": true
+   },
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   }
+  },
+  "cell 15x15b10-nightmare": {
+   "cells": [
+    "15x15b10-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 49347904213,
+     "hi": 104800973541,
+     "accepted": 50,
+     "loRatio": 986958084.26,
+     "hiRatio": 2096019470.82,
+     "completedRatio": 986958084.26,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 26
+    },
+    "noScreen": {
+     "lo": 134393132964,
+     "hi": 207154704580,
+     "accepted": 50,
+     "loRatio": 2687862659.28,
+     "hiRatio": 4143094091.6,
+     "completedRatio": 2687862659.28,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 26
+    },
+    "verdict": "pass"
+   },
+   "faster": {
+    "geoMean": 2.473560521927144,
+    "lower": 2.2475978124689755,
+    "cellGeoMeans": {
+     "15x15b10-nightmare": 2.473560521927144
+    },
+    "pass": true
+   },
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   }
+  },
+  "cell 16x16-nightmare": {
+   "cells": [
+    "16x16-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 50007848047,
+     "hi": 150036449389,
+     "accepted": 50,
+     "loRatio": 1000156960.94,
+     "hiRatio": 3000728987.78,
+     "completedRatio": 1000156960.94,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 26
+    },
+    "noScreen": {
+     "lo": 113345843657,
+     "hi": 241502655259,
+     "accepted": 50,
+     "loRatio": 2266916873.14,
+     "hiRatio": 4830053105.18,
+     "completedRatio": 2266916873.14,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 27
+    },
+    "verdict": "unknown"
+   },
+   "faster": {
+    "geoMean": 2.238564669398984,
+    "lower": 2.2004053734525035,
+    "cellGeoMeans": {
+     "16x16-nightmare": 2.238564669398984
+    },
+    "pass": true
+   },
+   "clue": {
+    "n": 5,
+    "medianDiff": 0.5,
+    "moved2": 0,
+    "pass": true
+   }
+  },
+  "cell 15x20-nightmare": {
+   "cells": [
+    "15x20-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 43003954540,
+     "hi": 196993877242,
+     "accepted": 50,
+     "loRatio": 860079090.8,
+     "hiRatio": 3939877544.84,
+     "completedRatio": 860079090.8,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 24
+    },
+    "noScreen": {
+     "lo": 70503189993,
+     "hi": 239029243183,
+     "accepted": 50,
+     "loRatio": 1410063799.86,
+     "hiRatio": 4780584863.66,
+     "completedRatio": 1410063799.86,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 24
+    },
+    "verdict": "unknown"
+   },
+   "faster": {
+    "geoMean": 1.6514901361245806,
+    "lower": 1.3627951138745833,
+    "cellGeoMeans": {
+     "15x20-nightmare": 1.6514901361245806
+    },
+    "pass": true
+   },
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   }
+  },
+  "cell 26x26-nightmare": {
+   "cells": [
+    "26x26-nightmare"
+   ],
+   "work": {
+    "screen": {
+     "lo": 55563522501,
+     "hi": 3082320346269,
+     "accepted": 50,
+     "loRatio": 1111270450.02,
+     "hiRatio": 61646406925.38,
+     "completedRatio": 1111270450.02,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 22
+    },
+    "noScreen": {
+     "lo": 79211099011,
+     "hi": 3444012467875,
+     "accepted": 50,
+     "loRatio": 1584221980.22,
+     "hiRatio": 68880249357.5,
+     "completedRatio": 1584221980.22,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 24
+    },
+    "verdict": "unknown"
+   },
+   "faster": {
+    "geoMean": 1.4579122491649414,
+    "lower": 1.348220072001125,
+    "cellGeoMeans": {
+     "26x26-nightmare": 1.4579122491649414
+    },
+    "pass": true
+   },
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   }
+  },
+  "cell 26x26-hell-1": {
+   "cells": [
+    "26x26-hell-1"
+   ],
+   "work": {
+    "screen": {
+     "lo": 192804300732,
+     "hi": 2627619192598,
+     "accepted": 50,
+     "loRatio": 3856086014.64,
+     "hiRatio": 52552383851.96,
+     "completedRatio": 3856086014.64,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 24
+    },
+    "noScreen": {
+     "lo": 211973207633,
+     "hi": 3209713696251,
+     "accepted": 50,
+     "loRatio": 4239464152.66,
+     "hiRatio": 64194273925.02,
+     "completedRatio": 4239464152.66,
+     "complete": true,
+     "rows": 5,
+     "terminatedCalls": 28
+    },
+    "verdict": "unknown"
+   },
+   "faster": {
+    "geoMean": 1.074303216261525,
+    "lower": 0.9187849925639404,
+    "cellGeoMeans": {
+     "26x26-hell-1": 1.074303216261525
+    },
+    "pass": false
+   },
+   "clue": {
+    "n": 5,
+    "medianDiff": 0.5,
+    "moved2": 0,
+    "pass": true
+   }
+  }
+ },
+ "open": {
+  "fr-screen/10x10-nightmare": {
+   "open": 21,
+   "byKind": {
+    "screen": 21
+   },
+   "byStage": {
+    "batch": 14,
+    "set": 7
+   },
+   "sum": 8676775692,
+   "medBound": 419509278,
+   "medDone": 133264468,
+   "width": 8676775692,
+   "mainKind": "screen"
+  },
+  "fr-screen/12x12-nightmare": {
+   "open": 25,
+   "byKind": {
+    "screen": 25
+   },
+   "byStage": {
+    "set": 12,
+    "batch": 13
+   },
+   "sum": 17558095970,
+   "medBound": 720684734,
+   "medDone": 134186854,
+   "width": 17558095970,
+   "mainKind": "screen"
+  },
+  "fr-screen/14x14-nightmare": {
+   "open": 26,
+   "byKind": {
+    "screen": 26
+   },
+   "byStage": {
+    "set": 11,
+    "batch": 15
+   },
+   "sum": 40231891166,
+   "medBound": 1549723751,
+   "medDone": 173200957,
+   "width": 40231891166,
+   "mainKind": "screen"
+  },
+  "fr-screen/15x15b10-nightmare": {
+   "open": 26,
+   "byKind": {
+    "screen": 26
+   },
+   "byStage": {
+    "set": 11,
+    "batch": 15
+   },
+   "sum": 55453069328,
+   "medBound": 2144281102,
+   "medDone": 167271226,
+   "width": 55453069328,
+   "mainKind": "screen"
+  },
+  "fr-screen/15x20-nightmare": {
+   "open": 24,
+   "byKind": {
+    "screen": 24
+   },
+   "byStage": {
+    "batch": 15,
+    "set": 9
+   },
+   "sum": 153989922702,
+   "medBound": 6386080813,
+   "medDone": 113393234,
+   "width": 153989922702,
+   "mainKind": "screen"
+  },
+  "fr-screen/16x16-nightmare": {
+   "open": 26,
+   "byKind": {
+    "screen": 26
+   },
+   "byStage": {
+    "set": 11,
+    "batch": 15
+   },
+   "sum": 100028601342,
+   "medBound": 4013274062,
+   "medDone": 139413369.5,
+   "width": 100028601342,
+   "mainKind": "screen"
+  },
+  "fr-screen/26x26-hell-1": {
+   "open": 24,
+   "byKind": {
+    "screen": 24
+   },
+   "byStage": {
+    "batch": 15,
+    "set": 9
+   },
+   "sum": 2434814891866,
+   "medBound": 100070557734,
+   "medDone": 304661762,
+   "width": 2434814891866,
+   "mainKind": "screen"
+  },
+  "fr-screen/26x26-nightmare": {
+   "open": 22,
+   "byKind": {
+    "screen": 22
+   },
+   "byStage": {
+    "batch": 16,
+    "set": 6
+   },
+   "sum": 3026756823768,
+   "medBound": 142079687734,
+   "medDone": 181766415,
+   "width": 3026756823768,
+   "mainKind": "screen"
+  },
+  "fr-none/10x10-nightmare": {
+   "open": 19,
+   "byKind": {
+    "rate": 19
+   },
+   "byStage": {
+    "batch": 12,
+    "set": 7
+   },
+   "sum": 19012370798,
+   "medBound": 1003013730,
+   "medDone": 299803815.5,
+   "width": 19012370798,
+   "mainKind": "rate"
+  },
+  "fr-none/12x12-nightmare": {
+   "open": 28,
+   "byKind": {
+    "rate": 28
+   },
+   "byStage": {
+    "batch": 15,
+    "set": 13
+   },
+   "sum": 36910683678,
+   "medBound": 1318196005,
+   "medDone": 359822964.5,
+   "width": 36910683678,
+   "mainKind": "rate"
+  },
+  "fr-none/14x14-nightmare": {
+   "open": 26,
+   "byKind": {
+    "rate": 26
+   },
+   "byStage": {
+    "set": 11,
+    "batch": 15
+   },
+   "sum": 57375155662,
+   "medBound": 2199659382,
+   "medDone": 328640969.5,
+   "width": 57375155662,
+   "mainKind": "rate"
+  },
+  "fr-none/15x15b10-nightmare": {
+   "open": 26,
+   "byKind": {
+    "rate": 26
+   },
+   "byStage": {
+    "batch": 16,
+    "set": 10
+   },
+   "sum": 72761571616,
+   "medBound": 2884742180,
+   "medDone": 273237645,
+   "width": 72761571616,
+   "mainKind": "rate"
+  },
+  "fr-none/15x20-nightmare": {
+   "open": 23,
+   "byKind": {
+    "rate": 23
+   },
+   "byStage": {
+    "set": 9,
+    "batch": 14
+   },
+   "sum": 168526053190,
+   "medBound": 7301229830,
+   "medDone": 126370145,
+   "width": 168526053190,
+   "mainKind": "rate"
+  },
+  "fr-none/16x16-nightmare": {
+   "open": 27,
+   "byKind": {
+    "rate": 27
+   },
+   "byStage": {
+    "batch": 15,
+    "set": 12
+   },
+   "sum": 128156811602,
+   "medBound": 4743052816,
+   "medDone": 178830454,
+   "width": 128156811602,
+   "mainKind": "rate"
+  },
+  "fr-none/26x26-hell-1": {
+   "open": 28,
+   "byKind": {
+    "rate": 28
+   },
+   "byStage": {
+    "batch": 16,
+    "set": 12
+   },
+   "sum": 2997740488618,
+   "medBound": 101260164752,
+   "medDone": 565875592,
+   "width": 2997740488618,
+   "mainKind": "rate"
+  },
+  "fr-none/26x26-nightmare": {
+   "open": 24,
+   "byKind": {
+    "rate": 24
+   },
+   "byStage": {
+    "batch": 16,
+    "set": 8
+   },
+   "sum": 3364801368864,
+   "medBound": 144406940234,
+   "medDone": 185731675,
+   "width": 3364801368864,
+   "mainKind": "rate"
+  },
+  "fr-base/12x12-nightmare": {
+   "open": 26,
+   "byKind": {
+    "rate": 26
+   },
+   "byStage": {
+    "batch": 13,
+    "set": 13
+   },
+   "sum": 34050269692,
+   "medBound": 1311119167,
+   "medDone": 376614875.5,
+   "width": 34050269692,
+   "mainKind": "rate"
+  },
+  "fr-base/14x14-hell-1": {
+   "open": 27,
+   "byKind": {
+    "rate": 27
+   },
+   "byStage": {
+    "batch": 16,
+    "set": 11
+   },
+   "sum": 37568284536,
+   "medBound": 1344889408,
+   "medDone": 760029234,
+   "width": 37568284536,
+   "mainKind": "rate"
+  },
+  "fr-base/14x14-nightmare": {
+   "open": 26,
+   "byKind": {
+    "screen": 26
+   },
+   "byStage": {
+    "set": 11,
+    "batch": 15
+   },
+   "sum": 39719114580,
+   "medBound": 1536793413,
+   "medDone": 173826365,
+   "width": 39719114580,
+   "mainKind": "screen"
+  },
+  "fr-base/20x20-hell-1": {
+   "open": 27,
+   "byKind": {
+    "rate": 27
+   },
+   "byStage": {
+    "batch": 15,
+    "set": 12
+   },
+   "sum": 257373477596,
+   "medBound": 8874494526,
+   "medDone": 140578902.5,
+   "width": 257373477596,
+   "mainKind": "rate"
+  },
+  "fr-base/24x24-hell-1": {
+   "open": 23,
+   "byKind": {
+    "rate": 23
+   },
+   "byStage": {
+    "batch": 15,
+    "set": 8
+   },
+   "sum": 1246501067314,
+   "medBound": 57338192904,
+   "medDone": 591336792.5,
+   "width": 1246501067314,
+   "mainKind": "rate"
+  },
+  "fr-base/26x26-hell-1": {
+   "open": 28,
+   "byKind": {
+    "rate": 28
+   },
+   "byStage": {
+    "batch": 16,
+    "set": 12
+   },
+   "sum": 3022262425160,
+   "medBound": 102133159074,
+   "medDone": 558612741.5,
+   "width": 3022262425160,
+   "mainKind": "rate"
+  },
+  "fr-base/26x26-nightmare": {
+   "open": 24,
+   "byKind": {
+    "rate": 24
+   },
+   "byStage": {
+    "batch": 16,
+    "set": 8
+   },
+   "sum": 3368760738436,
+   "medBound": 144406940234,
+   "medDone": 185669101.5,
+   "width": 3368760738436,
+   "mainKind": "rate"
+  }
+ }
+}

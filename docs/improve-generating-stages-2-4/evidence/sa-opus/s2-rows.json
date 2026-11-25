@@ -1,0 +1,8375 @@
+{
+ "cells": {
+  "12x12-nightmare": {
+   "area": 144,
+   "K": [
+    20,
+    19,
+    19,
+    21,
+    19
+   ],
+   "level": "nightmare"
+  },
+  "14x14-hell-1": {
+   "area": 196,
+   "K": [
+    32,
+    34,
+    35,
+    32,
+    32
+   ],
+   "level": "hell-1"
+  },
+  "14x14-nightmare": {
+   "area": 196,
+   "K": [
+    22,
+    22,
+    21,
+    24,
+    23
+   ],
+   "level": "nightmare"
+  },
+  "20x20-hell-1": {
+   "area": 400,
+   "K": [
+    42,
+    38,
+    39,
+    38,
+    38
+   ],
+   "level": "hell-1"
+  },
+  "24x24-hell-1": {
+   "area": 576,
+   "K": [
+    39,
+    42,
+    40,
+    39,
+    41
+   ],
+   "level": "hell-1"
+  },
+  "26x26-hell-1": {
+   "area": 676,
+   "K": [
+    42,
+    41,
+    39,
+    40,
+    40
+   ],
+   "level": "hell-1"
+  },
+  "26x26-nightmare": {
+   "area": 676,
+   "K": [
+    31,
+    30,
+    32,
+    32,
+    31
+   ],
+   "level": "nightmare"
+  },
+  "10x10-nightmare": {
+   "area": 100,
+   "K": [
+    17,
+    19,
+    17,
+    17,
+    17
+   ],
+   "level": "nightmare"
+  },
+  "15x15b10-nightmare": {
+   "area": 215,
+   "K": [
+    22,
+    22,
+    23,
+    23,
+    23
+   ],
+   "level": "nightmare"
+  },
+  "15x20-nightmare": {
+   "area": 300,
+   "K": [
+    26,
+    25,
+    26,
+    26,
+    25
+   ],
+   "level": "nightmare"
+  },
+  "16x16-nightmare": {
+   "area": 256,
+   "K": [
+    24,
+    25,
+    23,
+    23,
+    23
+   ],
+   "level": "nightmare"
+  }
+ },
+ "arms": {
+  "fr-base": {
+   "12x12-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.4237767000000001,
+    "t1MaxS": 6.7358041,
+    "t10MedS": 12.801508799999999,
+    "t10MaxS": 28.449776899999996,
+    "cappedT10MedS": 12.801508799999999,
+    "cappedT10GeoS": 13.231328509655222,
+    "respMedS": 12.9667873,
+    "respMaxS": 28.618627399999998,
+    "batchMedS": 11.3777321,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 4,
+    "rowMedClues": [
+     4,
+     4,
+     4.5,
+     5.5,
+     4
+    ],
+    "shareMed": 0.21052631578947367,
+    "K": [
+     20,
+     19,
+     19,
+     21,
+     19
+    ],
+    "scorePosMed": 0.5208333333333333,
+    "censusEstimateShare": 0.42,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.5989052999999999,
+      "t10S": 5.0934898,
+      "respS": 5.2725533,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "5713586079ecc328c6b6b74dafbeae11f8b7012fd351ad78f62af20191cd8cad",
+      "K": 20,
+      "clues": [
+       4,
+       6,
+       6,
+       4,
+       4,
+       4,
+       4,
+       4,
+       5,
+       4
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.4237767000000001,
+      "t10S": 12.801508799999999,
+      "respS": 12.9667873,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "0f2c917ec5f293282d3cea8dbe1bf7861d31d0f1b0b0eeb3e31d30e4d7bbb91a",
+      "K": 19,
+      "clues": [
+       3,
+       4,
+       5,
+       4,
+       4,
+       4,
+       4,
+       4,
+       5,
+       4
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.4309483,
+      "t10S": 18.9883247,
+      "respS": 19.161682,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "52f8ba0ccd3c628349a93c38b913a659a4f9ad9c12c6de48235a4b396f42ecb1",
+      "K": 19,
+      "clues": [
+       5,
+       4,
+       5,
+       4,
+       4,
+       5,
+       4,
+       4,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.7358041,
+      "t10S": 28.449776899999996,
+      "respS": 28.618627399999998,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9bc2def6267660a64e74afebb36b36bc7b62727be306fddc0b10dc2c77d4ed8c",
+      "K": 21,
+      "clues": [
+       7,
+       7,
+       6,
+       5,
+       7,
+       4,
+       7,
+       5,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.6508534,
+      "t10S": 11.5126459,
+      "respS": 11.6714567,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "3e71932eaab7aaccd2c2662f449d32d3784e0f8e0fcc05c5985eff57d2dd4f74",
+      "K": 19,
+      "clues": [
+       4,
+       4,
+       4,
+       4,
+       6,
+       4,
+       4,
+       4,
+       4,
+       4
+      ]
+     }
+    ]
+   },
+   "14x14-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 4,
+    "deadlineViolations": 2,
+    "t1MedS": 18.9932445,
+    "t1MaxS": 35.562438199999995,
+    "t10MedS": 93.57091524999998,
+    "t10MaxS": 142.8073812,
+    "cappedT10MedS": 100.9016944,
+    "cappedT10GeoS": 101.11425886928251,
+    "respMedS": 101.0732649,
+    "respMaxS": 150.6292569,
+    "batchMedS": 84.13860209999999,
+    "accepted": 42,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [
+     "3:time-limit:2"
+    ],
+    "cluesMed": 13,
+    "rowMedClues": [
+     12,
+     13,
+     14,
+     11.5,
+     13
+    ],
+    "shareMed": 0.38235294117647056,
+    "K": [
+     32,
+     34,
+     35,
+     32,
+     32
+    ],
+    "scorePosMed": 0.4285714285714286,
+    "censusEstimateShare": 0.7380952380952381,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 10.133977699999999,
+      "t10S": 100.9016944,
+      "respS": 101.0732649,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "4b0e97ad2569acf95d0b8f9916252c7720b51b0f94587f7c07b1e8b3d1a1b40b",
+      "K": 32,
+      "clues": [
+       13,
+       13,
+       12,
+       11,
+       12,
+       9,
+       13,
+       11,
+       12,
+       13
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 34.734845,
+      "t10S": 142.8073812,
+      "respS": 142.95863889999998,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "c8a8d33845eadbfc671b49b15889bc9dbbc449d9550cca18371230e01b7f5105",
+      "K": 34,
+      "clues": [
+       13,
+       16,
+       13,
+       12,
+       12,
+       11,
+       13,
+       14,
+       10,
+       14
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 18.9932445,
+      "t10S": 86.24013609999999,
+      "respS": 86.3965001,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "7865e799b5fa6cc1ef3ca9dc921c3e9407300d4a8edf8f7c6e83772cff127e32",
+      "K": 35,
+      "clues": [
+       15,
+       12,
+       14,
+       14,
+       10,
+       15,
+       16,
+       14,
+       13,
+       15
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 2,
+      "t1S": 35.562438199999995,
+      "t10S": null,
+      "respS": 150.6292569,
+      "partial": "time-limit",
+      "setAttempt": 0,
+      "setKey": "02e0609259e3486c5fa79dd3e78959d6c6941d8a4f78ab0d980bd93b1bc3df14",
+      "K": 32,
+      "clues": [
+       11,
+       12
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.8417834,
+      "t10S": 84.3512709,
+      "respS": 84.5312676,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "717e4ef525e1baf7a9d7ae4ed1652200f83dd2daef90c03db3faacdd1fc32cfd",
+      "K": 32,
+      "clues": [
+       11,
+       13,
+       13,
+       13,
+       13,
+       8,
+       14,
+       12,
+       13,
+       9
+      ]
+     }
+    ]
+   },
+   "14x14-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.6199402999999999,
+    "t1MaxS": 4.0274897,
+    "t10MedS": 8.8836773,
+    "t10MaxS": 11.5158708,
+    "cappedT10MedS": 8.8836773,
+    "cappedT10GeoS": 8.390552355862361,
+    "respMedS": 9.042162399999999,
+    "respMaxS": 11.664796,
+    "batchMedS": 7.263737000000001,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 7,
+    "rowMedClues": [
+     7,
+     5,
+     5,
+     8,
+     6.5
+    ],
+    "shareMed": 0.2916666666666667,
+    "K": [
+     22,
+     22,
+     21,
+     24,
+     23
+    ],
+    "scorePosMed": 0.47916666666666663,
+    "censusEstimateShare": 0.1,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.3346961999999998,
+      "t10S": 5.270230000000001,
+      "respS": 5.4319348,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "151ca6bc0c77df81d7c58ed7051e397881d27256bdce5ae2c8cb84c400281dc0",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       6,
+       7,
+       9,
+       7,
+       7,
+       9,
+       7,
+       6
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.6048434,
+      "t10S": 8.885213799999999,
+      "respS": 9.042162399999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ac2328f7ef2f4cc7c31cc05a6c178c78c76bfe361f501e34ea45d4925cb15cb6",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       5,
+       5,
+       5,
+       7,
+       7,
+       7,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.0274897,
+      "t10S": 11.5158708,
+      "respS": 11.664796,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "2ba84f934892638843f5d03e57f19387b50e10ab450c03adc178271d45781acc",
+      "K": 21,
+      "clues": [
+       5,
+       5,
+       5,
+       4,
+       4,
+       6,
+       4,
+       5,
+       6,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.8589203,
+      "t10S": 8.680919900000001,
+      "respS": 8.8339841,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "214ba044e12d5f3a967cdfd269945d959587b4082664bc695af1a39d3e416258",
+      "K": 24,
+      "clues": [
+       8,
+       9,
+       8,
+       7,
+       10,
+       10,
+       8,
+       8,
+       7,
+       8
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.6199402999999999,
+      "t10S": 8.8836773,
+      "respS": 9.050477500000001,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "569584cd8b4bbe7893e3151dfa2e7a018b87337f7f7266ec5e3fcd2379fffd67",
+      "K": 23,
+      "clues": [
+       7,
+       7,
+       6,
+       6,
+       5,
+       6,
+       5,
+       7,
+       7,
+       7
+      ]
+     }
+    ]
+   },
+   "20x20-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 5.8914899,
+    "t1MaxS": 10.909299200000001,
+    "t10MedS": 38.378173499999995,
+    "t10MaxS": 48.5919693,
+    "cappedT10MedS": 38.378173499999995,
+    "cappedT10GeoS": 38.60637449021825,
+    "respMedS": 38.552404,
+    "respMaxS": 48.751456100000006,
+    "batchMedS": 30.533833299999998,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 14,
+    "rowMedClues": [
+     16,
+     13,
+     11.5,
+     12.5,
+     14
+    ],
+    "shareMed": 0.34962406015037595,
+    "K": [
+     42,
+     38,
+     39,
+     38,
+     38
+    ],
+    "scorePosMed": 0.41428571428571426,
+    "censusEstimateShare": 0.38,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.8914899,
+      "t10S": 48.5919693,
+      "respS": 48.751456100000006,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "57c0f1cce07d3d380449b91a385eca5d9e9b48a090b40054b2d4cabb55babf75",
+      "K": 42,
+      "clues": [
+       17,
+       16,
+       22,
+       15,
+       20,
+       14,
+       16,
+       15,
+       17,
+       15
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 7.899331200000001,
+      "t10S": 35.5991553,
+      "respS": 35.78168459999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "4e313540c9027edfbf8b850803546f5e5e658b090186b38a491da9bad89b4ee0",
+      "K": 38,
+      "clues": [
+       15,
+       14,
+       14,
+       11,
+       13,
+       13,
+       10,
+       11,
+       13,
+       11
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.4891627,
+      "t10S": 31.1712362,
+      "respS": 31.3577395,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "710558ff49839f6f90e95684c25740d791858a1730e910eb1ed45a4fa8a36e89",
+      "K": 39,
+      "clues": [
+       11,
+       12,
+       15,
+       10,
+       14,
+       11,
+       14,
+       11,
+       15,
+       11
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.4492175,
+      "t10S": 38.378173499999995,
+      "respS": 38.552404,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "b3266b9b2e56a97613e064dccef1d202cede87d56d1e70b216fb7d86f285829d",
+      "K": 38,
+      "clues": [
+       12,
+       13,
+       16,
+       14,
+       12,
+       12,
+       14,
+       13,
+       12,
+       12
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 10.909299200000001,
+      "t10S": 41.4431325,
+      "respS": 41.59555650000001,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "dbfe59fe39b21a0517eb3f9d4a8e45afd7dc8c327cf355eb3f437a8493226824",
+      "K": 38,
+      "clues": [
+       14,
+       14,
+       13,
+       14,
+       14,
+       12,
+       14,
+       12,
+       14,
+       12
+      ]
+     }
+    ]
+   },
+   "24x24-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 8.1470337,
+    "t1MaxS": 16.109734800000002,
+    "t10MedS": 37.102013299999996,
+    "t10MaxS": 42.9467787,
+    "cappedT10MedS": 37.102013299999996,
+    "cappedT10GeoS": 34.78011093518507,
+    "respMedS": 37.2846176,
+    "respMaxS": 43.1330861,
+    "batchMedS": 22.7820415,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 9,
+    "rowMedClues": [
+     9,
+     10.5,
+     8.5,
+     8.5,
+     8
+    ],
+    "shareMed": 0.21689895470383275,
+    "K": [
+     39,
+     42,
+     40,
+     39,
+     41
+    ],
+    "scorePosMed": 0.5142857142857142,
+    "censusEstimateShare": 0.88,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 8.2964693,
+      "t10S": 27.397035,
+      "respS": 27.5245294,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "0f234243a8db4a0a06f802c9ef3f50b3a07cbd9efe1a586c0a2b4c2f03a41b24",
+      "K": 39,
+      "clues": [
+       11,
+       9,
+       7,
+       7,
+       9,
+       7,
+       9,
+       9,
+       9,
+       8
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 8.1470337,
+      "t10S": 30.9290752,
+      "respS": 31.088314599999997,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "2aec8530225f44a8e2b758d9cfe63b32233b0fb2964d57d7e65468df925819c6",
+      "K": 42,
+      "clues": [
+       13,
+       10,
+       9,
+       13,
+       12,
+       9,
+       9,
+       12,
+       9,
+       11
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.648481299999999,
+      "t10S": 37.102013299999996,
+      "respS": 37.2846176,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "390f50e201ac4fcb3fe8f048bc78dc2a3b7f97a00ba9d39fd675dffcb3131b11",
+      "K": 40,
+      "clues": [
+       8,
+       10,
+       8,
+       9,
+       9,
+       8,
+       8,
+       9,
+       7,
+       10
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.6785933,
+      "t10S": 42.9467787,
+      "respS": 43.1330861,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "0ad1092439235b2c6ec7cb555f6e6cd2e2348c8eb4327d2074536d3f79865416",
+      "K": 39,
+      "clues": [
+       9,
+       7,
+       9,
+       7,
+       9,
+       8,
+       9,
+       9,
+       8,
+       7
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 16.109734800000002,
+      "t10S": 37.6926129,
+      "respS": 37.8376008,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "77b138d65ee357024dd36e0406b21c3e89515259709104c3a6f4eede0434d17b",
+      "K": 41,
+      "clues": [
+       8,
+       9,
+       9,
+       7,
+       8,
+       7,
+       8,
+       9,
+       7,
+       8
+      ]
+     }
+    ]
+   },
+   "26x26-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 6.120482,
+    "t1MaxS": 21.109876399999997,
+    "t10MedS": 31.8610451,
+    "t10MaxS": 44.3374279,
+    "cappedT10MedS": 31.8610451,
+    "cappedT10GeoS": 33.459496687330564,
+    "respMedS": 32.0343693,
+    "respMaxS": 44.5268998,
+    "batchMedS": 23.227551500000004,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 8,
+    "rowMedClues": [
+     6.5,
+     8.5,
+     7.5,
+     8,
+     8
+    ],
+    "shareMed": 0.2,
+    "K": [
+     42,
+     41,
+     39,
+     40,
+     40
+    ],
+    "scorePosMed": 0.44285714285714284,
+    "censusEstimateShare": 1,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.120482,
+      "t10S": 27.5205646,
+      "respS": 27.6382402,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ea416cd5e85a3ed8316176d3ac04d97e2ca14358a1afd838469078154f70177e",
+      "K": 42,
+      "clues": [
+       7,
+       9,
+       6,
+       8,
+       6,
+       8,
+       6,
+       5,
+       6,
+       10
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.195043299999999,
+      "t10S": 38.5625859,
+      "respS": 38.7360569,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "070986a739c5e1ad4b21887a6b6c5dbc9743ab158c745560c653c005c350eb0c",
+      "K": 41,
+      "clues": [
+       8,
+       12,
+       11,
+       8,
+       9,
+       8,
+       10,
+       7,
+       9,
+       8
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.734243,
+      "t10S": 31.8610451,
+      "respS": 32.0343693,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "6bf1cf73342fc3487f18abb339e83dd6fdf303ece8a397c05933e8b63c7ab44d",
+      "K": 39,
+      "clues": [
+       6,
+       7,
+       7,
+       8,
+       6,
+       9,
+       8,
+       8,
+       8,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.479521699999999,
+      "t10S": 27.9732559,
+      "respS": 28.121882300000003,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e007fce199a5bc0f8de838b032b49eeed3630245cc70a255ad23ca98c0121597",
+      "K": 40,
+      "clues": [
+       8,
+       6,
+       7,
+       7,
+       8,
+       8,
+       8,
+       10,
+       8,
+       9
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 21.109876399999997,
+      "t10S": 44.3374279,
+      "respS": 44.5268998,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "81b0f11a208e9ae060d5afee735c725e4770cef02f91ae9b439b7e073cbfaf89",
+      "K": 40,
+      "clues": [
+       7,
+       8,
+       8,
+       9,
+       8,
+       5,
+       8,
+       8,
+       7,
+       8
+      ]
+     }
+    ]
+   },
+   "26x26-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 2.1113853999999996,
+    "t1MaxS": 5.813685899999999,
+    "t10MedS": 17.528920000000003,
+    "t10MaxS": 19.312269399999998,
+    "cappedT10MedS": 17.528920000000003,
+    "cappedT10GeoS": 16.965164348889118,
+    "respMedS": 17.6806953,
+    "respMaxS": 19.4935737,
+    "batchMedS": 14.627353199999998,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 5,
+    "rowMedClues": [
+     4,
+     4,
+     6.5,
+     6,
+     5
+    ],
+    "shareMed": 0.16129032258064516,
+    "K": [
+     31,
+     30,
+     32,
+     32,
+     31
+    ],
+    "scorePosMed": 0.5208333333333333,
+    "censusEstimateShare": 0.88,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.8758144999999999,
+      "t10S": 14.9221626,
+      "respS": 15.020085299999998,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e9ee2007ea9bc27de6165752178ec5eb744b19abdfba628b1472470ea9c9a33a",
+      "K": 31,
+      "clues": [
+       4,
+       3,
+       4,
+       4,
+       4,
+       5,
+       4,
+       6,
+       4,
+       3
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.813685899999999,
+      "t10S": 15.545631499999999,
+      "respS": 15.6941647,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "86c0e387a24b0e7db5623a2800e68b6e427eef25635f4af3395d8bbb09ae1ea3",
+      "K": 30,
+      "clues": [
+       5,
+       4,
+       5,
+       4,
+       4,
+       4,
+       4,
+       4,
+       4,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.6849162,
+      "t10S": 19.312269399999998,
+      "respS": 19.4935737,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "53dcd68aa60779b13c87330321e397166f78d4c3f13f7d0b12ea2aa7ce0b8d3e",
+      "K": 32,
+      "clues": [
+       7,
+       4,
+       7,
+       6,
+       7,
+       7,
+       4,
+       4,
+       6,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.1113853999999996,
+      "t10S": 17.896238099999998,
+      "respS": 18.078106499999997,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9235c0b2176ab46a283ec539735e2c403abada50a125ec1c432c14034fcea307",
+      "K": 32,
+      "clues": [
+       6,
+       6,
+       5,
+       4,
+       5,
+       6,
+       7,
+       6,
+       6,
+       7
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.0772767000000005,
+      "t10S": 17.528920000000003,
+      "respS": 17.6806953,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9e015905bdecfacc90ef097730ae14a1084edc3e7a2fc8fd57b8b8d15f020652",
+      "K": 31,
+      "clues": [
+       5,
+       5,
+       5,
+       7,
+       5,
+       5,
+       4,
+       5,
+       5,
+       5
+      ]
+     }
+    ]
+   }
+  },
+  "fr-c4": {
+   "14x14-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 2.1960215,
+    "t1MaxS": 3.9959698999999995,
+    "t10MedS": 10.7453997,
+    "t10MaxS": 11.6683972,
+    "cappedT10MedS": 10.7453997,
+    "cappedT10GeoS": 10.024638897922827,
+    "respMedS": 10.909543900000001,
+    "respMaxS": 11.848235999999998,
+    "batchMedS": 7.702712199999998,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 6,
+    "rowMedClues": [
+     7,
+     5,
+     5,
+     8,
+     6.5
+    ],
+    "shareMed": 0.2792207792207792,
+    "K": [
+     22,
+     22,
+     21,
+     24,
+     23
+    ],
+    "scorePosMed": 0.5,
+    "censusEstimateShare": 0.1,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.7780775000000002,
+      "t10S": 7.5797011,
+      "respS": 7.7481869,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "151ca6bc0c77df81d7c58ed7051e397881d27256bdce5ae2c8cb84c400281dc0",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       6,
+       7,
+       9,
+       7,
+       7,
+       9,
+       6,
+       6
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.0855979000000002,
+      "t10S": 9.788310099999999,
+      "respS": 9.936571899999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ac2328f7ef2f4cc7c31cc05a6c178c78c76bfe361f501e34ea45d4925cb15cb6",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       5,
+       5,
+       5,
+       7,
+       6,
+       7,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.9959698999999995,
+      "t10S": 10.8830371,
+      "respS": 11.0643278,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "2ba84f934892638843f5d03e57f19387b50e10ab450c03adc178271d45781acc",
+      "K": 21,
+      "clues": [
+       5,
+       5,
+       5,
+       4,
+       4,
+       5,
+       4,
+       5,
+       6,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.3064404,
+      "t10S": 10.7453997,
+      "respS": 10.909543900000001,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "214ba044e12d5f3a967cdfd269945d959587b4082664bc695af1a39d3e416258",
+      "K": 24,
+      "clues": [
+       7,
+       9,
+       8,
+       7,
+       10,
+       10,
+       8,
+       8,
+       7,
+       8
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.1960215,
+      "t10S": 11.6683972,
+      "respS": 11.848235999999998,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "569584cd8b4bbe7893e3151dfa2e7a018b87337f7f7266ec5e3fcd2379fffd67",
+      "K": 23,
+      "clues": [
+       7,
+       7,
+       6,
+       6,
+       5,
+       6,
+       5,
+       7,
+       7,
+       7
+      ]
+     }
+    ]
+   },
+   "26x26-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 3.3696646,
+    "t1MaxS": 5.3521085,
+    "t10MedS": 20.3030352,
+    "t10MaxS": 24.309769499999998,
+    "cappedT10MedS": 20.3030352,
+    "cappedT10GeoS": 20.426803842314783,
+    "respMedS": 20.4813157,
+    "respMaxS": 24.496869699999998,
+    "batchMedS": 17.878894199999994,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 5,
+    "rowMedClues": [
+     4,
+     4,
+     6,
+     6,
+     5
+    ],
+    "shareMed": 0.15877016129032256,
+    "K": [
+     31,
+     30,
+     32,
+     32,
+     31
+    ],
+    "scorePosMed": 0.5416666666666666,
+    "censusEstimateShare": 0.88,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.7454338,
+      "t10S": 19.9880757,
+      "respS": 20.1649703,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e9ee2007ea9bc27de6165752178ec5eb744b19abdfba628b1472470ea9c9a33a",
+      "K": 31,
+      "clues": [
+       4,
+       3,
+       4,
+       4,
+       4,
+       6,
+       3,
+       6,
+       4,
+       3
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.7708572,
+      "t10S": 15.5174853,
+      "respS": 15.6960539,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "86c0e387a24b0e7db5623a2800e68b6e427eef25635f4af3395d8bbb09ae1ea3",
+      "K": 30,
+      "clues": [
+       3,
+       4,
+       4,
+       4,
+       3,
+       4,
+       3,
+       4,
+       4,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.3521085,
+      "t10S": 23.231002699999998,
+      "respS": 23.4074009,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "53dcd68aa60779b13c87330321e397166f78d4c3f13f7d0b12ea2aa7ce0b8d3e",
+      "K": 32,
+      "clues": [
+       7,
+       4,
+       7,
+       6,
+       6,
+       7,
+       4,
+       4,
+       5,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.3696646,
+      "t10S": 20.3030352,
+      "respS": 20.4813157,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9235c0b2176ab46a283ec539735e2c403abada50a125ec1c432c14034fcea307",
+      "K": 32,
+      "clues": [
+       6,
+       6,
+       5,
+       4,
+       5,
+       6,
+       6,
+       6,
+       6,
+       7
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.1123140000000005,
+      "t10S": 24.309769499999998,
+      "respS": 24.496869699999998,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9e015905bdecfacc90ef097730ae14a1084edc3e7a2fc8fd57b8b8d15f020652",
+      "K": 31,
+      "clues": [
+       5,
+       5,
+       5,
+       7,
+       5,
+       5,
+       4,
+       5,
+       5,
+       5
+      ]
+     }
+    ]
+   }
+  },
+  "fr-close": {
+   "12x12-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.4182835,
+    "t1MaxS": 6.8474235,
+    "t10MedS": 12.8730729,
+    "t10MaxS": 28.255040200000003,
+    "cappedT10MedS": 12.8730729,
+    "cappedT10GeoS": 13.275287433908623,
+    "respMedS": 13.0182794,
+    "respMaxS": 28.4057922,
+    "batchMedS": 11.454789400000001,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 4,
+    "rowMedClues": [
+     4,
+     4,
+     4.5,
+     5.5,
+     4
+    ],
+    "shareMed": 0.21052631578947367,
+    "K": [
+     20,
+     19,
+     19,
+     21,
+     19
+    ],
+    "scorePosMed": 0.5208333333333333,
+    "censusEstimateShare": 0.42,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.6456810000000001,
+      "t10S": 5.1783280000000005,
+      "respS": 5.3417433,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "5713586079ecc328c6b6b74dafbeae11f8b7012fd351ad78f62af20191cd8cad",
+      "K": 20,
+      "clues": [
+       4,
+       6,
+       6,
+       4,
+       4,
+       4,
+       4,
+       4,
+       5,
+       4
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.4182835,
+      "t10S": 12.8730729,
+      "respS": 13.0182794,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "0f2c917ec5f293282d3cea8dbe1bf7861d31d0f1b0b0eeb3e31d30e4d7bbb91a",
+      "K": 19,
+      "clues": [
+       3,
+       4,
+       5,
+       4,
+       4,
+       4,
+       4,
+       4,
+       5,
+       4
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.4291574999999996,
+      "t10S": 18.9363229,
+      "respS": 19.0709981,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "52f8ba0ccd3c628349a93c38b913a659a4f9ad9c12c6de48235a4b396f42ecb1",
+      "K": 19,
+      "clues": [
+       5,
+       4,
+       5,
+       4,
+       4,
+       5,
+       4,
+       4,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.8474235,
+      "t10S": 28.255040200000003,
+      "respS": 28.4057922,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9bc2def6267660a64e74afebb36b36bc7b62727be306fddc0b10dc2c77d4ed8c",
+      "K": 21,
+      "clues": [
+       7,
+       7,
+       6,
+       5,
+       7,
+       4,
+       7,
+       5,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.693928,
+      "t10S": 11.5599592,
+      "respS": 11.7174837,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "3e71932eaab7aaccd2c2662f449d32d3784e0f8e0fcc05c5985eff57d2dd4f74",
+      "K": 19,
+      "clues": [
+       4,
+       4,
+       4,
+       4,
+       6,
+       4,
+       4,
+       4,
+       4,
+       4
+      ]
+     }
+    ]
+   },
+   "14x14-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.6255759,
+    "t1MaxS": 8.311534300000002,
+    "t10MedS": 8.9596067,
+    "t10MaxS": 15.8282317,
+    "cappedT10MedS": 8.9596067,
+    "cappedT10GeoS": 9.60238528565668,
+    "respMedS": 9.1388271,
+    "respMaxS": 15.9631397,
+    "batchMedS": 7.3530727,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 6.5,
+    "rowMedClues": [
+     7,
+     5,
+     4.5,
+     8,
+     6.5
+    ],
+    "shareMed": 0.28869047619047616,
+    "K": [
+     22,
+     22,
+     21,
+     24,
+     23
+    ],
+    "scorePosMed": 0.5,
+    "censusEstimateShare": 0.06,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.3373792,
+      "t10S": 6.8246801,
+      "respS": 6.986087100000001,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "151ca6bc0c77df81d7c58ed7051e397881d27256bdce5ae2c8cb84c400281dc0",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       6,
+       7,
+       9,
+       7,
+       7,
+       9,
+       7,
+       6
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.606534,
+      "t10S": 8.9596067,
+      "respS": 9.1388271,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ac2328f7ef2f4cc7c31cc05a6c178c78c76bfe361f501e34ea45d4925cb15cb6",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       5,
+       5,
+       5,
+       7,
+       7,
+       6,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 8.311534300000002,
+      "t10S": 15.8282317,
+      "respS": 15.9631397,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "2ba84f934892638843f5d03e57f19387b50e10ab450c03adc178271d45781acc",
+      "K": 21,
+      "clues": [
+       4,
+       4,
+       5,
+       4,
+       4,
+       6,
+       4,
+       5,
+       6,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.8808153000000003,
+      "t10S": 9.8506959,
+      "respS": 10.0160492,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "214ba044e12d5f3a967cdfd269945d959587b4082664bc695af1a39d3e416258",
+      "K": 24,
+      "clues": [
+       8,
+       8,
+       9,
+       7,
+       10,
+       10,
+       8,
+       8,
+       7,
+       8
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.6255759,
+      "t10S": 8.562983000000001,
+      "respS": 8.727912600000002,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "569584cd8b4bbe7893e3151dfa2e7a018b87337f7f7266ec5e3fcd2379fffd67",
+      "K": 23,
+      "clues": [
+       7,
+       7,
+       6,
+       6,
+       5,
+       6,
+       5,
+       7,
+       7,
+       7
+      ]
+     }
+    ]
+   },
+   "26x26-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 5.9072754,
+    "t1MaxS": 20.658954,
+    "t10MedS": 32.077444199999995,
+    "t10MaxS": 43.874493799999996,
+    "cappedT10MedS": 32.077444199999995,
+    "cappedT10GeoS": 33.39603873565714,
+    "respMedS": 32.2450428,
+    "respMaxS": 44.0593137,
+    "batchMedS": 23.215539799999995,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 8,
+    "rowMedClues": [
+     6.5,
+     8.5,
+     7.5,
+     8,
+     8
+    ],
+    "shareMed": 0.2,
+    "K": [
+     42,
+     41,
+     39,
+     40,
+     40
+    ],
+    "scorePosMed": 0.44285714285714284,
+    "censusEstimateShare": 1,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.9072754,
+      "t10S": 27.047779600000002,
+      "respS": 27.204496,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ea416cd5e85a3ed8316176d3ac04d97e2ca14358a1afd838469078154f70177e",
+      "K": 42,
+      "clues": [
+       7,
+       9,
+       6,
+       8,
+       6,
+       8,
+       6,
+       5,
+       6,
+       10
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.2143237,
+      "t10S": 39.013698299999994,
+      "respS": 39.1777713,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "070986a739c5e1ad4b21887a6b6c5dbc9743ab158c745560c653c005c350eb0c",
+      "K": 41,
+      "clues": [
+       8,
+       12,
+       11,
+       8,
+       9,
+       8,
+       10,
+       7,
+       9,
+       8
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.770213,
+      "t10S": 32.077444199999995,
+      "respS": 32.2450428,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "6bf1cf73342fc3487f18abb339e83dd6fdf303ece8a397c05933e8b63c7ab44d",
+      "K": 39,
+      "clues": [
+       6,
+       7,
+       7,
+       8,
+       6,
+       9,
+       8,
+       8,
+       8,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.4272831,
+      "t10S": 27.9713974,
+      "respS": 28.1564984,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e007fce199a5bc0f8de838b032b49eeed3630245cc70a255ad23ca98c0121597",
+      "K": 40,
+      "clues": [
+       8,
+       6,
+       7,
+       7,
+       8,
+       8,
+       8,
+       10,
+       8,
+       9
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 20.658954,
+      "t10S": 43.874493799999996,
+      "respS": 44.0593137,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "81b0f11a208e9ae060d5afee735c725e4770cef02f91ae9b439b7e073cbfaf89",
+      "K": 40,
+      "clues": [
+       7,
+       8,
+       8,
+       9,
+       8,
+       5,
+       8,
+       8,
+       7,
+       8
+      ]
+     }
+    ]
+   }
+  },
+  "fr-none": {
+   "10x10-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 4.264899100000001,
+    "t1MaxS": 5.6127791,
+    "t10MedS": 10.6438349,
+    "t10MaxS": 51.4290388,
+    "cappedT10MedS": 10.6438349,
+    "cappedT10GeoS": 14.362355472550277,
+    "respMedS": 10.799378299999999,
+    "respMaxS": 51.598319800000006,
+    "batchMedS": 7.8848549000000006,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 3,
+    "rowMedClues": [
+     3,
+     4,
+     3,
+     3,
+     3
+    ],
+    "shareMed": 0.17647058823529413,
+    "K": [
+     17,
+     19,
+     17,
+     17,
+     17
+    ],
+    "scorePosMed": 0.5,
+    "censusEstimateShare": 0.86,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.8869386,
+      "t10S": 9.7717935,
+      "respS": 9.9188633,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "5a6d7112ec948742954aae11430a813eeb92d18b86cb17c6bf240bca8128345b",
+      "K": 17,
+      "clues": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       2,
+       4,
+       3,
+       3,
+       3
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.0833716,
+      "t10S": 11.4020612,
+      "respS": 11.5602189,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "62cc7299eb48116ab0580f1f9f1df5a2279dccbf142e93ba1062a6e9e8ec3bb8",
+      "K": 19,
+      "clues": [
+       4,
+       3,
+       5,
+       4,
+       4,
+       4,
+       4,
+       4,
+       4,
+       4
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.6127791,
+      "t10S": 51.4290388,
+      "respS": 51.598319800000006,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "5e955bf86ff77e107e66d925406797753e75ec81859250e6f74b6221192ed210",
+      "K": 17,
+      "clues": [
+       3,
+       3,
+       3,
+       4,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.264899100000001,
+      "t10S": 10.0199181,
+      "respS": 10.1779175,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e1fc69b48adfa9b696fee4c1caa05bf03d98084136910e07a895bd30ee209bcb",
+      "K": 17,
+      "clues": [
+       3,
+       3,
+       3,
+       4,
+       3,
+       3,
+       3,
+       3,
+       2,
+       2
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.581283,
+      "t10S": 10.6438349,
+      "respS": 10.799378299999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "d5db22cae46248d9043e6289a9c78710b0a7a478f748cc740d7daa44cccf693e",
+      "K": 17,
+      "clues": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3
+      ]
+     }
+    ]
+   },
+   "12x12-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.4288741,
+    "t1MaxS": 6.7282968,
+    "t10MedS": 12.905202899999999,
+    "t10MaxS": 28.405443099999996,
+    "cappedT10MedS": 12.905202899999999,
+    "cappedT10GeoS": 13.27592384655238,
+    "respMedS": 13.069296099999999,
+    "respMaxS": 28.558549199999998,
+    "batchMedS": 11.4763288,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 4,
+    "rowMedClues": [
+     4,
+     4,
+     4.5,
+     5.5,
+     4
+    ],
+    "shareMed": 0.21052631578947367,
+    "K": [
+     20,
+     19,
+     19,
+     21,
+     19
+    ],
+    "scorePosMed": 0.5208333333333333,
+    "censusEstimateShare": 0.42,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.593076,
+      "t10S": 5.1085039000000005,
+      "respS": 5.285842100000001,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "5713586079ecc328c6b6b74dafbeae11f8b7012fd351ad78f62af20191cd8cad",
+      "K": 20,
+      "clues": [
+       4,
+       6,
+       6,
+       4,
+       4,
+       4,
+       4,
+       4,
+       5,
+       4
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.4288741,
+      "t10S": 12.905202899999999,
+      "respS": 13.069296099999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "0f2c917ec5f293282d3cea8dbe1bf7861d31d0f1b0b0eeb3e31d30e4d7bbb91a",
+      "K": 19,
+      "clues": [
+       3,
+       4,
+       5,
+       4,
+       4,
+       4,
+       4,
+       4,
+       5,
+       4
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.4077867,
+      "t10S": 19.0434436,
+      "respS": 19.209287,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "52f8ba0ccd3c628349a93c38b913a659a4f9ad9c12c6de48235a4b396f42ecb1",
+      "K": 19,
+      "clues": [
+       5,
+       4,
+       5,
+       4,
+       4,
+       5,
+       4,
+       4,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.7282968,
+      "t10S": 28.405443099999996,
+      "respS": 28.558549199999998,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9bc2def6267660a64e74afebb36b36bc7b62727be306fddc0b10dc2c77d4ed8c",
+      "K": 21,
+      "clues": [
+       7,
+       7,
+       6,
+       5,
+       7,
+       4,
+       7,
+       5,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.6985340000000001,
+      "t10S": 11.564267899999999,
+      "respS": 11.7197833,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "3e71932eaab7aaccd2c2662f449d32d3784e0f8e0fcc05c5985eff57d2dd4f74",
+      "K": 19,
+      "clues": [
+       4,
+       4,
+       4,
+       4,
+       6,
+       4,
+       4,
+       4,
+       4,
+       4
+      ]
+     }
+    ]
+   },
+   "14x14-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 4.6684861,
+    "t1MaxS": 14.7893643,
+    "t10MedS": 24.079025599999998,
+    "t10MaxS": 30.768046599999998,
+    "cappedT10MedS": 24.079025599999998,
+    "cappedT10GeoS": 22.309249636404573,
+    "respMedS": 24.2333481,
+    "respMaxS": 30.9251415,
+    "batchMedS": 15.978682299999997,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 6,
+    "rowMedClues": [
+     7,
+     5,
+     4,
+     8,
+     6
+    ],
+    "shareMed": 0.2727272727272727,
+    "K": [
+     22,
+     22,
+     21,
+     24,
+     23
+    ],
+    "scorePosMed": 0.5,
+    "censusEstimateShare": 0.08,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.7900986,
+      "t10S": 16.5523986,
+      "respS": 16.7105052,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "151ca6bc0c77df81d7c58ed7051e397881d27256bdce5ae2c8cb84c400281dc0",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       6,
+       7,
+       9,
+       7,
+       7,
+       7,
+       7,
+       6
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.519049600000001,
+      "t10S": 18.616268899999998,
+      "respS": 18.793059799999998,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ac2328f7ef2f4cc7c31cc05a6c178c78c76bfe361f501e34ea45d4925cb15cb6",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       5,
+       5,
+       5,
+       5,
+       7,
+       5,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 14.7893643,
+      "t10S": 30.768046599999998,
+      "respS": 30.9251415,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "2ba84f934892638843f5d03e57f19387b50e10ab450c03adc178271d45781acc",
+      "K": 21,
+      "clues": [
+       4,
+       4,
+       4,
+       4,
+       4,
+       5,
+       4,
+       4,
+       6,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.9183546,
+      "t10S": 24.079025599999998,
+      "respS": 24.2333481,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "214ba044e12d5f3a967cdfd269945d959587b4082664bc695af1a39d3e416258",
+      "K": 24,
+      "clues": [
+       8,
+       8,
+       9,
+       7,
+       10,
+       10,
+       8,
+       8,
+       7,
+       8
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.6684861,
+      "t10S": 24.2065225,
+      "respS": 24.377817899999997,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "569584cd8b4bbe7893e3151dfa2e7a018b87337f7f7266ec5e3fcd2379fffd67",
+      "K": 23,
+      "clues": [
+       7,
+       7,
+       5,
+       6,
+       5,
+       6,
+       5,
+       7,
+       7,
+       6
+      ]
+     }
+    ]
+   },
+   "15x15b10-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 4.810041099999999,
+    "t1MaxS": 7.5902205,
+    "t10MedS": 24.315536799999997,
+    "t10MaxS": 31.266329400000004,
+    "cappedT10MedS": 24.315536799999997,
+    "cappedT10GeoS": 22.56386639012726,
+    "respMedS": 24.4810411,
+    "respMaxS": 31.4034033,
+    "batchMedS": 16.7253163,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 6,
+    "rowMedClues": [
+     5,
+     5,
+     7,
+     6,
+     6
+    ],
+    "shareMed": 0.2608695652173913,
+    "K": [
+     22,
+     22,
+     23,
+     23,
+     23
+    ],
+    "scorePosMed": 0.4375,
+    "censusEstimateShare": 0.14,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.6688758000000004,
+      "t10S": 18.7336065,
+      "respS": 18.901524600000002,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "54c79d0b139f9a6d657d062f936ca31941ad0be4b076a4281f29498845279050",
+      "K": 22,
+      "clues": [
+       5,
+       5,
+       4,
+       5,
+       7,
+       6,
+       5,
+       4,
+       6,
+       4
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.1853308,
+      "t10S": 15.6975352,
+      "respS": 15.8528134,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "0bb3bbc4aa867995762a2c77f46774287b0f6de1da2eb8599fc7bdc0536406b1",
+      "K": 22,
+      "clues": [
+       5,
+       5,
+       7,
+       4,
+       6,
+       5,
+       4,
+       4,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.2900592,
+      "t10S": 26.1609781,
+      "respS": 26.2980526,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "36537ec559ca3c4887b4e827ec534ed7a4963f9edec4be2deb94e2a7c479a350",
+      "K": 23,
+      "clues": [
+       7,
+       6,
+       7,
+       7,
+       7,
+       5,
+       7,
+       7,
+       6,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.810041099999999,
+      "t10S": 31.266329400000004,
+      "respS": 31.4034033,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ba2d0745bdfa0abb36f58c8122d428e1b40751fbbb840a2de2cac6b738611751",
+      "K": 23,
+      "clues": [
+       7,
+       5,
+       6,
+       7,
+       6,
+       8,
+       6,
+       6,
+       5,
+       9
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 7.5902205,
+      "t10S": 24.315536799999997,
+      "respS": 24.4810411,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ffc2fa4955a2c4c0125de0ea0a310d8a0b549944691d51e95577eb747375753d",
+      "K": 23,
+      "clues": [
+       6,
+       7,
+       5,
+       7,
+       6,
+       6,
+       6,
+       6,
+       5,
+       8
+      ]
+     }
+    ]
+   },
+   "15x20-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 4.1536386,
+    "t1MaxS": 11.4918889,
+    "t10MedS": 19.7078126,
+    "t10MaxS": 22.017538899999998,
+    "cappedT10MedS": 19.7078126,
+    "cappedT10GeoS": 14.92323783300126,
+    "respMedS": 19.8754999,
+    "respMaxS": 22.1823708,
+    "batchMedS": 8.8154287,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 5,
+    "rowMedClues": [
+     5,
+     5,
+     7,
+     5.5,
+     5
+    ],
+    "shareMed": 0.2,
+    "K": [
+     26,
+     25,
+     26,
+     26,
+     25
+    ],
+    "scorePosMed": 0.5,
+    "censusEstimateShare": 0.3,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.223129200000001,
+      "t10S": 8.7054211,
+      "respS": 8.8339035,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "f831063d363928da19c5349d5e8ac3c020e0ea335f03fa79ba5db9d32a0ece8d",
+      "K": 26,
+      "clues": [
+       6,
+       5,
+       4,
+       6,
+       5,
+       5,
+       4,
+       6,
+       4,
+       5
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 11.4918889,
+      "t10S": 19.7078126,
+      "respS": 19.8754999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "8766b8bca4cd46404acb7d7b1e78c0d677767d267764de60e176676b2f9e375e",
+      "K": 25,
+      "clues": [
+       5,
+       5,
+       5,
+       4,
+       5,
+       5,
+       5,
+       8,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.1536386,
+      "t10S": 22.017538899999998,
+      "respS": 22.1823708,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "1e88795a3d35c0ec9da8f4c127e8204209879ed5bb5429b066d7b2ff5c836474",
+      "K": 26,
+      "clues": [
+       8,
+       8,
+       6,
+       6,
+       7,
+       6,
+       8,
+       6,
+       7,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.7118119000000003,
+      "t10S": 20.5178201,
+      "respS": 20.6986621,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "f74be1269a9cb47329ba94e6a043374f548d6b653422c4b3137b8d5cbd9f364b",
+      "K": 26,
+      "clues": [
+       7,
+       6,
+       5,
+       6,
+       5,
+       5,
+       7,
+       5,
+       6,
+       5
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.7342136,
+      "t10S": 9.5496423,
+      "respS": 9.7308083,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "33fd0415c8df4dca1f024a611699676aa44870209ad696b5ca7eb94106e6511d",
+      "K": 25,
+      "clues": [
+       5,
+       5,
+       6,
+       5,
+       6,
+       5,
+       6,
+       5,
+       5,
+       5
+      ]
+     }
+    ]
+   },
+   "16x16-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 2.5901191999999997,
+    "t1MaxS": 6.936114100000001,
+    "t10MedS": 17.838170400000003,
+    "t10MaxS": 28.433533899999997,
+    "cappedT10MedS": 17.838170400000003,
+    "cappedT10GeoS": 19.604324913293755,
+    "respMedS": 18.003052300000004,
+    "respMaxS": 28.5836371,
+    "batchMedS": 15.429590899999999,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 5,
+    "rowMedClues": [
+     5,
+     7,
+     5.5,
+     4.5,
+     5
+    ],
+    "shareMed": 0.21739130434782608,
+    "K": [
+     24,
+     25,
+     23,
+     23,
+     23
+    ],
+    "scorePosMed": 0.5,
+    "censusEstimateShare": 0.4,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.3776567,
+      "t10S": 17.8072476,
+      "respS": 17.9536496,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "c093b6954f8585d082149c62b37e3389942e3b065f12f64b5bfffd08b124bdfd",
+      "K": 24,
+      "clues": [
+       5,
+       5,
+       5,
+       5,
+       5,
+       5,
+       4,
+       7,
+       6,
+       6
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.5901191999999997,
+      "t10S": 28.433533899999997,
+      "respS": 28.5836371,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "cab902669e22fe7fc5426f92666ffa9975b2c3a10d46e457aee14af917de32ef",
+      "K": 25,
+      "clues": [
+       7,
+       7,
+       8,
+       7,
+       6,
+       8,
+       5,
+       6,
+       7,
+       7
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.936114100000001,
+      "t10S": 19.280146000000002,
+      "respS": 19.4552907,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "aa8d21d4ac463dd627d986681c6bf5e9c8b27f4b486d815316f6e85a9b9dcd3c",
+      "K": 23,
+      "clues": [
+       7,
+       4,
+       5,
+       5,
+       6,
+       7,
+       5,
+       7,
+       7,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.3334782,
+      "t10S": 17.838170400000003,
+      "respS": 18.003052300000004,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "8752dcfae9762936260b51e4cec855e7166078dfeb6e4e2e45e3048be884f2d2",
+      "K": 23,
+      "clues": [
+       4,
+       7,
+       6,
+       4,
+       5,
+       4,
+       5,
+       4,
+       5,
+       4
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.4676010999999995,
+      "t10S": 16.6291938,
+      "respS": 16.7837857,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "26eeb99596c593498fec28d609662dee264b9f956dd0071e62e03e86c4209cb3",
+      "K": 23,
+      "clues": [
+       7,
+       5,
+       5,
+       5,
+       5,
+       6,
+       5,
+       7,
+       5,
+       5
+      ]
+     }
+    ]
+   },
+   "26x26-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 6.0124973,
+    "t1MaxS": 20.913965,
+    "t10MedS": 32.3037256,
+    "t10MaxS": 44.284759199999996,
+    "cappedT10MedS": 32.3037256,
+    "cappedT10GeoS": 33.58583381793846,
+    "respMedS": 32.4896126,
+    "respMaxS": 44.47632889999999,
+    "batchMedS": 23.37079419999999,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 8,
+    "rowMedClues": [
+     6.5,
+     8.5,
+     7.5,
+     8,
+     8
+    ],
+    "shareMed": 0.2,
+    "K": [
+     42,
+     41,
+     39,
+     40,
+     40
+    ],
+    "scorePosMed": 0.44285714285714284,
+    "censusEstimateShare": 1,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.0124973,
+      "t10S": 27.366255799999998,
+      "respS": 27.5455419,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ea416cd5e85a3ed8316176d3ac04d97e2ca14358a1afd838469078154f70177e",
+      "K": 42,
+      "clues": [
+       7,
+       9,
+       6,
+       8,
+       6,
+       8,
+       6,
+       5,
+       6,
+       10
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.1898138000000005,
+      "t10S": 39.0020349,
+      "respS": 39.179041,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "070986a739c5e1ad4b21887a6b6c5dbc9743ab158c745560c653c005c350eb0c",
+      "K": 41,
+      "clues": [
+       8,
+       12,
+       11,
+       8,
+       9,
+       8,
+       10,
+       7,
+       9,
+       8
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.702969,
+      "t10S": 32.3037256,
+      "respS": 32.4896126,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "6bf1cf73342fc3487f18abb339e83dd6fdf303ece8a397c05933e8b63c7ab44d",
+      "K": 39,
+      "clues": [
+       6,
+       7,
+       7,
+       8,
+       6,
+       9,
+       8,
+       8,
+       8,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.359053299999999,
+      "t10S": 27.9879523,
+      "respS": 28.170847000000002,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e007fce199a5bc0f8de838b032b49eeed3630245cc70a255ad23ca98c0121597",
+      "K": 40,
+      "clues": [
+       8,
+       6,
+       7,
+       7,
+       8,
+       8,
+       8,
+       10,
+       8,
+       9
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 20.913965,
+      "t10S": 44.284759199999996,
+      "respS": 44.47632889999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "81b0f11a208e9ae060d5afee735c725e4770cef02f91ae9b439b7e073cbfaf89",
+      "K": 40,
+      "clues": [
+       7,
+       8,
+       8,
+       9,
+       8,
+       5,
+       8,
+       8,
+       7,
+       8
+      ]
+     }
+    ]
+   },
+   "26x26-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 2.1148853000000005,
+    "t1MaxS": 5.894071,
+    "t10MedS": 17.9395322,
+    "t10MaxS": 19.466488800000004,
+    "cappedT10MedS": 17.9395322,
+    "cappedT10GeoS": 17.250470769946578,
+    "respMedS": 18.110512799999995,
+    "respMaxS": 19.623536100000003,
+    "batchMedS": 14.882135400000003,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 5,
+    "rowMedClues": [
+     4,
+     4,
+     6.5,
+     6,
+     5
+    ],
+    "shareMed": 0.16129032258064516,
+    "K": [
+     31,
+     30,
+     32,
+     32,
+     31
+    ],
+    "scorePosMed": 0.5208333333333333,
+    "censusEstimateShare": 0.88,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.9143772,
+      "t10S": 14.967927,
+      "respS": 15.137427299999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e9ee2007ea9bc27de6165752178ec5eb744b19abdfba628b1472470ea9c9a33a",
+      "K": 31,
+      "clues": [
+       4,
+       3,
+       4,
+       4,
+       4,
+       5,
+       4,
+       6,
+       4,
+       3
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.894071,
+      "t10S": 15.956663899999999,
+      "respS": 16.1041487,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "86c0e387a24b0e7db5623a2800e68b6e427eef25635f4af3395d8bbb09ae1ea3",
+      "K": 30,
+      "clues": [
+       5,
+       4,
+       5,
+       4,
+       4,
+       4,
+       4,
+       4,
+       4,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.5843534,
+      "t10S": 19.466488800000004,
+      "respS": 19.623536100000003,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "53dcd68aa60779b13c87330321e397166f78d4c3f13f7d0b12ea2aa7ce0b8d3e",
+      "K": 32,
+      "clues": [
+       7,
+       4,
+       7,
+       6,
+       7,
+       7,
+       4,
+       4,
+       6,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.1148853000000005,
+      "t10S": 18.3148036,
+      "respS": 18.498385700000004,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9235c0b2176ab46a283ec539735e2c403abada50a125ec1c432c14034fcea307",
+      "K": 32,
+      "clues": [
+       6,
+       6,
+       5,
+       4,
+       5,
+       6,
+       7,
+       6,
+       6,
+       7
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.0003979,
+      "t10S": 17.9395322,
+      "respS": 18.110512799999995,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9e015905bdecfacc90ef097730ae14a1084edc3e7a2fc8fd57b8b8d15f020652",
+      "K": 31,
+      "clues": [
+       5,
+       5,
+       5,
+       7,
+       5,
+       5,
+       4,
+       5,
+       5,
+       5
+      ]
+     }
+    ]
+   }
+  },
+  "fr-p5": {
+   "14x14-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.6624129,
+    "t1MaxS": 3.9987046,
+    "t10MedS": 8.6773785,
+    "t10MaxS": 11.4673117,
+    "cappedT10MedS": 8.6773785,
+    "cappedT10GeoS": 8.35199466695583,
+    "respMedS": 8.8350212,
+    "respMaxS": 11.6360412,
+    "batchMedS": 6.9738049,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 7,
+    "rowMedClues": [
+     7,
+     5,
+     5,
+     8,
+     6.5
+    ],
+    "shareMed": 0.2916666666666667,
+    "K": [
+     22,
+     22,
+     21,
+     24,
+     23
+    ],
+    "scorePosMed": 0.47916666666666663,
+    "censusEstimateShare": 0.1,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.3523318,
+      "t10S": 5.294248,
+      "respS": 5.451591700000001,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "151ca6bc0c77df81d7c58ed7051e397881d27256bdce5ae2c8cb84c400281dc0",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       6,
+       7,
+       9,
+       7,
+       7,
+       9,
+       7,
+       6
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.625459,
+      "t10S": 8.9324998,
+      "respS": 9.1008256,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ac2328f7ef2f4cc7c31cc05a6c178c78c76bfe361f501e34ea45d4925cb15cb6",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       5,
+       5,
+       5,
+       7,
+       7,
+       7,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.9987046,
+      "t10S": 11.4673117,
+      "respS": 11.6360412,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "2ba84f934892638843f5d03e57f19387b50e10ab450c03adc178271d45781acc",
+      "K": 21,
+      "clues": [
+       5,
+       5,
+       5,
+       4,
+       4,
+       6,
+       4,
+       5,
+       6,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.8684664,
+      "t10S": 8.6773785,
+      "respS": 8.8350212,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "214ba044e12d5f3a967cdfd269945d959587b4082664bc695af1a39d3e416258",
+      "K": 24,
+      "clues": [
+       8,
+       9,
+       8,
+       7,
+       10,
+       10,
+       8,
+       8,
+       7,
+       8
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.6624129,
+      "t10S": 8.6362178,
+      "respS": 8.7955414,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "569584cd8b4bbe7893e3151dfa2e7a018b87337f7f7266ec5e3fcd2379fffd67",
+      "K": 23,
+      "clues": [
+       7,
+       7,
+       6,
+       6,
+       5,
+       6,
+       5,
+       7,
+       7,
+       7
+      ]
+     }
+    ]
+   },
+   "20x20-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 5.409825400000001,
+    "t1MaxS": 7.9372974,
+    "t10MedS": 42.022377399999996,
+    "t10MaxS": 48.9426479,
+    "cappedT10MedS": 42.022377399999996,
+    "cappedT10GeoS": 35.31923455226238,
+    "respMedS": 42.1906696,
+    "respMaxS": 49.1249522,
+    "batchMedS": 34.5708869,
+    "accepted": 50,
+    "setAttempts": [
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "partial": [],
+    "cluesMed": 12,
+    "rowMedClues": [
+     14,
+     13,
+     12,
+     12,
+     10
+    ],
+    "shareMed": 0.3157894736842105,
+    "K": [
+     38,
+     38,
+     39,
+     38,
+     38
+    ],
+    "scorePosMed": 0.38571428571428573,
+    "censusEstimateShare": 0.62,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.2418157,
+      "t10S": 20.7783623,
+      "respS": 20.9522636,
+      "partial": null,
+      "setAttempt": 1,
+      "setKey": "d3fd71b04d1ba6b383bfbdd9afb5e931c55bc90e04fb55e77023bfb6e8691be2",
+      "K": 38,
+      "clues": [
+       12,
+       14,
+       14,
+       12,
+       12,
+       14,
+       14,
+       14,
+       15,
+       10
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 7.9372974,
+      "t10S": 30.514085,
+      "respS": 30.685109500000003,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "4e313540c9027edfbf8b850803546f5e5e658b090186b38a491da9bad89b4ee0",
+      "K": 38,
+      "clues": [
+       15,
+       14,
+       14,
+       12,
+       14,
+       12,
+       10,
+       14,
+       10,
+       11
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.409825400000001,
+      "t10S": 42.1479705,
+      "respS": 42.330220000000004,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "710558ff49839f6f90e95684c25740d791858a1730e910eb1ed45a4fa8a36e89",
+      "K": 39,
+      "clues": [
+       11,
+       13,
+       15,
+       10,
+       13,
+       11,
+       12,
+       12,
+       15,
+       11
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.4488715,
+      "t10S": 48.9426479,
+      "respS": 49.1249522,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "b3266b9b2e56a97613e064dccef1d202cede87d56d1e70b216fb7d86f285829d",
+      "K": 38,
+      "clues": [
+       12,
+       12,
+       12,
+       14,
+       14,
+       12,
+       14,
+       14,
+       12,
+       12
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 7.4514905,
+      "t10S": 42.022377399999996,
+      "respS": 42.1906696,
+      "partial": null,
+      "setAttempt": 1,
+      "setKey": "4374dd5a10da7b3874dc21b03791fa2ea22f361b1440e7a56e2f3d54e0d8299b",
+      "K": 38,
+      "clues": [
+       10,
+       10,
+       12,
+       14,
+       10,
+       11,
+       10,
+       11,
+       10,
+       10
+      ]
+     }
+    ]
+   },
+   "26x26-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 5.990327,
+    "t1MaxS": 6.2328596,
+    "t10MedS": 35.1318012,
+    "t10MaxS": 59.8827639,
+    "cappedT10MedS": 35.1318012,
+    "cappedT10GeoS": 37.442151482612665,
+    "respMedS": 35.318885800000004,
+    "respMaxS": 60.069013700000006,
+    "batchMedS": 30.365631800000003,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 8,
+    "rowMedClues": [
+     6,
+     8,
+     8,
+     8,
+     8
+    ],
+    "shareMed": 0.19279907084785133,
+    "K": [
+     42,
+     41,
+     39,
+     40,
+     40
+    ],
+    "scorePosMed": 0.44285714285714284,
+    "censusEstimateShare": 1,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.990327,
+      "t10S": 34.051446600000006,
+      "respS": 34.2379383,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ea416cd5e85a3ed8316176d3ac04d97e2ca14358a1afd838469078154f70177e",
+      "K": 42,
+      "clues": [
+       7,
+       8,
+       6,
+       8,
+       6,
+       8,
+       6,
+       5,
+       6,
+       5
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.2328596,
+      "t10S": 59.8827639,
+      "respS": 60.069013700000006,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "070986a739c5e1ad4b21887a6b6c5dbc9743ab158c745560c653c005c350eb0c",
+      "K": 41,
+      "clues": [
+       8,
+       6,
+       8,
+       8,
+       8,
+       8,
+       5,
+       6,
+       8,
+       8
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.7661694,
+      "t10S": 35.1318012,
+      "respS": 35.318885800000004,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "6bf1cf73342fc3487f18abb339e83dd6fdf303ece8a397c05933e8b63c7ab44d",
+      "K": 39,
+      "clues": [
+       6,
+       6,
+       8,
+       8,
+       6,
+       10,
+       8,
+       8,
+       8,
+       6
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.3067794,
+      "t10S": 38.7277973,
+      "respS": 38.9133941,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e007fce199a5bc0f8de838b032b49eeed3630245cc70a255ad23ca98c0121597",
+      "K": 40,
+      "clues": [
+       8,
+       6,
+       7,
+       7,
+       8,
+       5,
+       8,
+       8,
+       8,
+       10
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.1876476,
+      "t10S": 26.5242653,
+      "respS": 26.7164541,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "81b0f11a208e9ae060d5afee735c725e4770cef02f91ae9b439b7e073cbfaf89",
+      "K": 40,
+      "clues": [
+       8,
+       6,
+       8,
+       7,
+       8,
+       5,
+       8,
+       8,
+       6,
+       8
+      ]
+     }
+    ]
+   }
+  },
+  "fr-ps": {
+   "20x20-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 5.8928866,
+    "t1MaxS": 10.9148083,
+    "t10MedS": 32.5074252,
+    "t10MaxS": 45.787420700000006,
+    "cappedT10MedS": 32.5074252,
+    "cappedT10GeoS": 34.88251604796812,
+    "respMedS": 32.6548001,
+    "respMaxS": 45.9735521,
+    "batchMedS": 26.945015,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 13,
+    "rowMedClues": [
+     16,
+     13,
+     11,
+     12.5,
+     14
+    ],
+    "shareMed": 0.34210526315789475,
+    "K": [
+     42,
+     38,
+     39,
+     38,
+     38
+    ],
+    "scorePosMed": 0.4,
+    "censusEstimateShare": 0.38,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.8928866,
+      "t10S": 45.787420700000006,
+      "respS": 45.9735521,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "57c0f1cce07d3d380449b91a385eca5d9e9b48a090b40054b2d4cabb55babf75",
+      "K": 42,
+      "clues": [
+       17,
+       16,
+       22,
+       15,
+       20,
+       14,
+       16,
+       15,
+       17,
+       15
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 7.957562,
+      "t10S": 45.068011600000006,
+      "respS": 45.2511411,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "4e313540c9027edfbf8b850803546f5e5e658b090186b38a491da9bad89b4ee0",
+      "K": 38,
+      "clues": [
+       15,
+       14,
+       14,
+       11,
+       13,
+       13,
+       11,
+       11,
+       13,
+       11
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.4458489,
+      "t10S": 24.479252399999996,
+      "respS": 24.651102299999998,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "710558ff49839f6f90e95684c25740d791858a1730e910eb1ed45a4fa8a36e89",
+      "K": 39,
+      "clues": [
+       11,
+       12,
+       11,
+       10,
+       14,
+       11,
+       14,
+       11,
+       18,
+       11
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.506655299999999,
+      "t10S": 31.4516703,
+      "respS": 31.6131973,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "b3266b9b2e56a97613e064dccef1d202cede87d56d1e70b216fb7d86f285829d",
+      "K": 38,
+      "clues": [
+       12,
+       13,
+       16,
+       13,
+       12,
+       12,
+       15,
+       13,
+       12,
+       12
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 10.9148083,
+      "t10S": 32.5074252,
+      "respS": 32.6548001,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "dbfe59fe39b21a0517eb3f9d4a8e45afd7dc8c327cf355eb3f437a8493226824",
+      "K": 38,
+      "clues": [
+       14,
+       14,
+       13,
+       14,
+       14,
+       12,
+       14,
+       12,
+       14,
+       12
+      ]
+     }
+    ]
+   },
+   "26x26-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 5.9046764000000005,
+    "t1MaxS": 20.635899300000002,
+    "t10MedS": 28.0300622,
+    "t10MaxS": 41.8129862,
+    "cappedT10MedS": 28.0300622,
+    "cappedT10GeoS": 30.956185573419166,
+    "respMedS": 28.2033184,
+    "respMaxS": 42.0040737,
+    "batchMedS": 20.266839,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 8,
+    "rowMedClues": [
+     7,
+     8.5,
+     7,
+     8,
+     8
+    ],
+    "shareMed": 0.2,
+    "K": [
+     42,
+     41,
+     39,
+     40,
+     40
+    ],
+    "scorePosMed": 0.44285714285714284,
+    "censusEstimateShare": 1,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.9046764000000005,
+      "t10S": 41.8129862,
+      "respS": 42.0040737,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ea416cd5e85a3ed8316176d3ac04d97e2ca14358a1afd838469078154f70177e",
+      "K": 42,
+      "clues": [
+       7,
+       9,
+       6,
+       7,
+       6,
+       7,
+       6,
+       9,
+       7,
+       10
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.1722063,
+      "t10S": 26.4390453,
+      "respS": 26.603239900000002,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "070986a739c5e1ad4b21887a6b6c5dbc9743ab158c745560c653c005c350eb0c",
+      "K": 41,
+      "clues": [
+       8,
+       12,
+       9,
+       8,
+       9,
+       8,
+       10,
+       7,
+       9,
+       8
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.6437983,
+      "t10S": 28.0300622,
+      "respS": 28.2033184,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "6bf1cf73342fc3487f18abb339e83dd6fdf303ece8a397c05933e8b63c7ab44d",
+      "K": 39,
+      "clues": [
+       6,
+       7,
+       7,
+       9,
+       6,
+       9,
+       9,
+       7,
+       9,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.4564793,
+      "t10S": 22.4727221,
+      "respS": 22.6463165,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e007fce199a5bc0f8de838b032b49eeed3630245cc70a255ad23ca98c0121597",
+      "K": 40,
+      "clues": [
+       8,
+       6,
+       7,
+       7,
+       8,
+       8,
+       8,
+       9,
+       8,
+       9
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 20.635899300000002,
+      "t10S": 40.8225858,
+      "respS": 41.0140443,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "81b0f11a208e9ae060d5afee735c725e4770cef02f91ae9b439b7e073cbfaf89",
+      "K": 40,
+      "clues": [
+       7,
+       8,
+       8,
+       9,
+       8,
+       5,
+       8,
+       8,
+       7,
+       8
+      ]
+     }
+    ]
+   }
+  },
+  "fr-screen": {
+   "10x10-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 4.125338,
+    "t1MaxS": 20.263488600000002,
+    "t10MedS": 16.2844389,
+    "t10MaxS": 72.80943549999999,
+    "cappedT10MedS": 16.2844389,
+    "cappedT10GeoS": 20.89932783021994,
+    "respMedS": 16.417151299999997,
+    "respMaxS": 72.98269069999999,
+    "batchMedS": 13.338530300000002,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 4,
+    "rowMedClues": [
+     4.5,
+     5,
+     4,
+     3,
+     4
+    ],
+    "shareMed": 0.23529411764705882,
+    "K": [
+     17,
+     19,
+     17,
+     17,
+     17
+    ],
+    "scorePosMed": 0.4583333333333333,
+    "censusEstimateShare": 0.5,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.5010006,
+      "t10S": 21.696515199999997,
+      "respS": 21.864070799999997,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "5a6d7112ec948742954aae11430a813eeb92d18b86cb17c6bf240bca8128345b",
+      "K": 17,
+      "clues": [
+       4,
+       5,
+       3,
+       4,
+       5,
+       5,
+       4,
+       5,
+       4,
+       6
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.468736600000001,
+      "t10S": 16.0258983,
+      "respS": 16.1602067,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "62cc7299eb48116ab0580f1f9f1df5a2279dccbf142e93ba1062a6e9e8ec3bb8",
+      "K": 19,
+      "clues": [
+       6,
+       3,
+       5,
+       4,
+       6,
+       4,
+       5,
+       4,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 20.263488600000002,
+      "t10S": 72.80943549999999,
+      "respS": 72.98269069999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "5e955bf86ff77e107e66d925406797753e75ec81859250e6f74b6221192ed210",
+      "K": 17,
+      "clues": [
+       4,
+       4,
+       4,
+       4,
+       4,
+       4,
+       3,
+       3,
+       4,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.125338,
+      "t10S": 9.671387,
+      "respS": 9.841090699999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e1fc69b48adfa9b696fee4c1caa05bf03d98084136910e07a895bd30ee209bcb",
+      "K": 17,
+      "clues": [
+       3,
+       3,
+       3,
+       4,
+       4,
+       4,
+       3,
+       3,
+       2,
+       2
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.9459085999999997,
+      "t10S": 16.2844389,
+      "respS": 16.417151299999997,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "d5db22cae46248d9043e6289a9c78710b0a7a478f748cc740d7daa44cccf693e",
+      "K": 17,
+      "clues": [
+       4,
+       3,
+       3,
+       5,
+       3,
+       4,
+       4,
+       3,
+       4,
+       4
+      ]
+     }
+    ]
+   },
+   "12x12-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.4328481000000002,
+    "t1MaxS": 3.2312306,
+    "t10MedS": 6.7593057,
+    "t10MaxS": 16.1205882,
+    "cappedT10MedS": 6.7593057,
+    "cappedT10GeoS": 7.80153235869485,
+    "respMedS": 6.928850499999999,
+    "respMaxS": 16.2949788,
+    "batchMedS": 6.0424666,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 5,
+    "rowMedClues": [
+     5,
+     5,
+     5,
+     7,
+     4.5
+    ],
+    "shareMed": 0.2631578947368421,
+    "K": [
+     20,
+     19,
+     19,
+     21,
+     19
+    ],
+    "scorePosMed": 0.4166666666666667,
+    "censusEstimateShare": 0.16,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.6449045000000001,
+      "t10S": 4.579203100000001,
+      "respS": 4.714638000000001,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "5713586079ecc328c6b6b74dafbeae11f8b7012fd351ad78f62af20191cd8cad",
+      "K": 20,
+      "clues": [
+       4,
+       6,
+       6,
+       5,
+       4,
+       4,
+       7,
+       5,
+       5,
+       4
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.4328481000000002,
+      "t10S": 10.7616263,
+      "respS": 10.9037478,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "0f2c917ec5f293282d3cea8dbe1bf7861d31d0f1b0b0eeb3e31d30e4d7bbb91a",
+      "K": 19,
+      "clues": [
+       3,
+       6,
+       6,
+       4,
+       6,
+       5,
+       5,
+       5,
+       5,
+       6
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.5611525000000002,
+      "t10S": 5.382063099999999,
+      "respS": 5.5628081,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "52f8ba0ccd3c628349a93c38b913a659a4f9ad9c12c6de48235a4b396f42ecb1",
+      "K": 19,
+      "clues": [
+       6,
+       5,
+       5,
+       4,
+       4,
+       6,
+       6,
+       5,
+       7,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.2312306,
+      "t10S": 16.1205882,
+      "respS": 16.2949788,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9bc2def6267660a64e74afebb36b36bc7b62727be306fddc0b10dc2c77d4ed8c",
+      "K": 21,
+      "clues": [
+       10,
+       8,
+       6,
+       7,
+       7,
+       6,
+       7,
+       7,
+       7,
+       6
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.7168391000000001,
+      "t10S": 6.7593057,
+      "respS": 6.928850499999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "3e71932eaab7aaccd2c2662f449d32d3784e0f8e0fcc05c5985eff57d2dd4f74",
+      "K": 19,
+      "clues": [
+       4,
+       5,
+       5,
+       4,
+       5,
+       5,
+       4,
+       4,
+       5,
+       4
+      ]
+     }
+    ]
+   },
+   "14x14-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.6083614,
+    "t1MaxS": 4.037184,
+    "t10MedS": 8.8696673,
+    "t10MaxS": 11.5546026,
+    "cappedT10MedS": 8.8696673,
+    "cappedT10GeoS": 8.576952625157945,
+    "respMedS": 9.045575300000001,
+    "respMaxS": 11.7363079,
+    "batchMedS": 7.261305899999999,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 7,
+    "rowMedClues": [
+     7,
+     5,
+     5,
+     8,
+     6.5
+    ],
+    "shareMed": 0.2916666666666667,
+    "K": [
+     22,
+     22,
+     21,
+     24,
+     23
+    ],
+    "scorePosMed": 0.47916666666666663,
+    "censusEstimateShare": 0.1,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.3090489,
+      "t10S": 5.2953432,
+      "respS": 5.4410247,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "151ca6bc0c77df81d7c58ed7051e397881d27256bdce5ae2c8cb84c400281dc0",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       6,
+       7,
+       9,
+       7,
+       7,
+       9,
+       7,
+       6
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.6083614,
+      "t10S": 8.8696673,
+      "respS": 9.045575300000001,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ac2328f7ef2f4cc7c31cc05a6c178c78c76bfe361f501e34ea45d4925cb15cb6",
+      "K": 22,
+      "clues": [
+       7,
+       5,
+       5,
+       5,
+       5,
+       7,
+       7,
+       7,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.037184,
+      "t10S": 11.5546026,
+      "respS": 11.7363079,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "2ba84f934892638843f5d03e57f19387b50e10ab450c03adc178271d45781acc",
+      "K": 21,
+      "clues": [
+       5,
+       5,
+       5,
+       4,
+       4,
+       6,
+       4,
+       5,
+       6,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.8390183999999998,
+      "t10S": 8.6771303,
+      "respS": 8.8287441,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "214ba044e12d5f3a967cdfd269945d959587b4082664bc695af1a39d3e416258",
+      "K": 24,
+      "clues": [
+       8,
+       9,
+       8,
+       7,
+       10,
+       10,
+       8,
+       8,
+       7,
+       8
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.6022733,
+      "t10S": 9.8567214,
+      "respS": 10.0194881,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "569584cd8b4bbe7893e3151dfa2e7a018b87337f7f7266ec5e3fcd2379fffd67",
+      "K": 23,
+      "clues": [
+       7,
+       7,
+       6,
+       6,
+       5,
+       6,
+       5,
+       7,
+       7,
+       7
+      ]
+     }
+    ]
+   },
+   "15x15b10-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.8371256,
+    "t1MaxS": 3.5930763000000003,
+    "t10MedS": 8.137478400000001,
+    "t10MaxS": 14.536650700000001,
+    "cappedT10MedS": 8.137478400000001,
+    "cappedT10GeoS": 9.122019125914813,
+    "respMedS": 8.2854525,
+    "respMaxS": 14.7163786,
+    "batchMedS": 6.681797899999999,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 6,
+    "rowMedClues": [
+     5,
+     5,
+     7,
+     7,
+     6
+    ],
+    "shareMed": 0.26679841897233203,
+    "K": [
+     22,
+     22,
+     23,
+     23,
+     23
+    ],
+    "scorePosMed": 0.4583333333333333,
+    "censusEstimateShare": 0.04,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.2923380000000002,
+      "t10S": 7.9741359,
+      "respS": 8.135260599999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "54c79d0b139f9a6d657d062f936ca31941ad0be4b076a4281f29498845279050",
+      "K": 22,
+      "clues": [
+       5,
+       5,
+       4,
+       5,
+       7,
+       6,
+       5,
+       4,
+       6,
+       4
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.8241017000000004,
+      "t10S": 5.6637017,
+      "respS": 5.836891699999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "0bb3bbc4aa867995762a2c77f46774287b0f6de1da2eb8599fc7bdc0536406b1",
+      "K": 22,
+      "clues": [
+       5,
+       5,
+       7,
+       4,
+       6,
+       5,
+       4,
+       5,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.6596165,
+      "t10S": 8.137478400000001,
+      "respS": 8.2854525,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "36537ec559ca3c4887b4e827ec534ed7a4963f9edec4be2deb94e2a7c479a350",
+      "K": 23,
+      "clues": [
+       7,
+       6,
+       7,
+       7,
+       7,
+       5,
+       7,
+       7,
+       7,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.8371256,
+      "t10S": 14.536650700000001,
+      "respS": 14.7163786,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ba2d0745bdfa0abb36f58c8122d428e1b40751fbbb840a2de2cac6b738611751",
+      "K": 23,
+      "clues": [
+       7,
+       5,
+       7,
+       8,
+       6,
+       8,
+       8,
+       7,
+       7,
+       9
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.5930763000000003,
+      "t10S": 11.8227004,
+      "respS": 11.995686,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ffc2fa4955a2c4c0125de0ea0a310d8a0b549944691d51e95577eb747375753d",
+      "K": 23,
+      "clues": [
+       6,
+       7,
+       7,
+       7,
+       6,
+       6,
+       6,
+       6,
+       5,
+       8
+      ]
+     }
+    ]
+   },
+   "15x20-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.7391474,
+    "t1MaxS": 6.0232888,
+    "t10MedS": 10.416293,
+    "t10MaxS": 11.595938,
+    "cappedT10MedS": 10.416293,
+    "cappedT10GeoS": 9.036225834215639,
+    "respMedS": 10.588271,
+    "respMaxS": 11.751183800000002,
+    "batchMedS": 7.5589046,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 6,
+    "rowMedClues": [
+     5,
+     5,
+     7,
+     6,
+     6
+    ],
+    "shareMed": 0.23076923076923078,
+    "K": [
+     26,
+     25,
+     26,
+     26,
+     25
+    ],
+    "scorePosMed": 0.4583333333333333,
+    "censusEstimateShare": 0.18,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.4586042,
+      "t10S": 5.0896387,
+      "respS": 5.2532513,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "f831063d363928da19c5349d5e8ac3c020e0ea335f03fa79ba5db9d32a0ece8d",
+      "K": 26,
+      "clues": [
+       7,
+       5,
+       4,
+       6,
+       5,
+       5,
+       4,
+       6,
+       6,
+       5
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.0232888,
+      "t10S": 10.416293,
+      "respS": 10.588271,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "8766b8bca4cd46404acb7d7b1e78c0d677767d267764de60e176676b2f9e375e",
+      "K": 25,
+      "clues": [
+       5,
+       5,
+       5,
+       4,
+       6,
+       5,
+       5,
+       8,
+       5,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.7391474,
+      "t10S": 9.298052,
+      "respS": 9.4710276,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "1e88795a3d35c0ec9da8f4c127e8204209879ed5bb5429b066d7b2ff5c836474",
+      "K": 26,
+      "clues": [
+       8,
+       8,
+       6,
+       7,
+       8,
+       6,
+       8,
+       6,
+       7,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.9236364,
+      "t10S": 11.595938,
+      "respS": 11.751183800000002,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "f74be1269a9cb47329ba94e6a043374f548d6b653422c4b3137b8d5cbd9f364b",
+      "K": 26,
+      "clues": [
+       8,
+       6,
+       6,
+       7,
+       5,
+       5,
+       7,
+       5,
+       6,
+       5
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.7448601,
+      "t10S": 10.539921699999999,
+      "respS": 10.7123202,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "33fd0415c8df4dca1f024a611699676aa44870209ad696b5ca7eb94106e6511d",
+      "K": 25,
+      "clues": [
+       5,
+       7,
+       6,
+       5,
+       7,
+       5,
+       6,
+       6,
+       6,
+       5
+      ]
+     }
+    ]
+   },
+   "16x16-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 1.4710135,
+    "t1MaxS": 1.9553591,
+    "t10MedS": 7.880927,
+    "t10MaxS": 13.249480499999999,
+    "cappedT10MedS": 7.880927,
+    "cappedT10GeoS": 8.757542357959728,
+    "respMedS": 8.0263134,
+    "respMaxS": 13.4153549,
+    "batchMedS": 6.824774799999999,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 6,
+    "rowMedClues": [
+     6,
+     7,
+     6,
+     5,
+     5.5
+    ],
+    "shareMed": 0.25,
+    "K": [
+     24,
+     25,
+     23,
+     23,
+     23
+    ],
+    "scorePosMed": 0.5,
+    "censusEstimateShare": 0.3,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.0561522,
+      "t10S": 7.880927,
+      "respS": 8.0263134,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "c093b6954f8585d082149c62b37e3389942e3b065f12f64b5bfffd08b124bdfd",
+      "K": 24,
+      "clues": [
+       5,
+       6,
+       6,
+       5,
+       8,
+       5,
+       6,
+       7,
+       6,
+       6
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.4801945,
+      "t10S": 13.249480499999999,
+      "respS": 13.4153549,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "cab902669e22fe7fc5426f92666ffa9975b2c3a10d46e457aee14af917de32ef",
+      "K": 25,
+      "clues": [
+       7,
+       7,
+       8,
+       7,
+       6,
+       8,
+       7,
+       8,
+       7,
+       7
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.9553591,
+      "t10S": 8.649537800000001,
+      "respS": 8.8148483,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "aa8d21d4ac463dd627d986681c6bf5e9c8b27f4b486d815316f6e85a9b9dcd3c",
+      "K": 23,
+      "clues": [
+       9,
+       4,
+       6,
+       5,
+       6,
+       7,
+       5,
+       7,
+       7,
+       5
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.36676030000000004,
+      "t10S": 7.6275239,
+      "respS": 7.8106313,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "8752dcfae9762936260b51e4cec855e7166078dfeb6e4e2e45e3048be884f2d2",
+      "K": 23,
+      "clues": [
+       4,
+       7,
+       6,
+       5,
+       5,
+       4,
+       5,
+       4,
+       5,
+       4
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 1.4710135,
+      "t10S": 7.4775375,
+      "respS": 7.6345336999999995,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "26eeb99596c593498fec28d609662dee264b9f956dd0071e62e03e86c4209cb3",
+      "K": 23,
+      "clues": [
+       7,
+       6,
+       5,
+       5,
+       5,
+       6,
+       5,
+       7,
+       6,
+       5
+      ]
+     }
+    ]
+   },
+   "26x26-hell-1": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 6.991350000000001,
+    "t1MaxS": 15.134814800000001,
+    "t10MedS": 35.809624400000004,
+    "t10MaxS": 41.2296395,
+    "cappedT10MedS": 35.809624400000004,
+    "cappedT10GeoS": 31.262899812228067,
+    "respMedS": 35.9520293,
+    "respMaxS": 41.391366999999995,
+    "batchMedS": 23.2108171,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 8,
+    "rowMedClues": [
+     7.5,
+     9,
+     8,
+     8,
+     8
+    ],
+    "shareMed": 0.2,
+    "K": [
+     42,
+     41,
+     39,
+     40,
+     40
+    ],
+    "scorePosMed": 0.42857142857142855,
+    "censusEstimateShare": 0.98,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 3.9827094,
+      "t10S": 41.2296395,
+      "respS": 41.391366999999995,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "ea416cd5e85a3ed8316176d3ac04d97e2ca14358a1afd838469078154f70177e",
+      "K": 42,
+      "clues": [
+       7,
+       9,
+       6,
+       8,
+       6,
+       8,
+       6,
+       9,
+       6,
+       10
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 12.5988073,
+      "t10S": 35.809624400000004,
+      "respS": 35.9520293,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "070986a739c5e1ad4b21887a6b6c5dbc9743ab158c745560c653c005c350eb0c",
+      "K": 41,
+      "clues": [
+       10,
+       12,
+       11,
+       8,
+       9,
+       8,
+       10,
+       8,
+       9,
+       8
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 4.4369156,
+      "t10S": 22.2680328,
+      "respS": 22.4135784,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "6bf1cf73342fc3487f18abb339e83dd6fdf303ece8a397c05933e8b63c7ab44d",
+      "K": 39,
+      "clues": [
+       9,
+       10,
+       7,
+       8,
+       6,
+       10,
+       11,
+       8,
+       8,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 6.991350000000001,
+      "t10S": 22.3044674,
+      "respS": 22.4756884,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e007fce199a5bc0f8de838b032b49eeed3630245cc70a255ad23ca98c0121597",
+      "K": 40,
+      "clues": [
+       9,
+       7,
+       7,
+       7,
+       8,
+       8,
+       8,
+       10,
+       8,
+       9
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 15.134814800000001,
+      "t10S": 40.725205200000005,
+      "respS": 40.9056206,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "81b0f11a208e9ae060d5afee735c725e4770cef02f91ae9b439b7e073cbfaf89",
+      "K": 40,
+      "clues": [
+       8,
+       9,
+       9,
+       9,
+       8,
+       7,
+       9,
+       8,
+       6,
+       8
+      ]
+     }
+    ]
+   },
+   "26x26-nightmare": {
+    "rows": 5,
+    "statuses": {
+     "valid": 5
+    },
+    "reachedTen": 5,
+    "deadlineViolations": 0,
+    "t1MedS": 2.0848848,
+    "t1MaxS": 7.4464259,
+    "t10MedS": 11.7132194,
+    "t10MaxS": 14.5409206,
+    "cappedT10MedS": 11.7132194,
+    "cappedT10GeoS": 11.832310744235288,
+    "respMedS": 11.860595799999999,
+    "respMaxS": 14.725685499999999,
+    "batchMedS": 7.915868199999999,
+    "accepted": 50,
+    "setAttempts": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "partial": [],
+    "cluesMed": 5,
+    "rowMedClues": [
+     4,
+     4.5,
+     6,
+     6,
+     5
+    ],
+    "shareMed": 0.16129032258064516,
+    "K": [
+     31,
+     30,
+     32,
+     32,
+     31
+    ],
+    "scorePosMed": 0.5,
+    "censusEstimateShare": 0.86,
+    "perRep": [
+     {
+      "rep": 0,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 0.8574751,
+      "t10S": 11.7132194,
+      "respS": 11.860595799999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "e9ee2007ea9bc27de6165752178ec5eb744b19abdfba628b1472470ea9c9a33a",
+      "K": 31,
+      "clues": [
+       4,
+       3,
+       4,
+       5,
+       4,
+       8,
+       4,
+       6,
+       4,
+       4
+      ]
+     },
+     {
+      "rep": 1,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 5.837383300000001,
+      "t10S": 12.469537200000001,
+      "respS": 12.652821099999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "86c0e387a24b0e7db5623a2800e68b6e427eef25635f4af3395d8bbb09ae1ea3",
+      "K": 30,
+      "clues": [
+       5,
+       5,
+       5,
+       5,
+       4,
+       4,
+       4,
+       4,
+       4,
+       5
+      ]
+     },
+     {
+      "rep": 2,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 7.4464259,
+      "t10S": 14.5409206,
+      "respS": 14.725685499999999,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "53dcd68aa60779b13c87330321e397166f78d4c3f13f7d0b12ea2aa7ce0b8d3e",
+      "K": 32,
+      "clues": [
+       6,
+       4,
+       7,
+       6,
+       7,
+       7,
+       4,
+       6,
+       6,
+       7
+      ]
+     },
+     {
+      "rep": 3,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.0848848,
+      "t10S": 11.009281799999998,
+      "respS": 11.173963,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9235c0b2176ab46a283ec539735e2c403abada50a125ec1c432c14034fcea307",
+      "K": 32,
+      "clues": [
+       6,
+       6,
+       5,
+       4,
+       5,
+       6,
+       7,
+       7,
+       6,
+       7
+      ]
+     },
+     {
+      "rep": 4,
+      "status": "valid",
+      "accepted": 10,
+      "t1S": 2.0031875,
+      "t10S": 9.9190557,
+      "respS": 10.0756976,
+      "partial": null,
+      "setAttempt": 0,
+      "setKey": "9e015905bdecfacc90ef097730ae14a1084edc3e7a2fc8fd57b8b8d15f020652",
+      "K": 31,
+      "clues": [
+       5,
+       5,
+       5,
+       7,
+       5,
+       5,
+       5,
+       5,
+       6,
+       5
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "pairs": [
+  {
+   "kind": "S2-2 screen vs none",
+   "a": "fr-screen",
+   "b": "fr-none",
+   "cell": "10x10-nightmare",
+   "problems": [],
+   "ratios": [
+    0.45038539184394,
+    0.7114771968819994,
+    0.7063512915163311,
+    1.0360373439714492,
+    0.653619996695127
+   ],
+   "geo": 0.6872161434676678,
+   "batchGeo": 0.7050169189699989,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 4.5,
+     "b": 3,
+     "d": 1.5
+    },
+    {
+     "rep": 1,
+     "a": 5,
+     "b": 4,
+     "d": 1
+    },
+    {
+     "rep": 2,
+     "a": 4,
+     "b": 3,
+     "d": 1
+    },
+    {
+     "rep": 3,
+     "a": 3,
+     "b": 3,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 4,
+     "b": 3,
+     "d": 1
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 1,
+    "moved2": 0,
+    "pass": false
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 21696.515199999998,
+     "t10B": 9771.7935,
+     "cappedA": 21696.515199999998,
+     "cappedB": 9771.7935,
+     "batchA": 18195.5146,
+     "batchB": 7884.8549
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 16025.8983,
+     "t10B": 11402.0612,
+     "cappedA": 16025.8983,
+     "cappedB": 11402.0612,
+     "batchA": 10557.1617,
+     "batchB": 10318.6896
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 72809.43549999999,
+     "t10B": 51429.0388,
+     "cappedA": 72809.43549999999,
+     "cappedB": 51429.0388,
+     "batchA": 52545.946899999995,
+     "batchB": 45816.2597
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 4,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 9671.386999999999,
+     "t10B": 10019.9181,
+     "cappedA": 9671.386999999999,
+     "cappedB": 10019.9181,
+     "batchA": 5546.048999999999,
+     "batchB": 5755.019
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 16284.438900000001,
+     "t10B": 10643.8349,
+     "cappedA": 16284.438900000001,
+     "cappedB": 10643.8349,
+     "batchA": 13338.530300000002,
+     "batchB": 6062.5518999999995
+    }
+   ]
+  },
+  {
+   "kind": "S2-2 screen vs none",
+   "a": "fr-screen",
+   "b": "fr-none",
+   "cell": "12x12-nightmare",
+   "problems": [],
+   "ratios": [
+    1.1155879720643969,
+    1.1991870503810376,
+    3.538316672652909,
+    1.7620599662734389,
+    1.7108662358620648
+   ],
+   "geo": 1.701707207784157,
+   "batchGeo": 1.7720457956451088,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 5,
+     "b": 4,
+     "d": 1
+    },
+    {
+     "rep": 1,
+     "a": 5,
+     "b": 4,
+     "d": 1
+    },
+    {
+     "rep": 2,
+     "a": 5,
+     "b": 4.5,
+     "d": 0.5
+    },
+    {
+     "rep": 3,
+     "a": 7,
+     "b": 5.5,
+     "d": 1.5
+    },
+    {
+     "rep": 4,
+     "a": 4.5,
+     "b": 4,
+     "d": 0.5
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 1,
+    "moved2": 0,
+    "pass": false
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 3,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 4579.203100000001,
+     "t10B": 5108.503900000001,
+     "cappedA": 4579.203100000001,
+     "cappedB": 5108.503900000001,
+     "batchA": 3934.2986000000005,
+     "batchB": 4515.427900000001
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 10761.6263,
+     "t10B": 12905.202899999998,
+     "cappedA": 10761.6263,
+     "cappedB": 12905.202899999998,
+     "batchA": 9328.7782,
+     "batchB": 11476.3288
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 5382.063099999999,
+     "t10B": 19043.4436,
+     "cappedA": 5382.063099999999,
+     "cappedB": 19043.4436,
+     "batchA": 3820.9105999999992,
+     "batchB": 15635.656899999998
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 16120.5882,
+     "t10B": 28405.443099999997,
+     "cappedA": 16120.5882,
+     "cappedB": 28405.443099999997,
+     "batchA": 12889.3576,
+     "batchB": 21677.146299999997
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 6759.3057,
+     "t10B": 11564.267899999999,
+     "cappedA": 6759.3057,
+     "cappedB": 11564.267899999999,
+     "batchA": 6042.4666,
+     "batchB": 10865.7339
+    }
+   ]
+  },
+  {
+   "kind": "S2-2 screen vs none",
+   "a": "fr-screen",
+   "b": "fr-none",
+   "cell": "14x14-nightmare",
+   "problems": [],
+   "ratios": [
+    3.1258405687472726,
+    2.0988689057141974,
+    2.6628390144720337,
+    2.7749987343165743,
+    2.4558391698075184
+   ],
+   "geo": 2.601069472036843,
+   "batchGeo": 2.446378126451135,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 7,
+     "b": 7,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 5,
+     "b": 4,
+     "d": 1
+    },
+    {
+     "rep": 3,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 6.5,
+     "b": 6,
+     "d": 0.5
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 7,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 5295.343199999999,
+     "t10B": 16552.3986,
+     "cappedA": 5295.343199999999,
+     "cappedB": 16552.3986,
+     "batchA": 3986.2942999999996,
+     "batchB": 12762.300000000001
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8869.6673,
+     "t10B": 18616.2689,
+     "cappedA": 8869.6673,
+     "cappedB": 18616.2689,
+     "batchA": 7261.305899999999,
+     "batchB": 14097.219299999999
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 11554.6026,
+     "t10B": 30768.046599999998,
+     "cappedA": 11554.6026,
+     "cappedB": 30768.046599999998,
+     "batchA": 7517.418600000001,
+     "batchB": 15978.682299999997
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8677.1303,
+     "t10B": 24079.025599999997,
+     "cappedA": 8677.1303,
+     "cappedB": 24079.025599999997,
+     "batchA": 6838.111900000001,
+     "batchB": 19160.671
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 2,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 9856.7214,
+     "t10B": 24206.5225,
+     "cappedA": 9856.7214,
+     "cappedB": 24206.5225,
+     "batchA": 8254.4481,
+     "batchB": 19538.036399999997
+    }
+   ]
+  },
+  {
+   "kind": "S2-2 screen vs none",
+   "a": "fr-screen",
+   "b": "fr-none",
+   "cell": "15x15b10-nightmare",
+   "problems": [],
+   "ratios": [
+    2.349296116209908,
+    2.7716034550336577,
+    3.2148752738932,
+    2.1508619863859013,
+    2.0566821434466864
+   ],
+   "geo": 2.473560521927144,
+   "batchGeo": 2.6591658190435137,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 7,
+     "b": 7,
+     "d": 0
+    },
+    {
+     "rep": 3,
+     "a": 7,
+     "b": 6,
+     "d": 1
+    },
+    {
+     "rep": 4,
+     "a": 6,
+     "b": 6,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 3,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 7974.1359,
+     "t10B": 18733.6065,
+     "cappedA": 7974.1359,
+     "cappedB": 18733.6065,
+     "batchA": 6681.7979,
+     "batchB": 16064.730700000002
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 5663.7017,
+     "t10B": 15697.5352,
+     "cappedA": 5663.7017,
+     "cappedB": 15697.5352,
+     "batchA": 2839.5999999999995,
+     "batchB": 11512.2044
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 8,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8137.478400000001,
+     "t10B": 26160.9781,
+     "cappedA": 8137.478400000001,
+     "cappedB": 26160.9781,
+     "batchA": 6477.861900000001,
+     "batchB": 20870.9189
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 2,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 14536.6507,
+     "t10B": 31266.329400000002,
+     "cappedA": 14536.6507,
+     "cappedB": 31266.329400000002,
+     "batchA": 12699.5251,
+     "batchB": 26456.288300000004
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 11822.7004,
+     "t10B": 24315.536799999998,
+     "cappedA": 11822.7004,
+     "cappedB": 24315.536799999998,
+     "batchA": 8229.624099999999,
+     "batchB": 16725.3163
+    }
+   ]
+  },
+  {
+   "kind": "S2-2 screen vs none",
+   "a": "fr-screen",
+   "b": "fr-none",
+   "cell": "16x16-nightmare",
+   "problems": [],
+   "ratios": [
+    2.2595371838871237,
+    2.146011226628848,
+    2.229037718061652,
+    2.3386580801143086,
+    2.2238863797072232
+   ],
+   "geo": 2.238564669398984,
+   "batchGeo": 2.1381245683064827,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 6,
+     "b": 5,
+     "d": 1
+    },
+    {
+     "rep": 1,
+     "a": 7,
+     "b": 7,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 6,
+     "b": 5.5,
+     "d": 0.5
+    },
+    {
+     "rep": 3,
+     "a": 5,
+     "b": 4.5,
+     "d": 0.5
+    },
+    {
+     "rep": 4,
+     "a": 5.5,
+     "b": 5,
+     "d": 0.5
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0.5,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 7880.927,
+     "t10B": 17807.2476,
+     "cappedA": 7880.927,
+     "cappedB": 17807.2476,
+     "batchA": 6824.774799999999,
+     "batchB": 15429.5909
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 6,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 13249.4805,
+     "t10B": 28433.5339,
+     "cappedA": 13249.4805,
+     "cappedB": 28433.5339,
+     "batchA": 11769.286,
+     "batchB": 25843.414699999998
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8649.5378,
+     "t10B": 19280.146,
+     "cappedA": 8649.5378,
+     "cappedB": 19280.146,
+     "batchA": 6694.1787,
+     "batchB": 12344.0319
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 3,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 7627.5239,
+     "t10B": 17838.170400000003,
+     "cappedA": 7627.5239,
+     "cappedB": 17838.170400000003,
+     "batchA": 7260.7636,
+     "batchB": 17504.6922
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 7477.5375,
+     "t10B": 16629.1938,
+     "cappedA": 7477.5375,
+     "cappedB": 16629.1938,
+     "batchA": 6006.524,
+     "batchB": 12161.592700000001
+    }
+   ]
+  },
+  {
+   "kind": "S2-2 screen vs none",
+   "a": "fr-screen",
+   "b": "fr-none",
+   "cell": "15x20-nightmare",
+   "problems": [],
+   "ratios": [
+    1.7104202504590356,
+    1.892017880065394,
+    2.3679733023648395,
+    1.7693971889121864,
+    0.9060448997453179
+   ],
+   "geo": 1.6514901361245806,
+   "batchGeo": 1.56924113887457,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 7,
+     "b": 7,
+     "d": 0
+    },
+    {
+     "rep": 3,
+     "a": 6,
+     "b": 5.5,
+     "d": 0.5
+    },
+    {
+     "rep": 4,
+     "a": 6,
+     "b": 5,
+     "d": 1
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 5089.6387,
+     "t10B": 8705.421100000001,
+     "cappedA": 5089.6387,
+     "cappedB": 8705.421100000001,
+     "batchA": 3631.0345000000007,
+     "batchB": 4482.291900000001
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 4,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 10416.293,
+     "t10B": 19707.8126,
+     "cappedA": 10416.293,
+     "cappedB": 19707.8126,
+     "batchA": 4393.004199999999,
+     "batchB": 8215.923700000001
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 2,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 9298.052,
+     "t10B": 22017.5389,
+     "cappedA": 9298.052,
+     "cappedB": 22017.5389,
+     "batchA": 7558.9046,
+     "batchB": 17863.9003
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 11595.938,
+     "t10B": 20517.8201,
+     "cappedA": 11595.938,
+     "cappedB": 20517.8201,
+     "batchA": 8672.3016,
+     "batchB": 16806.0082
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 10539.921699999999,
+     "t10B": 9549.6423,
+     "cappedA": 10539.921699999999,
+     "cappedB": 9549.6423,
+     "batchA": 9795.061599999999,
+     "batchB": 8815.4287
+    }
+   ]
+  },
+  {
+   "kind": "S2-2 screen vs none",
+   "a": "fr-screen",
+   "b": "fr-none",
+   "cell": "26x26-nightmare",
+   "problems": [],
+   "ratios": [
+    1.2778661859607956,
+    1.2796516537919305,
+    1.3387384014737007,
+    1.6635784179854498,
+    1.8085927473922745
+   ],
+   "geo": 1.4579122491649414,
+   "batchGeo": 1.7201452797336585,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 4.5,
+     "b": 4,
+     "d": 0.5
+    },
+    {
+     "rep": 2,
+     "a": 6,
+     "b": 6.5,
+     "d": -0.5
+    },
+    {
+     "rep": 3,
+     "a": 6,
+     "b": 6,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 11713.2194,
+     "t10B": 14967.927,
+     "cappedA": 11713.2194,
+     "cappedB": 14967.927,
+     "batchA": 10855.7443,
+     "batchB": 14053.549799999999
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 12469.5372,
+     "t10B": 15956.6639,
+     "cappedA": 12469.5372,
+     "cappedB": 15956.6639,
+     "batchA": 6632.1539,
+     "batchB": 10062.5929
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 14540.9206,
+     "t10B": 19466.488800000003,
+     "cappedA": 14540.9206,
+     "cappedB": 19466.488800000003,
+     "batchA": 7094.494699999999,
+     "batchB": 14882.135400000003
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 7,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 11009.281799999999,
+     "t10B": 18314.803600000003,
+     "cappedA": 11009.281799999999,
+     "cappedB": 18314.803600000003,
+     "batchA": 8924.396999999999,
+     "batchB": 16199.918300000003
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 6,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 9919.055699999999,
+     "t10B": 17939.532199999998,
+     "cappedA": 9919.055699999999,
+     "cappedB": 17939.532199999998,
+     "batchA": 7915.868199999999,
+     "batchB": 15939.134299999998
+    }
+   ]
+  },
+  {
+   "kind": "S2-2 screen vs none",
+   "a": "fr-screen",
+   "b": "fr-none",
+   "cell": "26x26-hell-1",
+   "problems": [],
+   "ratios": [
+    0.6637520029734919,
+    1.0891495108784217,
+    1.4506771159417367,
+    1.254813746415662,
+    1.0874042004827023
+   ],
+   "geo": 1.074303216261525,
+   "batchGeo": 1.11104991228564,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 7.5,
+     "b": 6.5,
+     "d": 1
+    },
+    {
+     "rep": 1,
+     "a": 9,
+     "b": 8.5,
+     "d": 0.5
+    },
+    {
+     "rep": 2,
+     "a": 8,
+     "b": 7.5,
+     "d": 0.5
+    },
+    {
+     "rep": 3,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0.5,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 7,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 41229.6395,
+     "t10B": 27366.2558,
+     "cappedA": 41229.6395,
+     "cappedB": 27366.2558,
+     "batchA": 37246.9301,
+     "batchB": 21353.7585
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 35809.6244,
+     "t10B": 39002.0349,
+     "cappedA": 35809.6244,
+     "cappedB": 39002.0349,
+     "batchA": 23210.8171,
+     "batchB": 32812.221099999995
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 22268.0328,
+     "t10B": 32303.725599999998,
+     "cappedA": 22268.0328,
+     "cappedB": 32303.725599999998,
+     "batchA": 17831.1172,
+     "batchB": 27600.756599999997
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 22304.4674,
+     "t10B": 27987.9523,
+     "cappedA": 22304.4674,
+     "cappedB": 27987.9523,
+     "batchA": 15313.117400000001,
+     "batchB": 22628.899
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 40725.205200000004,
+     "t10B": 44284.75919999999,
+     "cappedA": 40725.205200000004,
+     "cappedB": 44284.75919999999,
+     "batchA": 25590.390400000004,
+     "batchB": 23370.794199999993
+    }
+   ]
+  },
+  {
+   "kind": "S2-1 per-set prior vs base",
+   "a": "fr-ps",
+   "b": "fr-base",
+   "cell": "26x26-hell-1",
+   "problems": [],
+   "ratios": [
+    0.6581822323898024,
+    1.458546837165864,
+    1.1366740777335842,
+    1.2447649098993665,
+    1.0861004277685908
+   ],
+   "geo": 1.0808662652565597,
+   "batchGeo": 1.1092352072145208,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 7,
+     "b": 6.5,
+     "d": 0.5
+    },
+    {
+     "rep": 1,
+     "a": 8.5,
+     "b": 8.5,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 7,
+     "b": 7.5,
+     "d": -0.5
+    },
+    {
+     "rep": 3,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 3,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 41812.9862,
+     "t10B": 27520.5646,
+     "cappedA": 41812.9862,
+     "cappedB": 27520.5646,
+     "batchA": 35908.3098,
+     "batchB": 21400.0826
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 2,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 26439.0453,
+     "t10B": 38562.585900000005,
+     "cappedA": 26439.0453,
+     "cappedB": 38562.585900000005,
+     "batchA": 20266.839,
+     "batchB": 32367.542600000008
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 3,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 28030.0622,
+     "t10B": 31861.0451,
+     "cappedA": 28030.0622,
+     "cappedB": 31861.0451,
+     "batchA": 23386.263899999998,
+     "batchB": 27126.8021
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 7,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 22472.7221,
+     "t10B": 27973.2559,
+     "cappedA": 22472.7221,
+     "cappedB": 27973.2559,
+     "batchA": 17016.2428,
+     "batchB": 22493.7342
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 40822.5858,
+     "t10B": 44337.4279,
+     "cappedA": 40822.5858,
+     "cappedB": 44337.4279,
+     "batchA": 20186.6865,
+     "batchB": 23227.551500000005
+    }
+   ]
+  },
+  {
+   "kind": "S2-1 per-set prior vs base",
+   "a": "fr-ps",
+   "b": "fr-base",
+   "cell": "20x20-hell-1",
+   "problems": [],
+   "ratios": [
+    1.0612515087577319,
+    0.7898985119636384,
+    1.2733736999255747,
+    1.2202268793336548,
+    1.2748820383350448
+   ],
+   "geo": 1.10675429596676,
+   "batchGeo": 1.1392954927003076,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 16,
+     "b": 16,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 13,
+     "b": 13,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 11,
+     "b": 11.5,
+     "d": -0.5
+    },
+    {
+     "rep": 3,
+     "a": 12.5,
+     "b": 12.5,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 14,
+     "b": 14,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 6,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 45787.4207,
+     "t10B": 48591.969300000004,
+     "cappedA": 45787.4207,
+     "cappedB": 48591.969300000004,
+     "batchA": 39894.534100000004,
+     "batchB": 42700.479400000004
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 2,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 45068.011600000005,
+     "t10B": 35599.1553,
+     "cappedA": 45068.011600000005,
+     "cappedB": 35599.1553,
+     "batchA": 37110.44960000001,
+     "batchB": 27699.824099999998
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 2,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 24479.252399999998,
+     "t10B": 31171.2362,
+     "cappedA": 24479.252399999998,
+     "cappedB": 31171.2362,
+     "batchA": 19033.403499999997,
+     "batchB": 25682.0735
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 3,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 31451.6703,
+     "t10B": 38378.1735,
+     "cappedA": 31451.6703,
+     "cappedB": 38378.1735,
+     "batchA": 26945.015000000003,
+     "batchB": 33928.956
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 32507.4252,
+     "t10B": 41443.1325,
+     "cappedA": 32507.4252,
+     "cappedB": 41443.1325,
+     "batchA": 21592.6169,
+     "batchB": 30533.8333
+    }
+   ]
+  },
+  {
+   "kind": "S2-3 (c4) vs base",
+   "a": "fr-c4",
+   "b": "fr-base",
+   "cell": "14x14-nightmare",
+   "problems": [],
+   "ratios": [
+    0.6953084205391687,
+    0.9077372610007524,
+    1.0581486302201433,
+    0.8078731496605008,
+    0.7613451228760023
+   ],
+   "geo": 0.836992977133663,
+   "batchGeo": 0.8455286007073702,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 7,
+     "b": 7,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 3,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 6.5,
+     "b": 6.5,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 8,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 7579.7011,
+     "t10B": 5270.2300000000005,
+     "cappedA": 7579.7011,
+     "cappedB": 5270.2300000000005,
+     "batchA": 5801.6236,
+     "batchB": 3935.5338000000006
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 9788.310099999999,
+     "t10B": 8885.2138,
+     "cappedA": 9788.310099999999,
+     "cappedB": 8885.2138,
+     "batchA": 7702.712199999998,
+     "batchB": 7280.3704
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 2,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 10883.0371,
+     "t10B": 11515.8708,
+     "cappedA": 10883.0371,
+     "cappedB": 11515.8708,
+     "batchA": 6887.0671999999995,
+     "batchB": 7488.3811000000005
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 10745.3997,
+     "t10B": 8680.9199,
+     "cappedA": 10745.3997,
+     "cappedB": 8680.9199,
+     "batchA": 8438.9593,
+     "batchB": 6821.999600000001
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 11668.3972,
+     "t10B": 8883.677300000001,
+     "cappedA": 11668.3972,
+     "cappedB": 8883.677300000001,
+     "batchA": 9472.375699999999,
+     "batchB": 7263.737000000001
+    }
+   ]
+  },
+  {
+   "kind": "S2-3 (c4) vs base",
+   "a": "fr-c4",
+   "b": "fr-base",
+   "cell": "26x26-nightmare",
+   "problems": [],
+   "ratios": [
+    0.7465532362377434,
+    1.0018138377099026,
+    0.8313145002561598,
+    0.8814562908308409,
+    0.7210648377394119
+   ],
+   "geo": 0.8305344526658257,
+   "batchGeo": 0.8127464114626817,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 6,
+     "b": 6.5,
+     "d": -0.5
+    },
+    {
+     "rep": 3,
+     "a": 6,
+     "b": 6,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 5,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 19988.0757,
+     "t10B": 14922.1626,
+     "cappedA": 19988.0757,
+     "cappedB": 14922.1626,
+     "batchA": 18242.641900000002,
+     "batchB": 14046.3481
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 15517.4853,
+     "t10B": 15545.6315,
+     "cappedA": 15517.4853,
+     "cappedB": 15545.6315,
+     "batchA": 11746.6281,
+     "batchB": 9731.9456
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 3,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 23231.002699999997,
+     "t10B": 19312.269399999997,
+     "cappedA": 23231.002699999997,
+     "cappedB": 19312.269399999997,
+     "batchA": 17878.894199999995,
+     "batchB": 14627.353199999998
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 6,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 20303.0352,
+     "t10B": 17896.2381,
+     "cappedA": 20303.0352,
+     "cappedB": 17896.2381,
+     "batchA": 16933.3706,
+     "batchB": 15784.8527
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 24309.7695,
+     "t10B": 17528.920000000002,
+     "cappedA": 24309.7695,
+     "cappedB": 17528.920000000002,
+     "batchA": 21197.455499999996,
+     "batchB": 15451.643300000002
+    }
+   ]
+  },
+  {
+   "kind": "S2-4 close vs base",
+   "a": "fr-close",
+   "b": "fr-base",
+   "cell": "12x12-nightmare",
+   "problems": [],
+   "ratios": [
+    0.9836166809054969,
+    0.9944407912115528,
+    1.0027461403290712,
+    1.006892104864179,
+    0.995907139533849
+   ],
+   "geo": 0.9966886649745073,
+   "batchGeo": 1.0003738763174277,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 4.5,
+     "b": 4.5,
+     "d": 0
+    },
+    {
+     "rep": 3,
+     "a": 5.5,
+     "b": 5.5,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 5178.328,
+     "t10B": 5093.4898,
+     "cappedA": 5178.328,
+     "cappedB": 5093.4898,
+     "batchA": 4532.647000000001,
+     "batchB": 4494.584500000001
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 12873.072900000001,
+     "t10B": 12801.5088,
+     "cappedA": 12873.072900000001,
+     "cappedB": 12801.5088,
+     "batchA": 11454.789400000001,
+     "batchB": 11377.7321
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 18936.3229,
+     "t10B": 18988.3247,
+     "cappedA": 18936.3229,
+     "cappedB": 18988.3247,
+     "batchA": 15507.1654,
+     "batchB": 15557.376400000001
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 28255.040200000003,
+     "t10B": 28449.776899999997,
+     "cappedA": 28255.040200000003,
+     "cappedB": 28449.776899999997,
+     "batchA": 21407.616700000002,
+     "batchB": 21713.972799999996
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 11559.9592,
+     "t10B": 11512.645900000001,
+     "cappedA": 11559.9592,
+     "cappedB": 11512.645900000001,
+     "batchA": 10866.0312,
+     "batchB": 10861.792500000001
+    }
+   ]
+  },
+  {
+   "kind": "S2-4 close vs base",
+   "a": "fr-close",
+   "b": "fr-base",
+   "cell": "14x14-nightmare",
+   "problems": [],
+   "ratios": [
+    0.7722310676510684,
+    0.9916968565149181,
+    0.7275525793573012,
+    0.8812494049278286,
+    1.0374512363273407
+   ],
+   "geo": 0.8737987600222139,
+   "batchGeo": 0.9128987923824092,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 7,
+     "b": 7,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 4.5,
+     "b": 5,
+     "d": -0.5
+    },
+    {
+     "rep": 3,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 6.5,
+     "b": 6.5,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 6824.6801000000005,
+     "t10B": 5270.2300000000005,
+     "cappedA": 6824.6801000000005,
+     "cappedB": 5270.2300000000005,
+     "batchA": 5487.3009,
+     "batchB": 3935.5338000000006
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 7,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8959.6067,
+     "t10B": 8885.2138,
+     "cappedA": 8959.6067,
+     "cappedB": 8885.2138,
+     "batchA": 7353.072700000001,
+     "batchB": 7280.3704
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 15828.2317,
+     "t10B": 11515.8708,
+     "cappedA": 15828.2317,
+     "cappedB": 11515.8708,
+     "batchA": 7516.697399999999,
+     "batchB": 7488.3811000000005
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 9850.6959,
+     "t10B": 8680.9199,
+     "cappedA": 9850.6959,
+     "cappedB": 8680.9199,
+     "batchA": 7969.8806,
+     "batchB": 6821.999600000001
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8562.983,
+     "t10B": 8883.677300000001,
+     "cappedA": 8562.983,
+     "cappedB": 8883.677300000001,
+     "batchA": 6937.4071,
+     "batchB": 7263.737000000001
+    }
+   ]
+  },
+  {
+   "kind": "S2-4 close vs base",
+   "a": "fr-close",
+   "b": "fr-base",
+   "cell": "26x26-hell-1",
+   "problems": [],
+   "ratios": [
+    1.0174796233551089,
+    0.9884370767279965,
+    0.9932538546821009,
+    1.0000664428728183,
+    1.010551326292453
+   ],
+   "geo": 1.0019001640336958,
+   "batchGeo": 0.998122042155197,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 6.5,
+     "b": 6.5,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 8.5,
+     "b": 8.5,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 7.5,
+     "b": 7.5,
+     "d": 0
+    },
+    {
+     "rep": 3,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 27047.7796,
+     "t10B": 27520.5646,
+     "cappedA": 27047.7796,
+     "cappedB": 27520.5646,
+     "batchA": 21140.504200000003,
+     "batchB": 21400.0826
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 39013.6983,
+     "t10B": 38562.585900000005,
+     "cappedA": 39013.6983,
+     "cappedB": 38562.585900000005,
+     "batchA": 32799.374599999996,
+     "batchB": 32367.542600000008
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 32077.444199999998,
+     "t10B": 31861.0451,
+     "cappedA": 32077.444199999998,
+     "cappedB": 31861.0451,
+     "batchA": 27307.2312,
+     "batchB": 27126.8021
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 27971.3974,
+     "t10B": 27973.2559,
+     "cappedA": 27971.3974,
+     "cappedB": 27973.2559,
+     "batchA": 22544.1143,
+     "batchB": 22493.7342
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 43874.4938,
+     "t10B": 44337.4279,
+     "cappedA": 43874.4938,
+     "cappedB": 44337.4279,
+     "batchA": 23215.539799999995,
+     "batchB": 23227.551500000005
+    }
+   ]
+  },
+  {
+   "kind": "S2-6 P5 vs base",
+   "a": "fr-p5",
+   "b": "fr-base",
+   "cell": "14x14-nightmare",
+   "problems": [],
+   "ratios": [
+    0.9954633783683727,
+    0.9947062971106924,
+    1.0042345670258532,
+    1.0004081186501201,
+    1.028653689118401
+   ],
+   "geo": 1.0046165844740136,
+   "batchGeo": 1.0080362764264306,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 7,
+     "b": 7,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 3,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 6.5,
+     "b": 6.5,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 5294.248,
+     "t10B": 5270.2300000000005,
+     "cappedA": 5294.248,
+     "cappedB": 5270.2300000000005,
+     "batchA": 3941.9161999999997,
+     "batchB": 3935.5338000000006
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8932.4998,
+     "t10B": 8885.2138,
+     "cappedA": 8932.4998,
+     "cappedB": 8885.2138,
+     "batchA": 7307.0408,
+     "batchB": 7280.3704
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 11467.3117,
+     "t10B": 11515.8708,
+     "cappedA": 11467.3117,
+     "cappedB": 11515.8708,
+     "batchA": 7468.6071,
+     "batchB": 7488.3811000000005
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8677.378499999999,
+     "t10B": 8680.9199,
+     "cappedA": 8677.378499999999,
+     "cappedB": 8680.9199,
+     "batchA": 6808.912099999999,
+     "batchB": 6821.999600000001
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8636.2178,
+     "t10B": 8883.677300000001,
+     "cappedA": 8636.2178,
+     "cappedB": 8883.677300000001,
+     "batchA": 6973.8049,
+     "batchB": 7263.737000000001
+    }
+   ]
+  },
+  {
+   "kind": "S2-6 P5 vs base",
+   "a": "fr-p5",
+   "b": "fr-base",
+   "cell": "26x26-hell-1",
+   "problems": [],
+   "ratios": [
+    0.8082054464023857,
+    0.6439680366857617,
+    0.9069004153422113,
+    0.7223043356509202,
+    1.6715798684158087
+   ],
+   "geo": 0.8936317856325217,
+   "batchGeo": 0.7941943998694766,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 6,
+     "b": 6.5,
+     "d": -0.5
+    },
+    {
+     "rep": 1,
+     "a": 8,
+     "b": 8.5,
+     "d": -0.5
+    },
+    {
+     "rep": 2,
+     "a": 8,
+     "b": 7.5,
+     "d": 0.5
+    },
+    {
+     "rep": 3,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 34051.4466,
+     "t10B": 27520.5646,
+     "cappedA": 34051.4466,
+     "cappedB": 27520.5646,
+     "batchA": 28061.119600000005,
+     "batchB": 21400.0826
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 59882.7639,
+     "t10B": 38562.585900000005,
+     "cappedA": 59882.7639,
+     "cappedB": 38562.585900000005,
+     "batchA": 53649.904299999995,
+     "batchB": 32367.542600000008
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 35131.8012,
+     "t10B": 31861.0451,
+     "cappedA": 35131.8012,
+     "cappedB": 31861.0451,
+     "batchA": 30365.631800000003,
+     "batchB": 27126.8021
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 2,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 38727.7973,
+     "t10B": 27973.2559,
+     "cappedA": 38727.7973,
+     "cappedB": 27973.2559,
+     "batchA": 33421.0179,
+     "batchB": 22493.7342
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 26524.2653,
+     "t10B": 44337.4279,
+     "cappedA": 26524.2653,
+     "cappedB": 44337.4279,
+     "batchA": 20336.6177,
+     "batchB": 23227.551500000005
+    }
+   ]
+  },
+  {
+   "kind": "S2-6 P5 vs base",
+   "a": "fr-p5",
+   "b": "fr-base",
+   "cell": "20x20-hell-1",
+   "problems": [],
+   "ratios": [
+    2.338585139599765,
+    1.1666466584202015,
+    0.7395667176904757,
+    0.7841458349048581,
+    0.9862157989186019
+   ],
+   "geo": 1.0930693991426061,
+   "batchGeo": 1.0968559714840327,
+   "matched": [
+    {
+     "rep": 1,
+     "a": 13,
+     "b": 13,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 12,
+     "b": 11.5,
+     "d": 0.5
+    },
+    {
+     "rep": 3,
+     "a": 12,
+     "b": 12.5,
+     "d": -0.5
+    }
+   ],
+   "clue": {
+    "n": 3,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": false,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 20778.3623,
+     "t10B": 48591.969300000004,
+     "cappedA": 20778.3623,
+     "cappedB": 48591.969300000004,
+     "batchA": 15536.546600000001,
+     "batchB": 42700.479400000004
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 3,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 30514.085000000003,
+     "t10B": 35599.1553,
+     "cappedA": 30514.085000000003,
+     "cappedB": 35599.1553,
+     "batchA": 22576.787600000003,
+     "batchB": 27699.824099999998
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 42147.9705,
+     "t10B": 31171.2362,
+     "cappedA": 42147.9705,
+     "cappedB": 31171.2362,
+     "batchA": 36738.1451,
+     "batchB": 25682.0735
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": false,
+     "commonPrefix": 1,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 48942.647899999996,
+     "t10B": 38378.1735,
+     "cappedA": 48942.647899999996,
+     "cappedB": 38378.1735,
+     "batchA": 44493.776399999995,
+     "batchB": 33928.956
+    },
+    {
+     "rep": 4,
+     "sameSet": false,
+     "sameKeys": false,
+     "commonPrefix": 0,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 42022.3774,
+     "t10B": 41443.1325,
+     "cappedA": 42022.3774,
+     "cappedB": 41443.1325,
+     "batchA": 34570.8869,
+     "batchB": 30533.8333
+    }
+   ]
+  },
+  {
+   "kind": "same configuration (noise)",
+   "a": "fr-base",
+   "b": "fr-none",
+   "cell": "12x12-nightmare",
+   "problems": [],
+   "ratios": [
+    1.0029477039494612,
+    1.0081001467577009,
+    1.0029027784636524,
+    0.9984416819802899,
+    1.0044839388311246
+   ],
+   "geo": 1.0033704353168036,
+   "batchGeo": 1.0033936753108164,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 4.5,
+     "b": 4.5,
+     "d": 0
+    },
+    {
+     "rep": 3,
+     "a": 5.5,
+     "b": 5.5,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 5093.4898,
+     "t10B": 5108.503900000001,
+     "cappedA": 5093.4898,
+     "cappedB": 5108.503900000001,
+     "batchA": 4494.584500000001,
+     "batchB": 4515.427900000001
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 12801.5088,
+     "t10B": 12905.202899999998,
+     "cappedA": 12801.5088,
+     "cappedB": 12905.202899999998,
+     "batchA": 11377.7321,
+     "batchB": 11476.3288
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 18988.3247,
+     "t10B": 19043.4436,
+     "cappedA": 18988.3247,
+     "cappedB": 19043.4436,
+     "batchA": 15557.376400000001,
+     "batchB": 15635.656899999998
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 28449.776899999997,
+     "t10B": 28405.443099999997,
+     "cappedA": 28449.776899999997,
+     "cappedB": 28405.443099999997,
+     "batchA": 21713.972799999996,
+     "batchB": 21677.146299999997
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 11512.645900000001,
+     "t10B": 11564.267899999999,
+     "cappedA": 11512.645900000001,
+     "cappedB": 11564.267899999999,
+     "batchA": 10861.792500000001,
+     "batchB": 10865.7339
+    }
+   ]
+  },
+  {
+   "kind": "same configuration (noise)",
+   "a": "fr-base",
+   "b": "fr-none",
+   "cell": "26x26-nightmare",
+   "problems": [],
+   "ratios": [
+    1.0030668745024933,
+    1.0264403797298296,
+    1.007985565901437,
+    1.023388462852425,
+    1.0234248430593553
+   ],
+   "geo": 1.016817191698832,
+   "batchGeo": 1.0218777381638757,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 4,
+     "b": 4,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 6.5,
+     "b": 6.5,
+     "d": 0
+    },
+    {
+     "rep": 3,
+     "a": 6,
+     "b": 6,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 14922.1626,
+     "t10B": 14967.927,
+     "cappedA": 14922.1626,
+     "cappedB": 14967.927,
+     "batchA": 14046.3481,
+     "batchB": 14053.549799999999
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 15545.6315,
+     "t10B": 15956.6639,
+     "cappedA": 15545.6315,
+     "cappedB": 15956.6639,
+     "batchA": 9731.9456,
+     "batchB": 10062.5929
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 19312.269399999997,
+     "t10B": 19466.488800000003,
+     "cappedA": 19312.269399999997,
+     "cappedB": 19466.488800000003,
+     "batchA": 14627.353199999998,
+     "batchB": 14882.135400000003
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 17896.2381,
+     "t10B": 18314.803600000003,
+     "cappedA": 17896.2381,
+     "cappedB": 18314.803600000003,
+     "batchA": 15784.8527,
+     "batchB": 16199.918300000003
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 17528.920000000002,
+     "t10B": 17939.532199999998,
+     "cappedA": 17528.920000000002,
+     "cappedB": 17939.532199999998,
+     "batchA": 15451.643300000002,
+     "batchB": 15939.134299999998
+    }
+   ]
+  },
+  {
+   "kind": "same configuration (noise)",
+   "a": "fr-base",
+   "b": "fr-none",
+   "cell": "26x26-hell-1",
+   "problems": [],
+   "ratios": [
+    0.9943929638710972,
+    1.0113957347450602,
+    1.0138940985335099,
+    1.0005253732369424,
+    0.9988120939239236
+   ],
+   "geo": 1.0037758228041633,
+   "batchGeo": 1.008221174488729,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 6.5,
+     "b": 6.5,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 8.5,
+     "b": 8.5,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 7.5,
+     "b": 7.5,
+     "d": 0
+    },
+    {
+     "rep": 3,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 27520.5646,
+     "t10B": 27366.2558,
+     "cappedA": 27520.5646,
+     "cappedB": 27366.2558,
+     "batchA": 21400.0826,
+     "batchB": 21353.7585
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 38562.585900000005,
+     "t10B": 39002.0349,
+     "cappedA": 38562.585900000005,
+     "cappedB": 39002.0349,
+     "batchA": 32367.542600000008,
+     "batchB": 32812.221099999995
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 31861.0451,
+     "t10B": 32303.725599999998,
+     "cappedA": 31861.0451,
+     "cappedB": 32303.725599999998,
+     "batchA": 27126.8021,
+     "batchB": 27600.756599999997
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 27973.2559,
+     "t10B": 27987.9523,
+     "cappedA": 27973.2559,
+     "cappedB": 27987.9523,
+     "batchA": 22493.7342,
+     "batchB": 22628.899
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 44337.4279,
+     "t10B": 44284.75919999999,
+     "cappedA": 44337.4279,
+     "cappedB": 44284.75919999999,
+     "batchA": 23227.551500000005,
+     "batchB": 23370.794199999993
+    }
+   ]
+  },
+  {
+   "kind": "same configuration (noise)",
+   "a": "fr-base",
+   "b": "fr-screen",
+   "cell": "14x14-nightmare",
+   "problems": [],
+   "ratios": [
+    1.004765105128239,
+    0.9982502953389821,
+    1.0033633409641936,
+    0.9995634564028174,
+    1.1095316800847774
+   ],
+   "geo": 1.0222154944501787,
+   "batchGeo": 1.0292764633874023,
+   "matched": [
+    {
+     "rep": 0,
+     "a": 7,
+     "b": 7,
+     "d": 0
+    },
+    {
+     "rep": 1,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 2,
+     "a": 5,
+     "b": 5,
+     "d": 0
+    },
+    {
+     "rep": 3,
+     "a": 8,
+     "b": 8,
+     "d": 0
+    },
+    {
+     "rep": 4,
+     "a": 6.5,
+     "b": 6.5,
+     "d": 0
+    }
+   ],
+   "clue": {
+    "n": 5,
+    "medianDiff": 0,
+    "moved2": 0,
+    "pass": true
+   },
+   "perRep": [
+    {
+     "rep": 0,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 5270.2300000000005,
+     "t10B": 5295.343199999999,
+     "cappedA": 5270.2300000000005,
+     "cappedB": 5295.343199999999,
+     "batchA": 3935.5338000000006,
+     "batchB": 3986.2942999999996
+    },
+    {
+     "rep": 1,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8885.2138,
+     "t10B": 8869.6673,
+     "cappedA": 8885.2138,
+     "cappedB": 8869.6673,
+     "batchA": 7280.3704,
+     "batchB": 7261.305899999999
+    },
+    {
+     "rep": 2,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 11515.8708,
+     "t10B": 11554.6026,
+     "cappedA": 11515.8708,
+     "cappedB": 11554.6026,
+     "batchA": 7488.3811000000005,
+     "batchB": 7517.418600000001
+    },
+    {
+     "rep": 3,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8680.9199,
+     "t10B": 8677.1303,
+     "cappedA": 8680.9199,
+     "cappedB": 8677.1303,
+     "batchA": 6821.999600000001,
+     "batchB": 6838.111900000001
+    },
+    {
+     "rep": 4,
+     "sameSet": true,
+     "sameKeys": true,
+     "commonPrefix": 10,
+     "acceptedA": 10,
+     "acceptedB": 10,
+     "t10A": 8883.677300000001,
+     "t10B": 9856.7214,
+     "cappedA": 8883.677300000001,
+     "cappedB": 9856.7214,
+     "batchA": 7263.737000000001,
+     "batchB": 8254.4481
+    }
+   ]
+  }
+ ]
+}

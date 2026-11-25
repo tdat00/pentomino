@@ -1,0 +1,791 @@
+{
+  "format": "ig-proto-tree",
+  "version": 1,
+  "variant": "fr-frozen-live-test",
+  "chain": [
+    "base",
+    "instr",
+    "log",
+    "v4",
+    "link",
+    "v4-link",
+    "fr-base",
+    "v4-ps",
+    "v4-p5",
+    "live",
+    "p5-mode",
+    "ps-levels",
+    "fr-frozen",
+    "w8",
+    "fr-frozen-live-test"
+  ],
+  "treeId": "b81a0540f9a028fdfddc9a9c9b7e0c7eaeb262d9ac3859ec0517928123b46fa0",
+  "worktree": {
+    "sourceLabel": "frozen 3fc65f4",
+    "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+    "versions": {
+      "algo": "gen-v3",
+      "policy": "mixed-v3",
+      "rng": "xoshiro128ss-v1",
+      "model": "difficulty-v3",
+      "app": "1.0.0"
+    },
+    "kind": "frozen"
+  },
+  "copyDigest": "5754cb532309d00cea621b791579cd88e3febed08a51fd62a1de8d4c244b0133",
+  "edits": [
+    {
+      "id": "meta-1",
+      "file": "tools/calibrate.mjs",
+      "before": "02834bacaae2eb263481e5a429a359af771f51224584a2551a103e87d356849d",
+      "after": "26e3ca5e04f88b64784aa45351b1b11d314bb60e2fba34f6404199b3185ab768"
+    },
+    {
+      "id": "instr-1",
+      "file": "core/engine/deduce.js",
+      "before": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce",
+      "after": "36db5c792810cb148f6447fa1c88ec5e94f596c0a82622766bbd7f7bb06206f4"
+    },
+    {
+      "id": "instr-2",
+      "file": "core/engine/deduce.js",
+      "before": "36db5c792810cb148f6447fa1c88ec5e94f596c0a82622766bbd7f7bb06206f4",
+      "after": "1ef459bdebcb04b72f4ee5e716cc0ef943a77a2ec4fb6b8be5aed050736c9a00"
+    },
+    {
+      "id": "instr-3",
+      "file": "core/engine/deduce.js",
+      "before": "1ef459bdebcb04b72f4ee5e716cc0ef943a77a2ec4fb6b8be5aed050736c9a00",
+      "after": "71faf52d9b7a10d7db99670801fc3fc5867f98280893cb54f3598fd64659756c"
+    },
+    {
+      "id": "instr-4",
+      "file": "core/engine/deduce.js",
+      "before": "71faf52d9b7a10d7db99670801fc3fc5867f98280893cb54f3598fd64659756c",
+      "after": "cf43148bcac4a7af61c54128e58a0bb459bd5b440a184149ec09330c7ace613c"
+    },
+    {
+      "id": "instr-5",
+      "file": "core/engine/deduce.js",
+      "before": "cf43148bcac4a7af61c54128e58a0bb459bd5b440a184149ec09330c7ace613c",
+      "after": "6e911694e7201de34f5598d7c27c24a238fcceef82a665e02b1c0de1e1f277da"
+    },
+    {
+      "id": "instr-6",
+      "file": "core/engine/deduce.js",
+      "before": "6e911694e7201de34f5598d7c27c24a238fcceef82a665e02b1c0de1e1f277da",
+      "after": "6f54f91fcf926ad7b9bf38c3c7a4d37840c2187ffef3078f7bb172467850bacd"
+    },
+    {
+      "id": "instr-7",
+      "file": "tools/bench/runner.js",
+      "before": "9f720febad848803be5504cafdc7c981b98fa01d670c98943b62273d7635097f",
+      "after": "204715ebde60c9084dbdcee9deb836917be592bff225da0f36f65dd5a88811f6"
+    },
+    {
+      "id": "diag-1",
+      "file": "core/engine/policy.js",
+      "before": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10",
+      "after": "ff355728f46b575a3cf131da83418926c90fdd3c7cc21fc8edc0ea2313bdfd3b"
+    },
+    {
+      "id": "diag-2",
+      "file": "core/engine/policy.js",
+      "before": "ff355728f46b575a3cf131da83418926c90fdd3c7cc21fc8edc0ea2313bdfd3b",
+      "after": "ba31e36b897e6c03ac77503093cc35f7785b12de624e6d6af485af8a623cffe6"
+    },
+    {
+      "id": "log-1",
+      "file": "core/engine/clues.js",
+      "before": "7aefcbeafd9630c28a8d57872e3e87a78c236bd5e3dba7994e3318ae206d394e",
+      "after": "aaa9ba4fdcc9aa86d598ef9368c7cc69f095eb3dad9758675b55a89daf9bdb2d"
+    },
+    {
+      "id": "log-2",
+      "file": "core/engine/clues.js",
+      "before": "aaa9ba4fdcc9aa86d598ef9368c7cc69f095eb3dad9758675b55a89daf9bdb2d",
+      "after": "ce7a120d85fb070df2ad9b616c44a703cea03c3c4d3ba20cdfb2531fa2df5040"
+    },
+    {
+      "id": "log-3",
+      "file": "core/engine/clues.js",
+      "before": "ce7a120d85fb070df2ad9b616c44a703cea03c3c4d3ba20cdfb2531fa2df5040",
+      "after": "1e4556c80bcadc450e850b6767aa51a02ecd08e8f6817077d2c74b60cf28f6e3"
+    },
+    {
+      "id": "log-4",
+      "file": "core/engine/clues.js",
+      "before": "1e4556c80bcadc450e850b6767aa51a02ecd08e8f6817077d2c74b60cf28f6e3",
+      "after": "728c50ffadaf7735f2e7fca88599f97ebf562678bc0c5caf1536299b7db485ed"
+    },
+    {
+      "id": "log-5",
+      "file": "core/engine/generate.js",
+      "before": "20afef3b322705084604435062105ea9d9e25978b94a82cea40880a90f0d6208",
+      "after": "a136f063b220687fc3227fe8249c633a74dd9db1db96dd6ccb379705f1f88918"
+    },
+    {
+      "id": "log-6",
+      "file": "core/engine/generate.js",
+      "before": "a136f063b220687fc3227fe8249c633a74dd9db1db96dd6ccb379705f1f88918",
+      "after": "32c72f962b092aae27ae24cb06b3c85f6a625ecd618edc25ed2f2336be628350"
+    },
+    {
+      "id": "log-7",
+      "file": "core/engine/generate.js",
+      "before": "32c72f962b092aae27ae24cb06b3c85f6a625ecd618edc25ed2f2336be628350",
+      "after": "8f808846b875feb27452f318ddb50f8c77c5550a18dd6e2c899c487ebe54e074"
+    },
+    {
+      "id": "log-8",
+      "file": "tools/calibrate.mjs",
+      "before": "26e3ca5e04f88b64784aa45351b1b11d314bb60e2fba34f6404199b3185ab768",
+      "after": "1613d257fce9fe32ec5e750f5b097365784d2078d3a9609d8184222a200960f1"
+    },
+    {
+      "id": "v4-1",
+      "file": "core/engine/clues.js",
+      "before": "728c50ffadaf7735f2e7fca88599f97ebf562678bc0c5caf1536299b7db485ed",
+      "after": "56f8b6da27bc40cda5827c1bedc9c6c4e6e98f12b2a9cb8d060981d8463f66bd"
+    },
+    {
+      "id": "v4-2",
+      "file": "core/engine/clues.js",
+      "before": "56f8b6da27bc40cda5827c1bedc9c6c4e6e98f12b2a9cb8d060981d8463f66bd",
+      "after": "97457d3e79158ce0f22053ce6fede92f1aa955eb397fc723379ebe73334cb70c"
+    },
+    {
+      "id": "v4-3",
+      "file": "core/engine/difficulty.js",
+      "before": "da528b1733de2074abc3b6ccdbbb877ff193655fcb1544ef39ecdb0050dd047e",
+      "after": "856c3c8924c861dd4419792f5c12f1a56fa78297a6e4e62224cf5a837c70d57a"
+    },
+    {
+      "id": "v4-4",
+      "file": "core/engine/clues.js",
+      "before": "97457d3e79158ce0f22053ce6fede92f1aa955eb397fc723379ebe73334cb70c",
+      "after": "90973b9598604e29ff1f5dacb862f37d67925b99d8d05ecaade26cb95c1c1dfd"
+    },
+    {
+      "id": "pv-1",
+      "file": "core/engine/version.js",
+      "before": "bee5adecec5e908403aa8db3a2ab9c8c0455694eb3498a00468fd53a2fe19e9d",
+      "after": "bcf0f6a07957a20fcbbb32045fa9587624b773facc9f52fa91e5c041c4e19964"
+    },
+    {
+      "id": "pv-2",
+      "file": "core/engine/version.js",
+      "before": "bcf0f6a07957a20fcbbb32045fa9587624b773facc9f52fa91e5c041c4e19964",
+      "after": "df2223b4cdfdadeae96d136db3be0c354f12dede45d4ba3d2bc7deb72b68099c"
+    },
+    {
+      "id": "pv-3",
+      "file": "core/engine/generate.js",
+      "before": "8f808846b875feb27452f318ddb50f8c77c5550a18dd6e2c899c487ebe54e074",
+      "after": "37fe8c5c32498a2c157c97c152529c153d55df0be21ede610fb56e4ac698f90a"
+    },
+    {
+      "id": "pv-4",
+      "file": "core/engine/generate.js",
+      "before": "37fe8c5c32498a2c157c97c152529c153d55df0be21ede610fb56e4ac698f90a",
+      "after": "ae92565836967fd9642b00ac8d20f3cbe1d7a4eed757914de0a3c564e901b177"
+    },
+    {
+      "id": "pv-5",
+      "file": "core/engine/generate.js",
+      "before": "ae92565836967fd9642b00ac8d20f3cbe1d7a4eed757914de0a3c564e901b177",
+      "after": "d838e257d96146baa360f4de0ceda4b84dd119e11450fb132e26094cc6d2066b"
+    },
+    {
+      "id": "pv-6",
+      "file": "core/engine/generate.js",
+      "before": "d838e257d96146baa360f4de0ceda4b84dd119e11450fb132e26094cc6d2066b",
+      "after": "4318094824ef5fbd705fe8bbcb6f60c89baba33b79e5c9b0e04fcb1b2e282449"
+    },
+    {
+      "id": "pv-7",
+      "file": "core/engine/pack.js",
+      "before": "e7ac93a03fad7d484bead4ecf4bd84591ea01f5672c8dad37cdfa76467dbc336",
+      "after": "4cef42fd00f864ee1a5df0aa3d72c5a34b52ae16935c202ddd27f2cab2b947ce"
+    },
+    {
+      "id": "pv-8",
+      "file": "core/engine/pack.js",
+      "before": "4cef42fd00f864ee1a5df0aa3d72c5a34b52ae16935c202ddd27f2cab2b947ce",
+      "after": "7adf4e1e15eff9e98c56f4a9dad3d4d1b5b06601eac9419f589ed51d13ab34b3"
+    },
+    {
+      "id": "pv-9",
+      "file": "core/engine/pack.js",
+      "before": "7adf4e1e15eff9e98c56f4a9dad3d4d1b5b06601eac9419f589ed51d13ab34b3",
+      "after": "2b1d6c96a5b4445a974f54e097a893e246d09253ae32c61fd1fbfafdd8cde51a"
+    },
+    {
+      "id": "pv-10",
+      "file": "core/engine/pack.js",
+      "before": "2b1d6c96a5b4445a974f54e097a893e246d09253ae32c61fd1fbfafdd8cde51a",
+      "after": "d53a24dce952bf20d94c1dd2710140fd943cdb829cf47f3ab5297ed80bb4d8f3"
+    },
+    {
+      "id": "pv-11",
+      "file": "core/engine/pack.js",
+      "before": "d53a24dce952bf20d94c1dd2710140fd943cdb829cf47f3ab5297ed80bb4d8f3",
+      "after": "3be66091d24075f675b536f15bdfbcb1826f7d3480308228fd72163a87e32647"
+    },
+    {
+      "id": "pv-12",
+      "file": "core/engine/pack.js",
+      "before": "3be66091d24075f675b536f15bdfbcb1826f7d3480308228fd72163a87e32647",
+      "after": "399cb0b33a2a73fdeb9807b7a0952641bca66e39288396f9d65d3a1d897b66bf"
+    },
+    {
+      "id": "pv-13",
+      "file": "core/engine/pack.js",
+      "before": "399cb0b33a2a73fdeb9807b7a0952641bca66e39288396f9d65d3a1d897b66bf",
+      "after": "61548ff0570f51f0233b72e74a76c318dfb99f3994e287419e729c82a1145c95"
+    },
+    {
+      "id": "pv-14",
+      "file": "core/engine/pack.js",
+      "before": "61548ff0570f51f0233b72e74a76c318dfb99f3994e287419e729c82a1145c95",
+      "after": "08379232098c85a554d0aa783fc4f7e939688e9ae79577394a4e616694a2644a"
+    },
+    {
+      "id": "pv-15",
+      "file": "core/engine/pack.js",
+      "before": "08379232098c85a554d0aa783fc4f7e939688e9ae79577394a4e616694a2644a",
+      "after": "7301c55babd82224ed0bb9fa66611ba6491370650145ef259ebd872d92f5437c"
+    },
+    {
+      "id": "pv-16",
+      "file": "core/engine/replay.js",
+      "before": "cf09ed0d8585022ec19dfb76777955126ecb162937969aad5911f56ef44899ea",
+      "after": "d6673076843f183d3646dfa88bffa9cc68d4da4c3ba73f7cc117a77891d61d47"
+    },
+    {
+      "id": "pv-17",
+      "file": "core/engine/replay.js",
+      "before": "d6673076843f183d3646dfa88bffa9cc68d4da4c3ba73f7cc117a77891d61d47",
+      "after": "d37af07c695b9b36ee0ce206740c9d9cb3059dbf70860fb85aad5aaef0fbd62c"
+    },
+    {
+      "id": "link-1",
+      "file": "core/engine/generate.js",
+      "before": "4318094824ef5fbd705fe8bbcb6f60c89baba33b79e5c9b0e04fcb1b2e282449",
+      "after": "a9769373e01444c2c4831791d9e83d035eaf9e183367ddb1ab5f40f7355070e8"
+    },
+    {
+      "id": "link-2",
+      "file": "core/browser/generation-client.js",
+      "before": "23f5dc494baea934e481302ccec31b763fbbebbdfac1893879c39c38283564d8",
+      "after": "cbb30c5b81738956a88ba4c74073d80eedf96275bf621418ed1716967465a308"
+    },
+    {
+      "id": "link-3",
+      "file": "core/browser/generation-client.js",
+      "before": "cbb30c5b81738956a88ba4c74073d80eedf96275bf621418ed1716967465a308",
+      "after": "1135bceee934e39473a70f534fb780b39b5fefccd3a2328ac08ff8970e76eaa4"
+    },
+    {
+      "id": "link-4",
+      "file": "core/browser/generation-client.js",
+      "before": "1135bceee934e39473a70f534fb780b39b5fefccd3a2328ac08ff8970e76eaa4",
+      "after": "fbb1ca0e9c426915d09e5a69ab4ff111625ccd164b8824a15562f7c5ef658b98"
+    },
+    {
+      "id": "link-5",
+      "file": "core/browser/generation-client.js",
+      "before": "fbb1ca0e9c426915d09e5a69ab4ff111625ccd164b8824a15562f7c5ef658b98",
+      "after": "70b8b9205be2def8226ffa55fb1f46196ce23aa435bca1719db993c6b3b2619a"
+    },
+    {
+      "id": "link-6",
+      "file": "core/browser/generation-client.js",
+      "before": "70b8b9205be2def8226ffa55fb1f46196ce23aa435bca1719db993c6b3b2619a",
+      "after": "df5beedb13fb8e779b788da4d20fe9518b94fd0618dbe9d912855bb8f1509024"
+    },
+    {
+      "id": "link-7",
+      "file": "core/browser/generation-client.js",
+      "before": "df5beedb13fb8e779b788da4d20fe9518b94fd0618dbe9d912855bb8f1509024",
+      "after": "cd822024f51a9ef9fd968f9f3e2d9b83adbef70fe6c0edead498023802fe5244"
+    },
+    {
+      "id": "link-8",
+      "file": "core/browser/generation-client.js",
+      "before": "cd822024f51a9ef9fd968f9f3e2d9b83adbef70fe6c0edead498023802fe5244",
+      "after": "93dbe94d1c43b8def3fa9898db396b709d112843853730282f67a91abd4f01f7"
+    },
+    {
+      "id": "link-9",
+      "file": "core/browser/generation-client.js",
+      "before": "93dbe94d1c43b8def3fa9898db396b709d112843853730282f67a91abd4f01f7",
+      "after": "d38a9b67c100ab8d5195e70318a9529fbb02fedf784577dbbac59694a947b772"
+    },
+    {
+      "id": "link-10",
+      "file": "tools/bench/runner.js",
+      "before": "204715ebde60c9084dbdcee9deb836917be592bff225da0f36f65dd5a88811f6",
+      "after": "f317febcba9df3aac7fd3c6de92b201494eecc02f74ac736aa9242545ba17fa3"
+    },
+    {
+      "id": "link-11",
+      "file": "core/browser/generation-client.js",
+      "before": "d38a9b67c100ab8d5195e70318a9529fbb02fedf784577dbbac59694a947b772",
+      "after": "9575a0304385e7f4ef97207492835301ecd7fb709b95388432bc2d758ee6062f"
+    },
+    {
+      "id": "link-12",
+      "file": "core/browser/generation-client.js",
+      "before": "9575a0304385e7f4ef97207492835301ecd7fb709b95388432bc2d758ee6062f",
+      "after": "fa7a057486ce9d065ebbe1b5dd9b307d028e18cd733138637c8d70ab9e4a20af"
+    },
+    {
+      "id": "link-13",
+      "file": "tools/node-worker.mjs",
+      "before": "70b7cba9f841361a15a5a6e92f22ec0709aa25d63c73994c84f762dfff496b41",
+      "after": "d27080d15df32f35a08ccd930f780c59f343e3463f799ed5e0983326f549bfbf"
+    },
+    {
+      "id": "link-14",
+      "file": "tools/node-worker.mjs",
+      "before": "d27080d15df32f35a08ccd930f780c59f343e3463f799ed5e0983326f549bfbf",
+      "after": "7bfaa23192b6ba72448e8d1df740f77997c5993646a0abe1fd23a1a131dfb5d1"
+    },
+    {
+      "id": "link-15",
+      "file": "core/browser/generation-client.js",
+      "before": "fa7a057486ce9d065ebbe1b5dd9b307d028e18cd733138637c8d70ab9e4a20af",
+      "after": "6ab831eb9fcfd3af1f82b84e7fc057457b059df3547bd72237a33d6b24de87d2"
+    },
+    {
+      "id": "link-16",
+      "file": "core/engine/generate.js",
+      "before": "a9769373e01444c2c4831791d9e83d035eaf9e183367ddb1ab5f40f7355070e8",
+      "after": "5e43dc0abc0989bd4a085fc0b3ad5544e424a71c0d9ea41639f7afcb0b9bfb75"
+    },
+    {
+      "id": "link-17",
+      "file": "core/browser/generation-client.js",
+      "before": "6ab831eb9fcfd3af1f82b84e7fc057457b059df3547bd72237a33d6b24de87d2",
+      "after": "ef45d0bd0e24186531d61ca43d6eb3fdb2d3017e8abadcfb138fc79cec8ae452"
+    },
+    {
+      "id": "ps-1",
+      "file": "core/engine/generate.js",
+      "before": "5e43dc0abc0989bd4a085fc0b3ad5544e424a71c0d9ea41639f7afcb0b9bfb75",
+      "after": "5b978dc3e02c0701b956ae4389fa7a8c71cf6e6312c7ff58757801c642eca460"
+    },
+    {
+      "id": "ps-2",
+      "file": "core/engine/protocol.js",
+      "before": "b77b25848fdbf322f461ed5ea79c264729e9667d3747ef1adde828fa1dfc1f6f",
+      "after": "620d8a32570cd0cbe41ac6ebe1242247191c5a83b6f002bb96fe45e5d390f7a9"
+    },
+    {
+      "id": "ps-3",
+      "file": "core/engine/protocol.js",
+      "before": "620d8a32570cd0cbe41ac6ebe1242247191c5a83b6f002bb96fe45e5d390f7a9",
+      "after": "bfc8b91d3c6dd6ae4a866d0f53a8abe1f385d4e4d8a9762b1ad249060e537edc"
+    },
+    {
+      "id": "ps-4",
+      "file": "core/engine/tasks.js",
+      "before": "08a43ec2805744177269804f97619bead7327a562a797edab2a6420dd6fd6ede",
+      "after": "340f1947925ac54e0fd7edc6f4d896e048ab38b2dc4f8a66a8abd2cc4a6933db"
+    },
+    {
+      "id": "ps-5",
+      "file": "core/browser/generation-client.js",
+      "before": "ef45d0bd0e24186531d61ca43d6eb3fdb2d3017e8abadcfb138fc79cec8ae452",
+      "after": "457bf26f90866258816b6c0ba86562ad767153814f9df49fba3c10a6ab8954cd"
+    },
+    {
+      "id": "ps-6",
+      "file": "core/browser/generation-client.js",
+      "before": "457bf26f90866258816b6c0ba86562ad767153814f9df49fba3c10a6ab8954cd",
+      "after": "0f63c9e911017cba9a8b7b6864d21f11031b7214ca284620f5dd36d2533e110c"
+    },
+    {
+      "id": "ps-7",
+      "file": "core/browser/generation-client.js",
+      "before": "0f63c9e911017cba9a8b7b6864d21f11031b7214ca284620f5dd36d2533e110c",
+      "after": "8276e1bf7b3110fc0993d51351c8340057e27aaea5e4f73e6d155c2b107eb91a"
+    },
+    {
+      "id": "p5-1",
+      "file": "core/engine/generate.js",
+      "before": "5b978dc3e02c0701b956ae4389fa7a8c71cf6e6312c7ff58757801c642eca460",
+      "after": "c1f61e75d9c08b309249dfeed090671507b6480346975f18750bb2eb0818511a"
+    },
+    {
+      "id": "p5-2",
+      "file": "core/browser/generation-client.js",
+      "before": "8276e1bf7b3110fc0993d51351c8340057e27aaea5e4f73e6d155c2b107eb91a",
+      "after": "3c81a8ca0389c5652fb73bb504521dd02bdb0067a7b63b651d4181f709633422"
+    },
+    {
+      "id": "p5-3",
+      "file": "core/browser/generation-client.js",
+      "before": "3c81a8ca0389c5652fb73bb504521dd02bdb0067a7b63b651d4181f709633422",
+      "after": "181d8b99a6be429d9370dcddd4fa69da31d7e2ae36e21cce85ccca7b2d1f76d5"
+    },
+    {
+      "id": "lv-1",
+      "file": "core/browser/worker-pool.js",
+      "before": "e605c1da51ee1ea81879af8050a60bc851303cb0a318b2d9a451c2f2a12c3a60",
+      "after": "872eb2a6422cabfcc5810ed8c99e4c0ed866efdb93fc797920b2333e56f067e2"
+    },
+    {
+      "id": "lv-2",
+      "file": "core/browser/worker-pool.js",
+      "before": "872eb2a6422cabfcc5810ed8c99e4c0ed866efdb93fc797920b2333e56f067e2",
+      "after": "2a665f35946f71dd9b1094b54ffa91917e1445c2cd6c4cbe42fc64be615d896d"
+    },
+    {
+      "id": "lv-3",
+      "file": "core/browser/generation-client.js",
+      "before": "181d8b99a6be429d9370dcddd4fa69da31d7e2ae36e21cce85ccca7b2d1f76d5",
+      "after": "4847c21dd1eaf67793d3d42bdf06d8cefdb00e414687af9c42c8c9e0b2b5391a"
+    },
+    {
+      "id": "lv-4",
+      "file": "core/browser/generation-client.js",
+      "before": "4847c21dd1eaf67793d3d42bdf06d8cefdb00e414687af9c42c8c9e0b2b5391a",
+      "after": "0f07247d36c00b49c0afa91f0099a4295d22384621d6f0daa6e1071bc3a5ce32"
+    },
+    {
+      "id": "lv-5",
+      "file": "core/browser/generation-client.js",
+      "before": "0f07247d36c00b49c0afa91f0099a4295d22384621d6f0daa6e1071bc3a5ce32",
+      "after": "b69ea5d7ba65e8d8ef927109e6daf17aaaf95901f1158faac1c757883beb1cb4"
+    },
+    {
+      "id": "lv-6",
+      "file": "core/browser/generation-client.js",
+      "before": "b69ea5d7ba65e8d8ef927109e6daf17aaaf95901f1158faac1c757883beb1cb4",
+      "after": "b9d6510871ed1d62b767b0251bcb5dba94e642480e77ac36e3a7dbf1f3a010f9"
+    },
+    {
+      "id": "lv-7",
+      "file": "core/browser/generation-client.js",
+      "before": "b9d6510871ed1d62b767b0251bcb5dba94e642480e77ac36e3a7dbf1f3a010f9",
+      "after": "0e33931e9040934127e58c308c5c52e4a2cb0083d8a352a8695c6a9c1efd395d"
+    },
+    {
+      "id": "lv-8",
+      "file": "core/browser/generation-client.js",
+      "before": "0e33931e9040934127e58c308c5c52e4a2cb0083d8a352a8695c6a9c1efd395d",
+      "after": "d1a13cb02c3585c660f788e61ae7e36145eed358300810086e31721d0b60a1be"
+    },
+    {
+      "id": "lv-9",
+      "file": "core/browser/generation-client.js",
+      "before": "d1a13cb02c3585c660f788e61ae7e36145eed358300810086e31721d0b60a1be",
+      "after": "6fa18503ad9d02883334dfec9892c143528ee94f799da1fa60f5ffe5c9abb3da"
+    },
+    {
+      "id": "lv-10",
+      "file": "tools/bench/runner.js",
+      "before": "f317febcba9df3aac7fd3c6de92b201494eecc02f74ac736aa9242545ba17fa3",
+      "after": "755982b3bbb62e93e80493c352eab9eaea4da5ff7742f1e510104e68951e1551"
+    },
+    {
+      "id": "lv-11",
+      "file": "tools/bench/runner.js",
+      "before": "755982b3bbb62e93e80493c352eab9eaea4da5ff7742f1e510104e68951e1551",
+      "after": "7650c27face97d92ebf827807593355ee82b41e66fa5e55d67b03cd4e276919a"
+    },
+    {
+      "id": "lv-12",
+      "file": "tools/bench/runner.js",
+      "before": "7650c27face97d92ebf827807593355ee82b41e66fa5e55d67b03cd4e276919a",
+      "after": "4f7ea217c87fe8d15e855be14380e0056c474cbf4ad9c30019c0ea821707d7ec"
+    },
+    {
+      "id": "lv-13",
+      "file": "tools/bench/runner.js",
+      "before": "4f7ea217c87fe8d15e855be14380e0056c474cbf4ad9c30019c0ea821707d7ec",
+      "after": "1b40588f3a46a92ce6dec7a826c835300a0e05b309c721ae44d878877ffa4a95"
+    },
+    {
+      "id": "lv-14",
+      "file": "tools/bench/runner.js",
+      "before": "1b40588f3a46a92ce6dec7a826c835300a0e05b309c721ae44d878877ffa4a95",
+      "after": "c3a2a1a2d41a4373b3cdca0333c536a21c537e5cb69751c8d1bebf2a38e0a0a4"
+    },
+    {
+      "id": "lv-15",
+      "file": "core/browser/generation-client.js",
+      "before": "6fa18503ad9d02883334dfec9892c143528ee94f799da1fa60f5ffe5c9abb3da",
+      "after": "90d2f96f964f74708f6ebfe5633320411b1aba97004c0d98abb490501eff79fb"
+    },
+    {
+      "id": "lv-16",
+      "file": "core/browser/generation-client.js",
+      "before": "90d2f96f964f74708f6ebfe5633320411b1aba97004c0d98abb490501eff79fb",
+      "after": "689fac827f5d3e0d7fdc663e4b47b4f950ebc55615bcfb3768bf0f9a0bdd382d"
+    },
+    {
+      "id": "lv-17",
+      "file": "core/browser/generation-client.js",
+      "before": "689fac827f5d3e0d7fdc663e4b47b4f950ebc55615bcfb3768bf0f9a0bdd382d",
+      "after": "dfb231488dad00d1fa2ae057e39654953b554e7097ef103fdb37636e1007acb3"
+    },
+    {
+      "id": "lv-18",
+      "file": "core/browser/generation-client.js",
+      "before": "dfb231488dad00d1fa2ae057e39654953b554e7097ef103fdb37636e1007acb3",
+      "after": "738be7074a81a611493c3a103eece797cef9333a352341db1800f2e227114cb8"
+    },
+    {
+      "id": "lv-19",
+      "file": "core/browser/generation-client.js",
+      "before": "738be7074a81a611493c3a103eece797cef9333a352341db1800f2e227114cb8",
+      "after": "30b3b8fd8f05864992bf5618bf81d58ed6dd8e1475fd2e6c3cb31eca96b4589c"
+    },
+    {
+      "id": "fz-1",
+      "file": "core/engine/clues.js",
+      "before": "90973b9598604e29ff1f5dacb862f37d67925b99d8d05ecaade26cb95c1c1dfd",
+      "after": "91254da4b0b5be2aa9eac7ec5eaf0aff44938cb66831d808df646f8133604a08"
+    },
+    {
+      "id": "fz-2",
+      "file": "core/engine/clues.js",
+      "before": "91254da4b0b5be2aa9eac7ec5eaf0aff44938cb66831d808df646f8133604a08",
+      "after": "213ef85def4acd38e7333c0b1321931a56839123cfc7261a1dd4182dcb4fc14f"
+    },
+    {
+      "id": "fz-3",
+      "file": "core/browser/generation-client.js",
+      "before": "30b3b8fd8f05864992bf5618bf81d58ed6dd8e1475fd2e6c3cb31eca96b4589c",
+      "after": "472c325482e3a5890bd85579f053a6390460dc177d2473f024b1070e22dc8ac7"
+    },
+    {
+      "id": "fz-4",
+      "file": "core/browser/generation-client.js",
+      "before": "472c325482e3a5890bd85579f053a6390460dc177d2473f024b1070e22dc8ac7",
+      "after": "dce77197894b0f95bdd9e35fa4a12cd1405e5fb72d5321e17db36ec44b398535"
+    },
+    {
+      "id": "w8-1",
+      "file": "core/browser/worker-pool.js",
+      "before": "2a665f35946f71dd9b1094b54ffa91917e1445c2cd6c4cbe42fc64be615d896d",
+      "after": "422c2fe7fe015e7f1e9022558fe4a66c198c7cc310c69e3d009ea6ff11f6911d"
+    },
+    {
+      "id": "meta-2",
+      "file": "tools/bench/report.js",
+      "before": "13f4d316cfdc2515f457f2aa7c313d02f989a3a3d15fdbf10e667c8bc091630c",
+      "after": "167a772a31af040ef26cb4672c8f5a3ae607dfbc4ced40d5a4dde5ae51d0c7f2"
+    }
+  ],
+  "files": {
+    "core/browser/ig-link.js": "b34dab46b3bf0534f8f336d83a6c7e3444405f0cd812391a6d5b994c3144aea0",
+    "core/engine/ig-log.js": "14fca4e392d13af967bfbc62024be77d2ddddba299108221935c316edb65762d",
+    "core/engine/ig-params.js": "d70810b3a9aa1cfa3c28179f8ee87344cc89d174be791ad8f1d62393015aea4e",
+    "core/engine/ig-select-v4.js": "157a0e580a0d8d26dfd54e7dc68701b1e30e590557f80f264eb96225e6d39917"
+  },
+  "params": {
+    "variant": "fr-frozen-live-test",
+    "diagnosticOffers": true,
+    "logAccepted": true,
+    "p6": false,
+    "U0": 8,
+    "rerateMax": 4,
+    "W": {
+      "default": 190000000
+    },
+    "priorTable": "prior-s3-v1",
+    "screenTable": "screen-s3-v1",
+    "link": true,
+    "screenClasses": {
+      "hell-1": null,
+      "n-small": null,
+      "n-mid": 190000000,
+      "n-large": 190000000
+    },
+    "perSetPrior": true,
+    "callBudget": {
+      "id": "budget-s3-v1",
+      "any": {
+        "nightmare": 10000000000,
+        "hell-1": 40000000000
+      },
+      "require": {
+        "nightmare": 32000000000,
+        "hell-1": 40000000000
+      }
+    },
+    "setAttemptsBound": 4,
+    "liveDeadline": {
+      "id": "deadline-test",
+      "levels": [
+        "hard",
+        "nightmare",
+        "hell-1"
+      ],
+      "reserve": 0.6,
+      "setStageCapMs": 46000,
+      "generationStopMs": 115000,
+      "responseBoundMs": 120000,
+      "hostMarginMs": 1000
+    },
+    "rerate": "rescue",
+    "c4": false,
+    "perSetLevels": [
+      "hell-1"
+    ],
+    "prior": {
+      "hell-1@196": {
+        "caseId": "14x14-hell-1",
+        "share": 0.4,
+        "n": 68,
+        "source": "V4-S2 fr-base window share"
+      },
+      "hell-1@215": {
+        "caseId": "15x15b10-hell-1",
+        "share": 0.404412,
+        "n": 3,
+        "source": "IGP-05 window share"
+      },
+      "hell-1@256": {
+        "caseId": "16x16-hell-1",
+        "share": 0.358108,
+        "n": 3,
+        "source": "IGP-05 window share"
+      },
+      "hell-1@300": {
+        "caseId": "15x20-hell-1",
+        "share": 0.443429,
+        "n": 4,
+        "source": "IGP-05 window share"
+      },
+      "hell-1@324": {
+        "caseId": "18x18-hell-1",
+        "share": 0.347222,
+        "n": 6,
+        "source": "IGP-05 window share"
+      },
+      "hell-1@360": {
+        "caseId": "18x20-hell-1",
+        "share": 0.331514,
+        "n": 6,
+        "source": "IGP-05 window share"
+      },
+      "hell-1@400": {
+        "caseId": "20x20-hell-1",
+        "share": 0.368421,
+        "n": 75,
+        "source": "V4-S2 fr-base window share"
+      },
+      "hell-1@420": {
+        "caseId": "20x21-hell-1",
+        "share": 0.390244,
+        "n": 3,
+        "source": "IGP-05 window share"
+      },
+      "hell-1@480": {
+        "caseId": "32x15-hell-1",
+        "share": 0.297161,
+        "n": 6,
+        "source": "IGP-05 window share"
+      },
+      "hell-1@484": {
+        "caseId": "22x22-hell-1",
+        "share": 0.2875,
+        "n": 5,
+        "source": "IGP-05 window share"
+      },
+      "hell-1@576": {
+        "caseId": "24x24-hell-1",
+        "share": 0.219512,
+        "n": 70,
+        "source": "V4-S2 fr-base window share"
+      },
+      "hell-1@676": {
+        "caseId": "26x26-hell-1",
+        "share": 0.2,
+        "n": 64,
+        "source": "V4-S2 fr-base window share"
+      },
+      "nightmare@100": {
+        "caseId": "10x10-nightmare",
+        "share": 0.2,
+        "n": 100
+      },
+      "nightmare@144": {
+        "caseId": "12x12-nightmare",
+        "share": 0.210526,
+        "n": 97
+      },
+      "nightmare@196": {
+        "caseId": "14x14-nightmare",
+        "share": 0.190476,
+        "n": 57
+      },
+      "nightmare@215": {
+        "caseId": "15x15b10-nightmare",
+        "share": 0.181818,
+        "n": 74
+      },
+      "nightmare@256": {
+        "caseId": "16x16-nightmare",
+        "share": 0.173913,
+        "n": 92
+      },
+      "nightmare@300": {
+        "caseId": "15x20-nightmare",
+        "share": 0.192308,
+        "n": 93
+      },
+      "nightmare@324": {
+        "caseId": "18x18-nightmare",
+        "share": 0.16,
+        "n": 100
+      },
+      "nightmare@360": {
+        "caseId": "18x20-nightmare",
+        "share": 0.16,
+        "n": 100
+      },
+      "nightmare@400": {
+        "caseId": "20x20-nightmare",
+        "share": 0.16313,
+        "n": 100
+      },
+      "nightmare@420": {
+        "caseId": "20x21-nightmare",
+        "share": 0.153846,
+        "n": 100
+      },
+      "nightmare@480": {
+        "caseId": "32x15-nightmare",
+        "share": 0.142857,
+        "n": 100
+      },
+      "nightmare@484": {
+        "caseId": "22x22-nightmare",
+        "share": 0.145503,
+        "n": 100
+      },
+      "nightmare@576": {
+        "caseId": "24x24-nightmare",
+        "share": 0.133333,
+        "n": 100
+      },
+      "nightmare@676": {
+        "caseId": "26x26-nightmare",
+        "share": 0.133333,
+        "n": 100
+      },
+      "nightmare@87": {
+        "caseId": "3x29-nightmare",
+        "share": 0.166667,
+        "n": 100
+      }
+    }
+  },
+  "builtAt": "2026-11-23T22:55:41.127Z"
+}

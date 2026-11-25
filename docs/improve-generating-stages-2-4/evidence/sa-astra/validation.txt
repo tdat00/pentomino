@@ -1,0 +1,27 @@
+SA-Astra round-1 validation, 2026-11-23
+Working directory: Q:\git\pentomino
+Analysis base: 5807bd1; V4-S2 evidence: 35b401e
+
+Commands executed:
+node --check docs\improve-generating-stages-2-4\evidence\sa-astra\analyze-records.mjs
+node --check docs\improve-generating-stages-2-4\evidence\sa-astra\freeze-inputs.mjs
+node docs\improve-generating-stages-2-4\evidence\sa-astra\analyze-records.mjs
+node docs\improve-generating-stages-2-4\evidence\sa-astra\freeze-inputs.mjs
+npm run check
+git --no-pager status --short -- core generator tools tests tasks docs\improve-generating
+
+Results:
+Both scratch scripts pass syntax checks and exit 0.
+Two consecutive complete recomputations produced byte-identical hashes for all six derived evidence files:
+calls-computed.json, freeze-inputs.json, input-index.json, rows-computed.json, stage2-computed.json, stage2-computed.md.
+165 valid rows; 164 reached ten; 1,642 accepted puzzles; 3,410 selection calls.
+165 complete ledgers; zero independent-ledger sum discrepancies; zero W mismatches; zero dead-end entries.
+Seven existing P-0/P-1 bindings pass evidence and stored current-tree checks.
+The fr-p5 replay block remains incomplete and has no accepted binding.
+check-conventions: OK
+check-site: OK
+The protected-path git status command prints no changes.
+
+All analysis and evidence files use CRLF, UTF-8 without BOM, no trailing whitespace and a final newline.
+Only unlocked reads/arithmetic/convention checks were performed. No engine run, timed run, rating, generation,
+replay, locked test, stage, commit or push was performed. Historical records and raw journals were not modified.

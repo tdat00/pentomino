@@ -1,0 +1,8 @@
+{
+  "id": "v4-w760",
+  "extends": ["v4"],
+  "description": "gen-v4 prototype without the screen (V4-T02a): W equals the canonical limit DEDUCE.work (760 M), screenTable none.",
+  "edits": [],
+  "files": [],
+  "params": { "W": { "default": 760000000 }, "screenTable": "none" }
+}

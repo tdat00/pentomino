@@ -1,0 +1,27 @@
+SA-Astra cross-review validation, 2026-11-23
+Working directory: Q:\git\pentomino
+Review base: 1afce41; V4-S2 observations: 35b401e
+
+Commands:
+node --check docs\improve-generating-stages-2-4\evidence\sa-astra\review-records.mjs
+node docs\improve-generating-stages-2-4\evidence\sa-astra\review-records.mjs
+node tools\ig-proto\manifest.mjs approval --plan V4-LIVE --label frozen --source-label "frozen 3fc65f4"
+npm run check
+git --no-pager status --short -- core generator tools tests tasks docs\improve-generating
+
+Results:
+Syntax check: exit 0.
+Record computation: exit 0; all 33 groups' primary statistics reconciled against original observations.
+165 valid rows, 164 reaching ten, 1,642 accepted puzzles, 3,410 selection calls.
+All row ledgers and linkage timelines passed their checks.
+196-256 pilot class: work pass; upper screen 2.2836822102933336 G/puzzle,
+lower no-screen 2.5122919047733334 G/puzzle; five independent seeds per cell, not a validation admission.
+Current live quote: 215 minutes logs-only; 217 with 87.4 off-log seconds; grant remains 749.
+Two consecutive full computations give byte-identical review-records.json and review-input-index.json.
+check-conventions: OK
+check-site: OK
+Protected-path git status: no changes.
+The committed independent analysis and its original computation scripts were not changed.
+
+Only new cross-review files were written in SA-Astra's permitted folders.
+No locked/timed/engine run, rating, generation, replay, stage, commit or push was performed.

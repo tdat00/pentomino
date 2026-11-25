@@ -1,0 +1,364 @@
+{
+  "script": "docs/improve-generating-stages-2-4/evidence/sa-opus/t16-cell26.mjs",
+  "cell": "26x26-nightmare",
+  "manifest": {
+    "quantity": 10,
+    "capMs": 120000,
+    "resamples": 10000,
+    "resampleSeed": 20261116,
+    "reps": [
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39
+    ]
+  },
+  "recorded": {
+    "shipped": "fr-frozen-none",
+    "gate": {
+      "geoMean": 1.0006219645915206,
+      "lower": 0.886429539656821,
+      "pass": false
+    }
+  },
+  "reproduced": {
+    "geoMean": 1.0006,
+    "lower": 0.8864,
+    "atLeast09": false
+  },
+  "informationOnly": {
+    "todayOverUncapped": {
+      "geoMean": 1.0151,
+      "lower": 0.8987,
+      "atLeast09": false
+    },
+    "uncappedOverShipped": {
+      "geoMean": 0.9857
+    },
+    "todayOverScreen": {
+      "geoMean": 1.4666,
+      "lower": 1.293,
+      "atLeast09": true
+    }
+  },
+  "p5": {
+    "cell": "26x26-nightmare",
+    "declared": 20,
+    "pairs": 20,
+    "falseStops": 0,
+    "lostCompletions": 0,
+    "unknown": 0,
+    "falseStopReps": [],
+    "lostReps": [],
+    "unknownReps": [],
+    "unexpected": []
+  },
+  "perSeed": [
+    {
+      "rep": 20,
+      "todayS": 15.8,
+      "shippedS": 16.9,
+      "uncappedS": 16.6,
+      "screenS": 9.2,
+      "setTodayS": 0.7,
+      "setShippedS": 0.7,
+      "setUncappedS": 0.7,
+      "todayOverShipped": 0.937,
+      "todayOverUncapped": 0.953,
+      "uncappedOverShipped": 0.9832
+    },
+    {
+      "rep": 21,
+      "todayS": 14,
+      "shippedS": 38.9,
+      "uncappedS": 39,
+      "screenS": 18.3,
+      "setTodayS": 2.4,
+      "setShippedS": 25.4,
+      "setUncappedS": 25.6,
+      "todayOverShipped": 0.359,
+      "todayOverUncapped": 0.3584,
+      "uncappedOverShipped": 1.0018
+    },
+    {
+      "rep": 22,
+      "todayS": 15.2,
+      "shippedS": 19,
+      "uncappedS": 19.1,
+      "screenS": 7.9,
+      "setTodayS": 3.6,
+      "setShippedS": 3.8,
+      "setUncappedS": 3.7,
+      "todayOverShipped": 0.8024,
+      "todayOverUncapped": 0.7999,
+      "uncappedOverShipped": 1.0031
+    },
+    {
+      "rep": 23,
+      "todayS": 21.7,
+      "shippedS": 23.8,
+      "uncappedS": 23.4,
+      "screenS": 11.4,
+      "setTodayS": 8.7,
+      "setShippedS": 5.4,
+      "setUncappedS": 5.4,
+      "todayOverShipped": 0.9111,
+      "todayOverUncapped": 0.9263,
+      "uncappedOverShipped": 0.9836
+    },
+    {
+      "rep": 24,
+      "todayS": 8.7,
+      "shippedS": 11.3,
+      "uncappedS": 11.2,
+      "screenS": 11.1,
+      "setTodayS": 3.1,
+      "setShippedS": 3.3,
+      "setUncappedS": 3.3,
+      "todayOverShipped": 0.7688,
+      "todayOverUncapped": 0.7756,
+      "uncappedOverShipped": 0.9911
+    },
+    {
+      "rep": 25,
+      "todayS": 10.2,
+      "shippedS": 7,
+      "uncappedS": 6.9,
+      "screenS": 9.5,
+      "setTodayS": 3.5,
+      "setShippedS": 1.4,
+      "setUncappedS": 1.4,
+      "todayOverShipped": 1.4604,
+      "todayOverUncapped": 1.4891,
+      "uncappedOverShipped": 0.9807
+    },
+    {
+      "rep": 26,
+      "todayS": 9.9,
+      "shippedS": 13.6,
+      "uncappedS": 12.9,
+      "screenS": 9.4,
+      "setTodayS": 2.1,
+      "setShippedS": 4.1,
+      "setUncappedS": 4,
+      "todayOverShipped": 0.7297,
+      "todayOverUncapped": 0.7702,
+      "uncappedOverShipped": 0.9475
+    },
+    {
+      "rep": 27,
+      "todayS": 18.1,
+      "shippedS": 15.9,
+      "uncappedS": 15.8,
+      "screenS": 10.6,
+      "setTodayS": 8,
+      "setShippedS": 3.7,
+      "setUncappedS": 3.6,
+      "todayOverShipped": 1.1395,
+      "todayOverUncapped": 1.1479,
+      "uncappedOverShipped": 0.9926
+    },
+    {
+      "rep": 28,
+      "todayS": 9.1,
+      "shippedS": 16.6,
+      "uncappedS": 16.5,
+      "screenS": 9.5,
+      "setTodayS": 0.8,
+      "setShippedS": 0.9,
+      "setUncappedS": 0.9,
+      "todayOverShipped": 0.548,
+      "todayOverUncapped": 0.5514,
+      "uncappedOverShipped": 0.9939
+    },
+    {
+      "rep": 29,
+      "todayS": 8.7,
+      "shippedS": 7.2,
+      "uncappedS": 7.1,
+      "screenS": 5.2,
+      "setTodayS": 0.8,
+      "setShippedS": 0.8,
+      "setUncappedS": 0.8,
+      "todayOverShipped": 1.2155,
+      "todayOverUncapped": 1.2224,
+      "uncappedOverShipped": 0.9944
+    },
+    {
+      "rep": 30,
+      "todayS": 19.4,
+      "shippedS": 16.5,
+      "uncappedS": 16.3,
+      "screenS": 10.9,
+      "setTodayS": 3.4,
+      "setShippedS": 6,
+      "setUncappedS": 5.9,
+      "todayOverShipped": 1.1727,
+      "todayOverUncapped": 1.1875,
+      "uncappedOverShipped": 0.9875
+    },
+    {
+      "rep": 31,
+      "todayS": 16.6,
+      "shippedS": 15.6,
+      "uncappedS": 15.7,
+      "screenS": 8.4,
+      "setTodayS": 1.2,
+      "setShippedS": 2.3,
+      "setUncappedS": 2.3,
+      "todayOverShipped": 1.0665,
+      "todayOverUncapped": 1.0579,
+      "uncappedOverShipped": 1.0082
+    },
+    {
+      "rep": 32,
+      "todayS": 26.4,
+      "shippedS": 9.5,
+      "uncappedS": 9.3,
+      "screenS": 8.1,
+      "setTodayS": 2,
+      "setShippedS": 1.9,
+      "setUncappedS": 1.8,
+      "todayOverShipped": 2.7713,
+      "todayOverUncapped": 2.8385,
+      "uncappedOverShipped": 0.9763
+    },
+    {
+      "rep": 33,
+      "todayS": 14.9,
+      "shippedS": 14.2,
+      "uncappedS": 13.6,
+      "screenS": 10.1,
+      "setTodayS": 4.7,
+      "setShippedS": 2.3,
+      "setUncappedS": 2.2,
+      "todayOverShipped": 1.0502,
+      "todayOverUncapped": 1.0928,
+      "uncappedOverShipped": 0.9611
+    },
+    {
+      "rep": 34,
+      "todayS": 26.3,
+      "shippedS": 15.3,
+      "uncappedS": 15.3,
+      "screenS": 14.5,
+      "setTodayS": 4.7,
+      "setShippedS": 4.3,
+      "setUncappedS": 4,
+      "todayOverShipped": 1.7167,
+      "todayOverUncapped": 1.7133,
+      "uncappedOverShipped": 1.002
+    },
+    {
+      "rep": 35,
+      "todayS": 16.1,
+      "shippedS": 13.4,
+      "uncappedS": 13,
+      "screenS": 9.3,
+      "setTodayS": 6.4,
+      "setShippedS": 3.6,
+      "setUncappedS": 3.5,
+      "todayOverShipped": 1.1973,
+      "todayOverUncapped": 1.2381,
+      "uncappedOverShipped": 0.9671
+    },
+    {
+      "rep": 36,
+      "todayS": 23.3,
+      "shippedS": 18.4,
+      "uncappedS": 18.4,
+      "screenS": 14.4,
+      "setTodayS": 7.3,
+      "setShippedS": 6.4,
+      "setUncappedS": 6.4,
+      "todayOverShipped": 1.262,
+      "todayOverUncapped": 1.2617,
+      "uncappedOverShipped": 1.0002
+    },
+    {
+      "rep": 37,
+      "todayS": 11.2,
+      "shippedS": 19,
+      "uncappedS": 18.7,
+      "screenS": 10.8,
+      "setTodayS": 1.8,
+      "setShippedS": 2.5,
+      "setUncappedS": 2.5,
+      "todayOverShipped": 0.5918,
+      "todayOverUncapped": 0.6004,
+      "uncappedOverShipped": 0.9855
+    },
+    {
+      "rep": 38,
+      "todayS": 34.6,
+      "shippedS": 26.2,
+      "uncappedS": 25.5,
+      "screenS": 10.2,
+      "setTodayS": 7.4,
+      "setShippedS": 7.9,
+      "setUncappedS": 7.7,
+      "todayOverShipped": 1.3239,
+      "todayOverUncapped": 1.3588,
+      "uncappedOverShipped": 0.9743
+    },
+    {
+      "rep": 39,
+      "todayS": 10.9,
+      "shippedS": 12.2,
+      "uncappedS": 12,
+      "screenS": 18.4,
+      "setTodayS": 3.5,
+      "setShippedS": 3.3,
+      "setUncappedS": 3.4,
+      "todayOverShipped": 0.8949,
+      "todayOverUncapped": 0.9107,
+      "uncappedOverShipped": 0.9826
+    }
+  ],
+  "inputs": {
+    "entries": 6,
+    "sha256Lf": "05a20de42b3c694e3558aea526cc6edd11b2f82125b36ed75a3dc0c960a3fab8",
+    "files": [
+      {
+        "path": "tools/ig-proto/plans/verdicts/V4-S4F.verdict-manifest.json",
+        "sha256Lf": "5a773a1faf1370e1acfabd368ac2d34d99db69c9348c1efd3b04a5a8fb0586b7"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S4F/verdicts.json",
+        "sha256Lf": "3749151a11df0802a311e2fff95db57f709d34fa2d7443f4dc692870f732933c"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-26x26-nightmare.runs.json",
+        "sha256Lf": "3892ef49ab6159c30419ed7f10018ff91dccf7a811c222d9d53a1f11fcef00dd"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-nightmare.runs.json",
+        "sha256Lf": "e5bdbc7c663165a30ad353464b545f67c09596840832c58b6ab14d7ab7d31b0e"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-26x26-nightmare.runs.json",
+        "sha256Lf": "c8736a0b62505d1ad0e5374e93245cdec57b86d814752149a20725e18104f30d"
+      },
+      {
+        "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-nightmare.runs.json",
+        "sha256Lf": "281dcb44eba08e85d8214131692ba3d62451d185524eadeee3ef1034eaa01fa2"
+      }
+    ]
+  }
+}

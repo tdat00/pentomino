@@ -1,0 +1,4 @@
+p1-site: staged as .github/workflows/pages.yml does (index.html, redirect.js, sitemap.xml, assets, core, generator, player) at 006ca68f, 2026-11-25 06:49:27 +07:00
+stamp-version: stamp-version: 414 reference(s) in 91 of 114 file(s) stamped ?v=006ca68f
+check-site: check-site: OK
+check-site exit 0

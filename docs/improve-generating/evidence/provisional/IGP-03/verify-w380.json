@@ -1,0 +1,134 @@
+{
+  "meta": {
+    "format": "ig-proto-verify",
+    "version": 1,
+    "task": "IGP-03",
+    "label": "provisional",
+    "labelText": "provisional (pre-freeze)",
+    "createdAt": "2026-11-14T20:03:55.306Z",
+    "source": {
+      "label": "rating-v3 runtime cd5d17f (worktree 0e1283e)",
+      "sourceDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v2",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": true,
+      "firewall": "c617f9eab21d8cd3fb556784ba851972be68e3859002122dea9bfdac222d672e"
+    },
+    "harness": {
+      "harnessHash": "a76d9d720de0479cff320bc062c338c0e25990deb9012bff4ca2ee84763d8b18",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "fd931d9f44d1fc5bc481db2e2d2c99ed46790150ade8c62e836b729e11410801",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/lane-worker.mjs": "7a705736a276ee17e07095526ae467d4ac62a26ccb5becc0e53cfcebcd158e24",
+        "tools/ig-proto/lib/lanes.mjs": "628e3f217541435c9065599ba5053231ea217fdd3bfeb9aaad76ab8eb936b235",
+        "tools/ig-proto/lib/paths.mjs": "6db4a7adeedf3500390cb84875667f44478dd8e486d6d55919149c2af6bede62",
+        "tools/ig-proto/lib/records.mjs": "c9f3b021096bb57a93445c8156e4cbf77654ee32128343359690508a42d5bf2c",
+        "tools/ig-proto/lib/sets.mjs": "66fecf6372dc30badd94f018b171e4bc12555426e446768dc4f6c29c443d7a2d",
+        "tools/ig-proto/lib/tree.mjs": "ff7ea5d67ad0dd40f1dc105e1584181b59078d4ca6392b9eb7b3078293068f83",
+        "tools/ig-proto/arm.mjs": "5fe5854f1fb183d6827b7c18f55bd5fc16de6206db4d73c7e1b7543f0aec2165",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "26f0a79bad343fc645a6e855b0f717deb4bdd22c0b5b756a8964f4d59e4c95cb",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/identity.mjs": "8b9123dcfc0f31ba4d2c06b134544a6e219358d009ae5f935b49d9ac6febe1fc",
+        "tools/ig-proto/pm4.mjs": "6b3a58e53ea3b56fe8c151dc97948aef0a73abe685ec094cc7ecb52b764f9b53",
+        "tools/ig-proto/run-task.ps1": "5d5bc46ee095e16315522f8bc6a2a47c5d8cc891ec151236d31e2652708a86ac",
+        "tools/ig-proto/self-test.mjs": "73d482d1f3045ff7639b4d3ee3b847fe7a49917299ce95b95620de14d5ba8fec",
+        "tools/ig-proto/verify.mjs": "1d013ed389fd0f65922c3bd6f7559a8f5a431dbcd8a7fc3c27fccef7d07431eb",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133"
+      }
+    },
+    "trees": {
+      "base": {
+        "treeId": "13528b906a29ec6746bb05e0e83adda4197e9c1290eb8e8f43b993a214a138ac",
+        "copyDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918",
+        "edits": [
+          "meta-1"
+        ],
+        "params": {
+          "variant": "base"
+        }
+      }
+    },
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 12,
+      "nodeSeconds": 318.826,
+      "countedSeconds": 858.826,
+      "lockWaitSeconds": 602.946
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\IGP-03.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "base": {
+    "treeId": "13528b906a29ec6746bb05e0e83adda4197e9c1290eb8e8f43b993a214a138ac",
+    "copyDigest": "34cea38645e079478ff3463c67c72d2701a0fe84983fc3bda5dd5d3b33377918"
+  },
+  "summary": {
+    "arm": "w380",
+    "expected": 134,
+    "checked": 134,
+    "equal": 134,
+    "mismatches": 0,
+    "complete": true
+  },
+  "cells": {
+    "12x12-nightmare": {
+      "checked": 24,
+      "equal": 24,
+      "stages": {
+        "set": {
+          "checked": 2,
+          "equal": 2
+        },
+        "batch": {
+          "checked": 22,
+          "equal": 22
+        }
+      }
+    },
+    "14x14-nightmare": {
+      "checked": 26,
+      "equal": 26,
+      "stages": {
+        "set": {
+          "checked": 3,
+          "equal": 3
+        },
+        "batch": {
+          "checked": 23,
+          "equal": 23
+        }
+      }
+    },
+    "26x26-master": {
+      "checked": 84,
+      "equal": 84,
+      "stages": {
+        "set": {
+          "checked": 11,
+          "equal": 11
+        },
+        "batch": {
+          "checked": 73,
+          "equal": 73
+        }
+      }
+    }
+  },
+  "mismatches": []
+}

@@ -1,0 +1,640 @@
+{
+  "task": "V4-P7",
+  "generatedBy": "manifest.mjs write-plan",
+  "runnable": true,
+  "blockedBy": [],
+  "prerequisites": [
+    {
+      "type": "variant",
+      "id": "p7-c1"
+    },
+    {
+      "type": "file",
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1-quick/p7.json"
+    },
+    {
+      "type": "file",
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1-full/p7.json"
+    },
+    {
+      "type": "variant",
+      "id": "p7-c1r5"
+    },
+    {
+      "type": "file",
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5-quick/p7.json"
+    },
+    {
+      "type": "file",
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5-full/p7.json"
+    },
+    {
+      "type": "variant",
+      "id": "p7-c1r5c5"
+    },
+    {
+      "type": "file",
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5c5-quick/p7.json"
+    },
+    {
+      "type": "file",
+      "path": "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5c5-full/p7.json"
+    }
+  ],
+  "allocationMinutes": 16,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "prerequisites",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\manifest.mjs",
+        "check-prerequisites",
+        "--plan",
+        "V4-P7"
+      ],
+      "optional": false,
+      "dependsOn": [],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1-quick/p7.json",
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1-full/p7.json",
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5-quick/p7.json",
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5-full/p7.json",
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5c5-quick/p7.json",
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5c5-full/p7.json"
+      ],
+      "produces": [],
+      "expect": "prerequisites: pass",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\firewall.mjs",
+        "snapshot",
+        "--task",
+        "V4-P7"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "prerequisites"
+      ],
+      "consumes": [],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-P7/firewall-before.json"
+      ],
+      "expect": "firewall: snapshot of V4-P7",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "trees",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\lib\\tree.mjs",
+        "build",
+        "base",
+        "p7-c1",
+        "p7-c1r5",
+        "p7-c1r5c5"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "prerequisites"
+      ],
+      "consumes": [],
+      "produces": [
+        "tests/artifacts/ig-proto/tree-frozen/base/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/p7-c1/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/p7-c1r5/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/p7-c1r5c5/ig-tree.json"
+      ],
+      "expect": "<variant> <treeId> <copyDigest> built|reused, one line per variant",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "bind-p7-c1",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\p7-probe.mjs",
+        "bind",
+        "--candidate",
+        "p7-c1",
+        "--task",
+        "V4-P7"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1-quick/p7.json",
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1-full/p7.json"
+      ],
+      "produces": [],
+      "expect": "p7-probe: p7-c1 bound to its quick and full equality reports",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "time-p7-c1",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\p7-probe.mjs",
+        "time",
+        "--candidate",
+        "p7-c1",
+        "--task",
+        "V4-P7"
+      ],
+      "state": "V4-P7\\time-p7-c1\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 264.9124999999998,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "p7-time",
+            "variant": "p7-c1",
+            "lanes": 1,
+            "reserveS": 90,
+            "durationsS": [
+              1.0725,
+              1.02625,
+              1.37,
+              1.785,
+              1.695,
+              5.16,
+              5.9775,
+              1.18875,
+              6.91125,
+              0.20375,
+              0.9075,
+              0.25125,
+              5.69625,
+              3.92125,
+              5.41625,
+              4.4475,
+              0.285,
+              4.195,
+              1.12,
+              1.265,
+              1.125,
+              1.15875,
+              1.2625,
+              0.18625,
+              4.85875,
+              4.97875,
+              4.97875,
+              4.5975,
+              4.30625,
+              5.29,
+              1.0725,
+              1.02625,
+              1.37,
+              1.785,
+              1.695,
+              5.16,
+              5.9775,
+              1.18875,
+              6.91125,
+              0.20375,
+              0.9075,
+              0.25125,
+              5.69625,
+              3.92125,
+              5.41625,
+              4.4475,
+              0.285,
+              4.195,
+              1.12,
+              1.265,
+              1.125,
+              1.15875,
+              1.2625,
+              0.18625,
+              4.85875,
+              4.97875,
+              4.97875,
+              4.5975,
+              4.30625,
+              5.29,
+              1.0725,
+              1.02625,
+              1.37,
+              1.785,
+              1.695,
+              5.16,
+              5.9775,
+              1.18875,
+              6.91125,
+              0.20375,
+              0.9075,
+              0.25125,
+              5.69625,
+              3.92125,
+              5.41625,
+              4.4475,
+              0.285,
+              4.195,
+              1.12,
+              1.265,
+              1.125,
+              1.15875,
+              1.2625,
+              0.18625,
+              4.85875,
+              4.97875,
+              4.97875,
+              4.5975,
+              4.30625,
+              5.29
+            ],
+            "durationSource": "V4-S2K item times x 1.25"
+          }
+        ]
+      },
+      "dependsOn": [
+        "bind-p7-c1"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/base/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/p7-c1/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1/experiment.json",
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "bind-p7-c1r5",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\p7-probe.mjs",
+        "bind",
+        "--candidate",
+        "p7-c1r5",
+        "--task",
+        "V4-P7"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5-quick/p7.json",
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5-full/p7.json"
+      ],
+      "produces": [],
+      "expect": "p7-probe: p7-c1r5 bound to its quick and full equality reports",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "time-p7-c1r5",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\p7-probe.mjs",
+        "time",
+        "--candidate",
+        "p7-c1r5",
+        "--task",
+        "V4-P7"
+      ],
+      "state": "V4-P7\\time-p7-c1r5\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 264.9124999999998,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "p7-time",
+            "variant": "p7-c1r5",
+            "lanes": 1,
+            "reserveS": 90,
+            "durationsS": [
+              1.0725,
+              1.02625,
+              1.37,
+              1.785,
+              1.695,
+              5.16,
+              5.9775,
+              1.18875,
+              6.91125,
+              0.20375,
+              0.9075,
+              0.25125,
+              5.69625,
+              3.92125,
+              5.41625,
+              4.4475,
+              0.285,
+              4.195,
+              1.12,
+              1.265,
+              1.125,
+              1.15875,
+              1.2625,
+              0.18625,
+              4.85875,
+              4.97875,
+              4.97875,
+              4.5975,
+              4.30625,
+              5.29,
+              1.0725,
+              1.02625,
+              1.37,
+              1.785,
+              1.695,
+              5.16,
+              5.9775,
+              1.18875,
+              6.91125,
+              0.20375,
+              0.9075,
+              0.25125,
+              5.69625,
+              3.92125,
+              5.41625,
+              4.4475,
+              0.285,
+              4.195,
+              1.12,
+              1.265,
+              1.125,
+              1.15875,
+              1.2625,
+              0.18625,
+              4.85875,
+              4.97875,
+              4.97875,
+              4.5975,
+              4.30625,
+              5.29,
+              1.0725,
+              1.02625,
+              1.37,
+              1.785,
+              1.695,
+              5.16,
+              5.9775,
+              1.18875,
+              6.91125,
+              0.20375,
+              0.9075,
+              0.25125,
+              5.69625,
+              3.92125,
+              5.41625,
+              4.4475,
+              0.285,
+              4.195,
+              1.12,
+              1.265,
+              1.125,
+              1.15875,
+              1.2625,
+              0.18625,
+              4.85875,
+              4.97875,
+              4.97875,
+              4.5975,
+              4.30625,
+              5.29
+            ],
+            "durationSource": "V4-S2K item times x 1.25"
+          }
+        ]
+      },
+      "dependsOn": [
+        "bind-p7-c1r5"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/base/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/p7-c1r5/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5/experiment.json",
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "bind-p7-c1r5c5",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\p7-probe.mjs",
+        "bind",
+        "--candidate",
+        "p7-c1r5c5",
+        "--task",
+        "V4-P7"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "trees"
+      ],
+      "consumes": [
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5c5-quick/p7.json",
+        "docs/improve-generating/evidence/frozen/V4-P7E-p7-c1r5c5-full/p7.json"
+      ],
+      "produces": [],
+      "expect": "p7-probe: p7-c1r5c5 bound to its quick and full equality reports",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "time-p7-c1r5c5",
+      "locked": true,
+      "node": [
+        "tools\\ig-proto\\p7-probe.mjs",
+        "time",
+        "--candidate",
+        "p7-c1r5c5",
+        "--task",
+        "V4-P7"
+      ],
+      "state": "V4-P7\\time-p7-c1r5c5\\state.json",
+      "repeatUntilDone": true,
+      "projectS": 264.9124999999998,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "optional": false,
+      "price": {
+        "type": "items",
+        "groups": [
+          {
+            "kind": "p7-time",
+            "variant": "p7-c1r5c5",
+            "lanes": 1,
+            "reserveS": 90,
+            "durationsS": [
+              1.0725,
+              1.02625,
+              1.37,
+              1.785,
+              1.695,
+              5.16,
+              5.9775,
+              1.18875,
+              6.91125,
+              0.20375,
+              0.9075,
+              0.25125,
+              5.69625,
+              3.92125,
+              5.41625,
+              4.4475,
+              0.285,
+              4.195,
+              1.12,
+              1.265,
+              1.125,
+              1.15875,
+              1.2625,
+              0.18625,
+              4.85875,
+              4.97875,
+              4.97875,
+              4.5975,
+              4.30625,
+              5.29,
+              1.0725,
+              1.02625,
+              1.37,
+              1.785,
+              1.695,
+              5.16,
+              5.9775,
+              1.18875,
+              6.91125,
+              0.20375,
+              0.9075,
+              0.25125,
+              5.69625,
+              3.92125,
+              5.41625,
+              4.4475,
+              0.285,
+              4.195,
+              1.12,
+              1.265,
+              1.125,
+              1.15875,
+              1.2625,
+              0.18625,
+              4.85875,
+              4.97875,
+              4.97875,
+              4.5975,
+              4.30625,
+              5.29,
+              1.0725,
+              1.02625,
+              1.37,
+              1.785,
+              1.695,
+              5.16,
+              5.9775,
+              1.18875,
+              6.91125,
+              0.20375,
+              0.9075,
+              0.25125,
+              5.69625,
+              3.92125,
+              5.41625,
+              4.4475,
+              0.285,
+              4.195,
+              1.12,
+              1.265,
+              1.125,
+              1.15875,
+              1.2625,
+              0.18625,
+              4.85875,
+              4.97875,
+              4.97875,
+              4.5975,
+              4.30625,
+              5.29
+            ],
+            "durationSource": "V4-S2K item times x 1.25"
+          }
+        ]
+      },
+      "dependsOn": [
+        "bind-p7-c1r5c5"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/tree-frozen/base/ig-tree.json",
+        "tests/artifacts/ig-proto/tree-frozen/p7-c1r5c5/ig-tree.json"
+      ],
+      "produces": [
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5c5/experiment.json",
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5c5/state.json",
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5c5/items.jsonl"
+      ],
+      "expect": "the state has done: true (every item has ended)",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "report",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\p7-probe.mjs",
+        "report",
+        "--task",
+        "V4-P7"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "time-p7-c1",
+        "time-p7-c1r5",
+        "time-p7-c1r5c5"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1/items.jsonl",
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5/items.jsonl",
+        "tests/artifacts/ig-proto/frozen/V4-P7/time-p7-c1r5c5/items.jsonl"
+      ],
+      "produces": [
+        "docs/improve-generating/evidence/frozen/V4-P7/p7.json",
+        "docs/improve-generating/evidence/frozen/V4-P7/p7.md"
+      ],
+      "expect": "p7-probe: wrote docs/improve-generating/evidence/frozen/V4-P7/p7.json",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": [
+        "tools\\ig-proto\\firewall.mjs",
+        "check",
+        "--task",
+        "V4-P7"
+      ],
+      "optional": false,
+      "dependsOn": [
+        "firewall-snapshot"
+      ],
+      "consumes": [
+        "tests/artifacts/ig-proto/frozen/V4-P7/firewall-before.json"
+      ],
+      "produces": [],
+      "expect": "firewall: OK, <n> production files unchanged since the snapshot of V4-P7",
+      "exitOn": "a nonzero exit stops the plan (run-task.ps1)"
+    }
+  ]
+}

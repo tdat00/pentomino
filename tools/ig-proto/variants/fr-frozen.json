@@ -1,0 +1,20 @@
+{
+  "id": "fr-frozen",
+  "extends": ["fr-base", "v4-ps", "v4-p5", "live", "p5-mode", "ps-levels"],
+  "description": "Frozen arm (stages 2 to 4 pack T08a; plan v4 stage 3, N-V4-03; plan 4.1-4.5): the freeze with the screen by class (screen-s3-v1), the prior prior-s3-v1, the per-set prior on Hell 1, P5 by mode (budget-s3-v1) and the bound of 4, the live deadline (deadline-s3-v1), rescue re-rating, no (c4), no ranker, the reference kernel.",
+  "edits": [],
+  "files": [],
+  "paramFiles": { "prior": "data/prior-s3-v1.json" },
+  "params": {
+    "priorTable": "prior-s3-v1",
+    "screenTable": "screen-s3-v1",
+    "screenClasses": { "hell-1": null, "n-small": null, "n-mid": 190000000, "n-large": 190000000 },
+    "rerate": "rescue",
+    "rerateMax": 4,
+    "c4": false,
+    "callBudget": { "id": "budget-s3-v1", "any": { "nightmare": 10000000000, "hell-1": 40000000000 }, "require": { "nightmare": 32000000000, "hell-1": 40000000000 } },
+    "setAttemptsBound": 4,
+    "liveDeadline": { "id": "deadline-s3-v1", "levels": ["nightmare", "hell-1"], "reserve": 0.6, "setStageCapMs": 46000, "generationStopMs": 115000, "responseBoundMs": 120000, "hostMarginMs": 1000 },
+    "perSetLevels": ["hell-1"]
+  }
+}

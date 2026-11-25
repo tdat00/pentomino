@@ -1,0 +1,1943 @@
+{
+  "format": "ig-proto-p6-bench-compare",
+  "version": 1,
+  "task": "V4-T14",
+  "statement": "Node screening evidence at four workers, cold, one fresh process per request; not a browser qualification (D39)",
+  "commits": {
+    "old": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+    "new": "27c6189e40bfe2000a454f755797c5745d7c2e84"
+  },
+  "digests": {
+    "old": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+    "new": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4"
+  },
+  "machine": {
+    "browserOrNode": "node v26.13.0",
+    "platform": "win32 10.0.26300 x64",
+    "hardware": {
+      "cpu": "AMD EPYC 7763 64-Core Processor                ",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "execArgv": [
+        "--max-old-space-size=2048"
+      ]
+    }
+  },
+  "reports": [
+    {
+      "group": "A",
+      "side": "old",
+      "file": "old/A-2026-11-18.json",
+      "sha256": "676dd7ae888d0348f7a4c4f49be66db1ca93c2c5875450cdc9a6ef62aa545956",
+      "startedAt": "2026-11-18T06:42:37.582Z",
+      "finishedAt": "2026-11-18T06:50:39.555Z",
+      "matrixDigest": "f95cd626f0c40bed9d3958f4788d20db1a8bb0eb3c2b9e810a6081212c14cdd3",
+      "rows": 25,
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      }
+    },
+    {
+      "group": "A",
+      "side": "new",
+      "file": "new/A-2026-11-18.json",
+      "sha256": "3be61d72814aebcb591182616fe68a78a38e39b51a675064e4926afc61684546",
+      "startedAt": "2026-11-18T06:52:40.022Z",
+      "finishedAt": "2026-11-18T06:59:58.440Z",
+      "matrixDigest": "f95cd626f0c40bed9d3958f4788d20db1a8bb0eb3c2b9e810a6081212c14cdd3",
+      "rows": 25,
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      }
+    },
+    {
+      "group": "B",
+      "side": "new",
+      "file": "new/B-2026-11-18.json",
+      "sha256": "98472db28b2d303adcd3967ce3deaec871330ed969bc06ee5c924daae30aa08e",
+      "startedAt": "2026-11-18T07:06:37.796Z",
+      "finishedAt": "2026-11-18T07:15:49.292Z",
+      "matrixDigest": "1e713766614409f9dbaa47fac1d54bca7df5b132bd4f9927e224018ffaf59a9f",
+      "rows": 10,
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      }
+    },
+    {
+      "group": "B",
+      "side": "old",
+      "file": "old/B-2026-11-18.json",
+      "sha256": "1b6d68f1376cac59b6ad458d89267e664e271a3498a661ed225eeea1284ec3bd",
+      "startedAt": "2026-11-18T07:17:12.598Z",
+      "finishedAt": "2026-11-18T07:27:00.769Z",
+      "matrixDigest": "1e713766614409f9dbaa47fac1d54bca7df5b132bd4f9927e224018ffaf59a9f",
+      "rows": 10,
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      }
+    }
+  ],
+  "cells": [
+    {
+      "caseId": "14x14-master",
+      "level": "Master",
+      "group": "A",
+      "old": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 383.9481,
+          "median": 454.84749999999997,
+          "p95": 4420.5185,
+          "max": 4420.5185
+        },
+        "t10": {
+          "n": 5,
+          "min": 1797.8009,
+          "median": 3072.3409,
+          "p95": 11185.3339,
+          "max": 11185.3339
+        },
+        "response": {
+          "n": 5,
+          "min": 1918.2313,
+          "median": 3206.558,
+          "p95": 11339.073699999999,
+          "max": 11339.073699999999
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 223453184,
+        "peakAccountedMax": 16839576,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 223453184,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 16839576,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 12
+      },
+      "new": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 361.8194,
+          "median": 450.72990000000004,
+          "p95": 3652.1629000000003,
+          "max": 3652.1629000000003
+        },
+        "t10": {
+          "n": 5,
+          "min": 1474.0237,
+          "median": 2407.1173,
+          "p95": 9970.7097,
+          "max": 9970.7097
+        },
+        "response": {
+          "n": 5,
+          "min": 1631.0262,
+          "median": 2547.0489,
+          "p95": 10125.947199999999,
+          "max": 10125.947199999999
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 234962944,
+        "peakAccountedMax": 17419522,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 234962944,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 17419522,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 12
+      },
+      "ratios": {
+        "t1": {
+          "n": 5,
+          "median": 1.1423165759999436,
+          "min": 0.951732955812339,
+          "max": 1.2103837153594654,
+          "excluded": 0
+        },
+        "t10": {
+          "n": 5,
+          "median": 1.1588297977804984,
+          "min": 1.1218192321856488,
+          "max": 1.283899417780762,
+          "excluded": 0
+        },
+        "t10MinusT1": {
+          "n": 5,
+          "median": 1.164531459265782,
+          "min": 1.0706283603058855,
+          "max": 1.337870805041524,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.1466917091154465,
+          "min": 1.1198037552477067,
+          "max": 1.2780412264562333,
+          "excluded": 0
+        }
+      },
+      "identity": {
+        "pairs": 5,
+        "equal": 5,
+        "metricPrefixOnly": 0,
+        "noPuzzleEvidence": 0,
+        "differ": 0,
+        "incomplete": 0
+      }
+    },
+    {
+      "caseId": "26x26-master",
+      "level": "Master",
+      "group": "A",
+      "old": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 819.4935,
+          "median": 1519.4064999999998,
+          "p95": 5681.3543,
+          "max": 5681.3543
+        },
+        "t10": {
+          "n": 5,
+          "min": 6969.8686,
+          "median": 12213.050299999999,
+          "p95": 12543.1807,
+          "max": 12543.1807
+        },
+        "response": {
+          "n": 5,
+          "min": 7094.4619,
+          "median": 12395.9121,
+          "p95": 12718.2247,
+          "max": 12718.2247
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 589246464,
+        "peakAccountedMax": 228448751,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 589246464,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 228448751,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 4
+      },
+      "new": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 847.9847,
+          "median": 1447.0153,
+          "p95": 4430.8476,
+          "max": 4430.8476
+        },
+        "t10": {
+          "n": 5,
+          "min": 6041.004199999999,
+          "median": 10221.0219,
+          "p95": 10807.0026,
+          "max": 10807.0026
+        },
+        "response": {
+          "n": 5,
+          "min": 6164.854899999999,
+          "median": 10352.233400000001,
+          "p95": 10915.8207,
+          "max": 10915.8207
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 570560512,
+        "peakAccountedMax": 225779923,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 570560512,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 225779923,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 4
+      },
+      "ratios": {
+        "t1": {
+          "n": 5,
+          "median": 1.0500279437266489,
+          "min": 0.9664012805891428,
+          "max": 1.2822274230330106,
+          "excluded": 0
+        },
+        "t10": {
+          "n": 5,
+          "median": 1.204291330408965,
+          "min": 1.1301052430578669,
+          "max": 1.2265364875110971,
+          "excluded": 0
+        },
+        "t10MinusT1": {
+          "n": 5,
+          "median": 1.1843543241075833,
+          "min": 1.1316087191600943,
+          "max": 1.232787624643236,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.206522046206265,
+          "min": 1.1355913990049322,
+          "max": 1.222496326251686,
+          "excluded": 0
+        }
+      },
+      "identity": {
+        "pairs": 5,
+        "equal": 5,
+        "metricPrefixOnly": 0,
+        "noPuzzleEvidence": 0,
+        "differ": 0,
+        "incomplete": 0
+      }
+    },
+    {
+      "caseId": "26x26-expert",
+      "level": "Expert",
+      "group": "A",
+      "old": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 524.3279,
+          "median": 626.5862000000001,
+          "p95": 1186.8853,
+          "max": 1186.8853
+        },
+        "t10": {
+          "n": 5,
+          "min": 2085.2377,
+          "median": 3737.5368999999996,
+          "p95": 6822.237,
+          "max": 6822.237
+        },
+        "response": {
+          "n": 5,
+          "min": 2259.1313,
+          "median": 3893.1319,
+          "p95": 6942.3864,
+          "max": 6942.3864
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 478535680,
+        "peakAccountedMax": 191733509,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 478535680,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 191733509,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 1
+      },
+      "new": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 531.7616,
+          "median": 672.7118,
+          "p95": 1062.3784,
+          "max": 1062.3784
+        },
+        "t10": {
+          "n": 5,
+          "min": 2108.1579,
+          "median": 3384.1924,
+          "p95": 5481.4406,
+          "max": 5481.4406
+        },
+        "response": {
+          "n": 5,
+          "min": 2255.4159,
+          "median": 3490.4361,
+          "p95": 5596.4353,
+          "max": 5596.4353
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 497336320,
+        "peakAccountedMax": 183794335,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 497336320,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 183794335,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 1
+      },
+      "ratios": {
+        "t1": {
+          "n": 5,
+          "median": 1.0132670354534814,
+          "min": 0.7794242645959235,
+          "max": 1.1171963774865903,
+          "excluded": 0
+        },
+        "t10": {
+          "n": 5,
+          "median": 1.139155824205232,
+          "min": 0.9891278542276174,
+          "max": 1.2446065729509137,
+          "excluded": 0
+        },
+        "t10MinusT1": {
+          "n": 5,
+          "median": 1.1765983057406904,
+          "min": 1.0874039784565928,
+          "max": 1.2752370174830305,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.142794949845242,
+          "min": 1.0016473236709913,
+          "max": 1.24050150280483,
+          "excluded": 0
+        }
+      },
+      "identity": {
+        "pairs": 5,
+        "equal": 5,
+        "metricPrefixOnly": 0,
+        "noPuzzleEvidence": 0,
+        "differ": 0,
+        "incomplete": 0
+      }
+    },
+    {
+      "caseId": "26x26-nightmare",
+      "level": "Nightmare",
+      "group": "A",
+      "old": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 956.1914999999999,
+          "median": 5918.0669,
+          "p95": 10470.476400000001,
+          "max": 10470.476400000001
+        },
+        "t10": {
+          "n": 5,
+          "min": 8461.511900000001,
+          "median": 24564.637400000003,
+          "p95": 28806.162399999997,
+          "max": 28806.162399999997
+        },
+        "response": {
+          "n": 5,
+          "min": 8606.869200000001,
+          "median": 24749.6132,
+          "p95": 28947.426199999998,
+          "max": 28947.426199999998
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 583057408,
+        "peakAccountedMax": 240995213,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 583057408,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 240995213,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 13
+      },
+      "new": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 988.4744000000001,
+          "median": 4437.102400000001,
+          "p95": 7788.0231,
+          "max": 7788.0231
+        },
+        "t10": {
+          "n": 5,
+          "min": 6990.4685,
+          "median": 18580.1682,
+          "p95": 20293.5281,
+          "max": 20293.5281
+        },
+        "response": {
+          "n": 5,
+          "min": 7137.577,
+          "median": 18709.6221,
+          "p95": 20444.225400000003,
+          "max": 20444.225400000003
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 553484288,
+        "peakAccountedMax": 242014758,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 553484288,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 242014758,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 13
+      },
+      "ratios": {
+        "t1": {
+          "n": 5,
+          "median": 1.3444331463269543,
+          "min": 0.9673406817617126,
+          "max": 1.3858946894016844,
+          "excluded": 0
+        },
+        "t10": {
+          "n": 5,
+          "median": 1.3220890755983579,
+          "min": 1.2104355952680428,
+          "max": 1.4194753252392815,
+          "excluded": 0
+        },
+        "t10MinusT1": {
+          "n": 5,
+          "median": 1.2974924448303653,
+          "min": 1.229528032920404,
+          "max": 1.4504928458034008,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.3228280650307735,
+          "min": 1.2058530787128463,
+          "max": 1.4159218866761267,
+          "excluded": 0
+        }
+      },
+      "identity": {
+        "pairs": 5,
+        "equal": 5,
+        "metricPrefixOnly": 0,
+        "noPuzzleEvidence": 0,
+        "differ": 0,
+        "incomplete": 0
+      }
+    },
+    {
+      "caseId": "10x10-nightmare",
+      "level": "Nightmare",
+      "group": "A",
+      "old": {
+        "n": 5,
+        "tenOfN": 4,
+        "tenOrProvenAllOfN": 4,
+        "t1": {
+          "n": 5,
+          "min": 3575.0827,
+          "median": 5511.0643,
+          "p95": 7111.2091,
+          "max": 7111.2091
+        },
+        "t10": {
+          "n": 4,
+          "min": 9027.4295,
+          "median": 15701.06755,
+          "p95": 25777.5313,
+          "max": 25777.5313
+        },
+        "response": {
+          "n": 5,
+          "min": 9185.2944,
+          "median": 17948.0524,
+          "p95": 120618.5399,
+          "max": 120618.5399
+        },
+        "accepted": {
+          "9": 1,
+          "10": 4
+        },
+        "peakProcessMax": 186056704,
+        "peakAccountedMax": 11879611,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 186056704,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 11879611,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 4
+      },
+      "new": {
+        "n": 5,
+        "tenOfN": 4,
+        "tenOrProvenAllOfN": 4,
+        "t1": {
+          "n": 5,
+          "min": 3588.9687,
+          "median": 5538.7255,
+          "p95": 6848.615,
+          "max": 6848.615
+        },
+        "t10": {
+          "n": 4,
+          "min": 8637.5496,
+          "median": 15875.351299999998,
+          "p95": 24832.4026,
+          "max": 24832.4026
+        },
+        "response": {
+          "n": 5,
+          "min": 8780.8239,
+          "median": 18198.1249,
+          "p95": 120677.621,
+          "max": 120677.621
+        },
+        "accepted": {
+          "9": 1,
+          "10": 4
+        },
+        "peakProcessMax": 179605504,
+        "peakAccountedMax": 11938998,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 179605504,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 11938998,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 4
+      },
+      "ratios": {
+        "t1": {
+          "n": 5,
+          "median": 0.9961309219553796,
+          "min": 0.9796804990535364,
+          "max": 1.0425398429417034,
+          "excluded": 0
+        },
+        "t10": {
+          "n": 4,
+          "median": 1.0158792915429762,
+          "min": 0.9854777677534824,
+          "max": 1.0451377900047023,
+          "excluded": 1
+        },
+        "t10MinusT1": {
+          "n": 4,
+          "median": 1.0221052050138233,
+          "min": 0.9828361403502058,
+          "max": 1.0471300593280017,
+          "excluded": 1
+        },
+        "response": {
+          "n": 5,
+          "median": 0.9995104220690596,
+          "min": 0.9862583369784435,
+          "max": 1.0460629326594286,
+          "excluded": 0
+        }
+      },
+      "identity": {
+        "pairs": 5,
+        "equal": 5,
+        "metricPrefixOnly": 0,
+        "noPuzzleEvidence": 0,
+        "differ": 0,
+        "incomplete": 0
+      }
+    },
+    {
+      "caseId": "12x12-nightmare",
+      "level": "Nightmare",
+      "group": "B",
+      "old": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 816.9579,
+          "median": 8603.6852,
+          "p95": 21100.178000000004,
+          "max": 21100.178000000004
+        },
+        "t10": {
+          "n": 5,
+          "min": 26883.684400000002,
+          "median": 51733.5073,
+          "p95": 70695.5098,
+          "max": 70695.5098
+        },
+        "response": {
+          "n": 5,
+          "min": 27015.9684,
+          "median": 51882.799699999996,
+          "p95": 70838.9067,
+          "max": 70838.9067
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 192147456,
+        "peakAccountedMax": 17663135,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 192147456,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 17663135,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 12
+      },
+      "new": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 880.7053999999999,
+          "median": 7983.58,
+          "p95": 21420.564,
+          "max": 21420.564
+        },
+        "t10": {
+          "n": 5,
+          "min": 26270.8535,
+          "median": 50978.7212,
+          "p95": 69953.9119,
+          "max": 69953.9119
+        },
+        "response": {
+          "n": 5,
+          "min": 26394.028700000003,
+          "median": 51098.3379,
+          "p95": 70093.4086,
+          "max": 70093.4086
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 193048576,
+        "peakAccountedMax": 17663135,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 193048576,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 17663135,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 12
+      },
+      "ratios": {
+        "t1": {
+          "n": 5,
+          "median": 1.0362381760076897,
+          "min": 0.9276176801005195,
+          "max": 1.0776725729559922,
+          "excluded": 0
+        },
+        "t10": {
+          "n": 5,
+          "median": 1.0233274073109198,
+          "min": 1.0106012355829381,
+          "max": 1.0698951688182494,
+          "excluded": 0
+        },
+        "t10MinusT1": {
+          "n": 5,
+          "median": 1.0363748014710468,
+          "min": 1.008875655025594,
+          "max": 1.0675011430719286,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.0235636517285442,
+          "min": 1.0106357803806392,
+          "max": 1.0693448920420314,
+          "excluded": 0
+        }
+      },
+      "identity": {
+        "pairs": 5,
+        "equal": 5,
+        "metricPrefixOnly": 0,
+        "noPuzzleEvidence": 0,
+        "differ": 0,
+        "incomplete": 0
+      }
+    },
+    {
+      "caseId": "18x18-nightmare",
+      "level": "Nightmare",
+      "group": "B",
+      "old": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 4115.3501,
+          "median": 10715.318800000001,
+          "p95": 20166.9539,
+          "max": 20166.9539
+        },
+        "t10": {
+          "n": 5,
+          "min": 23866.4128,
+          "median": 59882.818400000004,
+          "p95": 99924.395,
+          "max": 99924.395
+        },
+        "response": {
+          "n": 5,
+          "min": 24026.553,
+          "median": 60048.885,
+          "p95": 100034.4598,
+          "max": 100034.4598
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 308375552,
+        "peakAccountedMax": 67520246,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 308375552,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 67520246,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 15
+      },
+      "new": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 3495.3734,
+          "median": 9650.285300000001,
+          "p95": 18106.3394,
+          "max": 18106.3394
+        },
+        "t10": {
+          "n": 5,
+          "min": 20672.5835,
+          "median": 52135.5574,
+          "p95": 89305.1553,
+          "max": 89305.1553
+        },
+        "response": {
+          "n": 5,
+          "min": 20822.0812,
+          "median": 52314.2859,
+          "p95": 89449.6756,
+          "max": 89449.6756
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 313819136,
+        "peakAccountedMax": 66346142,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 313819136,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 66346142,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 15
+      },
+      "ratios": {
+        "t1": {
+          "n": 5,
+          "median": 1.1103629029496154,
+          "min": 1.0521742821579692,
+          "max": 1.1773706637465398,
+          "excluded": 0
+        },
+        "t10": {
+          "n": 5,
+          "median": 1.1326917100737375,
+          "min": 1.071249407369897,
+          "max": 1.1544958954936617,
+          "excluded": 0
+        },
+        "t10MinusT1": {
+          "n": 5,
+          "median": 1.1498411316515247,
+          "min": 1.0735881185449059,
+          "max": 1.1883631715962677,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.132779405577515,
+          "min": 1.0710613733257153,
+          "max": 1.1538977669532862,
+          "excluded": 0
+        }
+      },
+      "identity": {
+        "pairs": 5,
+        "equal": 5,
+        "metricPrefixOnly": 0,
+        "noPuzzleEvidence": 0,
+        "differ": 0,
+        "incomplete": 0
+      }
+    }
+  ],
+  "levels": [
+    {
+      "level": "Master",
+      "cells": [
+        "14x14-master",
+        "26x26-master"
+      ],
+      "old": {
+        "n": 10,
+        "tenOfN": 10,
+        "tenOrProvenAllOfN": 10,
+        "t1": {
+          "n": 10,
+          "min": 383.9481,
+          "median": 1033.4008,
+          "p95": 5681.3543,
+          "max": 5681.3543
+        },
+        "t10": {
+          "n": 10,
+          "min": 1797.8009,
+          "median": 8600.8392,
+          "p95": 12543.1807,
+          "max": 12543.1807
+        },
+        "response": {
+          "n": 10,
+          "min": 1918.2313,
+          "median": 8748.88265,
+          "p95": 12718.2247,
+          "max": 12718.2247
+        },
+        "accepted": {
+          "10": 10
+        },
+        "peakProcessMax": 589246464,
+        "peakAccountedMax": 228448751,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 589246464,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 228448751,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 16
+      },
+      "new": {
+        "n": 10,
+        "tenOfN": 10,
+        "tenOrProvenAllOfN": 10,
+        "t1": {
+          "n": 10,
+          "min": 361.8194,
+          "median": 1010.2226,
+          "p95": 4430.8476,
+          "max": 4430.8476
+        },
+        "t10": {
+          "n": 10,
+          "min": 1474.0237,
+          "median": 7268.564649999999,
+          "p95": 10807.0026,
+          "max": 10807.0026
+        },
+        "response": {
+          "n": 10,
+          "min": 1631.0262,
+          "median": 7384.50475,
+          "p95": 10915.8207,
+          "max": 10915.8207
+        },
+        "accepted": {
+          "10": 10
+        },
+        "peakProcessMax": 570560512,
+        "peakAccountedMax": 225779923,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 570560512,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 225779923,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 16
+      },
+      "ratios": {
+        "t1": {
+          "n": 10,
+          "median": 1.093204481471624,
+          "min": 0.951732955812339,
+          "max": 1.2822274230330106,
+          "excluded": 0
+        },
+        "t10": {
+          "n": 10,
+          "median": 1.1815605640947318,
+          "min": 1.1218192321856488,
+          "max": 1.283899417780762,
+          "excluded": 0
+        },
+        "t10MinusT1": {
+          "n": 10,
+          "median": 1.1841370621210487,
+          "min": 1.0706283603058855,
+          "max": 1.337870805041524,
+          "excluded": 0
+        },
+        "response": {
+          "n": 10,
+          "median": 1.1685381563364388,
+          "min": 1.1198037552477067,
+          "max": 1.2780412264562333,
+          "excluded": 0
+        }
+      },
+      "identity": {
+        "pairs": 10,
+        "equal": 10,
+        "metricPrefixOnly": 0,
+        "noPuzzleEvidence": 0,
+        "differ": 0,
+        "incomplete": 0
+      }
+    },
+    {
+      "level": "Expert",
+      "cells": [
+        "26x26-expert"
+      ],
+      "old": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 524.3279,
+          "median": 626.5862000000001,
+          "p95": 1186.8853,
+          "max": 1186.8853
+        },
+        "t10": {
+          "n": 5,
+          "min": 2085.2377,
+          "median": 3737.5368999999996,
+          "p95": 6822.237,
+          "max": 6822.237
+        },
+        "response": {
+          "n": 5,
+          "min": 2259.1313,
+          "median": 3893.1319,
+          "p95": 6942.3864,
+          "max": 6942.3864
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 478535680,
+        "peakAccountedMax": 191733509,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 478535680,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 191733509,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 1
+      },
+      "new": {
+        "n": 5,
+        "tenOfN": 5,
+        "tenOrProvenAllOfN": 5,
+        "t1": {
+          "n": 5,
+          "min": 531.7616,
+          "median": 672.7118,
+          "p95": 1062.3784,
+          "max": 1062.3784
+        },
+        "t10": {
+          "n": 5,
+          "min": 2108.1579,
+          "median": 3384.1924,
+          "p95": 5481.4406,
+          "max": 5481.4406
+        },
+        "response": {
+          "n": 5,
+          "min": 2255.4159,
+          "median": 3490.4361,
+          "p95": 5596.4353,
+          "max": 5596.4353
+        },
+        "accepted": {
+          "10": 5
+        },
+        "peakProcessMax": 497336320,
+        "peakAccountedMax": 183794335,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 497336320,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 183794335,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 1
+      },
+      "ratios": {
+        "t1": {
+          "n": 5,
+          "median": 1.0132670354534814,
+          "min": 0.7794242645959235,
+          "max": 1.1171963774865903,
+          "excluded": 0
+        },
+        "t10": {
+          "n": 5,
+          "median": 1.139155824205232,
+          "min": 0.9891278542276174,
+          "max": 1.2446065729509137,
+          "excluded": 0
+        },
+        "t10MinusT1": {
+          "n": 5,
+          "median": 1.1765983057406904,
+          "min": 1.0874039784565928,
+          "max": 1.2752370174830305,
+          "excluded": 0
+        },
+        "response": {
+          "n": 5,
+          "median": 1.142794949845242,
+          "min": 1.0016473236709913,
+          "max": 1.24050150280483,
+          "excluded": 0
+        }
+      },
+      "identity": {
+        "pairs": 5,
+        "equal": 5,
+        "metricPrefixOnly": 0,
+        "noPuzzleEvidence": 0,
+        "differ": 0,
+        "incomplete": 0
+      }
+    },
+    {
+      "level": "Nightmare",
+      "cells": [
+        "26x26-nightmare",
+        "10x10-nightmare",
+        "12x12-nightmare",
+        "18x18-nightmare"
+      ],
+      "old": {
+        "n": 20,
+        "tenOfN": 19,
+        "tenOrProvenAllOfN": 19,
+        "t1": {
+          "n": 20,
+          "min": 816.9579,
+          "median": 6724.136399999999,
+          "p95": 20166.9539,
+          "max": 21100.178000000004
+        },
+        "t10": {
+          "n": 19,
+          "min": 8461.511900000001,
+          "median": 28114.1215,
+          "p95": 99924.395,
+          "max": 99924.395
+        },
+        "response": {
+          "n": 20,
+          "min": 8606.869200000001,
+          "median": 28438.578,
+          "p95": 100034.4598,
+          "max": 120618.5399
+        },
+        "accepted": {
+          "9": 1,
+          "10": 19
+        },
+        "peakProcessMax": 583057408,
+        "peakAccountedMax": 240995213,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 583057408,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 240995213,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 44
+      },
+      "new": {
+        "n": 20,
+        "tenOfN": 19,
+        "tenOrProvenAllOfN": 19,
+        "t1": {
+          "n": 20,
+          "min": 880.7053999999999,
+          "median": 6285.74175,
+          "p95": 18106.3394,
+          "max": 21420.564
+        },
+        "t10": {
+          "n": 19,
+          "min": 6990.4685,
+          "median": 24820.6297,
+          "p95": 89305.1553,
+          "max": 89305.1553
+        },
+        "response": {
+          "n": 20,
+          "min": 7137.577,
+          "median": 24963.4179,
+          "p95": 89449.6756,
+          "max": 120677.621
+        },
+        "accepted": {
+          "9": 1,
+          "10": 19
+        },
+        "peakProcessMax": 553484288,
+        "peakAccountedMax": 242014758,
+        "checks": {
+          "peakProcessMemory": {
+            "status": "pass",
+            "value": 553484288,
+            "limit": "<= 1610612736 bytes"
+          },
+          "byteAccounting": {
+            "status": "pass",
+            "value": 242014758,
+            "limit": "<= 1254096896 bytes"
+          },
+          "modelTooLarge": {
+            "status": "pass",
+            "value": 0,
+            "limit": "0"
+          }
+        },
+        "samplingErrors": 44
+      },
+      "ratios": {
+        "t1": {
+          "n": 20,
+          "median": 1.0559746683192617,
+          "min": 0.9276176801005195,
+          "max": 1.3858946894016844,
+          "excluded": 0
+        },
+        "t10": {
+          "n": 19,
+          "median": 1.071249407369897,
+          "min": 0.9854777677534824,
+          "max": 1.4194753252392815,
+          "excluded": 1
+        },
+        "t10MinusT1": {
+          "n": 19,
+          "median": 1.0735881185449059,
+          "min": 0.9828361403502058,
+          "max": 1.4504928458034008,
+          "excluded": 1
+        },
+        "response": {
+          "n": 20,
+          "median": 1.0702031326838735,
+          "min": 0.9862583369784435,
+          "max": 1.4159218866761267,
+          "excluded": 0
+        }
+      },
+      "identity": {
+        "pairs": 20,
+        "equal": 20,
+        "metricPrefixOnly": 0,
+        "noPuzzleEvidence": 0,
+        "differ": 0,
+        "incomplete": 0
+      }
+    }
+  ],
+  "identity": {
+    "pairs": 35,
+    "equal": 35,
+    "metricPrefixOnly": 0,
+    "noPuzzleEvidence": 0,
+    "differ": 0,
+    "incomplete": 0,
+    "list": [
+      {
+        "caseId": "14x14-master",
+        "rep": 0,
+        "seed": "landscape/14x14-master/0",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "821178507c2fcabf1ac9c38421011b1479437db2abfa8d542768ee25b345818b",
+        "newDigest": "821178507c2fcabf1ac9c38421011b1479437db2abfa8d542768ee25b345818b"
+      },
+      {
+        "caseId": "14x14-master",
+        "rep": 1,
+        "seed": "landscape/14x14-master/1",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "567cb2bba4cf34a5d840493a44027284f0117ebb7c75f12f06b2e3481f31a77a",
+        "newDigest": "567cb2bba4cf34a5d840493a44027284f0117ebb7c75f12f06b2e3481f31a77a"
+      },
+      {
+        "caseId": "14x14-master",
+        "rep": 2,
+        "seed": "landscape/14x14-master/2",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "8f3c0a5c548c0650c88b94bf8677e8dd2a4af348e5988e9838e842c0c88f6b3e",
+        "newDigest": "8f3c0a5c548c0650c88b94bf8677e8dd2a4af348e5988e9838e842c0c88f6b3e"
+      },
+      {
+        "caseId": "14x14-master",
+        "rep": 3,
+        "seed": "landscape/14x14-master/3",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "0a3010695db332f307796f403aa45ff98c2802028fb785fd8cc64d46811da4c4",
+        "newDigest": "0a3010695db332f307796f403aa45ff98c2802028fb785fd8cc64d46811da4c4"
+      },
+      {
+        "caseId": "14x14-master",
+        "rep": 4,
+        "seed": "landscape/14x14-master/4",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "ab614181295d6e9e2bba2b8cb9e2dae06fe068568ce55088fcf899e9666bdfe4",
+        "newDigest": "ab614181295d6e9e2bba2b8cb9e2dae06fe068568ce55088fcf899e9666bdfe4"
+      },
+      {
+        "caseId": "26x26-master",
+        "rep": 0,
+        "seed": "landscape/26x26-master/0",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "319009ee5fc772eb2ccb74d8019517e506d87f27445e527cc928ceaa499fdd8d",
+        "newDigest": "319009ee5fc772eb2ccb74d8019517e506d87f27445e527cc928ceaa499fdd8d"
+      },
+      {
+        "caseId": "26x26-master",
+        "rep": 1,
+        "seed": "landscape/26x26-master/1",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "8ac1d02364751658a3122f80d07b59639cedfe832aa7d8f05d8b31d2e14b3eaa",
+        "newDigest": "8ac1d02364751658a3122f80d07b59639cedfe832aa7d8f05d8b31d2e14b3eaa"
+      },
+      {
+        "caseId": "26x26-master",
+        "rep": 2,
+        "seed": "landscape/26x26-master/2",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "6668b934172a858d0a03f5467416b95d2ddd3d18b2769768b93a03285fee934f",
+        "newDigest": "6668b934172a858d0a03f5467416b95d2ddd3d18b2769768b93a03285fee934f"
+      },
+      {
+        "caseId": "26x26-master",
+        "rep": 3,
+        "seed": "landscape/26x26-master/3",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "8b2c273884629e1e30010b9aeb9ed5bcb718f3a721b3dbae379e96671652be10",
+        "newDigest": "8b2c273884629e1e30010b9aeb9ed5bcb718f3a721b3dbae379e96671652be10"
+      },
+      {
+        "caseId": "26x26-master",
+        "rep": 4,
+        "seed": "landscape/26x26-master/4",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "938e721d73d5bb778196df72c1a62553544e9ec93124cb5c50a33d670285b8d4",
+        "newDigest": "938e721d73d5bb778196df72c1a62553544e9ec93124cb5c50a33d670285b8d4"
+      },
+      {
+        "caseId": "26x26-expert",
+        "rep": 0,
+        "seed": "landscape/26x26-expert/0",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "fa44d727abb636ab14ce0b1792a7b8ec6e13e2c7036dc0b801a16f1ec52e0268",
+        "newDigest": "fa44d727abb636ab14ce0b1792a7b8ec6e13e2c7036dc0b801a16f1ec52e0268"
+      },
+      {
+        "caseId": "26x26-expert",
+        "rep": 1,
+        "seed": "landscape/26x26-expert/1",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "49d9de08c1d0a6eb36dfd5c63e928fe93ca6bd58b0ae1683a289d0f0168972a0",
+        "newDigest": "49d9de08c1d0a6eb36dfd5c63e928fe93ca6bd58b0ae1683a289d0f0168972a0"
+      },
+      {
+        "caseId": "26x26-expert",
+        "rep": 2,
+        "seed": "landscape/26x26-expert/2",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "ec55728bca73c289e02dfb6d618b23029f61715bfe0f23db500bf1a4adb8a0e2",
+        "newDigest": "ec55728bca73c289e02dfb6d618b23029f61715bfe0f23db500bf1a4adb8a0e2"
+      },
+      {
+        "caseId": "26x26-expert",
+        "rep": 3,
+        "seed": "landscape/26x26-expert/3",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "d7fb5510814736967a477584b185b9012412112f34f62a068db12dda5ec86d36",
+        "newDigest": "d7fb5510814736967a477584b185b9012412112f34f62a068db12dda5ec86d36"
+      },
+      {
+        "caseId": "26x26-expert",
+        "rep": 4,
+        "seed": "landscape/26x26-expert/4",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "f466197cb310d6ac678f12b183e309d483e58e5c126572d1844f5aa939729866",
+        "newDigest": "f466197cb310d6ac678f12b183e309d483e58e5c126572d1844f5aa939729866"
+      },
+      {
+        "caseId": "26x26-nightmare",
+        "rep": 0,
+        "seed": "landscape/26x26-nightmare/0",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "2c9671fcd9a9561cce05fce2d7ccc500d659e47da1a9ddea497deff9408f3588",
+        "newDigest": "2c9671fcd9a9561cce05fce2d7ccc500d659e47da1a9ddea497deff9408f3588"
+      },
+      {
+        "caseId": "26x26-nightmare",
+        "rep": 1,
+        "seed": "landscape/26x26-nightmare/1",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "7d594bd68183adfc7fb55a55153cb86dd2347130a7b843cb66d1af7e2ed29a83",
+        "newDigest": "7d594bd68183adfc7fb55a55153cb86dd2347130a7b843cb66d1af7e2ed29a83"
+      },
+      {
+        "caseId": "26x26-nightmare",
+        "rep": 2,
+        "seed": "landscape/26x26-nightmare/2",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "c92c220ad9a22ec8eaabc347dd0aa0b9d237b7024928cd7abaffa8f420bb5beb",
+        "newDigest": "c92c220ad9a22ec8eaabc347dd0aa0b9d237b7024928cd7abaffa8f420bb5beb"
+      },
+      {
+        "caseId": "26x26-nightmare",
+        "rep": 3,
+        "seed": "landscape/26x26-nightmare/3",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "f6cbd37084d17859138065feaa9399e5f2ce61324032eb733e8cdbb74dfa4ad5",
+        "newDigest": "f6cbd37084d17859138065feaa9399e5f2ce61324032eb733e8cdbb74dfa4ad5"
+      },
+      {
+        "caseId": "26x26-nightmare",
+        "rep": 4,
+        "seed": "landscape/26x26-nightmare/4",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "82b38527e1766f3be9b8d195be65078e07d872e93f6f20d0b5ca2ecc92903fe4",
+        "newDigest": "82b38527e1766f3be9b8d195be65078e07d872e93f6f20d0b5ca2ecc92903fe4"
+      },
+      {
+        "caseId": "10x10-nightmare",
+        "rep": 0,
+        "seed": "landscape/10x10-nightmare/0",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "3b2e3f1350b10e2e0820788e652fec1ebf1a922789a604176ba7595f8794891b",
+        "newDigest": "3b2e3f1350b10e2e0820788e652fec1ebf1a922789a604176ba7595f8794891b"
+      },
+      {
+        "caseId": "10x10-nightmare",
+        "rep": 1,
+        "seed": "landscape/10x10-nightmare/1",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "27499926b81f49629dbb0a60450026c2f408f75f82d9db23d0b1c3665e9181dd",
+        "newDigest": "27499926b81f49629dbb0a60450026c2f408f75f82d9db23d0b1c3665e9181dd"
+      },
+      {
+        "caseId": "10x10-nightmare",
+        "rep": 2,
+        "seed": "landscape/10x10-nightmare/2",
+        "category": "equal",
+        "oldAccepted": 9,
+        "newAccepted": 9,
+        "oldDigest": "b69a7133a0fd7c2987219995f51a46339b9e4dc36a189bbdbae861c267b5241c",
+        "newDigest": "b69a7133a0fd7c2987219995f51a46339b9e4dc36a189bbdbae861c267b5241c"
+      },
+      {
+        "caseId": "10x10-nightmare",
+        "rep": 3,
+        "seed": "landscape/10x10-nightmare/3",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "8c72386d3c32259e4a5f7d4dc7adbf12e0bf5bdd7cba51e6758285861c069b3e",
+        "newDigest": "8c72386d3c32259e4a5f7d4dc7adbf12e0bf5bdd7cba51e6758285861c069b3e"
+      },
+      {
+        "caseId": "10x10-nightmare",
+        "rep": 4,
+        "seed": "landscape/10x10-nightmare/4",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "49014036d1deeb777ce7b0a10225d471cb26558534d032bbf71408b2a1c51efd",
+        "newDigest": "49014036d1deeb777ce7b0a10225d471cb26558534d032bbf71408b2a1c51efd"
+      },
+      {
+        "caseId": "12x12-nightmare",
+        "rep": 0,
+        "seed": "landscape/12x12-nightmare/0",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "645a17b30d0dcfd3b1d9b6cee7a8c4a1e07ab825a9710ab2a488b2520d7c805c",
+        "newDigest": "645a17b30d0dcfd3b1d9b6cee7a8c4a1e07ab825a9710ab2a488b2520d7c805c"
+      },
+      {
+        "caseId": "12x12-nightmare",
+        "rep": 1,
+        "seed": "landscape/12x12-nightmare/1",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "154c621a89d80e16b9ccd4660b9fb5f307d62491f23762e38c0f6a717378c369",
+        "newDigest": "154c621a89d80e16b9ccd4660b9fb5f307d62491f23762e38c0f6a717378c369"
+      },
+      {
+        "caseId": "12x12-nightmare",
+        "rep": 2,
+        "seed": "landscape/12x12-nightmare/2",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "611ea6010175e0c41ea2913500c36c94aa8e6eee9f81b740049f2d2039bea694",
+        "newDigest": "611ea6010175e0c41ea2913500c36c94aa8e6eee9f81b740049f2d2039bea694"
+      },
+      {
+        "caseId": "12x12-nightmare",
+        "rep": 3,
+        "seed": "landscape/12x12-nightmare/3",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "41985f35b7045cfb67f9d641eade3e32358c3202d28afff9fc2191dd3d2c16c6",
+        "newDigest": "41985f35b7045cfb67f9d641eade3e32358c3202d28afff9fc2191dd3d2c16c6"
+      },
+      {
+        "caseId": "12x12-nightmare",
+        "rep": 4,
+        "seed": "landscape/12x12-nightmare/4",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "0690ff24370ca45fdd4b6a7a277384de2eea0affa7f7890cb16513f407d1cfb0",
+        "newDigest": "0690ff24370ca45fdd4b6a7a277384de2eea0affa7f7890cb16513f407d1cfb0"
+      },
+      {
+        "caseId": "18x18-nightmare",
+        "rep": 0,
+        "seed": "landscape/18x18-nightmare/0",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "bdfd6158318bae63a3374d67a0add3095f407db56d25e54ac4f90e43cdf60b6e",
+        "newDigest": "bdfd6158318bae63a3374d67a0add3095f407db56d25e54ac4f90e43cdf60b6e"
+      },
+      {
+        "caseId": "18x18-nightmare",
+        "rep": 1,
+        "seed": "landscape/18x18-nightmare/1",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "dfaa8a84f05e7be74aa6739d38e0a6d543ae99007cf618b0b9526693fe4f4423",
+        "newDigest": "dfaa8a84f05e7be74aa6739d38e0a6d543ae99007cf618b0b9526693fe4f4423"
+      },
+      {
+        "caseId": "18x18-nightmare",
+        "rep": 2,
+        "seed": "landscape/18x18-nightmare/2",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "3a4438decc55280ba422c993919e6caf5dadc8b2ddf32fa11ec53c218a162954",
+        "newDigest": "3a4438decc55280ba422c993919e6caf5dadc8b2ddf32fa11ec53c218a162954"
+      },
+      {
+        "caseId": "18x18-nightmare",
+        "rep": 3,
+        "seed": "landscape/18x18-nightmare/3",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "392c7e0ea1b5e9a739915e02e09cdf484ff8e68720321bd878c451704b35e2c6",
+        "newDigest": "392c7e0ea1b5e9a739915e02e09cdf484ff8e68720321bd878c451704b35e2c6"
+      },
+      {
+        "caseId": "18x18-nightmare",
+        "rep": 4,
+        "seed": "landscape/18x18-nightmare/4",
+        "category": "equal",
+        "oldAccepted": 10,
+        "newAccepted": 10,
+        "oldDigest": "a6bad1467c0eb86a7c90e6c2c92ec77cc48468b20faea8347d0a6b849d5a57ae",
+        "newDigest": "a6bad1467c0eb86a7c90e6c2c92ec77cc48468b20faea8347d0a6b849d5a57ae"
+      }
+    ]
+  },
+  "memory": {
+    "processLimitBytes": 1610612736,
+    "accountedLimitBytes": 1254096896
+  },
+  "ledger": {
+    "invocations": 4,
+    "countedSeconds": 2244.925,
+    "allowanceSeconds": 2700,
+    "lines": [
+      {
+        "group": "A",
+        "side": "old",
+        "limitS": 900,
+        "nodeSeconds": 482.539,
+        "lockWaitSeconds": 45.173,
+        "quietS": 45,
+        "countedSeconds": 527.539,
+        "killed": false,
+        "exit": 0
+      },
+      {
+        "group": "A",
+        "side": "new",
+        "limitS": 900,
+        "nodeSeconds": 440.116,
+        "lockWaitSeconds": 114.314,
+        "quietS": 45,
+        "countedSeconds": 485.116,
+        "killed": false,
+        "exit": 0
+      },
+      {
+        "group": "B",
+        "side": "new",
+        "limitS": 900,
+        "nodeSeconds": 552.106,
+        "lockWaitSeconds": 395.219,
+        "quietS": 45,
+        "countedSeconds": 597.106,
+        "killed": false,
+        "exit": 0
+      },
+      {
+        "group": "B",
+        "side": "old",
+        "limitS": 900,
+        "nodeSeconds": 590.164,
+        "lockWaitSeconds": 78.205,
+        "quietS": 45,
+        "countedSeconds": 635.164,
+        "killed": false,
+        "exit": 0
+      }
+    ]
+  },
+  "limitations": [
+    "Five requests per cell provide descriptive results only; the nearest-rank p95 is the maximum of the available sample.",
+    "Response medians include partial responses: each side's ten of n stands beside it.",
+    "The landscape profile's diagnostic sampling runs after the T1, T10 and response timing, but it takes invocation time and counts in the whole-process peak memory.",
+    "The order (A old then new, B new then old) reduces one order imbalance but does not cancel temporal drift within a cell."
+  ]
+}

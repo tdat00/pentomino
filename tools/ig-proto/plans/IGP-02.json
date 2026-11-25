@@ -1,0 +1,87 @@
+{
+  "task": "IGP-02",
+  "allocationMinutes": 25,
+  "optionalMinutes": 0,
+  "steps": [
+    {
+      "id": "firewall-snapshot",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "snapshot", "--task", "IGP-02"]
+    },
+    {
+      "id": "tree",
+      "locked": false,
+      "node": ["tools\\ig-proto\\lib\\tree.mjs", "build", "instr"]
+    },
+    {
+      "id": "dry",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 30,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\pm4.mjs", "calls", "--run-id", "dry", "--shard", "all", "--cases", "10x10-nightmare"],
+      "state": "IGP-02\\dry\\calls-all-state.json"
+    },
+    {
+      "id": "calls-small",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 110,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\pm4.mjs", "calls", "--shard", "small", "--cases", "10x10-nightmare,12x12-nightmare,26x26-nightmare,26x26-master"],
+      "state": "IGP-02\\main\\calls-small-state.json"
+    },
+    {
+      "id": "calls-14x14",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 100,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\pm4.mjs", "calls", "--shard", "14x14", "--cases", "14x14-nightmare"],
+      "state": "IGP-02\\main\\calls-14x14-state.json"
+    },
+    {
+      "id": "calls-15x15b10",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 100,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\pm4.mjs", "calls", "--shard", "15x15b10", "--cases", "15x15b10-nightmare"],
+      "state": "IGP-02\\main\\calls-15x15b10-state.json"
+    },
+    {
+      "id": "calls-hell1",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 140,
+      "minHorizonS": 150,
+      "invocations": 1,
+      "node": ["tools\\ig-proto\\pm4.mjs", "calls", "--shard", "hell1", "--cases", "26x26-hell-1"],
+      "state": "IGP-02\\main\\calls-hell1-state.json"
+    },
+    {
+      "id": "screens",
+      "locked": true,
+      "repeatUntilDone": true,
+      "projectS": 680,
+      "minHorizonS": 60,
+      "invocations": 3,
+      "node": ["tools\\ig-proto\\pm4.mjs", "screens", "--shard", "all", "--cases", "10x10-nightmare,12x12-nightmare,14x14-nightmare,15x15b10-nightmare,26x26-nightmare,26x26-hell-1,26x26-master"],
+      "state": "IGP-02\\main\\screens-all-state.json"
+    },
+    {
+      "id": "report",
+      "locked": false,
+      "node": ["tools\\ig-proto\\pm4.mjs", "report"]
+    },
+    {
+      "id": "firewall-check",
+      "locked": false,
+      "node": ["tools\\ig-proto\\firewall.mjs", "check", "--task", "IGP-02"]
+    }
+  ]
+}

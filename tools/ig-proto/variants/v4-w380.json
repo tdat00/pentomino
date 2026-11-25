@@ -1,0 +1,8 @@
+{
+  "id": "v4-w380",
+  "extends": ["v4"],
+  "description": "gen-v4 prototype with a 380 M screen (V4-T02a): W 380,000,000, screenTable w380.",
+  "edits": [],
+  "files": [],
+  "params": { "W": { "default": 380000000 }, "screenTable": "w380" }
+}

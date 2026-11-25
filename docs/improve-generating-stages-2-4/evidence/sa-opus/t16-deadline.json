@@ -1,0 +1,469 @@
+{
+  "script": "docs/improve-generating-stages-2-4/evidence/sa-opus/t16-deadline.mjs",
+  "deadline": {
+    "reserve": 0.6,
+    "setStageCapMs": 46000,
+    "generationStopMs": 115000,
+    "responseBoundMs": 120000
+  },
+  "arms": [
+    {
+      "arm": "fr-frozen",
+      "files": 35,
+      "rows": 460,
+      "valid": 460,
+      "violations": 0,
+      "byReason": {
+        "complete (null)": 449,
+        "other: layouts-not-found": 1,
+        "time-limit": 9,
+        "set:reserve-cut": 1
+      },
+      "maxResponseS": 115.2,
+      "maxRow": {
+        "rowKey": "14x14-hell-1~38",
+        "responseMs": 115161.3443,
+        "acceptedCount": 9,
+        "partialReason": "time-limit"
+      },
+      "atStop": [
+        {
+          "rowKey": "14x14-hell-1~21",
+          "responseMs": 115046.5511,
+          "acceptedCount": 1,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~26",
+          "responseMs": 115130.84310000001,
+          "acceptedCount": 7,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~27",
+          "responseMs": 115086.1459,
+          "acceptedCount": 4,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~30",
+          "responseMs": 115052.12980000001,
+          "acceptedCount": 2,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~31",
+          "responseMs": 115108.2855,
+          "acceptedCount": 5,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~34",
+          "responseMs": 115138.0028,
+          "acceptedCount": 8,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~36",
+          "responseMs": 115041.0093,
+          "acceptedCount": 1,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~37",
+          "responseMs": 115084.55570000001,
+          "acceptedCount": 4,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~38",
+          "responseMs": 115161.3443,
+          "acceptedCount": 9,
+          "partialReason": "time-limit"
+        }
+      ],
+      "perCell": {
+        "10x10-master": {
+          "rows": 5,
+          "maxResponseS": 21,
+          "violations": 0
+        },
+        "12x12-master": {
+          "rows": 5,
+          "maxResponseS": 16.4,
+          "violations": 0
+        },
+        "14x14-master": {
+          "rows": 5,
+          "maxResponseS": 3.5,
+          "violations": 0
+        },
+        "15x15b10-master": {
+          "rows": 5,
+          "maxResponseS": 13.1,
+          "violations": 0
+        },
+        "15x20-master": {
+          "rows": 5,
+          "maxResponseS": 8.5,
+          "violations": 0
+        },
+        "16x16-master": {
+          "rows": 5,
+          "maxResponseS": 5.3,
+          "violations": 0
+        },
+        "18x18-master": {
+          "rows": 5,
+          "maxResponseS": 6.8,
+          "violations": 0
+        },
+        "18x20-master": {
+          "rows": 5,
+          "maxResponseS": 6.4,
+          "violations": 0
+        },
+        "20x20-master": {
+          "rows": 5,
+          "maxResponseS": 5.5,
+          "violations": 0
+        },
+        "20x21-master": {
+          "rows": 5,
+          "maxResponseS": 9.1,
+          "violations": 0
+        },
+        "22x22-master": {
+          "rows": 5,
+          "maxResponseS": 8.7,
+          "violations": 0
+        },
+        "24x24-master": {
+          "rows": 5,
+          "maxResponseS": 14.2,
+          "violations": 0
+        },
+        "26x26-master": {
+          "rows": 5,
+          "maxResponseS": 16.3,
+          "violations": 0
+        },
+        "32x15-master": {
+          "rows": 5,
+          "maxResponseS": 5.8,
+          "violations": 0
+        },
+        "3x29-master": {
+          "rows": 5,
+          "maxResponseS": 2.7,
+          "violations": 0
+        },
+        "6x10-master": {
+          "rows": 5,
+          "maxResponseS": 4.2,
+          "violations": 0
+        },
+        "10x10-nightmare": {
+          "rows": 20,
+          "maxResponseS": 64.2,
+          "violations": 0
+        },
+        "12x12-nightmare": {
+          "rows": 20,
+          "maxResponseS": 37.9,
+          "violations": 0
+        },
+        "14x14-hell-1": {
+          "rows": 20,
+          "maxResponseS": 115.2,
+          "violations": 0
+        },
+        "14x14-nightmare": {
+          "rows": 20,
+          "maxResponseS": 13,
+          "violations": 0
+        },
+        "15x15b10-nightmare": {
+          "rows": 20,
+          "maxResponseS": 23.9,
+          "violations": 0
+        },
+        "15x20-nightmare": {
+          "rows": 20,
+          "maxResponseS": 17.3,
+          "violations": 0
+        },
+        "16x16-nightmare": {
+          "rows": 20,
+          "maxResponseS": 15.9,
+          "violations": 0
+        },
+        "18x18-nightmare": {
+          "rows": 20,
+          "maxResponseS": 16.3,
+          "violations": 0
+        },
+        "18x20-nightmare": {
+          "rows": 20,
+          "maxResponseS": 14.2,
+          "violations": 0
+        },
+        "20x20-hell-1": {
+          "rows": 20,
+          "maxResponseS": 74.9,
+          "violations": 0
+        },
+        "20x20-nightmare": {
+          "rows": 20,
+          "maxResponseS": 15.2,
+          "violations": 0
+        },
+        "20x21-nightmare": {
+          "rows": 20,
+          "maxResponseS": 14.6,
+          "violations": 0
+        },
+        "22x22-nightmare": {
+          "rows": 20,
+          "maxResponseS": 13.2,
+          "violations": 0
+        },
+        "24x24-hell-1": {
+          "rows": 20,
+          "maxResponseS": 69.4,
+          "violations": 0
+        },
+        "24x24-nightmare": {
+          "rows": 20,
+          "maxResponseS": 15.2,
+          "violations": 0
+        },
+        "26x26-hell-1": {
+          "rows": 20,
+          "maxResponseS": 53.4,
+          "violations": 0
+        },
+        "26x26-nightmare": {
+          "rows": 20,
+          "maxResponseS": 18.6,
+          "violations": 0
+        },
+        "32x15-nightmare": {
+          "rows": 20,
+          "maxResponseS": 14,
+          "violations": 0
+        },
+        "3x29-nightmare": {
+          "rows": 20,
+          "maxResponseS": 6.8,
+          "violations": 0
+        }
+      }
+    },
+    {
+      "arm": "fr-frozen-none",
+      "files": 19,
+      "rows": 380,
+      "valid": 380,
+      "violations": 0,
+      "byReason": {
+        "complete (null)": 370,
+        "time-limit": 9,
+        "set:reserve-cut": 1
+      },
+      "maxResponseS": 115.2,
+      "maxRow": {
+        "rowKey": "14x14-hell-1~38",
+        "responseMs": 115171.1951,
+        "acceptedCount": 9,
+        "partialReason": "time-limit"
+      },
+      "atStop": [
+        {
+          "rowKey": "14x14-hell-1~21",
+          "responseMs": 115042.37659999999,
+          "acceptedCount": 1,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~26",
+          "responseMs": 115127.18239999999,
+          "acceptedCount": 7,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~27",
+          "responseMs": 115075.9218,
+          "acceptedCount": 4,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~30",
+          "responseMs": 115056.1991,
+          "acceptedCount": 2,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~31",
+          "responseMs": 115106.7452,
+          "acceptedCount": 5,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~34",
+          "responseMs": 115132.87419999999,
+          "acceptedCount": 8,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~36",
+          "responseMs": 115038.275,
+          "acceptedCount": 1,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~37",
+          "responseMs": 115089.30529999999,
+          "acceptedCount": 4,
+          "partialReason": "time-limit"
+        },
+        {
+          "rowKey": "14x14-hell-1~38",
+          "responseMs": 115171.1951,
+          "acceptedCount": 9,
+          "partialReason": "time-limit"
+        }
+      ],
+      "perCell": {
+        "10x10-nightmare": {
+          "rows": 20,
+          "maxResponseS": 64.6,
+          "violations": 0
+        },
+        "12x12-nightmare": {
+          "rows": 20,
+          "maxResponseS": 38,
+          "violations": 0
+        },
+        "14x14-hell-1": {
+          "rows": 20,
+          "maxResponseS": 115.2,
+          "violations": 0
+        },
+        "14x14-nightmare": {
+          "rows": 20,
+          "maxResponseS": 39.8,
+          "violations": 0
+        },
+        "15x15b10-nightmare": {
+          "rows": 20,
+          "maxResponseS": 60.7,
+          "violations": 0
+        },
+        "15x20-nightmare": {
+          "rows": 20,
+          "maxResponseS": 24.4,
+          "violations": 0
+        },
+        "16x16-nightmare": {
+          "rows": 20,
+          "maxResponseS": 34.9,
+          "violations": 0
+        },
+        "18x18-nightmare": {
+          "rows": 20,
+          "maxResponseS": 44.1,
+          "violations": 0
+        },
+        "18x20-nightmare": {
+          "rows": 20,
+          "maxResponseS": 35.7,
+          "violations": 0
+        },
+        "20x20-hell-1": {
+          "rows": 20,
+          "maxResponseS": 74.8,
+          "violations": 0
+        },
+        "20x20-nightmare": {
+          "rows": 20,
+          "maxResponseS": 27.5,
+          "violations": 0
+        },
+        "20x21-nightmare": {
+          "rows": 20,
+          "maxResponseS": 27,
+          "violations": 0
+        },
+        "22x22-nightmare": {
+          "rows": 20,
+          "maxResponseS": 24.8,
+          "violations": 0
+        },
+        "24x24-hell-1": {
+          "rows": 20,
+          "maxResponseS": 68.5,
+          "violations": 0
+        },
+        "24x24-nightmare": {
+          "rows": 20,
+          "maxResponseS": 28.8,
+          "violations": 0
+        },
+        "26x26-hell-1": {
+          "rows": 20,
+          "maxResponseS": 53.6,
+          "violations": 0
+        },
+        "26x26-nightmare": {
+          "rows": 20,
+          "maxResponseS": 39.1,
+          "violations": 0
+        },
+        "32x15-nightmare": {
+          "rows": 20,
+          "maxResponseS": 33.3,
+          "violations": 0
+        },
+        "3x29-nightmare": {
+          "rows": 20,
+          "maxResponseS": 6.7,
+          "violations": 0
+        }
+      }
+    }
+  ],
+  "live": {
+    "verdict": "pass",
+    "rows": 10,
+    "responseS": [
+      5.6,
+      41.2
+    ],
+    "igSetMaxS": 18.1,
+    "coverage": {
+      "expected": 25,
+      "observed": 25,
+      "missing": 0
+    },
+    "fields": {
+      "live": true,
+      "postHoc": false,
+      "workCutoffMs": 115000,
+      "responseBoundMs": 120000,
+      "reserveChecked": true
+    },
+    "binding": {
+      "kind": "live-deadline",
+      "arms": [
+        "fr-frozen",
+        "fr-frozen-none"
+      ],
+      "acceptedBy": "V4-LIVE"
+    }
+  },
+  "inputs": {
+    "entries": 57,
+    "sha256Lf": "662f28b947ce644fe894a2eeabb28f1050c716979580a04cff7e91a4d5aad617"
+  }
+}

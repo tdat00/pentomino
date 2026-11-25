@@ -1,0 +1,8 @@
+{
+  "id": "base",
+  "extends": [],
+  "description": "The worktree's core/, tools/ and package.json with only the no-git edit of tools/calibrate.mjs (meta-1). Its source digest is the worktree's.",
+  "edits": [],
+  "files": [],
+  "params": {}
+}

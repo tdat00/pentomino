@@ -1,0 +1,120 @@
+{
+  "id": "live",
+  "extends": ["v4-link"],
+  "description": "Frozen family (stages 2 to 4 pack T07a, T07b; plan 4.5, N-V4-13): the live request deadline. With IG.liveDeadline listing the level and the host origin igOrigin, the set stage and the batch share one 115-s clock from the request start, the set stage is cut at origin + setStageCapMs (reserve-cut), and the host returns the accepted prefix by origin + responseBoundMs; inert with liveDeadline null.",
+  "edits": [
+    {
+      "id": "lv-1",
+      "file": "core/browser/worker-pool.js",
+      "find": "    beginRequest({ requestId, revision, onTimeout }) {\n",
+      "replace": "    beginRequest({ requestId, revision, onTimeout, igOrigin }) {\n"
+    },
+    {
+      "id": "lv-2",
+      "file": "core/browser/worker-pool.js",
+      "find": "      const request = { requestId, revision, startedAt: clock.now(), timer: null, onTimeout, ended: false, timedOut: false };\n      request.timer = clock.setTimeout(() => expire(request), TIME.dispatchStopMs);\n",
+      "replace": "      // ig-proto, variant live (stages 2 to 4 pack T07a, plan 4.5): the 115-s clock may start at an earlier reading of\n      // the same clock (the host request's origin, shared by the set stage and the batch); never at a later one.\n      const igNow = clock.now();\n      const igStart = typeof igOrigin === 'number' && Number.isFinite(igOrigin) && igOrigin <= igNow ? igOrigin : igNow;\n      const request = { requestId, revision, startedAt: igStart, timer: null, onTimeout, ended: false, timedOut: false };\n      request.timer = clock.setTimeout(() => expire(request), Math.max(0, igStart + TIME.dispatchStopMs - igNow));\n"
+    },
+    {
+      "id": "lv-3",
+      "file": "core/browser/generation-client.js",
+      "find": "  function begin(revision) {\n",
+      "replace": "  function begin(revision, igLive = null) {\n"
+    },
+    {
+      "id": "lv-4",
+      "file": "core/browser/generation-client.js",
+      "find": "      pool.beginRequest({\n        requestId,\n        revision: tag,\n",
+      "replace": "      pool.beginRequest({\n        requestId,\n        revision: tag,\n        ...(igLive === null ? {} : { igOrigin: igLive.origin }),\n"
+    },
+    {
+      "id": "lv-5",
+      "file": "core/browser/generation-client.js",
+      "find": "    const maxAttempts = options.maxSetAttempts ?? Infinity;\n    const job = begin(input.revision);\n",
+      "replace": "    const maxAttempts = options.maxSetAttempts ?? Infinity;\n    // ig-proto, variant live (T07a): the request's origin and the set stage's cut at origin + setStageCapMs (plan 4.5).\n    const igLive = igLiveOf(input, request.levelId, clock);\n    const job = begin(input.revision, igLive);\n    const igCut = igLive === null ? null : clock.setTimeout(() => job.wake?.(), Math.max(0, igLive.setCutAt - clock.now()));\n"
+    },
+    {
+      "id": "lv-6",
+      "file": "core/browser/generation-client.js",
+      "find": "        while (winner < 0 && inflight.size < size && next < maxAttempts) {\n",
+      "replace": "        // ig-proto, variant live (T07a): after the bound and the ordered scan, the reserve's cut ends the set stage.\n        if (igLive !== null && clock.now() >= igLive.setCutAt) {\n          return { status: 'failed', reason: 'reserve-cut', failures: tally() };\n        }\n        while (winner < 0 && inflight.size < size && next < maxAttempts) {\n"
+    },
+    {
+      "id": "lv-7",
+      "file": "core/browser/generation-client.js",
+      "find": "      for (const c of inflight.values()) {\n        c.abort();\n      }\n      finish(job);\n",
+      "replace": "      for (const c of inflight.values()) {\n        c.abort();\n      }\n      if (igCut !== null) {\n        clock.clearTimeout(igCut);\n      }\n      finish(job);\n"
+    },
+    {
+      "id": "lv-8",
+      "file": "core/browser/generation-client.js",
+      "find": "    const job = begin(input.revision);\n    const frozen = candidateContext(ctx, state);\n",
+      "replace": "    const job = begin(input.revision, igLiveOf(input, levelId, clock));\n    const frozen = candidateContext(ctx, state);\n"
+    },
+    {
+      "id": "lv-9",
+      "file": "core/browser/generation-client.js",
+      "append": "\n// ig-proto, variant live (stages 2 to 4 pack T07a, plan 4.5, N-V4-13): the live request deadline. With\n// IG.liveDeadline listing the request's level and a host origin `igOrigin` (a reading of the client's clock, not\n// later than now), the set stage and the batch share that origin: the pool stops both at origin + 115 s, and the set\n// stage is cut at origin + setStageCapMs with the reason `reserve-cut`. Otherwise null: today's two separate timers.\nimport { IG as IG_LIVE } from '../engine/ig-params.js';\n\n/**\n * @param {any} input The SetInput or BatchInput.\n * @param {string} levelId\n * @param {{ now: () => number }} clock\n * @param {any} [live] IG.liveDeadline by default.\n * @returns {{ origin: number, setCutAt: number } | null}\n */\nexport function igLiveOf(input, levelId, clock, live = IG_LIVE.liveDeadline) {\n  const origin = input?.igOrigin;\n  if (live === undefined || live === null || !Array.isArray(live.levels) || !live.levels.includes(levelId)\n    || typeof live.setStageCapMs !== 'number' || !Number.isFinite(live.setStageCapMs)\n    || typeof origin !== 'number' || !Number.isFinite(origin) || origin > clock.now()) {\n    return null;\n  }\n  return { origin, setCutAt: origin + live.setStageCapMs };\n}\n"
+        },
+        {
+          "id": "lv-10",
+          "file": "tools/bench/runner.js",
+          "find": "  s.t0 = clock.now();\n  try {\n    const set = await client.generateSet({\n      boardRows: caseDef.boardRows,\n",
+          "replace": "  s.t0 = clock.now();\n  const igBound = igBoundStart(s, caseDef, clock, client);\n  try {\n    const set = await igBound.set(client.generateSet({\n      igOrigin: s.t0,\n      boardRows: caseDef.boardRows,\n"
+        },
+        {
+          "id": "lv-11",
+          "file": "tools/bench/runner.js",
+          "find": "      maxActive: caseDef.maxActive,\n    });\n    s.set = set;\n",
+          "replace": "      maxActive: caseDef.maxActive,\n    }));\n    s.set = set;\n"
+        },
+        {
+          "id": "lv-12",
+          "file": "tools/bench/runner.js",
+          "find": "    s.batch = await client.generateBatch({\n      set: set.set,\n",
+          "replace": "    s.batch = await igBound.batch(client.generateBatch({\n      igOrigin: s.t0,\n      set: set.set,\n"
+        },
+        {
+          "id": "lv-13",
+          "file": "tools/bench/runner.js",
+          "find": "      },\n    });\n  } catch (e) {\n    s.fault = e;\n  } finally {\n    s.tDone = clock.now();\n  }\n",
+          "replace": "      },\n    }));\n  } catch (e) {\n    s.fault = e;\n  } finally {\n    igBound.clear();\n    s.tDone = clock.now();\n  }\n"
+        },
+        {
+          "id": "lv-14",
+          "file": "tools/bench/runner.js",
+          "append": "\n// ig-proto, variant live (stages 2 to 4 pack T07b, plan 4.5, N-V4-13): the host's hard response bound. With\n// IG.liveDeadline listing the case's level, one timer starts at the request origin, before the set call, and fires\n// at t0 + responseBoundMs - hostMarginMs: it cancels the client and ends the request at once. In the set phase the\n// response is the set reason `response-bound`; a set that settles later, even one still assembling its pack,\n// changes nothing. In the batch phase the response is the client's prefix snapshot (`client.igPrefix()`, T07b): the\n// accepted prefix with its provenance, seen histories and a pack assembled and validated at once, `partial`,\n// `response-bound`. After the bound the host never awaits the batch, its tasks or its own pack assembly. A result\n// that settles first is returned unchanged; the timer is cleared on every terminal path.\nimport { IG as IG_HOST } from '../../core/engine/ig-params.js';\n\n/**\n * @param {any} s The RunState of the row (its t0 is the request origin).\n * @param {any} caseDef\n * @param {any} clock\n * @param {any} client\n * @returns {{ set: (p: Promise<any>) => Promise<any>, batch: (p: Promise<any>) => Promise<any>, clear: () => void }}\n */\nexport function igBoundStart(s, caseDef, clock, client) {\n  const live = IG_HOST.liveDeadline;\n  if (live === undefined || live === null || !Array.isArray(live.levels) || !live.levels.includes(caseDef.levelId)) {\n    return { set: (p) => p, batch: (p) => p, clear() {} };\n  }\n  let fired = false;\n  /** @type {(() => void) | null} */\n  let onFire = null;\n  const cancel = () => {\n    try {\n      client.cancel();\n    } catch {\n      // the bound must not fail the row\n    }\n  };\n  const timer = clock.setTimeout(() => {\n    fired = true;\n    cancel();\n    onFire?.();\n  }, Math.max(0, s.t0 + live.responseBoundMs - live.hostMarginMs - clock.now()));\n  /**\n   * The phase's promise, or the response at the bound, whichever comes first; never both.\n   * @param {Promise<any>} promise\n   * @param {() => any} atBound\n   * @returns {Promise<any>}\n   */\n  const race = (promise, atBound) => new Promise((resolve, reject) => {\n    let done = false;\n    const cut = () => {\n      if (done) {\n        return;\n      }\n      done = true;\n      onFire = null;\n      try {\n        resolve(atBound());\n      } catch (error) {\n        reject(error);\n      }\n    };\n    if (fired) {\n      cancel();\n      cut();\n    } else {\n      onFire = cut;\n    }\n    promise.then((value) => {\n      if (!done) {\n        done = true;\n        onFire = null;\n        resolve(value);\n      }\n    }, (error) => {\n      if (!done) {\n        done = true;\n        onFire = null;\n        reject(error);\n      }\n    });\n  });\n  return {\n    set: (promise) => race(promise, () => ({ status: 'failed', reason: 'response-bound', failures: {} })),\n    batch: (promise) => race(promise, () => {\n      const prefix = typeof client.igPrefix === 'function' ? client.igPrefix() : null;\n      if (prefix === null || prefix === undefined) {\n        throw new Error('the hard bound found no batch prefix to return');\n      }\n      return prefix;\n    }),\n    clear() {\n      clock.clearTimeout(timer);\n      onFire = null;\n    },\n  };\n}\n"
+        },
+        {
+          "id": "lv-15",
+          "file": "core/browser/generation-client.js",
+          "find": "    const pack = await assemblePack({\n      board,\n      rotation: request.rotation,\n",
+          "replace": "    // ig-proto, variant live (T07b): the test seam of an assembly gate (the option igAssemblyGate); a product or\n    // bench client has none and runs today's path.\n    if (options.igAssemblyGate !== undefined) {\n      await options.igAssemblyGate('set');\n    }\n    const pack = await assemblePack({\n      board,\n      rotation: request.rotation,\n"
+        },
+        {
+          "id": "lv-16",
+          "file": "core/browser/generation-client.js",
+          "find": "    const detail = () => ({ accepted: accepted.slice(), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] });\n",
+          "replace": "    const detail = () => ({ accepted: accepted.slice(), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] });\n    // ig-proto, variant live (stages 2 to 4 pack T07b, plan 4.5): the accepted prefix of this batch as a response,\n    // assembled and validated at once, without waiting for the batch, its pool tasks or its own pack assembly; the\n    // host's hard bound returns it through igPrefix(). The prefix only shortens the answer: fold order is kept.\n    /** @type {any} */ (job).igPrefix = () => {\n      /** @type {any} */\n      const out = {\n        status: 'partial', reason: 'response-bound', accepted: accepted.slice(), made: structuredClone(made),\n        seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues],\n      };\n      if (accepted.length > 0) {\n        let checked;\n        try {\n          checked = igValidatePack(createPack({\n            board: set.board,\n            rotation: request.rotation,\n            pieces: set.pieces,\n            witness: set.witness,\n            puzzles: accepted.slice(),\n            generation: generationMeta({\n              setSeed: request.setSeed,\n              setLevel: input.setLevel,\n              setAttempt: input.setAttempt,\n              set,\n              uniqueness,\n              createdAt: createdAt(),\n              batch: { batchSeed, batchLevel: levelId, batchIndex: input.batchIndex },\n              setOrigin: request.setOrigin,\n              made,\n            }),\n          }));\n        } catch (e) {\n          throw new GenerationError('internal', e instanceof Error ? e.message.slice(0, 500) : 'The pack could not be built', detail());\n        }\n        if (!checked.ok) {\n          throw new GenerationError('internal', 'The generated pack failed validation', { ...detail(), issues: checked.issues });\n        }\n        out.pack = checked.value;\n      }\n      return out;\n    };\n"
+        },
+        {
+          "id": "lv-17",
+          "file": "core/browser/generation-client.js",
+          "find": "    if (accepted.length > 0) {\n      result.pack = await assemblePack({\n",
+          "replace": "    if (accepted.length > 0) {\n      // ig-proto, variant live (T07b): the test seam of an assembly gate; a product or bench client has none.\n      if (options.igAssemblyGate !== undefined) {\n        await options.igAssemblyGate('batch');\n      }\n      result.pack = await assemblePack({\n"
+        },
+        {
+          "id": "lv-18",
+          "file": "core/browser/generation-client.js",
+          "find": "    replayPuzzle,\n    cancel,\n    recycle() {\n",
+          "replace": "    replayPuzzle,\n    cancel,\n    // ig-proto, variant live (T07b): the latest batch's prefix snapshot, or null outside a batch (the hard bound).\n    igPrefix: () => /** @type {any} */ (latest)?.igPrefix?.() ?? null,\n    recycle() {\n"
+        },
+        {
+          "id": "lv-19",
+          "file": "core/browser/generation-client.js",
+          "append": "\n// ig-proto, variant live (stages 2 to 4 pack T07b): the synchronous pack validator of the prefix snapshot (the same\n// result as validatePackSliced, without the host pauses).\nimport { validatePack as igValidatePack } from '../engine/pack.js';\n"
+    }
+  ],
+  "files": [],
+  "params": { "liveDeadline": null }
+}

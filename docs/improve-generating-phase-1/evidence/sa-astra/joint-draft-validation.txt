@@ -1,0 +1,46 @@
+file:///Q:/git/pentomino/docs/improve-generating-phase-1/evidence/sa-astra/joint-draft-checks.mjs:23
+  if (!v) throw new Error(name);
+                ^
+
+Error: P1-01 has one ordered task row
+    at check (file:///Q:/git/pentomino/docs/improve-generating-phase-1/evidence/sa-astra/joint-draft-checks.mjs:23:17)
+    at file:///Q:/git/pentomino/docs/improve-generating-phase-1/evidence/sa-astra/joint-draft-checks.mjs:74:3
+
+Node.js v26.13.0
+Draft-checker correction: match task IDs at the start of rows; dependency cells are not task rows.
+{
+  "status": "draft checks pass",
+  "checks": 30,
+  "inputCount": 52,
+  "digest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+  "proposedComparisons": 30,
+  "proposedTestExecuted": false,
+  "newEngineRuns": 0,
+  "reportSha256Lf": "2bb71cd2a663fcaae8cdb0300465aa77098df63a4465ff4edae125edc4f5546d",
+  "planSha256Lf": "19482559298d422d68e5d37d01d63f41aa1954fee3dd1ea9c615475b35795dc8"
+}
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+Owner instruction c63c553 changed request.md during validation: drafts now use two unmerged PRs; regenerate draft input bindings.
+{
+  "status": "draft checks pass",
+  "checks": 34,
+  "inputCount": 52,
+  "digest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+  "proposedComparisons": 30,
+  "proposedTestExecuted": false,
+  "newEngineRuns": 0,
+  "reportSha256Lf": "257447e48068fa6145536896796bca0d824aeb4cdde4f98fedce5d1e7deecad8",
+  "planSha256Lf": "2046072398338817e8ccfed1e21889601a9e339b9b1da113d3c356f30ef80c78"
+}
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+Joint drafts validated at c63c553: 34 data/syntax checks; 52 input hashes unchanged; five files CRLF/UTF-8 without BOM; npm run check and unchanged-source guards pass. Width-8 test not executed; no new engine run.

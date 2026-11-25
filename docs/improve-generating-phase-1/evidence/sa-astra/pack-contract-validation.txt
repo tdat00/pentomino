@@ -1,0 +1,18 @@
+{
+  "base": "eca0f94717a56de43c52f6cb54d739360670fef8",
+  "tasks": 6,
+  "developerHours": 7,
+  "checks": 263,
+  "inputCount": 67,
+  "nodeTestFiles": 75,
+  "sourceDigest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+  "newEngineRuns": 0
+}
+PowerShell syntax: 9 blocks parsed, no commands executed.
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+Pack final validation: six tasks plus checklist; 263 contract checks; 67 input hashes intact; ten new files CRLF/UTF-8 without BOM; conventions and unchanged-source/plan guards pass; no engine run, commit or remote mutation.

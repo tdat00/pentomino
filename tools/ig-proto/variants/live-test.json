@@ -1,0 +1,10 @@
+{
+  "id": "live-test",
+  "extends": ["live", "w8"],
+  "description": "Test only (stages 2 to 4 pack T07b, T07c): the live deadline on the fixture level 'hard' (tests/fixtures/generation-case.json) with the eight-worker pool limit of w8, for the scripted cases; never an arm, a plan step or a binding's current id.",
+  "edits": [],
+  "files": [],
+  "params": {
+    "liveDeadline": { "id": "deadline-test", "levels": ["hard"], "reserve": 0.6, "setStageCapMs": 46000, "generationStopMs": 115000, "responseBoundMs": 120000, "hostMarginMs": 1000 }
+  }
+}

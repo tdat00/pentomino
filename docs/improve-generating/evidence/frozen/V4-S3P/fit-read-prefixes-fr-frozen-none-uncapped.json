@@ -1,0 +1,1316 @@
+{
+  "meta": {
+    "format": "ig-proto-fit-read-prefixes",
+    "version": 1,
+    "task": "V4-S3P",
+    "label": "frozen",
+    "labelText": "frozen (3fc65f4)",
+    "createdAt": "2026-11-24T01:23:29.261Z",
+    "source": {
+      "label": "frozen 3fc65f4",
+      "sourceDigest": "e181df2cc2e784355345c1a43c6a97800fbfa5e6d139d1b465054fa94204284b",
+      "versions": {
+        "algo": "gen-v3",
+        "policy": "mixed-v3",
+        "rng": "xoshiro128ss-v1",
+        "model": "difficulty-v3",
+        "app": "1.0.0"
+      },
+      "equalsMp12b1Source": false,
+      "kind": "frozen",
+      "frozenCommit": "3fc65f4681a53d3984d9218c15efbf696cc3a1a5",
+      "equalsFrozenSource": true,
+      "firewall": "471ca7e6897dae9b8d42fd34700bfc4358f1e200cb6a690dcc1f34f205efdd89"
+    },
+    "harness": {
+      "harnessHash": "fd37ef4646a72deb084c054edf0d443859d13c4dc949d17d1239d1c33f6383d0",
+      "files": {
+        "tools/ig-proto/lib/budget.mjs": "84a198615646925fb64eb00d0ed23238b827e497a130f3f2dbe31f3f18803d66",
+        "tools/ig-proto/lib/calls.mjs": "e0173ff8975335cb0f2103fd0b8f00cd1793f0de633d3b87f51c587d7d49d20c",
+        "tools/ig-proto/lib/engine.mjs": "316f4d2c3feadd18c971bfaa7baab6c5f8c6991d1f2140e3e30300b1b3a07540",
+        "tools/ig-proto/lib/fake-pool.mjs": "132bd8accf1453b82d1f38a7869c9642c9fc8ac5c645a03b7250c8c2f672813a",
+        "tools/ig-proto/lib/items.mjs": "5b5c020d74053d038b09168be35402f22adaded8e225a59a081300e083455541",
+        "tools/ig-proto/lib/lane-worker.mjs": "6228dda5413bd89ffc86088a96d21fd394dd9ce9185def924951ef89a58fb061",
+        "tools/ig-proto/lib/lanes.mjs": "469fa13f056e5ee7409913e8b2bb269472f99fe7b9c69dfe5806d16abee9a010",
+        "tools/ig-proto/lib/ledger.mjs": "53c2760b88d9f0a83bf1442f61119fbafadcb7225e8ead6e3faadf78baeb777b",
+        "tools/ig-proto/lib/p7-core.mjs": "894999855c24557c9b5bf77cb9ad8158249fe1a5428c9ac527eb16de10d5bfc2",
+        "tools/ig-proto/lib/packs.mjs": "ce449eecb938202e487b9e99c6c153bb897480e38ba475b87f070e26f22559d4",
+        "tools/ig-proto/lib/paths.mjs": "c0e9a057708264a2c6d83f197b18dfaffa327774b93b14fa9af797d08fdf7637",
+        "tools/ig-proto/lib/proof.mjs": "db22a68a3aac1d14f08db9abec1e1f3d114f938ee0c69b9b0beda738fa0a778a",
+        "tools/ig-proto/lib/records.mjs": "80b56021f1ae45189b3b811784c0fefb1bfac1d457cfbd12bc379bb7d3612f9a",
+        "tools/ig-proto/lib/sets.mjs": "23671cfa598ee767f405d18a1d2f8c1f95f9ca0356cbbbcd677b5fbd82050954",
+        "tools/ig-proto/lib/tree.mjs": "c35e4f5509687f2f84f5c008d834b1d70eea141718bbd869dba05155251f3675",
+        "tools/ig-proto/lib/width-worker-test.mjs": "82bff97154cdb13eb08ac5f12ea3cea5bf611deb77c932ebb4e92cb18873276f",
+        "tools/ig-proto/lib/width-worker.mjs": "fbc6c9291267c760d8b16fdea36e4b44364e95b686ed2d2b3cefe20ca2106270",
+        "tools/ig-proto/arm.mjs": "051de0ec22363dc133c483bcbe9ba0b8502cb4a3daade01fee37400d0dba4300",
+        "tools/ig-proto/boards.mjs": "656194b446de6345c5c7ce4b5d136cab4e0acd09d61e062bd3eb0640a986f53b",
+        "tools/ig-proto/budgets.mjs": "39a33e74aebe4b33d419ef9a77abd47d5fe2a37cf6c89188fde60e333b4e7b4d",
+        "tools/ig-proto/compare-r2.mjs": "7e468994174d7fb581763e329e7f36981eadf8dcbc6474aa399c54f81ae58262",
+        "tools/ig-proto/compare.mjs": "fa372834239566783c8faeb866b908701067af1d8b7bffca7736130c57f01983",
+        "tools/ig-proto/firewall.mjs": "cd60483c07622c5137c4b297e6bd1fa8334adedadcf167f6d5ead61cc735ff83",
+        "tools/ig-proto/fit-prior-s3.mjs": "4c6351acc67bdb2353a5335ccf1aae05ca1b40fe3977e9ef8119f921f843c3fa",
+        "tools/ig-proto/fit-prior.mjs": "941b6ac19dab01dea1851b3aa34d952c9adc52e72e249be00185729a9cd6e88a",
+        "tools/ig-proto/fit-read.mjs": "6df34ca93e8bd48295e2d9d06e91cd0db34f94269d1a9fa06f03f4576db4751e",
+        "tools/ig-proto/freeze.mjs": "c1a31c876c9cbd53ff3036c6e3ff341762938dc783874ccfa9bf82cef0a2a957",
+        "tools/ig-proto/identity.mjs": "6a6e554c592e9178a930329625e7fe08a854add6a3668c7f0ff95cccc830df9d",
+        "tools/ig-proto/kernel-probe.mjs": "e8507e3d1cc2873012df429bb908b1545e90ce36c47b3bc70eaf3fa66684d474",
+        "tools/ig-proto/linkage.mjs": "3c0e4acb2ef9b10e49c8a4d57445f0b7c0176c467aa8a86a175a92afbc1ca47a",
+        "tools/ig-proto/live-deadline.mjs": "9a19ad6dc6ff020227df3cc664bba476b2d282e08424782f79d5c55764f65bfd",
+        "tools/ig-proto/manifest.mjs": "e7547558a1172825db6aaac87b0c72d619cf5d864e9477e68e69a32a06cd24e2",
+        "tools/ig-proto/p7-probe.mjs": "8eaf0baff3d073075d3521519cf4b5ec5ec767d7f010eabde2e6e9a8f8091603",
+        "tools/ig-proto/pm1-inventory.mjs": "25a4f82515a20ea41804f7958da4c12aa1779c5f530ea2a2c041663a5e0e05de",
+        "tools/ig-proto/pm1.mjs": "eb5448500ed81ab97ebb92aad040bbaec781d3224587ce60ec9248a59e644177",
+        "tools/ig-proto/pm2-worker.mjs": "4e126db9770ebc7a056643541ce8fed3b82030cccc30b226ef5c343508269215",
+        "tools/ig-proto/pm2.mjs": "4e308b6f85cc2f2d9b1de3c48c929b96c3781c16341e0e558e84b58be8495d92",
+        "tools/ig-proto/pm4.mjs": "9a7cc13d8a98eb104b6c0a534c7eb7ddbbae7972da52b4bbd1cf25090b83bf63",
+        "tools/ig-proto/receipt.mjs": "16b74bb4dfc81f781e288cf111795a2da0d812faed1addc70e55f411698e4506",
+        "tools/ig-proto/run-task.ps1": "999ca9f639ab393651744f149723b7ec850df695418820907d9daecd38f12611",
+        "tools/ig-proto/self-test.mjs": "b2460d0d09a7c3c107ae4fb1727f575fd1714811d31c240ff87816d2209fa493",
+        "tools/ig-proto/snapshot.mjs": "45c1624e0ec8af04069d1ee5b9a3a6fa0a74e989148de80b7df8fffc4209792a",
+        "tools/ig-proto/summary.mjs": "ab5ed7c65f358c6c43d46c89de9554e5bf93badd538611ba6890c6235fa7b5e9",
+        "tools/ig-proto/v4-check.mjs": "16ed282803acf58406a55d15e10f8640256c7cf6befcc8e6e4d3b10c6636dc91",
+        "tools/ig-proto/verdicts.mjs": "6eb4c7c5f2e93e96192800040585a89c6805192f8bf50db87ed1f2b8a326f43a",
+        "tools/ig-proto/verify.mjs": "ea594451955ca2e954e37da38eb53f01a0dddffc1bc2697ae6b27d050ecb5d73",
+        "tools/ig-proto/width-probe.mjs": "5e7fc422a795a758a81ac4a3d968ac0699345844e5430f80f62a28dd920658dc",
+        "tools/ig-proto/data/boards-v1.json": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889",
+        "tools/ig-proto/data/frozen-round-v1.json": "be7428d10b91cdf37a9893d373660a23e2c0deea66427a15db0deafe823b6a4b",
+        "tools/ig-proto/data/git-guard-cases.json": "6280530a5d7635305f68610c3c25d745bd633249f775ad8361f374723854fe5d",
+        "tools/ig-proto/data/p7-memory-fixtures.json": "d196b2e7b360db1635d2b85a4c86ab57b4ba6bb8085d79097ba453ddb0d763d4",
+        "tools/ig-proto/data/prior-s3-v1.json": "536dfd5d70dcdd3fa89f0b18141c161656e5ca968b7a18c52ec218c17cb1e0e1",
+        "tools/ig-proto/data/prior-v1.json": "e7291e5dfafff2a878b50663ac444922fdbf0b6a742153d077350d3895912133",
+        "tools/ig-proto/data/verdict-manifest.example.json": "ffff98ba065c024f9e99f9416cdef046e04243279f3e8d951d749e9cc76aa32d",
+        "tools/ig-proto/data/verdict-manifest.schema.md": "416d4da2749f5f158fae8cfd25929671c7fd7a6e5ff3647f8bef7a0a804eafbf"
+      }
+    },
+    "trees": {},
+    "machine": {
+      "cpu": "AMD EPYC 7763 64-Core Processor",
+      "logicalCores": 16,
+      "totalMemoryBytes": 68665831424,
+      "node": "v26.13.0",
+      "platform": "win32 10.0.26300 x64"
+    },
+    "invocations": {
+      "count": 8,
+      "nodeSeconds": 2177.873,
+      "countedSeconds": 2298.808,
+      "lockWaitSeconds": 120.935
+    },
+    "rerun": "pwsh -NoProfile -File tools\\ig-proto\\run-task.ps1 -Plan tools\\ig-proto\\plans\\V4-S3P.json -Label frozen -SourceLabel <label> -LockHelper <path>"
+  },
+  "arm": "fr-frozen-none-uncapped",
+  "budgets": {
+    "hell-1": 40000000000
+  },
+  "bound": 4,
+  "rows": [
+    {
+      "rowKey": "14x14-hell-1~0",
+      "cell": "14x14-hell-1",
+      "rep": 0,
+      "shard": "pilot-14x14-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 21
+      },
+      "maxSpent": 22396329762,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "14x14-hell-1~1",
+      "cell": "14x14-hell-1",
+      "rep": 1,
+      "shard": "pilot-14x14-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 13447544177,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "14x14-hell-1~2",
+      "cell": "14x14-hell-1",
+      "rep": 2,
+      "shard": "pilot-14x14-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 11120115597,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "14x14-hell-1~3",
+      "cell": "14x14-hell-1",
+      "rep": 3,
+      "shard": "pilot-14x14-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 19
+      },
+      "maxSpent": 20773606422,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "14x14-hell-1~4",
+      "cell": "14x14-hell-1",
+      "rep": 4,
+      "shard": "pilot-14x14-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 21
+      },
+      "maxSpent": 15239602742,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "20x20-hell-1~0",
+      "cell": "20x20-hell-1",
+      "rep": 0,
+      "shard": "pilot-20x20-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 29
+      },
+      "maxSpent": 13848522825,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "20x20-hell-1~1",
+      "cell": "20x20-hell-1",
+      "rep": 1,
+      "shard": "pilot-20x20-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 22
+      },
+      "maxSpent": 7530125603,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "20x20-hell-1~2",
+      "cell": "20x20-hell-1",
+      "rep": 2,
+      "shard": "pilot-20x20-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 21
+      },
+      "maxSpent": 7011736270,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "20x20-hell-1~3",
+      "cell": "20x20-hell-1",
+      "rep": 3,
+      "shard": "pilot-20x20-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 19
+      },
+      "maxSpent": 5387247200,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "20x20-hell-1~4",
+      "cell": "20x20-hell-1",
+      "rep": 4,
+      "shard": "pilot-20x20-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 23
+      },
+      "maxSpent": 5766471369,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "24x24-hell-1~0",
+      "cell": "24x24-hell-1",
+      "rep": 0,
+      "shard": "pilot-24x24-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 3069952976,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "24x24-hell-1~1",
+      "cell": "24x24-hell-1",
+      "rep": 1,
+      "shard": "pilot-24x24-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 18
+      },
+      "maxSpent": 1764178224,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "24x24-hell-1~2",
+      "cell": "24x24-hell-1",
+      "rep": 2,
+      "shard": "pilot-24x24-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 18
+      },
+      "maxSpent": 4495453622,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "24x24-hell-1~3",
+      "cell": "24x24-hell-1",
+      "rep": 3,
+      "shard": "pilot-24x24-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 31
+      },
+      "maxSpent": 4988745331,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "24x24-hell-1~4",
+      "cell": "24x24-hell-1",
+      "rep": 4,
+      "shard": "pilot-24x24-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 22
+      },
+      "maxSpent": 5796242350,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "26x26-hell-1~0",
+      "cell": "26x26-hell-1",
+      "rep": 0,
+      "shard": "pilot-26x26-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 26
+      },
+      "maxSpent": 8530628656,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "26x26-hell-1~1",
+      "cell": "26x26-hell-1",
+      "rep": 1,
+      "shard": "pilot-26x26-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 24
+      },
+      "maxSpent": 5114851075,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "26x26-hell-1~2",
+      "cell": "26x26-hell-1",
+      "rep": 2,
+      "shard": "pilot-26x26-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 17
+      },
+      "maxSpent": 2686333992,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "26x26-hell-1~3",
+      "cell": "26x26-hell-1",
+      "rep": 3,
+      "shard": "pilot-26x26-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 20
+      },
+      "maxSpent": 3798365582,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    },
+    {
+      "rowKey": "26x26-hell-1~4",
+      "cell": "26x26-hell-1",
+      "rep": 4,
+      "shard": "pilot-26x26-hell-1",
+      "publication": "complete",
+      "shardDone": true,
+      "rowStatus": "valid",
+      "identity": [],
+      "complete": true,
+      "unreadable": false,
+      "problems": [],
+      "calls": {
+        "clear": 21
+      },
+      "maxSpent": 6181408514,
+      "affected": [],
+      "potentiallyAffected": [],
+      "ambiguous": [],
+      "bound": {
+        "fires": false,
+        "side": null,
+        "attempts": 4
+      }
+    }
+  ],
+  "summary": {
+    "declared": 20,
+    "present": 20,
+    "missing": [],
+    "unexpected": [],
+    "identityRows": 0,
+    "incompleteRows": 0,
+    "unreadableRows": 0,
+    "ambiguousRows": 0,
+    "affectedCalls": 0,
+    "potentiallyAffectedCalls": 0,
+    "ambiguousCalls": 0,
+    "boundFirings": 0
+  },
+  "inputs": [
+    {
+      "path": "tools/ig-proto/plans/V4-S3P.json",
+      "sha256": "5e6eede7b6920d698ec4b25125b77ee9e9391681337a2aace57c86131c337b8c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1.runs.json",
+      "sha256": "6549cc269efe9416188c16ce1e0440d3adbb9f9ebc1f6c07e81090ea16c22b8b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1.runs.json",
+      "sha256": "1baeaa5dbeb270f21f42f6cee56880f9608d4505072021192b621731fab8a8cc"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1.runs.json",
+      "sha256": "4fa18ba0ac323905d0630437a3f7be9c89b5778021fd1d517c8626a17868e023"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1.runs.json",
+      "sha256": "8aa7595a36fcd9a76ce5c14a01f0dc219db17463e3aa2bf2168b6001bb024edd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/state.json",
+      "sha256": "de5364530a86709df3dcdc6d5e9dbbe99255d96f1fd3ceb91ef4d69a9ebd3fca"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/shard.json",
+      "sha256": "5039872b32ef87e422dedcf0f4ac1943540b9f4e17ed4992c9f54dfe5b8a5de0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.row.jsonl",
+      "sha256": "0006de39592e7d07bab5d5a2786ae2da481f03dd5a9b43182652769f79b732aa"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.1.jsonl",
+      "sha256": "442b3721939d65e4824f4eb868fc6ad01b245a8dd5c4465c324d409db01b9913"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.2.jsonl",
+      "sha256": "2f6912330e285c4e87c99c1ac07fde64e22bf484c1643a1ae2d94da82e186393"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.3.jsonl",
+      "sha256": "68b93f5b485aaba101229bc398e3983349be8676f58bad31b231188b1db7f2fd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.4.jsonl",
+      "sha256": "0ee1b1ba923e767e30c3b7f5c955d65be52b2d656cac4dd33686237ca691dfde"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.5.jsonl",
+      "sha256": "8a57509a317b344e03991f9a6ad8dcabf189599eeeb656e78978774260300c2a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.6.jsonl",
+      "sha256": "fb7850dcea022ffb8a1b9b452219de7a69b90a36b15f90ef2d808f1ac0b06312"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.8212.7.jsonl",
+      "sha256": "6ac48257569c1e977d76b315212d4d80fdc89b656f118efdceed8b526dbc1a8b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~0.link.jsonl",
+      "sha256": "dc8bcd342e516596fc72fbc975d20ea51acbd54a58188fbd35bdedf35320f377"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1.runs.md",
+      "sha256": "2bc6c1876b5c06f8fbe6a7de81edf703125f283537cced091cdefe3be84d0bf8"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.row.jsonl",
+      "sha256": "d7b8f38a4fdf6f3fc1d491df4e5690f62ea2422b087c38eac5ca415a312c1c29"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.21336.1.jsonl",
+      "sha256": "34216ba906b62f7dc2f6181ce0f96bc4c573e26990fde9a2c96dead512a24ae7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.21336.2.jsonl",
+      "sha256": "13334beedeea6064e1f1b71263507c984df53b4c4b4d81137ee15d6bc7c64e69"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.21336.3.jsonl",
+      "sha256": "ec6c208b4338f8eda18905445dadf853b45f0622676cba34a2a8319f92b0d298"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.21336.4.jsonl",
+      "sha256": "e32cda363d62109166c91b6e120c0b62ae1160e96ebe61084540beb96103ed86"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.21336.5.jsonl",
+      "sha256": "c4daf1a4e794acc591ecd4dcd998b91a77515195b8b281662259924ae23b1782"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~1.link.jsonl",
+      "sha256": "20a6d6ea558e0f027744594c90f8abc58cc98103bb68af6faae3db958768d31c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.row.jsonl",
+      "sha256": "8dc5e783cab33eb84303ba3cf19e4ddef00a128272ea6275fefc40195e3e455f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.1.jsonl",
+      "sha256": "d49250ca936ecccbcb404500d2625b1ed8d68392e528a4095b3c45a386e94c5f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.2.jsonl",
+      "sha256": "513825fd34b3dd1b074e4a8dbc907d7361a2eb7c5c56562954e9586d492e3e6f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.3.jsonl",
+      "sha256": "da37c225c8ca873871ac2d8bfe81b4476e87e2fce43a33dab62128aeaaddbc3b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.4.jsonl",
+      "sha256": "6dfea0442e61e0f4edd37bad465ae2633b38b111c5eb433c1d84978d5adeb240"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.5.jsonl",
+      "sha256": "aec2f0d7ec97e9572b1a5f60cb25c2f8624bc2b65651bd513d781969f019de5b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.7908.6.jsonl",
+      "sha256": "3eb5b70d07bcf979b3334b62b0e18b066bfae7ed927c34b2fcb5d281aa3da53e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~2.link.jsonl",
+      "sha256": "56db77e79ca6895f1c80154924284a0faae9b0d38ed4e36496c141a702789b10"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.row.jsonl",
+      "sha256": "6fdfb4916208be2abcc8d63f3658e9df8febc772b7ea6eb3791baf59e7178149"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.8312.1.jsonl",
+      "sha256": "3786f504505c02b2e39c78b09feb5d49eeae91011b8927d0e39e63bd78f14f12"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.8312.2.jsonl",
+      "sha256": "7a36e016f5142fc63b0095b4d9c918a82f7a149e2b04ed84fa883fdfa047bd8a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.8312.3.jsonl",
+      "sha256": "4f459e1e423cafbf4b265f73e167ef04cf7f54f5e9e64c758c835f94b62d80d9"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.8312.4.jsonl",
+      "sha256": "14b2fd48f73628d00ee03e8de49e01300a76b8cad3d513b220348684800dbe1e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~3.link.jsonl",
+      "sha256": "759700f3a1bea8d5b5b27e29a7f235b01f8a1d6a3b88689a14f6c071a2fadcbe"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.row.jsonl",
+      "sha256": "aee5202ee8c50e8d1de611659f3e60aff6fad730db94739a6c180608dc926e17"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.20980.1.jsonl",
+      "sha256": "d5f0ecae7cece8f3d8a6928e1985f14a6a02d2f931dbaa68da667750e2bcb3e7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.20980.2.jsonl",
+      "sha256": "f22465d3f39a3f730e6b8a60158c81571d552e066a62bc6a20671c842d8333ac"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.20980.3.jsonl",
+      "sha256": "f05316eb305ba545dab7bed6ca0c112b000fadcacd075422339ad0bbc0b964cd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.20980.4.jsonl",
+      "sha256": "121d7dfc6ca0679cb70e47056741fa55f289125f7a4f3f02fe4d22d46355bce5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.20980.5.jsonl",
+      "sha256": "3618d5f08f60588ea57c38f9ffc898876d96e0c410c98c0d813142a15f937a5d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-14x14-hell-1/logs/14x14-hell-1~4.link.jsonl",
+      "sha256": "d43c3dbf8948f31f7ac481f42efe35f4d3e8c3880d78216cf280b81505d9219c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/state.json",
+      "sha256": "2da2df10274554fb7e8243e08aef144b8bf06cc2df72a55bb28325f6cf6ce41f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/shard.json",
+      "sha256": "fb9e842c9ec272a76f0d28332f8f45b476fced4132f5b373abb659ca84d451cd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.row.jsonl",
+      "sha256": "7feb0d58af6f03945e9e32f6671bea26ffcce6e32d200e01be403f08efc9b3cc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.14532.1.jsonl",
+      "sha256": "33cf2932c7ced5b697bb228ff99a1dd8f993602cc4161bc9af0cc0f2fec41e61"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.14532.2.jsonl",
+      "sha256": "035228076ed76dba0152d550c4865499f15d193074f6a14e68f3fb206a192169"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.14532.3.jsonl",
+      "sha256": "92db333df76d1af510650e6d71848f89c30e35c6800b016ae278d775596a3911"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.14532.4.jsonl",
+      "sha256": "f503d0118b539c9cb3979022564d42129dd74a34bd01d505d04c19556b3036f2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.14532.5.jsonl",
+      "sha256": "b06bc4013968979ab8339ee34c5a2c43934dd0005afd1e315e8ca771d8ef03fe"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~0.link.jsonl",
+      "sha256": "e8df0642b690dc7664a22fcd0628ec79e219e751a509996e113d5e13f0b928b5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1.runs.md",
+      "sha256": "2535000e8a3baa9ef1f793f2565f4d475a42a66a1f204484a2729664ace6a114"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.row.jsonl",
+      "sha256": "2bec7c64480f3ce06b1180c236327923a24520d1c3b1249200e5f95304eef951"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.1.jsonl",
+      "sha256": "e723cabc856e1c70302af14453a177452ce5029d1da12f003598a0db210acb69"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.2.jsonl",
+      "sha256": "c54b83b14bc9d0eac18649c78c7e480267eaae099d09d6a556438270053853a6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.3.jsonl",
+      "sha256": "63b94ab7542b666f78fb60a3bc9c4a54841a4c9f42b963f93c856fe6b9599759"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.4.jsonl",
+      "sha256": "54e1473b4469878db62c22fc9bc2ee13e6987a8063a292b0fef3438f9d40fac4"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.5.jsonl",
+      "sha256": "45ae5638c411814879c3071b2b4b9e3ab4349988feb06944f50e9690092d48d1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.7644.6.jsonl",
+      "sha256": "ebbbef2b5240819014e6a3313efeff18d13c16c569c2265c5cb78ba10bee85b9"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~1.link.jsonl",
+      "sha256": "3918eacf4ec55b6644ee4f34c527b51b698c17ef7383c29caa582717d6dcff55"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.row.jsonl",
+      "sha256": "1bebb410790fac6cc0c839c73c3f65e35e2097e3d02168de3415dc901560b083"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.18532.1.jsonl",
+      "sha256": "9ba6137a99d4114daaef76da4f9ae7a654e3a3568fa3a7dad65fb76a35ed05a1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.18532.2.jsonl",
+      "sha256": "ea6a530a09dc627c232d48d3e8641e49d9448c01325136a21f4671903d4bf030"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.18532.3.jsonl",
+      "sha256": "c4164b3f9816dcea2d90a99084f50985bb9a10ca738b9a7c7e410e454f861117"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.18532.4.jsonl",
+      "sha256": "9e90500f5bce5c404d506c26ec712515ef06e05d9ff9faa6739a2be129c508cd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.18532.5.jsonl",
+      "sha256": "c10edc193b39646bc074252f5f1a50ba598b7a836c3745499d4f6157a48946a5"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~2.link.jsonl",
+      "sha256": "15301aa63e302b4757214cc882cecac3e36a8bded8c7dc1f8c23f65c226dedac"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.row.jsonl",
+      "sha256": "c4cc94d995a5085ec5bbcdc7cccb31419c87906194587a46f53396349fea5fe3"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.1.jsonl",
+      "sha256": "09f82e71563dfe8e9f5ef4f9dd7b7f1ac5ef2c756bca82ee52c6dc9144f628fe"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.2.jsonl",
+      "sha256": "da1b414ff924c6f0cc6eda0e82aedbc8b9e16e5ee9ec4964873f2a5e3d74fcbc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.3.jsonl",
+      "sha256": "1aa922bb03b9dec8e649deaa696744af7730e8064880a4acc5ed5478a0c3683a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.4.jsonl",
+      "sha256": "ac6fc953bb3ba3f35b0762ebe5cd8cfa37f0734208ddf70ab3c9c50432bd8890"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.5.jsonl",
+      "sha256": "eae68ae42ad23cd429b6f4995b2ef207d98c57c2a2e09b747b4bcda7c70547b2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.6.jsonl",
+      "sha256": "f8bb1ace9aaa44a9421bed3b0ae7d32b4527d8df8f74ec75a5c16af1a099d87a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.25188.7.jsonl",
+      "sha256": "f3f94218a508295e9ff536fb1f73b484e6b085d8da1f81475409b9925ba962f7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~3.link.jsonl",
+      "sha256": "7be1c7d079a35b9b62260c804385db820165e158e83a2d12ec2ee58720d7f82e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.row.jsonl",
+      "sha256": "4eea0ae8a03e696b444cbaa878648a46018efb2aab1f683a3d1859f068be7fe7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.1.jsonl",
+      "sha256": "9b00bc59009d98e6bd851afe36f5ad33645a9ee2893cb01404ab67642ea17750"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.2.jsonl",
+      "sha256": "6488d19764a9db7b071a57dbd78e864726d6e9c2270956b845d5440a8d9fd7ef"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.3.jsonl",
+      "sha256": "790ca7dc54e39de128130cd229005f1f63ec0cbe8600b104dd3aecc5418b68aa"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.4.jsonl",
+      "sha256": "b9804b4c81f62f4b7822dfffa37df6a3962ff1efb76bdd858f445ba20bbe5fa1"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.5.jsonl",
+      "sha256": "20571b49dac80409736e6be5d478fa66f575ff7c0d0a6fddf85e05035b1c7a20"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.6.jsonl",
+      "sha256": "0deb7bf9f374ddae733d9a392a528f5f1d4690f70800f37b2b3b9adbacc8ccfe"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.5852.7.jsonl",
+      "sha256": "593c92dcbe5c62eaa415f694633195929f5be1164086ef348aab99a5c7a786be"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-20x20-hell-1/logs/20x20-hell-1~4.link.jsonl",
+      "sha256": "5f5f6b5e11300ec34bc97f73a183d2cce55ab972586f95c9c78c2c06dfcc559e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/state.json",
+      "sha256": "cb620c593d6da5b4b575a2ade44ff98a243c950427cf6b11fe4e0bb7eddbde5d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/shard.json",
+      "sha256": "3d4303bb5066f608f96ea7fd3e0ab2f2a1c39b7fcca2011e5dc028dafc168c80"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.row.jsonl",
+      "sha256": "202d49fa871cc0594d34e8c8b8f2e5c95d71b027830561d0f8653a6b7a94a121"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.16604.1.jsonl",
+      "sha256": "8d35c04761a961f75b404724bc17151c4746a9698e7c57ab70daaa09dc294ab7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.16604.2.jsonl",
+      "sha256": "7b890bc94f15ac884964f94ee70d8a7d9e25cb83c41f6ba31f074aa463ba32f7"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.16604.3.jsonl",
+      "sha256": "f22208da85df871b518cdea2c4815a4acf599e49b4186bbc817df9ee29601035"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.16604.4.jsonl",
+      "sha256": "3f8c0a55427caebfa59f31ca2bc2dd6fbaefcd99593c9a63534706afbea51843"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.16604.5.jsonl",
+      "sha256": "784642af59c41186cead9aa33c0c21821a976185951270b30a44fb91b722e57c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~0.link.jsonl",
+      "sha256": "a7246ff27a616e766a8dd8517ddcbda90245e5473bc09a098e1076256eca2092"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1.runs.md",
+      "sha256": "39d900850f665465a89c027c746a7fa6601d09b460387ae4da6ad4b93acf531b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.row.jsonl",
+      "sha256": "20fc87e7fa6aa952fe6de2fdb82f43238a07b8486bffd58020e4e85b7cde1bde"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.1.jsonl",
+      "sha256": "2056a09bba041295804723628b7095ed042d965952e69e67c13435310764702c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.2.jsonl",
+      "sha256": "f9151e1f41c80054588f807e6aaf1a813ec3a445ce16bb21124d01086cfc767f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.3.jsonl",
+      "sha256": "7ee5e7f53ad2fbef3094b883a05ae6a818767ead9777c5617d3f36dabaef3791"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.4.jsonl",
+      "sha256": "32b9986a3e5144b8e11d20aa5be3baff1c76cac96ed782d485710212a25fce82"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.5.jsonl",
+      "sha256": "a1fe275aecaf59893e7adfac80ed94018effab1e857613c97d4074edc80d71ec"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.15520.6.jsonl",
+      "sha256": "d734af78a43110929ca2e2b14ebb006764887655355b97f3927ae79bd4a3ba79"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~1.link.jsonl",
+      "sha256": "d4aceffd98182881da163321c9ed6aed688bade58a434f8151d68e3ad141a161"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.row.jsonl",
+      "sha256": "6dbc25f1fbbd285c5aa79b44b5ec4e32fa4825fa46df0682378c8f11e71b1952"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.1.jsonl",
+      "sha256": "764e71b5df898f1e72d77ebf12b58d8aa0c40c52451d3038b5b7b7f3d3efbd7c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.2.jsonl",
+      "sha256": "3b654e7d740a05dfd6decdd650241f9bf45c717b6583ad0e592837f0c8efdcde"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.3.jsonl",
+      "sha256": "904f86f2454cd8563791480e81caed08f005196e187a5d3569babc16a69cc822"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.4.jsonl",
+      "sha256": "ec6a6501a3c178968524ae41a9d31594dea5285753eed36c04c37db62305fdf2"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.5.jsonl",
+      "sha256": "ecef080f127f7005126875a2e1e470e022bb8493cb95d48876f19ed45f95f713"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.6080.6.jsonl",
+      "sha256": "9ec89a49f2ab77ed1f61e77baf76a785e9eafe1dd7cc9ae4559fe0c46e291756"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~2.link.jsonl",
+      "sha256": "be7679d51a8ccfde6a54a6beb3cb5fba4e14e35dfa6cc72bc098a5943781d39e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.row.jsonl",
+      "sha256": "aa5b58484d0fc1a9b59cc4a3b6e6c892bb7d88ec00bfcaf5e1ac1824c9cf4fda"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.1.jsonl",
+      "sha256": "fc8f5e032c54b09d3f7054b570dfefc26c505a171cca173f244499aa6975348a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.2.jsonl",
+      "sha256": "c6ee095161063783019b47c8342a741dd62cc787b25400ccad1803698e4a7792"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.3.jsonl",
+      "sha256": "5353dd0c7d0fe4886cba1751087408f14d9af0021007c4c7e54d48c89a141194"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.4.jsonl",
+      "sha256": "d1bb12af4876ec25fca661cd6c8cfda548a0257edf3fdba9d7af9c2afcd355dd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.5.jsonl",
+      "sha256": "697656eacd276bae5decefc1faaff55eada15faa9b83a953ed5f292445fa8e52"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.6.jsonl",
+      "sha256": "98f7bc0d3b3cb0244cbf948afa670d1a28a42c3927c86e8de79e468da863e18d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.24412.7.jsonl",
+      "sha256": "a3f71846ac7537e8c6d47b1a6e9539a5022f19c1cbbd08f40e7bb4bbd0cc63e4"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~3.link.jsonl",
+      "sha256": "42abf9f3f0edc941de3d46e90089e3f49cfe3b582ac31ec555f57f2bbbd0f385"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.row.jsonl",
+      "sha256": "32fdc9bd562140faaf57d153d0e83a9ec23806feaf113036edf6daa28f47ae13"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.10796.1.jsonl",
+      "sha256": "60fc0588bca8f743c9d780187f957386690c511c041064564b3f9d84e4c2fc99"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.10796.2.jsonl",
+      "sha256": "a4c50a6805f6f57a0cd006b732b88df561d739421434408ea3f9d79b3273db03"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.10796.3.jsonl",
+      "sha256": "e5c5da9e663f90e3fdbb38a2e90a1963bafe623a45494ef565ac93a6a028359e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.10796.4.jsonl",
+      "sha256": "429acf17758afdd2a40ce14b3f11ac32e0857bbb35870cbff6c57539d4790253"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-24x24-hell-1/logs/24x24-hell-1~4.link.jsonl",
+      "sha256": "395c54bfbc1d1a57a72707bd5d7afb1cbd5d270e74340875f6787843f95e0d2a"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/state.json",
+      "sha256": "2fdaa87e0b89bd15c399787f8bda633cccf04555da3aee02ed7d208665b56892"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/shard.json",
+      "sha256": "58702ab96e84491601d12f1d43d50c3648d1c4252a2ce6df6b4f661ea5603e7c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.row.jsonl",
+      "sha256": "39b96c4b1659ade2156be291ef97bb5aadf0add5f60ff9ceedfe5d58e6d04b1f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.1.jsonl",
+      "sha256": "badecb89364f7a9a8662997b8fc720d1bb50f16d2271e6d2eb81fef4693ffa42"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.2.jsonl",
+      "sha256": "4ae3eaa627b11d568cd3b409e0ae53105a0379f9119aba9eb92855c3c80ce585"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.3.jsonl",
+      "sha256": "f82ba8bcc873106adcdbc013e00f03afe44ed19844d278cefe8ef1b19e92e509"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.4.jsonl",
+      "sha256": "fa75d0b89d39965645b233088cf6ab637199275d3598e366a746887c768edd13"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.5.jsonl",
+      "sha256": "076ad8f5349c706cbcdf851088a2f6404f9f73cfee05ffba64363cf77ec9351f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.6.jsonl",
+      "sha256": "b9f0288d9a9e67c91bea74cbe3f8d6d06db2166f43dc1ee431dd091eeecfff08"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.8096.7.jsonl",
+      "sha256": "4ba98b54a26461840f83d52337cdf25bde5c9c84e6fc2d2c6aa2e9f9442ab6fc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~0.link.jsonl",
+      "sha256": "1d84901774da6777f509bd2d60e7ab0744cf7f8919dc7c52e103162d4d2fbbdf"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1.runs.md",
+      "sha256": "85c73522e9aca4c5648bfe19e9c81446dde4b888be72e289daff3388c2afd8db"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.row.jsonl",
+      "sha256": "6bb4b7bb5d4236e7c9028fc6b426578fcd0e21278748b8bfdfc6020a8e3b2971"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.1.jsonl",
+      "sha256": "db740519c0a1da55f309c0c591b1f47376b1a51975b14f82d537cd0d760ac12d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.2.jsonl",
+      "sha256": "b88c8091bbcf37d1ace0ed417ec9edb952e311d9e9601bc89bf2b614a654500e"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.3.jsonl",
+      "sha256": "14ce3050120a402de2ecd1d0dde4cd91bf616ec5fc937bc6f2d829fccb9fe2be"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.4.jsonl",
+      "sha256": "12e11406296b58cab00c16a778f40fbb795e02a95ef6e6fd1632ebb2a61fadc0"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.5.jsonl",
+      "sha256": "c96f01e5a22394c8f341642ade5a12d8192863a14946fcdfa3363c3e6d20394f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.2384.6.jsonl",
+      "sha256": "0612e7e9f3c19b1e8044f6f8dd270c06daf3564667d2457d23286706d8bba2ca"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~1.link.jsonl",
+      "sha256": "ad8c9b800eed98b9feaabb619b0cd25363aa278455b8a226a8fc8ceba2404d35"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.row.jsonl",
+      "sha256": "075da93c83cecde10e19ff28c02b246e5f8cb2d4126bf1a2764503c17ab13ffd"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.1.jsonl",
+      "sha256": "36318267387e8aeba47113b128f8a9ed86652cde8fc494943c6f5af48eba0824"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.2.jsonl",
+      "sha256": "2094ee0aae8351db61d63608824a5a5b5f0fd1cdf53cb0ddd652b43e3421926b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.3.jsonl",
+      "sha256": "2f0acffcf617bf3d097096c63462a6c9d1709dfda4f4f1e74475aff0fa228c24"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.4.jsonl",
+      "sha256": "2ed190c95e008f2ef3f6019b5e4e7e3a2f26b0e1e876ff3c5a7fc437f53795e6"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.5.jsonl",
+      "sha256": "2283c0b1c64ecfc60722e1459135c9b867cc4d7c6c622750d7f9cfa53dccde05"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.4504.6.jsonl",
+      "sha256": "584eac472cc0de2e258fc9e8ee1e82784a1e11486341b97dceff7a8143f22f6c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~2.link.jsonl",
+      "sha256": "25b8dedc09c9883c32f60572d09184a8bfefac255fe36d65545af2cb48139e91"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.row.jsonl",
+      "sha256": "090907bfcfd0b53af86e57c02f1690a674b6ade6354ebc8213df34e7aae9f207"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.1.jsonl",
+      "sha256": "98371dbd5f40ecd0bbc8d4865b2664dc486fbc645e6a3e66ae5bc36da05a9151"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.2.jsonl",
+      "sha256": "0f1e991db1f92d025f5ab7f48745fa8b757502ee795b4b2683dd29711f548039"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.3.jsonl",
+      "sha256": "1e8619987d81d8f72c28d777fa477aed584c7c94a452d20457c98f1e2ffe418d"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.4.jsonl",
+      "sha256": "568d8e6524f12a5204c9ed1c3cfc957bf2a8be482124aa9e23bdd3aa468e3229"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.5.jsonl",
+      "sha256": "44b7411d829e3efac1ad5b529837da6ec4eb051b49a46cf077e49b28eb897b65"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.6.jsonl",
+      "sha256": "ae7f4df2e9a73f8bca4ec88cbd53fafa83c968f2bd8b4d096dc3b7dc18b3b90b"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.21440.7.jsonl",
+      "sha256": "9d9190a4016b61b0c86c45238c9018f31c95fc5a6a94cc4744190e52897a9162"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~3.link.jsonl",
+      "sha256": "524e2af9544d7283c0b5b3172f3594f2921f8b2328376a52e22e21d28c169248"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.row.jsonl",
+      "sha256": "57ea10959be7bfbb199004be207815654af284225e777c97e4d0b5519e6c8c02"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.24084.1.jsonl",
+      "sha256": "7a2c1f4df3acff0891c8aadc5e19ffe1f01a7b7686cc74116cacf0dce3c1fd19"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.24084.2.jsonl",
+      "sha256": "2a577993447f16baf07661440db4a4a20e25acada2824b9e09e6024c3539bbcc"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.24084.3.jsonl",
+      "sha256": "1dc0bcb8f393bfa7ff1966c297f3a8dfbb07926b0aca12b682535f6c0abbb45f"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.24084.4.jsonl",
+      "sha256": "57c3033dd25037f8a1464c3daa906ac84e55aaa0af83d1dad450b90ec92d2b8c"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.24084.5.jsonl",
+      "sha256": "5795716bfcb8b03ad9a6705fb2c028f9ce8c4f2b1dce355dc87b209799e93356"
+    },
+    {
+      "path": "tests/artifacts/ig-proto/frozen/V4-S3P/fr-frozen-none-uncapped/pilot-26x26-hell-1/logs/26x26-hell-1~4.link.jsonl",
+      "sha256": "ccc34d7de085693ec8d794fdcd8f59479d4e268df12ac8c29a9481d40ed65728"
+    }
+  ]
+}

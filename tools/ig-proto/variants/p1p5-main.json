@@ -1,0 +1,8 @@
+{
+  "id": "p1p5-main",
+  "extends": ["p1p5"],
+  "description": "The prototype with the main-run screen limits (D-IG5): 190 M for Master and Nightmare, 380 M for the Hell levels.",
+  "edits": [],
+  "files": [],
+  "params": { "W": { "default": 190000000, "hell-1": 380000000, "hell-2": 380000000, "hell-3": 380000000 } }
+}

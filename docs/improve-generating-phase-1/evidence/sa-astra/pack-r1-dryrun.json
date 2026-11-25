@@ -1,0 +1,230 @@
+{
+  "base": "eca0f94717a56de43c52f6cb54d739360670fef8",
+  "scope": "Literal command validation only: copied/renamed old logs and synthetic focused data, not a qualification or a test run.",
+  "engineInvocations": 0,
+  "remoteMutations": 0,
+  "parsedPowerShellBlocks": 23,
+  "dotNetBefore": "Q:\\git",
+  "relativeBefore": "Q:\\git\\docs\\improve-generating-phase-1\\evidence\\verification\\index.json",
+  "relativeAfter": "Q:\\git\\pentomino\\docs\\improve-generating-phase-1\\evidence\\verification\\index.json",
+  "illustrativeNodePlusQuietSeconds": 531.529,
+  "illustrativeFiles": 15,
+  "stagedSiteFiles": 120,
+  "checks": [
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\check-list.md #0",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\check-list.md #1",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\check-list.md #2",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\check-list.md #3",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\check-list.md #4",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\check-list.md #5",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-01-source-bound-adoption.md #6",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-01-source-bound-adoption.md #7",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-02-fold-width-eight.md #8",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-02-fold-width-eight.md #9",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-02-fold-width-eight.md #10",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-03b-current-qualification.md #11",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-03b-current-qualification.md #12",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-03b-current-qualification.md #13",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-03b-current-qualification.md #14",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-03b-current-qualification.md #15",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-04-readiness-and-pr-description.md #16",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-05-publish-phase-one.md #17",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-05-publish-phase-one.md #18",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-05-publish-phase-one.md #19",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-05-publish-phase-one.md #20",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-05-publish-phase-one.md #21",
+    "PowerShell block parses: tasks\\improve-generating-phase-1\\P1-05-publish-phase-one.md #22",
+    "Expected literal block boundaries",
+    ".NET directory synchronized to repository",
+    "Relative .NET output resolves inside repository",
+    "G-PROTECTED passes on untouched assigned tree",
+    "Reject: G-STAGE rejects the unedited base tree",
+    "G-STAGE line checks pass on the edited scratch copies",
+    "Git confirms exactly two test-line replacements",
+    "Git confirms exactly one specification-line replacement",
+    "One historical helper line for full-node26",
+    "One historical helper line for fixtures",
+    "One historical helper line for replay-case",
+    "One historical helper line for full-node22",
+    "Both renamed cases present in the copied log",
+    "Block C computes 531.529 illustrative seconds from old logs plus the 40.5-s synthetic focused result",
+    "Block D cleans its owned staged site",
+    "All 15 generated example files pass strict G-FORMAT",
+    "Static site has the 120 tracked files",
+    "Actual log versions retained, including the focused runtime",
+    "Index fields and evidence cardinality round-trip",
+    "Reject: missing pass line",
+    "Reject: duplicate pass line",
+    "Reject: missing selected case",
+    "Reject: selected case skipped",
+    "Reject: wrong Node major",
+    "Reject: empty output",
+    "Reject: nonzero helper",
+    "Reject: short quiet",
+    "Reject: overlong gate",
+    "Reject: duplicate helper status",
+    "G-QUALIFIED raw-hash loop accepts unchanged example bytes",
+    "Reject: Raw-hash loop rejects an LF-only rewrite with identical text",
+    "Reject: LF-only format",
+    "Reject: Markdown hard-break whitespace",
+    "Reject: missing final newline",
+    "Reject: BOM",
+    "Reject: invalid UTF-8",
+    "Publication footer survives the required CRLF file round trip",
+    "Publication body passes strict format check",
+    "Input unchanged: tasks/improve-generating-phase-1/check-list.md",
+    "Input unchanged: tasks/improve-generating-phase-1/P1-01-source-bound-adoption.md",
+    "Input unchanged: tasks/improve-generating-phase-1/P1-02-fold-width-eight.md",
+    "Input unchanged: tasks/improve-generating-phase-1/P1-03b-current-qualification.md",
+    "Input unchanged: tasks/improve-generating-phase-1/P1-04-readiness-and-pr-description.md",
+    "Input unchanged: tasks/improve-generating-phase-1/P1-05-publish-phase-one.md",
+    "Input unchanged: docs/improve-generating-phase-1/evidence/sa-astra/pack-r1-dryrun.ps1",
+    "Input unchanged: docs/improve-generating-phase-1/plan.md",
+    "Input unchanged: tests/generate.test.js",
+    "Input unchanged: docs/design-detail.md",
+    "Input unchanged: tools/check-conventions.mjs",
+    "Input unchanged: docs/improve-generating-phase-1/evidence/sa-opus/p1-full-node26.log",
+    "Input unchanged: docs/improve-generating-phase-1/evidence/sa-opus/p1-full-node22.log",
+    "Input unchanged: docs/improve-generating-phase-1/evidence/sa-opus/p1-fixtures.log",
+    "Input unchanged: docs/improve-generating-phase-1/evidence/sa-opus/p1-replay-case.log",
+    "Input unchanged: docs/improve-generating-phase-1/evidence/sa-opus/p1-verify.log",
+    "No tracked production, tests, plans or old evidence changed"
+  ],
+  "negativeCases": [
+    {
+      "case": "G-STAGE rejects the unedited base tree",
+      "message": "QUESTION: G-STAGE: "
+    },
+    {
+      "case": "missing pass line",
+      "message": "QUESTION: docs\\improve-generating-phase-1\\evidence\\sa-astra\\pack-r1-scratch\\fold-width8\\run.log lacks exactly one '# pass 2'"
+    },
+    {
+      "case": "duplicate pass line",
+      "message": "QUESTION: docs\\improve-generating-phase-1\\evidence\\sa-astra\\pack-r1-scratch\\fold-width8\\run.log lacks exactly one '# pass 2'"
+    },
+    {
+      "case": "missing selected case",
+      "message": "QUESTION: docs\\improve-generating-phase-1\\evidence\\sa-astra\\pack-r1-scratch\\fold-width8\\run.log lacks exactly one match of ^\\s*ok \\d+ - pool sizes 1-4 and 8 with shuffled completion orders agree on fixture-set-0$"
+    },
+    {
+      "case": "selected case skipped",
+      "message": "QUESTION: docs\\improve-generating-phase-1\\evidence\\sa-astra\\pack-r1-scratch\\fold-width8\\run.log lacks exactly one match of ^\\s*ok \\d+ - pool sizes 1-4 and 8 with shuffled completion orders agree on fixture-set-0$"
+    },
+    {
+      "case": "wrong Node major",
+      "message": "QUESTION: docs\\improve-generating-phase-1\\evidence\\sa-astra\\pack-r1-scratch\\fold-width8\\run.log did not run on Node 26"
+    },
+    {
+      "case": "empty output",
+      "message": "QUESTION: docs\\improve-generating-phase-1\\evidence\\sa-astra\\pack-r1-scratch\\fold-width8\\run.log did not run on Node 26"
+    },
+    {
+      "case": "nonzero helper",
+      "message": "QUESTION: docs\\improve-generating-phase-1\\evidence\\sa-astra\\pack-r1-scratch\\fold-width8\\helper.log lacks exactly one valid 'IG P1-02 fold8 exit=0 ... quiet=45' line"
+    },
+    {
+      "case": "short quiet",
+      "message": "QUESTION: docs\\improve-generating-phase-1\\evidence\\sa-astra\\pack-r1-scratch\\fold-width8\\helper.log lacks exactly one valid 'IG P1-02 fold8 exit=0 ... quiet=45' line"
+    },
+    {
+      "case": "overlong gate",
+      "message": "QUESTION: P1-02 fold8 took 301 s"
+    },
+    {
+      "case": "duplicate helper status",
+      "message": "QUESTION: docs\\improve-generating-phase-1\\evidence\\sa-astra\\pack-r1-scratch\\fold-width8\\helper.log lacks exactly one valid 'IG P1-02 fold8 exit=0 ... quiet=45' line"
+    },
+    {
+      "case": "Raw-hash loop rejects an LF-only rewrite with identical text",
+      "message": "QUESTION: G-QUALIFIED: raw bytes changed: docs/improve-generating-phase-1/evidence/sa-astra/pack-r1-scratch/fold-width8/run.log"
+    },
+    {
+      "case": "LF-only format",
+      "message": "QUESTION: G-FORMAT failed"
+    },
+    {
+      "case": "Markdown hard-break whitespace",
+      "message": "QUESTION: G-FORMAT failed"
+    },
+    {
+      "case": "missing final newline",
+      "message": "QUESTION: G-FORMAT failed"
+    },
+    {
+      "case": "BOM",
+      "message": "QUESTION: G-FORMAT failed"
+    },
+    {
+      "case": "invalid UTF-8",
+      "message": "QUESTION: G-FORMAT failed"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "tasks/improve-generating-phase-1/check-list.md",
+      "sha256": "2854ab55a7b2e787ec71fa8399684841281e7e7d97338cf26feaa07721f3b940"
+    },
+    {
+      "path": "tasks/improve-generating-phase-1/P1-01-source-bound-adoption.md",
+      "sha256": "1e1feacb897015bc264df6965c03b9a367dfb7d2e026fe3713ab9bb2792dcd98"
+    },
+    {
+      "path": "tasks/improve-generating-phase-1/P1-02-fold-width-eight.md",
+      "sha256": "8fa5700651278ea475e5dfe9bcf4de3fd3f38830c67f74cbff06224ce05f5c31"
+    },
+    {
+      "path": "tasks/improve-generating-phase-1/P1-03b-current-qualification.md",
+      "sha256": "b5579333e99c22719d814540e0708e4d109379fd7eb7a7c428a64cc9f8735f25"
+    },
+    {
+      "path": "tasks/improve-generating-phase-1/P1-04-readiness-and-pr-description.md",
+      "sha256": "e78a18180533a695ca53e8506975b7f61902686e919698fafbeeb705ea087a34"
+    },
+    {
+      "path": "tasks/improve-generating-phase-1/P1-05-publish-phase-one.md",
+      "sha256": "d6f1c853789bc28bfb7c5c8d101d0b95a745073df40888b78014984d9ec4997b"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/sa-astra/pack-r1-dryrun.ps1",
+      "sha256": "ceac97cd7787241a6f7cff8c58e073cc7daa7a66ead9c212cf0512b1230ad22f"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/plan.md",
+      "sha256": "652a4fbb5865fdcd27ac552613a36046ada849476e8daa586709d7bf0c26e075"
+    },
+    {
+      "path": "tests/generate.test.js",
+      "sha256": "7a0ebd8276b0b5dd13df456c804b4d6abdebf526c906e03da6332ee0d5935ff9"
+    },
+    {
+      "path": "docs/design-detail.md",
+      "sha256": "a3cf3a9d7f0be4b394b59d04c58c98eafaf4ce3c98295037df13dec2289898a3"
+    },
+    {
+      "path": "tools/check-conventions.mjs",
+      "sha256": "56ba01bc9702ca3ce558cb27288b95f95859a69283421ff4396e85e1e66a55d3"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/sa-opus/p1-full-node26.log",
+      "sha256": "3bd6e35e0b97330a013cd0eb8223cdc6ff129fef0ebb9a0d2f0e507a85a388e7"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/sa-opus/p1-full-node22.log",
+      "sha256": "01cf39a740b58372fff17376edc37649350dc1cc3a17b16c7d5d911f5077f138"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/sa-opus/p1-fixtures.log",
+      "sha256": "2bc45cf2b44ac8d8a43531f378dc11b3a42771b66d28779b7190386989fb69eb"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/sa-opus/p1-replay-case.log",
+      "sha256": "418183f04f5dcfaa7b4272e8766f83a399c536256fa515a43af3e47a9f67a831"
+    },
+    {
+      "path": "docs/improve-generating-phase-1/evidence/sa-opus/p1-verify.log",
+      "sha256": "20284f5e38d032f9c0b0122846d62037dd788d215b2a55f209ed00e25905d363"
+    }
+  ],
+  "scratchRemoved": true
+}

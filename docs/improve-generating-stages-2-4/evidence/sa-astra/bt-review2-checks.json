@@ -1,0 +1,529 @@
+{
+  "index": {
+    "tasks": 34,
+    "ids": [
+      "T01a",
+      "T01b",
+      "T02a",
+      "T02b",
+      "T02c",
+      "S01",
+      "T03a",
+      "T03b",
+      "T03c",
+      "T04",
+      "T05a",
+      "T05b",
+      "S02",
+      "T06a",
+      "T06b",
+      "T07a",
+      "T07b",
+      "T07c",
+      "T08a",
+      "T08b",
+      "T08c",
+      "T09a",
+      "T09b",
+      "T09c",
+      "T10",
+      "S03",
+      "T11",
+      "T12a",
+      "T12b",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "T16"
+    ],
+    "totalHours": 64.5,
+    "maximumTaskHours": 3,
+    "brokenLinks": []
+  },
+  "anchors": [
+    {
+      "id": "fr-frozen",
+      "edits": 85,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-live-test",
+      "edits": 86,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-none",
+      "edits": 85,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-none-live-test",
+      "edits": 86,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-none-uncapped",
+      "edits": 85,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-nowindow-test",
+      "edits": 87,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "fr-frozen-uncapped",
+      "edits": 85,
+      "pending": [
+        "variant fr-frozen: parameter file data/prior-s3-v1.json does not exist"
+      ],
+      "failures": [],
+      "parsed": 16
+    },
+    {
+      "id": "live",
+      "edits": 71,
+      "pending": [],
+      "failures": [],
+      "parsed": 14
+    },
+    {
+      "id": "live-test",
+      "edits": 72,
+      "pending": [],
+      "failures": [],
+      "parsed": 14
+    },
+    {
+      "id": "p5-mode",
+      "edits": 42,
+      "pending": [],
+      "failures": [],
+      "parsed": 11
+    },
+    {
+      "id": "p7-c1",
+      "edits": 9,
+      "pending": [],
+      "failures": [],
+      "parsed": 3
+    },
+    {
+      "id": "p7-c1r5",
+      "edits": 10,
+      "pending": [],
+      "failures": [],
+      "parsed": 3
+    },
+    {
+      "id": "p7-c1r5c5",
+      "edits": 13,
+      "pending": [],
+      "failures": [],
+      "parsed": 3
+    },
+    {
+      "id": "ps-levels",
+      "edits": 49,
+      "pending": [],
+      "failures": [],
+      "parsed": 14
+    }
+  ],
+  "gitGuard": {
+    "sourceMatches": false,
+    "samples": [
+      {
+        "text": "$head = @(& git -C $worktree rev-parse HEAD)",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "text": "$s = $(git status --short)",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "text": "git -C x log",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "text": "& git diff",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "text": "  git status",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "text": "spawnSync('git', ['status'])",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "text": "const x = (git status)",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "text": "// the git status of a worktree",
+        "expected": false,
+        "actual": false
+      },
+      {
+        "text": "# git status in a comment",
+        "expected": false,
+        "actual": false
+      },
+      {
+        "text": "$head = @(& git -C \"Q:\\a b\" rev-parse HEAD)",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "text": "& git.exe -C 'Q:\\a b' status",
+        "expected": true,
+        "actual": true
+      }
+    ]
+  },
+  "memory": [
+    {
+      "id": "mem-small",
+      "rows": 672,
+      "nonzeros": 4032,
+      "columns": 72,
+      "refBytes": 41543,
+      "arenaBytes": 126772,
+      "listBytes": 48960,
+      "belowLimit": 33512889
+    },
+    {
+      "id": "mem-mid",
+      "rows": 16896,
+      "nonzeros": 101376,
+      "columns": 288,
+      "refBytes": 857735,
+      "arenaBytes": 3106996,
+      "listBytes": 1218816,
+      "belowLimit": 32696697
+    },
+    {
+      "id": "mem-near-lists",
+      "rows": 1,
+      "nonzeros": 4047,
+      "columns": 4047,
+      "refBytes": 33072156,
+      "arenaBytes": 323827,
+      "listBytes": 80940,
+      "belowLimit": 482276
+    },
+    {
+      "id": "mem-near-reference",
+      "rows": 34,
+      "nonzeros": 68578,
+      "columns": 4034,
+      "refBytes": 33107689,
+      "arenaBytes": 2130514,
+      "listBytes": 855208,
+      "belowLimit": 446743
+    },
+    {
+      "id": "mem-above",
+      "rows": 34,
+      "nonzeros": 69122,
+      "columns": 4066,
+      "refBytes": 33630537,
+      "arenaBytes": 2147410,
+      "listBytes": 861992,
+      "belowLimit": -76105
+    }
+  ],
+  "listStorage": {
+    "capacity5499FallsBack": true,
+    "capacity5500UsesLists": true,
+    "hasWeakMapCache": false
+  },
+  "batchBound": {
+    "at120000": "pending",
+    "cancels": 1,
+    "response": {
+      "at": 125000,
+      "value": {
+        "status": "partial",
+        "reason": "time-limit",
+        "accepted": [
+          {
+            "id": "p"
+          }
+        ],
+        "made": {
+          "p": {
+            "kind": "candidate"
+          }
+        },
+        "pack": {
+          "synthetic": true
+        }
+      }
+    }
+  },
+  "reserveBeforeHostBound": {
+    "at": 118999,
+    "state": "resolved",
+    "result": {
+      "status": "failed",
+      "reason": "reserve-cut",
+      "failures": {}
+    }
+  },
+  "prefixWrongSeed": {
+    "rowKey": "14x14-nightmare~0",
+    "expected": "landscape/14x14-nightmare/0",
+    "actual": "landscape/14x14-nightmare/20",
+    "ingestStatus": "valid"
+  },
+  "p7Log": {
+    "oldIdentityMatchesAllLogHashes": true,
+    "producerInDeclaration": "new",
+    "producerInState": "old",
+    "resumePlan": {
+      "refuse": "out-of-order log entry for n0"
+    }
+  },
+  "splitImports": {
+    "freezeCreationImportsReadRepoFile": false,
+    "fitTaskAddsReadRepoFileImport": false,
+    "fitTaskAddsSha256TextImport": false
+  },
+  "kernelInput": {
+    "candidateParents": [
+      "base"
+    ],
+    "sourceGuard": true,
+    "existingBaseTestRejectsHell": true,
+    "corpusIncludesHell": true,
+    "expectedNoSetKernelItems": 6,
+    "basis": "Source trace only: base offer guard -> carveSet not-offered -> firstCarvedSet no-carve; no engine executed."
+  },
+  "prices": {
+    "s2b": {
+      "allocationMinutes": 23,
+      "guardMinutes": 28.24373401173524
+    },
+    "s3p": {
+      "allocationMinutes": 139,
+      "guardMinutes": 173.6099475635921
+    },
+    "p7": {
+      "allocationMinutes": 16,
+      "guardMinutes": 19.369531249999987
+    }
+  },
+  "liveProducerFixture": {
+    "firstProblem": "b",
+    "prescribedFirstReason": "runs file b differs from its raw shard",
+    "tableExpects": "the runs files name 2 producers"
+  },
+  "repaired": [
+    {
+      "path": "tasks/improve-generating-stages-2-4/check-list.md",
+      "sha256": "571fab642f581ed04e2b6f15593f89c01dbccbf994a9ad39da406f0ce6feac0c",
+      "validFormat": true,
+      "lines": 603
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S03-run-v4-s3p.md",
+      "sha256": "d91320f1d6e5f19446731be998fd71dbb96ed807e9857e820a675e55ae851729",
+      "validFormat": true,
+      "lines": 153
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T06a-prior-s3-v1.md",
+      "sha256": "ce0a634a1f17534d39117c8278b837e00ea329bfd5569c9f803900aedb3f5a39",
+      "validFormat": true,
+      "lines": 176
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09c-accept-live-deadline.md",
+      "sha256": "6f8d42358e297347e8c3af44011e0acc98e05dd87db27358a65a6c491670f692",
+      "validFormat": true,
+      "lines": 186
+    }
+  ],
+  "inputs": [
+    {
+      "path": "tasks/improve-generating-stages-2-4/S01-run-v4-s2b.md",
+      "sha256": "faa3a7a4de20be86d0ded7921f3fe7cc9826ad1158e9f9967bc1b6f31d8f1f0b"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S02-run-v4-p7-and-spike-report.md",
+      "sha256": "e5b90f4912e8b166e9225d3c99bbcebd063e9ea248d855e9c3c55537292667bb"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S03-run-v4-s3p.md",
+      "sha256": "d91320f1d6e5f19446731be998fd71dbb96ed807e9857e820a675e55ae851729"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S04-run-v4-live.md",
+      "sha256": "8a48cd99f75456d98e251e8bfe7506df7a5f052165b69e9bdb709d596c4ce49b"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S05-activation.md",
+      "sha256": "3b43c63a4ab6917a4401ad4b9a1f860cbadf2852213719ce2cbac5787bc37333"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S06-run-v4-s4.md",
+      "sha256": "876894ab5f9d67946dfb447d4569add75e7372bf1eff0b9d081c68871d789408"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/S07-run-v4-s4c.md",
+      "sha256": "673d582bfba769dfdece3916aeff00dd61134ee8e48f5aa6288e69923a1d1ef1"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T01a-publish-done-shards.md",
+      "sha256": "ace5fcf31d070ea9b1d2bf92cb6ff38fd637b6356a81c784c1a61190ebef0e0f"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T01b-git-guard.md",
+      "sha256": "c53d2c42ac12d0bbdbb381b0bb2f9a6d3eed3e70c093ef473acce6d6d425ae25"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T02a-plan-writer-and-v4-s2b.md",
+      "sha256": "c5001d7814f3994b5a7e147c90d94a900cfd4a0b334a48241cac85cced540ab6"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T02b-fit-reader-core.md",
+      "sha256": "6fb5f2a6558ecd85c20c1e260ba9014760c4abf061d59702fa8003ab4c0f0899"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T02c-fit-reader-commands.md",
+      "sha256": "bdd87d381aefacc67f62a08c8baa24ca76e87e12f22a15bfa3efbe6c6b2ad7d6"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03a-p7-probe-items.md",
+      "sha256": "5c9db15d5b096a551fa230aec9dad5ccddbe5bc982f90bf4651cd13279373f5f"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03b-p7-probe-commands.md",
+      "sha256": "bf953a221518ed99875b75dfb9cfa97468dae62e933f66b0631ad83e410ed02a"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T03c-p7-c1-live-row-lists.md",
+      "sha256": "8d031b4d36e8ceb7bf97409f9dd598fac4923bf6be54d44edb32705df5b450a5"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T04-p7-r5-on-lists.md",
+      "sha256": "0462e3592d1f21259e16f1e68ec032aa225bb1d5693b1ea7473c7611d015065d"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T05a-p7-c5-select-on-lists.md",
+      "sha256": "135770edd067307551da9074d43254173557da0864ee76c68fba0ee7680ac84d"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T05b-p7-full-equality-and-v4-p7.md",
+      "sha256": "348db7afc4b3ecdb9f960ea80f892194d7c0b44f26d826e8d55bc38b9aace1a7"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T06a-prior-s3-v1.md",
+      "sha256": "ce0a634a1f17534d39117c8278b837e00ea329bfd5569c9f803900aedb3f5a39"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T06b-budget-by-mode-and-per-set-levels.md",
+      "sha256": "dd82c74485b31c979e1ee5728a5ac1e963abf3e964bc90108d015a2a13431d54"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T07a-live-deadline-client-and-pool.md",
+      "sha256": "72d13ed467bd7904df093f99a4f08be487005f9644ec8ef9c10baa81dfc0443c"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T07b-live-deadline-host-bound.md",
+      "sha256": "8c15ade57164cd507aafd287e9ec69dd6ffa44c680b8d5192e8372714ac5fd84"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T07c-live-deadline-scripted-cases.md",
+      "sha256": "140b3fa512d9719b65da1babfbf0f57c6498362da086560bf62bc0d14b6777c6"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T08a-frozen-variants.md",
+      "sha256": "fbe76a38368c443f19aae6768d1e163119827d405cc653298783b35c6d84d438"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T08b-freeze-checks.md",
+      "sha256": "7ddfcf4f97d694e27e1d90c89d4910c837ceb2ee21b43da9ee075d2516b38b2a"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T08c-frozen-real-calls.md",
+      "sha256": "26ec308666014e6dc16d3ea1932837dfd076e3257b679dcc959b99c0f546c852"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09a-live-deadline-checks.md",
+      "sha256": "09a80d5a47385783714ee0dc29ce6b63690c9291d3609f39c3a26d3f0ece7780"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09b-live-deadline-receipt.md",
+      "sha256": "419e7595bdc5c8059ed7670ab36c3f5dd6e183c3f5cd78c6f20b890b8447993a"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T09c-accept-live-deadline.md",
+      "sha256": "6f8d42358e297347e8c3af44011e0acc98e05dd87db27358a65a6c491670f692"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T10-plan-v4-s3p.md",
+      "sha256": "f48845f58a3984ac168bfdced1093e66faf6af47ed61cb4118339bed71f0e593"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T11-sa-reading-of-the-fit-runs.md",
+      "sha256": "ce00eaa2c6c56d6aa1e288194f423c87f60ec0fe0457680aefcecf4865b32aac"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T12a-fit-index.md",
+      "sha256": "e8d5193474103507ed6278840c449d3af2341a2972bcfe9ac0e577c1265624a0"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T12b-freeze-record.md",
+      "sha256": "549a409ff5c08ab1b9f57d17d3e0ccbadb397e07fbfbb965b866fd29bc7acde4"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/T16-stage4-report-and-phase0.md",
+      "sha256": "b5a09d3a9e5a416cc6c80c656aa7a992d8fc64f4aff6c21f04a76c244d0ece58"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/check-list.md",
+      "sha256": "571fab642f581ed04e2b6f15593f89c01dbccbf994a9ad39da406f0ce6feac0c"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/review-1-response.md",
+      "sha256": "d4739bdfc4153885829fd2b0d0834ac4fd8286c0f4ed2e48329db7eabb6454c8"
+    }
+  ],
+  "noEngineExecution": true
+}
