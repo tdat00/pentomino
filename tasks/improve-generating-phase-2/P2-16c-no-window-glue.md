@@ -154,14 +154,14 @@ None here; P2-17 documents the glue proof in `tools/ig-proto/README.md`.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w2, 3c77a46af08b12cdcbcbc840f8a10fff44aa4d8e |
+| Start, end, duration | dispatched 2026-11-26 01:18 +07:00 (developer 01:18:14 to 01:22:49); accepted 01:24 |
+| Waiting for rulings | none |
+| Agent id, model | 23839413-029f-4ab8-84b6-616d4beeb8b0, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 30; 2,713,738 / 22,004 / 2,620,867 |
+| AI credits | 71.43 |
+| Questions and rulings | none; five minor deviations accepted by the orchestrator (a settleWorkers helper waits for every worker-end before the test folder is removed; copies built unrehearsed because gen-v4 is live at the base, as trace.test.mjs does; rectRows from tools/bench/calibration-reference.js; extra manifest fields description, files and params.glueBroken; own case names and discrepancy wording) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with every phase-2 test file (glue.test.mjs included) and G-COPIES without --rehearse-cutover (results in the bookkeeping); the glue proof ran on a base holding P2-15, so the 3.7 conditional re-run is satisfied by this gate; developer: locked glue proof 5/5 (4.026 s), G-PROTECTED, G-WORKTREE, G-FORMAT (4 files), G-CHECK OK, copies 195 and 32 edits |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-17 documents the glue proof in tools/ig-proto/README.md; the mixed case asserts only the attempt-4 start line and a non-no-window result |

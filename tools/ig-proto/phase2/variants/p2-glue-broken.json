@@ -1,0 +1,15 @@
+{
+  "id": "p2-glue-broken",
+  "extends": ["p2-glue"],
+  "description": "The glue proof copy with a deliberately broken no-window translation (P2-16c): failureOf loses the side, so the glue proof must fail on it.",
+  "edits": [
+    {
+      "id": "gb-1",
+      "file": "core/engine/generate.js",
+      "find": "`no-window-${cal.igNoWindow}`",
+      "replace": "cal.reason"
+    }
+  ],
+  "files": [],
+  "params": { "glueBroken": true }
+}
