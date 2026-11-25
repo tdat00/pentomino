@@ -179,6 +179,6 @@ batch that follows it.
 | AI credits | 54.28 |
 | Questions and rulings | none; four minor deviations accepted by the orchestrator (generate.mjs destructures { set, batch: guarded } then casts batch as BatchJobResult after the set-failure branch, for @ts-check narrowing; the runBatch parameter is named settled to avoid shadowing; manualClock() and inertClock placed next to tick(); fakeClient typedef uses snapshot?: any and a looser clock?) |
 | Fix rounds | 0 |
-| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 105/105 (10.349 s), name check 7 responseGuard hits and only the options.now Date.now() line, G-PROTECTED, G-WORKTREE, G-FORMAT (5 files), G-CHECK OK, anchors 22 of 22 |
-| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Gates re-run by the orchestrator (merge gate) | slot static guards OK (format OK 6 files); rebased onto 2e0e28f cleanly; merge gate: G-PROTECTED, G-CHECK, G-FORMAT-COMMIT OK; locked focused `IG P2-11b merge exit=0 seconds=9.988 quiet=45`, 105/105 pass, 0 fail/cancelled/todo; link anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | rebased df15064; gen-v4 df15064f2d3d059ae6f2d61f9a9456bb1869cb34 |
 | Issues and named items | none; P2-09 owns the response-bound batch notice (batchShortfall still returns null for it); the browser watchdog page was not run (named only as a stop condition); the CLI and bench call sites have no new direct test, as the task says |
