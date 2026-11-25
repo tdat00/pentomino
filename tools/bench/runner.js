@@ -5,6 +5,7 @@
 // generation client, so no algorithm lives here. Rows are never dropped: a
 // failed, cancelled or crashed run is recorded with its reason.
 import { createGenerationClient, GenerationError } from '../../core/browser/generation-client.js';
+import { guardSetThenBatch } from '../../core/browser/generation-deadline.js';
 import { isAbortError } from '../../core/browser/worker-pool.js';
 import { activeCount, boardFromRows, validateForGeneration } from '../../core/engine/board.js';
 import { inBand } from '../../core/engine/difficulty.js';
@@ -537,55 +538,63 @@ async function generate(s, spec, caseDef, host, clock, client) {
   s.t0 = clock.now();
   const scope = usesGenV4(caseDef.levelId, boardFromRows(caseDef.boardRows)) ? { origin: s.t0, setCutAt: s.t0 + DEADLINE.setStageCapMs } : undefined;
   try {
-    const set = await client.generateSet({
-      boardRows: caseDef.boardRows,
-      rotation: caseDef.rotation,
-      levelId: caseDef.levelId,
-      seedText: spec.seed,
-      uniqueness: caseDef.uniqueness,
-      maxActive: caseDef.maxActive,
-      scope,
-    });
-    s.set = set;
-    s.tSet = clock.now();
-    if (set.status !== 'complete' || set.set === undefined) {
-      return;
+    const { batch } = await guardSetThenBatch(
+      { clock, client, scope },
+      () => client.generateSet({
+        boardRows: caseDef.boardRows,
+        rotation: caseDef.rotation,
+        levelId: caseDef.levelId,
+        seedText: spec.seed,
+        uniqueness: caseDef.uniqueness,
+        maxActive: caseDef.maxActive,
+        scope,
+      }),
+      (set) => {
+        s.set = set;
+        s.tSet = clock.now();
+        if (set.status !== 'complete' || set.set === undefined) {
+          return null;
+        }
+        s.faultPhase = 'batch';
+        return client.generateBatch({
+          set: set.set,
+          rotation: caseDef.rotation,
+          targetLevelId: caseDef.levelId,
+          quantity: QUANTITY,
+          setSeed: spec.seed,
+          batchIndex: 1,
+          uniqueness: caseDef.uniqueness,
+          seenLayouts: [],
+          seenClues: [],
+          calibration: set.calibration,
+          setLevel: caseDef.levelId,
+          setAttempt: set.attempt,
+          scope,
+        }, {
+          onAccepted: (event) => {
+            s.accepted.push(event.puzzle);
+            s.acceptedAt.push(clock.now());
+            if (spec.probeKind === 'cancel' && event.index === 0 && !s.cancelScheduled) {
+              s.cancelScheduled = true;
+              host.clickCancel(() => {
+                s.cancelAt = clock.now();
+                client.cancel();
+              });
+            }
+          },
+          onCertificate: (event) => {
+            s.certificates.set(event.puzzleId, event.certificate.status);
+            s.lastCertificateAt = clock.now();
+            if (s.certificates.size >= s.expectedCertificates) {
+              s.wake?.();
+            }
+          },
+        });
+      },
+    );
+    if (batch !== null) {
+      s.batch = batch;
     }
-    s.faultPhase = 'batch';
-    s.batch = await client.generateBatch({
-      set: set.set,
-      rotation: caseDef.rotation,
-      targetLevelId: caseDef.levelId,
-      quantity: QUANTITY,
-      setSeed: spec.seed,
-      batchIndex: 1,
-      uniqueness: caseDef.uniqueness,
-      seenLayouts: [],
-      seenClues: [],
-      calibration: set.calibration,
-      setLevel: caseDef.levelId,
-      setAttempt: set.attempt,
-      scope,
-    }, {
-      onAccepted: (event) => {
-        s.accepted.push(event.puzzle);
-        s.acceptedAt.push(clock.now());
-        if (spec.probeKind === 'cancel' && event.index === 0 && !s.cancelScheduled) {
-          s.cancelScheduled = true;
-          host.clickCancel(() => {
-            s.cancelAt = clock.now();
-            client.cancel();
-          });
-        }
-      },
-      onCertificate: (event) => {
-        s.certificates.set(event.puzzleId, event.certificate.status);
-        s.lastCertificateAt = clock.now();
-        if (s.certificates.size >= s.expectedCertificates) {
-          s.wake?.();
-        }
-      },
-    });
   } catch (e) {
     s.fault = e;
   } finally {

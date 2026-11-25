@@ -22,6 +22,7 @@ import { availableParallelism } from 'node:os';
 import { pathToFileURL } from 'node:url';
 
 import { createGenerationClient, GenerationError } from '../core/browser/generation-client.js';
+import { guardSetThenBatch } from '../core/browser/generation-deadline.js';
 import { puzzleSnapshot } from '../core/browser/puzzle-snapshot.js';
 import { createPool, MAX_POOL_SIZE } from '../core/browser/worker-pool.js';
 import { boardFromRows, boardToRows, MAX_SIDE, preset } from '../core/engine/board.js';
@@ -559,38 +560,42 @@ export async function run(argv, overrides = {}) {
     }
     io.stderr(`generating a ${label} piece set for seed ${config.seedText}\n`);
     const scope = cliScope(client, config.levelId, config.boardRows);
-    const set = await client.generateSet({
-      boardRows: config.boardRows,
-      rotation: config.rotation,
-      levelId: config.levelId,
-      seedText: config.seedText,
-      uniqueness: config.uniqueness,
-      maxActive: config.maxActive,
-      scope,
-    }, hooks);
+    const { set, batch: guarded } = await guardSetThenBatch(
+      { clock: client.clock(), client, scope },
+      () => client.generateSet({
+        boardRows: config.boardRows,
+        rotation: config.rotation,
+        levelId: config.levelId,
+        seedText: config.seedText,
+        uniqueness: config.uniqueness,
+        maxActive: config.maxActive,
+        scope,
+      }, hooks),
+      (settled) => (settled.status !== 'complete' || settled.set === undefined ? null : client.generateBatch({
+        set: settled.set,
+        rotation: config.rotation,
+        targetLevelId: config.levelId,
+        quantity: config.quantity,
+        setSeed: config.seedText,
+        batchIndex: config.batchIndex,
+        uniqueness: config.uniqueness,
+        seenLayouts: [],
+        seenClues: [],
+        // Only the first batch of a fresh set may reuse the set's calibration puzzle.
+        calibration: config.batchIndex === 1 ? settled.calibration : undefined,
+        setLevel: config.levelId,
+        setAttempt: settled.attempt,
+        setOrigin: settled.setOrigin,
+        scope,
+      }, hooks)),
+    );
     if (set.status !== 'complete' || set.set === undefined) {
       io.stderr(set.status === 'cancelled'
         ? 'generate: cancelled before a piece set was found\n'
         : `generate: no ${label} piece set was found (${set.reason ?? 'unknown'})\n`);
       return 1;
     }
-    const batch = await client.generateBatch({
-      set: set.set,
-      rotation: config.rotation,
-      targetLevelId: config.levelId,
-      quantity: config.quantity,
-      setSeed: config.seedText,
-      batchIndex: config.batchIndex,
-      uniqueness: config.uniqueness,
-      seenLayouts: [],
-      seenClues: [],
-      // Only the first batch of a fresh set may reuse the set's calibration puzzle.
-      calibration: config.batchIndex === 1 ? set.calibration : undefined,
-      setLevel: config.levelId,
-      setAttempt: set.attempt,
-      setOrigin: set.setOrigin,
-      scope,
-    }, hooks);
+    const batch = /** @type {import('../core/browser/generation-client.js').BatchJobResult} */ (guarded);
     if (config.expected !== undefined) {
       const differences = compareExpected(config.expected, {
         pieceKeys: set.set.pieces.map((p) => canonicalKey(p.cells)),

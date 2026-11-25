@@ -171,14 +171,14 @@ batch that follows it.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w2, abdf82a722621ea95f839fc9531b3faadaecb355 |
+| Start, end, duration | dispatched 2026-11-25 23:26 +07:00 (developer 23:26:02 to 23:32:01); accepted 23:33 |
+| Waiting for rulings | none |
+| Agent id, model | 4e366503-2b11-427b-8613-fb91c5b8d1e9, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 27; 1,962,934 / 17,607 / 1,891,915 |
+| AI credits | 54.28 |
+| Questions and rulings | none; four minor deviations accepted by the orchestrator (generate.mjs destructures { set, batch: guarded } then casts batch as BatchJobResult after the set-failure branch, for @ts-check narrowing; the runBatch parameter is named settled to avoid shadowing; manualClock() and inertClock placed next to tick(); fakeClient typedef uses snapshot?: any and a looser clock?) |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with the locked focused gate and the link-anchor check (results in the bookkeeping); developer: locked focused 105/105 (10.349 s), name check 7 responseGuard hits and only the options.now Date.now() line, G-PROTECTED, G-WORKTREE, G-FORMAT (5 files), G-CHECK OK, anchors 22 of 22 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | none; P2-09 owns the response-bound batch notice (batchShortfall still returns null for it); the browser watchdog page was not run (named only as a stop condition); the CLI and bench call sites have no new direct test, as the task says |

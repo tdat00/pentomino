@@ -67,11 +67,58 @@ function gate() {
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
+/** A clock that never fires: the existing cases never meet a response bound. */
+const inertClock = { now: () => 0, setTimeout: () => 0, clearTimeout: () => {} };
+
+/**
+ * A manual clock: `advance(ms)` moves time forward, running the due timers in time order, then awaits `tick()`.
+ * @returns {{ now: () => number, setTimeout: (fn: () => void, ms: number) => number, clearTimeout: (id: number) => void, advance: (ms: number) => Promise<void> }}
+ */
+function manualClock() {
+  let current = 0;
+  let nextId = 1;
+  /** @type {Map<number, { at: number, fn: () => void }>} */
+  const timers = new Map();
+  return {
+    now: () => current,
+    setTimeout(fn, ms) {
+      const id = nextId++;
+      timers.set(id, { at: current + ms, fn });
+      return id;
+    },
+    clearTimeout(id) {
+      timers.delete(id);
+    },
+    async advance(ms) {
+      const target = current + ms;
+      for (;;) {
+        /** @type {[number, { at: number, fn: () => void }] | null} */
+        let due = null;
+        for (const entry of timers) {
+          if (entry[1].at <= target && (due === null || entry[1].at < due[1].at)) {
+            due = entry;
+          }
+        }
+        if (due === null) {
+          break;
+        }
+        timers.delete(due[0]);
+        current = Math.max(current, due[1].at);
+        due[1].fn();
+      }
+      current = target;
+      await tick();
+    },
+  };
+}
+
 /**
  * A scriptable client. `batch(input, hooks)` and `set(input, hooks)` return the job result.
- * @param {{ set?: (input: any, hooks: any) => Promise<any> | any, batch?: (input: any, hooks: any) => Promise<any> | any, onCancel?: () => void }} script
+ * @param {{ set?: (input: any, hooks: any) => Promise<any> | any, batch?: (input: any, hooks: any) => Promise<any> | any, onCancel?: () => void,
+ *   clock?: { now: () => number, setTimeout: (fn: () => void, ms: number) => unknown, clearTimeout: (id: any) => void }, snapshot?: any }} script
  */
 function fakeClient(script = {}) {
+  const clock = script.clock ?? inertClock;
   /** @type {any[]} */
   const sets = [];
   /** @type {any[]} */
@@ -104,6 +151,17 @@ function fakeClient(script = {}) {
       script.onCancel?.();
     },
     recycle() {},
+    clock() {
+      return clock;
+    },
+    /** @param {boolean} reserve */
+    newScope(reserve) {
+      const origin = clock.now();
+      return { origin, setCutAt: reserve ? origin + 46000 : null };
+    },
+    prefixSnapshot() {
+      return script.snapshot ?? null;
+    },
   };
   return client;
 }
@@ -892,4 +950,66 @@ describe('real engine flows (slow)', () => {
       }
     });
   }
+});
+
+describe('response bounds', () => {
+  test('a set action that never settles is cut at its own bound and keeps the displayed set', async () => {
+    const clock = manualClock();
+    const client = fakeClient({ clock, set: () => new Promise(() => {}) });
+    const h = harness({ client, accepted: true });
+    const before = h.store.getState();
+    await clock.advance(50000);
+    const done = h.controller.generateSet({ seed: 'seed-two' });
+    await clock.advance(118999);
+    assert.equal(client.cancels, 0);
+    await clock.advance(1);
+    assert.equal(client.cancels, 1);
+    await done;
+    const after = h.store.getState();
+    assert.equal(after.job, null);
+    assert.equal(after.set, before.set);
+    assert.equal(after.setSeed, 'seed-one');
+    assert.equal(after.notice?.code, 'N-NOSET');
+    h.destroy();
+  });
+
+  test('a fresh action after a long pause gets its own bound', async () => {
+    const clock = manualClock();
+    const snapshot = { status: 'partial', reason: 'response-bound', accepted: [], made: {}, seenLayouts: [], seenClues: [] };
+    const client = fakeClient({ clock, batch: () => new Promise(() => {}), snapshot });
+    const h = harness({ client, accepted: true });
+    await clock.advance(500000);
+    const done = h.controller.addMore();
+    await clock.advance(118999);
+    assert.equal(client.cancels, 0);
+    await clock.advance(1);
+    assert.equal(client.cancels, 1);
+    await done;
+    const after = h.store.getState();
+    assert.equal(after.job, null);
+    assert.equal(after.puzzles.length, 0);
+    h.destroy();
+  });
+
+  test("each action makes one scope from the client's clock", async () => {
+    const client = fakeClient();
+    /** @type {any[]} */
+    const made = [];
+    /** @type {boolean[]} */
+    const reserves = [];
+    const newScope = client.newScope;
+    client.newScope = (reserve) => {
+      reserves.push(reserve);
+      const scope = newScope(reserve);
+      made.push(scope);
+      return scope;
+    };
+    const h = harness({ client, accepted: true });
+    await h.controller.generateSet({ seed: 'seed-two' });
+    await h.controller.addMore();
+    assert.deepEqual(reserves, [false, false]);
+    assert.equal(client.sets[0].scope, made[0]);
+    assert.equal(client.batches[0].scope, made[1]);
+    h.destroy();
+  });
 });
