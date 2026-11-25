@@ -301,14 +301,14 @@ No row, no seal of real copies and no locked invocation runs in this task.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w3, 85f5c46526ed46d59b5b590c0a9a8838dc64f2ad |
+| Start, end, duration | dispatched 2026-11-25 22:43 +07:00 (developer 22:43:22 to 22:51:09; fix round to about 23:05); accepted 23:05 |
+| Waiting for rulings | about 12 min (eight deviations, then the wrapper smoke, SA-Opus) |
+| Agent id, model | a38310e5-dd08-4c39-b257-0c4e54a600fb, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 36; 4,021,431 / 71,451 / 3,751,745 |
+| AI credits | 176.39 |
+| Questions and rulings | no QUESTION; eight deviations, all accepted by SA-Opus (exit $LASTEXITCODE in the test spawn; overflow ledger group "o<n>" with reservation id B-o<n>.<k>, written into C7 by b9355f7; plan rows drop the audit's source, rowS and proxy; stricter ledger --append, P2-13e adds sealSha256 after validation (b9355f7); today.digest with the today worktree's own report.js, P2-13e sourceDigestOf(root) imports <root>/tools/bench/report.js (b9355f7); the seal needs the six COPIES copies with p2-copy.json's fields plus verified; audit and boards read from the repository root, exit codes 2/3/4/5; no p2.mjs run-group, P2-13d's). Wrapper smoke ruling: (a) fix, --state is appended only in the Rows and Overflow sets, an item's node arguments pass unchanged; (b) accepted, a failed item rethrows the original error after its ledger line and the reservation release (step 6.8) |
+| Fix rounds | 1 (--state on items; the fake invoker's marker holds the node arguments; new case "an item's node arguments are passed unchanged") |
+| Gates re-run by the orchestrator (merge gate) | locked wrapper smoke by the orchestrator before the fix: -NodeArgs @('-e','0') exit 9 charged once (countedSeconds 45.045, reservation released), with '--' ok (45.061); after the fix (developer, locked): RG ok, exit 0, one ok ledger line (45.07), no pending.json; slot static guards; merge gate with every phase-2 test file and the link-anchor check (results in the bookkeeping); developer: unlocked 24/24, plan digest 8f3834e9...f41c (1013 rows) stable, G-PROTECTED, G-WORKTREE, G-FORMAT (4 files), G-CHECK OK |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-13e adds the seal hash, runtime and files digests and the snapshot; P2-13d implements p2.mjs run-group and the status journal; P2-13b writes report-A gates as an array; tests/fixtures/replay-case-v4.json is created by P2-15 before P2-18 seals; the seal is tested only on a synthetic root (real seal in P2-18) |
