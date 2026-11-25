@@ -143,7 +143,7 @@ None here; P2-17 documents `tools/ig-proto/phase2/` in `tools/ig-proto/README.md
 | Item | Value |
 |---|---|
 | Slot, base SHA | w2, 203f5ca727301df0a7b1a976748c571189d60db4 (rebased onto gen-v4 after P2-01 and P2-03) |
-| Start, end, duration | dispatched 2026-11-25 22:01 +07:00; developer 22:01:54 to about 22:05, fix round to about 22:31; accepted 22:33; about 32 min |
+| Start, end, duration | dispatched 2026-11-25 22:01 +07:00 (developer 22:01:54 to 22:09, with one fix round); accepted and merged 22:12; about 11 min |
 | Waiting for rulings | about 10 min (SA-Opus ruling on the deviations) |
 | Agent id, model | 6b40a2d0-7019-410f-917d-bc774ce32d9a, claude-sonnet-5.5 |
 | Calls; input, output and cache-read tokens | 17; 1,232,241 / 27,349 / 1,137,710 |

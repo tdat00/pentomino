@@ -138,7 +138,7 @@ evidence; questions and deviations.
 | Item | Value |
 |---|---|
 | Slot, base SHA | w1, fb67ba0aba87ed85c8e85b677b0ef66ededbe2e2 |
-| Start, end, duration | dispatched 2026-11-25 22:37 +07:00 (developer clock 22:13:29 to 22:21:46); accepted 22:55; about 18 min |
+| Start, end, duration | dispatched 2026-11-25 22:13 +07:00 (developer 22:13:29 to 22:21:46); accepted and merged 22:24; about 11 min |
 | Waiting for rulings | none |
 | Agent id, model | fae9082c-6919-4247-98ac-668f781cdc75, claude-sonnet-5.5 |
 | Calls; input, output and cache-read tokens | 34; 2,843,134 / 22,358 / 2,762,654 |

@@ -144,7 +144,7 @@ deviations.
 | Item | Value |
 |---|---|
 | Slot, base SHA | w3, 203f5ca727301df0a7b1a976748c571189d60db4 (rebased onto gen-v4 after P2-01) |
-| Start, end, duration | dispatched 2026-11-25 22:01 +07:00; developer 22:01:53 to 22:05:26; accepted 22:24; about 23 min |
+| Start, end, duration | dispatched 2026-11-25 22:01 +07:00 (developer 22:01:53 to 22:05:26); accepted and merged 22:09; about 8 min |
 | Waiting for rulings | none |
 | Agent id, model | 6a24813c-8721-4c6d-bf89-f9e2e1ce24ac, claude-sonnet-5.5 |
 | Calls; input, output and cache-read tokens | 15; 889,564 / 9,356 / 810,090 |

@@ -206,7 +206,7 @@ No other document.
 | Item | Value |
 |---|---|
 | Slot, base SHA | w1, 203f5ca727301df0a7b1a976748c571189d60db4 |
-| Start, end, duration | dispatched 2026-11-25 22:01 +07:00; developer 22:01:53 to 22:06:04; accepted 22:20; about 19 min |
+| Start, end, duration | dispatched 2026-11-25 22:01 +07:00 (developer 22:01:53 to 22:06:04); accepted and merged 22:07; about 6 min |
 | Waiting for rulings | none |
 | Agent id, model | d48d683a-a92f-4948-a18a-82fb670ab40d, claude-sonnet-5.5 |
 | Calls; input, output and cache-read tokens | 17; 987,882 / 15,277 / 910,634 |

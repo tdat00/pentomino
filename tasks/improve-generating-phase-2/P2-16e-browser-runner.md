@@ -155,7 +155,7 @@ None here; P2-17 documents the runner in `tools/ig-proto/README.md`.
 | Item | Value |
 |---|---|
 | Slot, base SHA | w3, df7261576074fa267aab660b023ad6971b5f61fd |
-| Start, end, duration | dispatched 2026-11-25 22:58 +07:00 (developer clock 22:27:25 to 22:31); accepted 23:10; about 12 min |
+| Start, end, duration | dispatched 2026-11-25 22:27 +07:00 (developer 22:27:25 to 22:31); accepted and merged 22:36; about 9 min |
 | Waiting for rulings | about 5 min (SA-Opus) |
 | Agent id, model | 715a631e-37cc-418f-8441-e8aa098dce30, claude-sonnet-5.5 |
 | Calls; input, output and cache-read tokens | 20; 1,477,159 / 24,007 / 1,412,329 |
