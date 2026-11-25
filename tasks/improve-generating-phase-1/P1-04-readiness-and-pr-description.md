@@ -247,13 +247,13 @@ result; questions/rulings/deviations. State that publication remains P1-05. Do n
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | dispatched 11:42 +07:00 (developer 11:38:49 to 11:43:06; fix round to about 12:01); both SA sign-offs about 12:06; accepted 12:08; about 26 min |
+| Waiting for rulings | about 8 min (SA-Astra's merged ruling of the two reviews) |
+| Agent id, model | d4962aa0-bcc8-4234-86d0-8e46dc11bfdf, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 34; 3,063,621 / 40,940 / 2,809,000 |
+| AI credits | 132.68 |
+| Questions and rulings | no QUESTION; seven deviations: 1, 2, 4, 5, 6, 7 accepted; 3 (raw-hash tables) ruled by SA-Astra's merged list superseding her A1/A2 and SA-Opus's F1-F4: hashes kept in readiness.md with a corrected caption, removed from pr-body.md; two pr-body rows shortened; T14 table re-captioned with the ratio direction; SA-Opus's review files committed separately (f50411e) |
+| Fix rounds | 1 |
+| Gates re-run by the orchestrator | phase-0 line 316 exact; G-PROTECTED, G-QUALIFIED, G-WORKTREE, G-FORMAT and `npm run check` OK; readiness.md Status `Ready for publication (phase 1 only; not merged)` with both SA sign-offs |
+| Commit | this task's commit |
+| Issues and named items | N-P1-DOC stays open (developer guides do not yet name tools/ig-proto/), stated in both files |
