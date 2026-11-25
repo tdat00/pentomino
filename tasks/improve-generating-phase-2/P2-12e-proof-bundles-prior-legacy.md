@@ -167,14 +167,14 @@ None here; P2-17 writes the README section.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w1, cf24d8529a8e996ac246833e37bb4c4c181c4d29 |
+| Start, end, duration | dispatched 2026-11-26 00:52 +07:00 (developer 00:52:47 to 01:11:09; fix round to about 01:28); accepted 01:29 |
+| Waiting for rulings | about 9 min (six deviations and the P2-18 cost question, SA-Opus) |
+| Agent id, model | 9c46e096-b9bd-471a-9ad9-a1c3f3f389e4, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 58; 7,756,476 / 53,958 / 7,446,528 |
+| AI credits | 205.90 |
+| Questions and rulings | no QUESTION; six deviations ruled by SA-Opus (pack amendment fe07977, P2-12e and P2-12c task files): 1, the proofs.mjs top-level await deadlocked a bundle importing compare; fixed in proofs.mjs (main(...).then(...)), carried by P2-12e with proofs.mjs added to $Allowed; proof-legacy.mjs uses the plain import; 2, --quick runs recorded in the task text; 3, a Hell 1 seed without a per-set prior is not-measured (task text); 4 to 6 accepted (sentinel-stopped selector-start check; shared helpers importable from proof-prior-replay.mjs; scratch removed). The merge gate runs both bundles in full, locked, without --rehearse-cutover (prior-replay 600 s, legacy 300 s), as P2-18's expected cost |
+| Fix rounds | 1 (the proofs.mjs fix and the plain import) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards with proofs.mjs added to $Allowed (ruling); merge gate with every phase-2 test file and G-COPIES, then the two full bundles on the rebased tree (results and node seconds in the bookkeeping); developer: locked focused 7/7, quick rehearsals with --rehearse-cutover after the fix: legacy pass 36.477 s, prior-replay pass 133.46 s (before the fix 30.5 s and 127.5 s), G-PROTECTED, G-WORKTREE, G-FORMAT (4 files), G-CHECK OK, copies 195 and 32 edits |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-12c's bundles import compare plainly (the proofs.mjs fix); the full run's cost is measured in this merge gate; the 14x14 Hell 1 seed has a heavy tail (frozen runs: 9 of 20 requests cut at 115 s) |

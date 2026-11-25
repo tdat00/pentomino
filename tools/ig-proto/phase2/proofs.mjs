@@ -172,5 +172,11 @@ async function main(argv) {
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  process.exitCode = await main(process.argv.slice(2));
+  // No top-level await: a bundle imports `compare` from this module, which must finish evaluating first.
+  main(process.argv.slice(2)).then((code) => {
+    process.exitCode = code;
+  }, (error) => {
+    console.error(`proofs: ${error instanceof Error ? error.message : String(error)}`);
+    process.exitCode = 2;
+  });
 }
