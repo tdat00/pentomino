@@ -323,6 +323,8 @@ Stage B: PROCEED
 - The receipt is
   `{ format: 'p2-browser', version: 1, page, check, status, durationMs, startedAt, endedAt, edgePid, consoleLines, cleanup, sources: [{ path, sha256 }] }`,
   with `status` `pass`, `fail`, `timeout` or `error`.
+- `consoleLines` is an array of strings: the text of each `Runtime.consoleAPICalled` event, one string per event, in
+  arrival order (ruling on P2-13v, 2026-11-25). A non-string entry is not a reading.
 - The page's own reading is its console line `CHECK-END PASS|FAIL <s> s <name>` (the `tests/browser/watchdog.js`
   convention).
 - `sources` hash each text after `lf`: the page, every file of `tests/browser/` whose name starts with the page's base
