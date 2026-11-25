@@ -47,3 +47,15 @@ Discord message 1574937911546085528, 2026-11-25 07:00:59 +07:00:
 
 Translation: "Continue doing phase 2 until it is done; gather [it] in one PR (do not merge)." Phase 1 and phase 2
 go together in one pull request, which is not merged.
+
+## The owner's second follow-up, verbatim (CLI, 2026-11-25 07:46 +07:00)
+
+> vậy cần tách 2 PR cho 2 phase này. Khi xong phase 1, hãy cập nhật PR hiện tại với chi tiết các thay đổi. Sau đó
+> tiếp tục làm phase 2 trong branch khác, PR khác.
+
+Translation: "Then the two phases need two separate PRs. When phase 1 is done, update the current PR with the details of
+the changes. Then continue phase 2 in another branch, another PR." Asked for the phase-2 branch and base, he chose
+branch `gen-v4` and base `main`. This supersedes the 07:00 instruction's "one PR": phase 1 stays in PR #11
+(`improve-generating` into `main`), whose description is updated with the details of the changes when phase 1 is
+done; phase 2 is a new branch `gen-v4` (from `improve-generating` after phase 1's close-out) and a new PR into
+`main`. Neither PR is merged (the 07:00 instruction's "không merge" stands).
