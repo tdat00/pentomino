@@ -124,14 +124,14 @@ questions and deviations.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w1, f8e1f939979541e2306c9cef87e727f8b11cf281 |
+| Start, end, duration | dispatched 2026-11-26 02:33 +07:00 (developer 02:33:41 to about 02:40:30, QUESTION 1; doc fix round about 03:25); accepted 03:07 |
+| Waiting for rulings | about 6 min (QUESTION 1 and seven deviations, SA-Opus); then held for the merge order (after the P2-14b fix round) |
+| Agent id, model | 7e3ffb23-be3f-4188-9f02-ff2fa4fb12ea, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 64; 10,934,997 / 52,444 / 10,216,144 |
+| AI credits | 334.31 |
+| Questions and rulings | QUESTION 1 (G-FORMAT flagged README.md:7, an existing Markdown hard break): SA-Opus ruled the guard was stricter than tools/check-conventions.mjs; check-list 3.4 amended (9780bb4) to allow a Markdown line ending in exactly two spaces after text; README.md unchanged. Seven deviations accepted (sentence as an indented paragraph in list item 2; the harness bullet in Develop and test; the README line on the Generator bullet; --seed-index documented on condition of the merge order; tools README extras; --rehearse-cutover noted obsolete; the log is the orchestrator's). Merge order: after the P2-14b fix round, with the usage check |
+| Fix rounds | 1 (the usage check found [--seed-index <i>] against the script's [--seed-index <0 to 3>]; the placeholder and its prose fixed) |
+| Gates re-run by the orchestrator (merge gate) | usage check before the fix round: `node tools\ig-proto\phase2\replay-probe.mjs` (953347e) exit 2, usage `--all --out <dir> [--trees <dir>] | --item <n> --out <dir> [--trees <dir>] [--seed-index <0 to 3>]`: the --all line matched, the --item line differed (fixed); slot static guards with the amended G-FORMAT; merge gate and the usage check on the merged tree in the bookkeeping; developer: sentence, deadline.html and README checks one hit each, G-CHECK, G-PROTECTED, G-WORKTREE OK, copies 195 and 32 |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | N-P1-DOC closed (both developer guides list tools/ig-proto/); the owner may reword approved texts (D-P2-16); the Vietnamese harness paragraph has had no native review (owner's text pass if wanted); re-check the tools README commands if P2-18 to P2-20 change a tool |

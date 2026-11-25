@@ -60,7 +60,7 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
   `http://localhost:8080/pentomino/tests/browser/` kèm `player-controls.html`, `player-load.html`, `hints.html`,
   `print.html`, `rendering.html`, `generator-flow.html`, `generator-editor.html`, `replay.html`, `puzzle-code-worker.html`,
   `puzzle-code-entry.html`, `puzzle-code-print.html`, `puzzle-code-cli-parity.html`, `puzzle-code-acceptance.html`,
-  `puzzle-qr.html`, `watchdog.html` hoặc `acceptance.html`. Mỗi trang ghi danh sách đạt/không đạt, cùng `data-summary`
+  `puzzle-qr.html`, `watchdog.html`, `deadline.html` hoặc `acceptance.html`. Mỗi trang ghi danh sách đạt/không đạt, cùng `data-summary`
   và `data-result` (`pass` hoặc `fail`) trên `<html>`. Hãy dùng cửa sổ hẹp hơn
   1360 px: một số bài kiểm tra cần bố cục một hoặc hai cột. `replay.html?phase=keys` và
   `puzzle-code-acceptance.html?phase=keys` chờ các lần nhấn phím đáng tin cậy mà chỉ một trình chạy qua giao thức
@@ -94,6 +94,19 @@ npm test             # toàn bộ kiểm thử đơn vị: node --test "tests/**
   của bộ giải suy luận, ví dụ `{"census":0}`); `json` là văn bản JSON hoặc tên tệp. Mã thoát: `0` đã thăm dò mọi đề;
   `2` việc tạo đề chỉ được một phần hoặc phép kiểm tra đồng nhất bị lệch (các dòng vẫn được ghi); `1` đầu vào sai hoặc
   không có gói đề.
+- **Bộ công cụ đo (`tools/ig-proto/`)** (công cụ phía kiểm thử của công việc cải thiện việc tạo đề; không thuộc trang web
+  và không ứng dụng nào nạp nó): nó đo việc tạo đề qua các **bản sao** đã vá của `core/` và `tools/`, không bao giờ qua
+  một tệp sản phẩm bị sửa, và có README riêng, [tools/ig-proto/README.md](tools/ig-proto/README.md), ghi mọi lệnh. Mọi
+  lượt chạy có tính giờ hoặc nặng (chạy engine hay kiểm thử, một bộ chứng minh, một lần thăm dò chạy lại, một phép kiểm
+  tra trên trình duyệt, bất kỳ tập lệnh nào chấm điểm hoặc tạo đề) đều đi qua công cụ khóa
+  `tools\ig-proto\lock\ig-lock.ps1` (`Invoke-IgNode`), để các phép đo không chồng lên việc khác trên máy; các kiểm tra
+  tĩnh như `npm run check` chạy không cần nó. Các công cụ giai đoạn 2 trong `tools/ig-proto/phase2/` kiểm định mã
+  `gen-v4` của sản phẩm: `copies.mjs` (các bản sao đo đã được định danh), lớp vết của các bản sao (`files/`,
+  `variants/`) và `trace-reader.mjs` (sổ công việc của một dòng), `proofs.mjs` (bốn bộ chứng minh), `p2.mjs` cùng
+  `run-group.ps1` (kế hoạch, niêm phong, sổ ghi thời gian và các nhóm dòng), `binding.mjs` và `gates.mjs` (các bộ kiểm
+  tra ràng buộc, bộ so sánh và các cổng của từng giai đoạn), `replay-probe.mjs` (các lần thăm dò tài nguyên chạy lại)
+  và `browser-run.mjs` (một phép kiểm tra của một trang trình duyệt trong Edge không giao diện, dùng cho
+  `tests/browser/deadline.html`), mỗi công cụ có tệp `*.test.mjs` riêng.
 
 **Cấu trúc mã.** ES module gốc với kiểu JSDoc và `// @ts-check`, chia thành các lớp:
 

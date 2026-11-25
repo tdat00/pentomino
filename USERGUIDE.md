@@ -66,6 +66,8 @@ a piece set (otherwise step 1 says why), and step 3 once a piece set is on show.
    sets made for this board, **Remove** drops the set on show with its puzzles, and **Remove all** drops every set of
    this board after a confirmation. **Select this piece set**, under the pieces, opens step 3 with that set. A new set
    that is the same as one already in the list is not added; that set is shown instead.
+
+   For a Nightmare set, if the first four piece sets tried all end the same way without a puzzle of the level, the Generator stops early and says so, instead of running to the time limit.
 3. **Create puzzles.** The step frame holds the puzzle level (the set's level by default), the
    **Require unique solution** switch and **New puzzle**, which adds one puzzle per press. The list on the left shows the
    puzzles of the set on show, newest first: **Puzzle #n**, the level in bold with the score (for a puzzle of an older

@@ -15,6 +15,7 @@ browser: no account, no backend, no remote solver, no upload, no build step and 
 - **[Pentomino Generator](generator/)**: draws a board (presets, blocked squares, 45° views), generates piece sets that
   provably tile it, makes puzzles from a set at seven levels (optionally with a proven unique solution), prints them and
   imports a puzzle from its link or code.
+  Nightmare uses the `gen-v4` search except on the full 26×26 board; its bounded set search can stop early with a reason.
 - **Generation steps** (in the Generator): in step 3, under the pieces to place, a table of how the generator made the
   puzzle, step by step, with the pieces, the deduction rules and the score of each step; made in the background after a
   puzzle is generated and kept in the browser; hidden until you press its button.

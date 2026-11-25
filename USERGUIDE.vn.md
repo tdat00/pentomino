@@ -63,6 +63,8 @@ có một bộ mảnh đang hiển thị.
    của nó. ◀ **Bộ n/tổng** ▶ chuyển qua các bộ đã tạo cho bàn chơi này, **Xóa** bỏ bộ đang hiển thị cùng các đề của nó,
    **Xóa tất cả** bỏ mọi bộ của bàn chơi này sau khi xác nhận. Nút **Chọn bộ mảnh này** bên dưới các mảnh mở bước 3 với bộ
    đó. Một bộ mới trùng với bộ đã có trong danh sách sẽ không được thêm; bộ đã có sẽ được hiển thị.
+
+   Với bộ mảnh mức Ác mộng, nếu bốn bộ mảnh thử đầu tiên đều kết thúc theo cùng một cách mà không tìm được đề đạt mức, trình tạo dừng sớm và báo lý do, thay vì chạy đến hết thời gian cho phép.
 3. **Tạo đề.** Khung của bước có mức độ của đề (mặc định là mức của bộ mảnh), công tắc **Yêu cầu lời giải duy nhất** và
    nút **Tạo đề mới**, mỗi lần nhấn thêm một đề. Danh sách bên trái hiện các đề của bộ đang hiển thị, mới nhất ở trên:
    **Đề #n**, mức độ in đậm kèm điểm (với đề theo thang điểm cũ: đã chấm lại, kèm đánh giá gốc trong một ghi chú phía sau;
