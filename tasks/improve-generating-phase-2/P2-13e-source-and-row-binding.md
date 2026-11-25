@@ -144,7 +144,7 @@ before it is measured or counted.
      "A twin").
    - Otherwise `null`.
 5. **`runGroup`** (P2-13d) changes.
-   - Its matrix file is `rowMatrix(expected)` of `binding.mjs`, in place of step 3.2's literal.
+   - Its matrix file is already `rowMatrix(expected)` of `binding.mjs` (P2-13d); keep it.
    - **Before launching any key:** when a status record of one of this group's keys has a `sealSha256` other than the
      active one, it prints `refused: foreign seal epoch <key>` and exits 9. Nothing is launched.
    - **Skip:** a terminal key with the active seal is skipped.
@@ -154,8 +154,10 @@ before it is measured or counted.
      - When it fails, the key is `interrupted` with `cause` set to its first problem.
      - Either way the key is never launched again.
    - **Exit codes:** P2-13d's, plus 9 for a refused binding.
-6. **`publish`** verifies every row of its source rows file with `verifyRow`. When any row fails, it prints
-   `publish: refused <key>: <problems joined by '; '>` for each, writes nothing and exits 9.
+6. **`publish`** first refuses while a key of the stage has a `start` line without a terminal line (resume reconciles
+   only the keys of the group being run, P2-13d): it prints `publish: unreconciled <key> (run its group again)` for
+   each, writes nothing and exits 9. Then it verifies every row of its source rows file with `verifyRow`. When any row
+   fails, it prints `publish: refused <key>: <problems joined by '; '>` for each, writes nothing and exits 9.
 7. **`export function loadSnapshot(dir, stage, ctxOf)`** reads `<dir>/<stage>.jsonl` and checks it against
    `<dir>/<stage>.sha256` (C8); a mismatch throws `snapshot <stage> hash`.
    - It returns `{ sha256, rows }`, each row with `binding: verifyRow(row, ctxOf(row))`.
@@ -183,6 +185,7 @@ before it is measured or counted.
 | same | `a mismatched raw report is interrupted on resume` | a started key whose `report.json` changed after its receipt was written | `interrupted` with `cause: 'report hash'`; no launch marker |
 | same | `an old-seal terminal key is refused after a new seal` | a status journal whose `done` key has another `sealSha256` | runGroup exits 9 with `refused: foreign seal epoch <key>`; no launch; `publish` exits 9 |
 | same | `publication refuses a bad binding` | a rows file whose row's `receipt` hash differs from the receipt | exit 9, `publish: refused <key>: receipt hash`; nothing written |
+| same | `publication refuses an unreconciled key` | a status journal with a `start` line for `k1` and no terminal line | exit 9, `publish: unreconciled k1 (run its group again)`; nothing written |
 | same | `a published row with a later bad binding is marked` | `loadSnapshot` of a published row whose raw report changed afterwards | that row's `binding.ok` false, with `report hash` |
 
 ## Documentation

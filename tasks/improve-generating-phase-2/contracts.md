@@ -148,7 +148,7 @@ It is written after the child returns, killed included. A missing receipt means 
 
 - `<dir>/<S>.jsonl` (CRLF);
 - `<dir>/<S>.md` (row counts per component, arm and cell);
-- `<dir>/<S>.sha256` (the jsonl's SHA-256).
+- `<dir>/<S>.sha256`: the jsonl's SHA-256 as 64 lower-case hex characters, then CRLF (ruling on P2-13d, 2026-11-25).
 
 An existing `<dir>/<S>.jsonl` with other bytes is refused. The fixed directories are:
 
