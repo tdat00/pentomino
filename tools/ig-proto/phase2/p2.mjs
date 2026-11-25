@@ -13,7 +13,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { rectRows } from '../../bench/calibration-reference.js';
 import { verifySnapshot as realVerifySnapshot } from '../snapshot.mjs';
 import { BROWSER_CHECKS, rowMatrix, sha256Hex, verifyRow } from './binding.mjs';
-import { B1_CELLS, equalityOf, PROOF_BUNDLES, readJsonOrNull, smokeGate as defaultSmokeGate, stageGates } from './gates.mjs';
+import { B1_CELLS, equalityOf, historicalOf, PROOF_BUNDLES, readingsOf, readJsonOrNull, smokeGate as defaultSmokeGate, stageGates } from './gates.mjs';
+import { assignTwins, ELIGIBLE, isEligible, PREDICATE_VERSION, triggered } from './p5.mjs';
 import { readRowFolder, rowWork } from './trace-reader.mjs';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -27,6 +28,7 @@ export const READOUT = 'docs/improve-generating-phase-2/stage-a-readout.md';
 export const SEALED_INPUTS = Object.freeze([
   'core/',
   AUDIT,
+  'docs/improve-generating-stages-2-4/stage4-report.md',
   'docs/improve-generating/evidence/frozen/V4-S4/',
   'docs/improve-generating/evidence/frozen/V4-S4C/',
   'docs/improve-generating/evidence/frozen/V4-T01a/snapshot-manifest.json',
@@ -1316,6 +1318,7 @@ export async function reportCommand(P, a) {
     proofs: stage === 'smoke' ? Object.fromEntries(PROOF_BUNDLES.map((b) => [b, readJsonOrNull(join(P.E, 'proofs', b, 'result.json'))])) : {},
     equality,
     oracleRoot,
+    interrupted: stage === 'B' ? interruptedKeys(P) : [],
   });
   const status = gates.filter((g) => g.status !== 'not-due').every((g) => g.status !== 'incomplete') ? 'complete' : 'incomplete';
   const ledgerStatus = await main(['ledger', '--status', ...(P.state ? ['--state', P.state] : [])]);
@@ -1323,6 +1326,158 @@ export async function reportCommand(P, a) {
   writeFileSync(join(out, 'report.json'), jsonText(report));
   writeFileSync(join(out, 'report.md'), reportMarkdown(report));
   return `report: ${stage} ${status} (${gates.filter((g) => g.status !== 'not-due').map((g) => `${g.id} ${g.status}`).join(', ')})`;
+}
+
+/** @param {ReturnType<typeof pathsOf>} P @returns {string[]} The keys of both stages whose last terminal status line is `interrupted` (C5). */
+function interruptedKeys(P) {
+  /** @type {Map<string, string>} */
+  const terminal = new Map();
+  for (const stage of ['A', 'B']) {
+    for (const line of readJsonl(join(P.RAW, 'rows', `${stage}.status.jsonl`))) {
+      if (line.t === 'done' || line.t === 'interrupted') terminal.set(line.key, line.t);
+      else if (line.t === 'start') terminal.delete(line.key);
+    }
+  }
+  return [...terminal].filter(([, t]) => t === 'interrupted').map(([key]) => key).sort(byText);
+}
+
+/**
+ * The human summary of an activation receipt.
+ * @param {Record<string, any>} activation @param {{ key: string, reasons: string[], cover: string }[]} required @param {{ key: string, why: string }[]} unsettled
+ * @returns {string}
+ */
+function twinsMarkdown(activation, required, unsettled) {
+  const { overflow } = activation;
+  const lines = [
+    '# Conditional twins',
+    '',
+    `Predicate \`${activation.predicateVersion}\`; plan \`${activation.planSha256}\`; seal \`${activation.sealSha256}\`; \`activation.json\` is the record.`,
+    '',
+    `${activation.eligible} eligible rows; ${required.length} required twins.`,
+    '',
+    '## Required twins',
+    '',
+    '| Row | Reasons | Twin |',
+    '|---|---|---|',
+    ...required.map((r) => `| ${mdCell(r.key)} | ${mdCell(r.reasons.join(', '))} | ${mdCell(r.cover)} |`),
+    '',
+    '## Open slots',
+    '',
+    '| Slot | Row |',
+    '|---|---|',
+    ...Object.entries(activation.slots).map(([slot, key]) => `| ${mdCell(slot)} | ${key === null ? 'inactive' : mdCell(String(key))} |`),
+    '',
+    '## Overflow',
+    '',
+    overflow.keys.length === 0
+      ? 'No overflow.'
+      : `FINDING: ${overflow.keys.length} required twins beyond the five slots, in ${overflow.groups.length} groups. Reprice: counted ${overflow.repriceCountedS} s, guard ${overflow.repriceGuardS} s. The ledger admits each group only inside the remaining authorization; a required twin is never dropped.`,
+    ...overflow.groups.flatMap((/** @type {string[]} */ g, /** @type {number} */ i) => ['', `Group o${i + 1}: ${g.map(mdCell).join(', ')}`]),
+    '',
+    '## Rows without a settled trigger',
+    '',
+    unsettled.length === 0 ? 'None.' : ['| Row | Why |', '|---|---|', ...unsettled.map((u) => `| ${mdCell(u.key)} | ${mdCell(u.why)} |`)].join('\n'),
+  ];
+  return toCrlf(lines.join('\n'));
+}
+
+/**
+ * `twins --out <dir>` (C10, C11): the immutable activation receipt of the conditional twins, from stage A's snapshot and
+ * stage B's snapshot before the twins. Exit 5 when the snapshots do not hold exactly 440 eligible rows, 3 when
+ * `activation.json` exists with other bytes, 4 (a finding, check-list 3.5) when the required twins overflow the five slots.
+ * @param {ReturnType<typeof pathsOf>} P @param {Record<string, any>} a @returns {string} The printed line.
+ */
+export function twinsCommand(P, a) {
+  if (typeof a.out !== 'string') throw new Exit(2, USAGE);
+  const ctxOf = rowContextOf(P);
+  const { sealSha256 } = activeSeal(P);
+  const planFile = join(P.E, 'plan', 'plan.json');
+  const plan = JSON.parse(readFileSync(planFile, 'utf8'));
+  const planSha256 = sha256Hex(readFileSync(planFile));
+  const sources = /** @type {const} */ ([['rows', 'A'], ['rows-before-twins', 'B']]);
+  const loaded = sources.map(([folder, name]) => {
+    const path = `${folder}/${name}.jsonl`;
+    try {
+      return { path, ...loadSnapshot(join(P.E, folder), name, ctxOf) };
+    } catch (error) {
+      const failure = /** @type {NodeJS.ErrnoException} */ (error);
+      if (failure.code === 'ENOENT' || /^snapshot /.test(failure.message)) throw new Exit(3, `twins: ${path}: ${failure.code === 'ENOENT' ? 'the snapshot is missing' : failure.message}`);
+      throw error;
+    }
+  });
+  const eligible = loaded.flatMap((s) => s.rows).filter(isEligible);
+  const distinct = new Set(eligible.map((r) => r.key)).size;
+  if (eligible.length !== ELIGIBLE || distinct !== ELIGIBLE) {
+    throw new Exit(5, `twins: ${eligible.length} eligible rows (${distinct} distinct keys), not ${ELIGIBLE}`);
+  }
+
+  const oracleRoot = P.state ?? ROOT;
+  const readings = readingsOf(oracleRoot);
+  /** @type {Map<string, Map<number, any> | null>} */
+  const cache = new Map();
+  /** @type {Set<string>} */
+  const frozen = new Set();
+  /** @type {Map<string, string[]>} */
+  const reasonsOf = new Map();
+  /** @type {{ key: string, why: string }[]} */
+  const unsettled = [];
+  for (const row of eligible) {
+    const historical = historicalOf(row, oracleRoot, readings, cache);
+    if (typeof historical.path === 'string' && cache.get(historical.path)) frozen.add(historical.path);
+    if (!row.binding.ok) {
+      unsettled.push({ key: row.key, why: `binding refused: ${row.binding.problems.join('; ')}` });
+      continue;
+    }
+    const trigger = triggered(row, historical);
+    if (trigger.triggered) reasonsOf.set(row.key, trigger.reasons);
+    if (trigger.unknown.length > 0) unsettled.push({ key: row.key, why: `unknown ${trigger.unknown.join(', ')}` });
+  }
+  const required = [...reasonsOf.keys()].sort(byText);
+  const twinRows = plan.rows.filter((/** @type {any} */ r) => r.component === 'conditional-twin');
+  const fixed = new Set(twinRows.filter((/** @type {any} */ r) => !r.open).map((/** @type {any} */ r) => `${r.cell}/${r.rep}`));
+  const byKey = new Map(eligible.map((r) => [r.key, r]));
+  const covered = new Set(required.filter((key) => {
+    const row = /** @type {any} */ (byKey.get(key));
+    return fixed.has(`${row.cell}/${row.rep}`);
+  }));
+  const openSlots = twinRows.filter((/** @type {any} */ r) => r.open).map((/** @type {any} */ r) => r.key).sort(byText);
+  const { slots, inactive, overflow } = assignTwins(required, covered, openSlots);
+
+  const activation = {
+    planSha256,
+    sealSha256,
+    inputs: {
+      A: { path: loaded[0].path, sha256: loaded[0].sha256 },
+      Bbounded: { path: loaded[1].path, sha256: loaded[1].sha256 },
+      frozen: [...frozen].sort(byText).map((path) => ({ path, sha256: hashFile(join(oracleRoot, ...path.split('/'))) })),
+      readings: { path: readings.path, sha256: readings.sha256 },
+    },
+    predicateVersion: PREDICATE_VERSION,
+    eligible: ELIGIBLE,
+    required,
+    slots,
+    inactive,
+    overflow,
+  };
+  const text = jsonText(activation);
+  const out = resolve(a.out);
+  writeOnce(join(out, 'activation.json'), text, 'twins');
+  const slotOf = new Map(Object.entries(slots).filter(([, key]) => key !== null).map(([slot, key]) => [key, slot]));
+  const groupOf = new Map(overflow.groups.flatMap((g, i) => g.map((key) => [key, `o${i + 1}`])));
+  const cover = (/** @type {string} */ key) => {
+    const row = /** @type {any} */ (byKey.get(key));
+    if (covered.has(key)) return `fixed conditional-twin/uncapped/${row.cell}/${row.rep}`;
+    return slotOf.has(key) ? `slot ${slotOf.get(key)}` : `overflow ${groupOf.get(key)}`;
+  };
+  const md = join(out, 'twins.md');
+  if (!existsSync(md)) {
+    writeFileSync(md, twinsMarkdown(activation, required.map((key) => ({ key, reasons: reasonsOf.get(key) ?? [], cover: cover(key) })), unsettled));
+  }
+  const line = `twins: ${sha256Hex(Buffer.from(text, 'utf8'))} required ${required.length} slots ${Object.values(slots).filter((v) => v !== null).length} inactive ${inactive.length} overflow ${overflow.keys.length}`;
+  if (overflow.keys.length > 0) {
+    throw new Exit(4, `${line}: finding, ${overflow.groups.length} overflow groups cost ${overflow.repriceCountedS} s counted, ${overflow.repriceGuardS} s guard`);
+  }
+  return line;
 }
 
 /**
@@ -1356,6 +1511,7 @@ const USAGE = [
   '  status --stage <A|B>',
   '  publish --stage <A|B> --out <dir> [--rows <dir>]',
   '  report --stage <smoke|A|B> --out <dir>',
+  '  twins --out <dir>',
 ].join('\n');
 
 /**
@@ -1454,6 +1610,8 @@ export async function main(argv) {
       return publishCommand(P, a);
     case 'report':
       return reportCommand(P, a);
+    case 'twins':
+      return twinsCommand(P, a);
     default:
       throw new Exit(2, USAGE);
   }

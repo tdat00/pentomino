@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 import {
   cellGate, classVerdict, completion, hell1Report, ingestRow, masterIdentity, population, reachedTen,
 } from '../verdicts.mjs';
-import { browserGate, resourceGate, verifyProof } from './binding.mjs';
+import { browserGate, resourceGate, sha256Hex, verifyProof } from './binding.mjs';
+import { coverage, ELIGIBLE, isEligible } from './p5.mjs';
 import { workLedger } from './trace-reader.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -233,7 +234,8 @@ export function cohorts(rows) {
  * @property {Record<string, Record<string, any> | null>} [browser] The parsed `E/browser/<check>/receipt.json` of each check.
  * @property {Record<string, Record<string, any> | null>} [proofs] The parsed `E/proofs/<bundle>/result.json` of each bundle.
  * @property {({ key: string, verdict: string } & Record<string, any>)[]} [equality] `equalityOf` of the rows.
- * @property {string} [oracleRoot] Where the frozen oracles are read from (B5's historical populations).
+ * @property {string} [oracleRoot] Where the frozen oracles are read from (B5's historical populations, B8's counterparts and readings).
+ * @property {string[]} [interrupted] The keys whose terminal status line is `interrupted` (B8: censored, never zero).
  */
 
 /** @param {string} id @param {string} stage @param {GateStatus} status @param {string[]} rows @param {Record<string, any>} detail @returns {Gate} */
@@ -671,8 +673,115 @@ function b6({ coh }) {
   return record('B6', 'B', cells.every((c) => c.requests === REPS.length) ? 'pass' : 'incomplete', keysOf(used), { reportOnly: true, cells });
 }
 
-/** @returns {Gate} B8 is P2-13c's report section; `not-due` until it exists. */
-const b8 = () => record('B8', 'B', 'not-due', [], { why: 'the conditional coverage section (P2-13c) does not exist yet' });
+/** The signed F2 and F4 readings of stages 2 and 4 (accepted by both SAs): they settle the frozen rows' reach fields to zero. */
+export const READINGS = 'docs/improve-generating-stages-2-4/stage4-report.md';
+const F2_ROW = '| F2 | N-V4-16: no observed natural set call ended without a window, so the bound and glue were unexercised in stages 2 and 4 |';
+const F4_ROW = '| F4 | No recorded call-budget stop;';
+const READINGS_ACCEPTED = 'F2-F7 agreed';
+
+/**
+ * The bound F2 and F4 readings (C11): the SHA-256 of the report's text after LF, kept for each reading only when the
+ * report holds its signed row and the acceptance line.
+ * @param {string} [root] The repository root, or the self-test root with the same layout.
+ * @returns {{ path: string, sha256: string | null, f2Sha256: string | null, f4Sha256: string | null }}
+ */
+export function readingsOf(root = ROOT) {
+  const file = join(root, ...READINGS.split('/'));
+  if (!existsSync(file)) {
+    return { path: READINGS, sha256: null, f2Sha256: null, f4Sha256: null };
+  }
+  const text = readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+  const sha256 = sha256Hex(text);
+  const accepted = text.includes(READINGS_ACCEPTED);
+  return { path: READINGS, sha256, f2Sha256: accepted && text.includes(F2_ROW) ? sha256 : null, f4Sha256: accepted && text.includes(F4_ROW) ? sha256 : null };
+}
+
+/**
+ * The frozen side of an eligible row (R2-01): none for a `non-table` sentinel, else its oracle row (or null when the
+ * counterpart is missing) with the readings.
+ * @param {Record<string, any>} row
+ * @param {string | undefined} root The repository root, or the self-test root.
+ * @param {ReturnType<typeof readingsOf>} readings
+ * @param {Map<string, Map<number, any> | null>} cache The oracle files by path, filled here.
+ * @returns {{ applicable: boolean, row?: any, readings?: ReturnType<typeof readingsOf>, path?: string | null }}
+ */
+export function historicalOf(row, root, readings, cache) {
+  if (row.component === 'non-table') {
+    return { applicable: false };
+  }
+  const oracle = root === undefined ? null : oracleOf(row, root);
+  if (oracle === null || root === undefined) {
+    return { applicable: true, row: null, readings, path: null };
+  }
+  if (!cache.has(oracle.path)) {
+    try {
+      cache.set(oracle.path, loadOracle(oracle.path, root));
+    } catch {
+      cache.set(oracle.path, null);
+    }
+  }
+  return { applicable: true, row: cache.get(oracle.path)?.get(row.rep) ?? null, readings, path: oracle.path };
+}
+
+const TWIN_KEY = /^conditional-twin\/uncapped\/(.+)\/(\d+)$/;
+
+/**
+ * B8, P5's coverage (review-2 R2-01): over the 440 eligible rows of both stages' final snapshots, per category and per
+ * endpoint. Any unresolved eligible row, or one missing from the snapshots, leaves it incomplete; it never fails.
+ * @param {Ctx} ctx @returns {Gate}
+ */
+function b8({ input }) {
+  const plan = input.plan;
+  if (!plan) {
+    return record('B8', 'B', 'incomplete', [], { problems: ['B8: no sealed plan to name the eligible rows'] });
+  }
+  /** @type {string[]} */
+  const problems = [];
+  const expected = plan.rows.filter(isEligible);
+  if (expected.length !== ELIGIBLE) {
+    problems.push(`B8: the plan has ${expected.length} eligible rows, not ${ELIGIBLE}`);
+  }
+  const bound = new Map(input.rows.map((r) => [r.key, r]));
+  const refused = new Map((input.refused ?? []).map((r) => [r.key, r.problems ?? []]));
+  const interrupted = new Set(input.interrupted ?? []);
+  /** @param {Record<string, any>} identity @returns {Record<string, any>} The row line, or a placeholder that says why there is none. */
+  const entry = (identity) => {
+    const line = bound.get(identity.key);
+    if (line) {
+      return { ...line, binding: { ok: true, problems: [] } };
+    }
+    const base = { key: identity.key, component: identity.component, cell: identity.cell, rep: identity.rep, seed: identity.seed, uniqueness: identity.uniqueness };
+    if (refused.has(identity.key)) {
+      return { ...base, binding: { ok: false, problems: refused.get(identity.key) } };
+    }
+    return { ...base, state: interrupted.has(identity.key) ? 'interrupted' : 'missing' };
+  };
+  const eligible = expected.map(entry);
+  /** @type {Record<string, any>[]} */
+  const twins = [];
+  const twinKeys = new Set([...input.rows.map((r) => r.key), ...refused.keys(), ...interrupted].filter((k) => TWIN_KEY.test(k)));
+  for (const key of twinKeys) {
+    const [, cell, rep] = /** @type {RegExpExecArray} */ (TWIN_KEY.exec(key));
+    const line = bound.get(key);
+    twins.push(line ? entry(line) : entry({ key, component: 'conditional-twin', cell, rep: Number(rep) }));
+  }
+  const readings = readingsOf(input.oracleRoot);
+  /** @type {Map<string, Map<number, any> | null>} */
+  const cache = new Map();
+  const result = coverage(eligible, twins, (row) => historicalOf(row, input.oracleRoot, readings, cache));
+  for (const u of result.unresolved) {
+    problems.push(`B8 ${u.key}: ${u.reasons.join('; ')}`);
+  }
+  return record('B8', 'B', problems.length > 0 ? 'incomplete' : 'pass', expected.map((r) => r.key), {
+    eligible: expected.length,
+    categories: result.counts,
+    endpoints: result.endpoints,
+    requiredTwinsMissing: result.requiredTwinsMissing,
+    unresolved: result.unresolved,
+    readings: { path: readings.path, sha256: readings.sha256 },
+    problems,
+  });
+}
 
 /** @type {Record<string, [string, (ctx: Ctx) => Gate][]>} */
 const GATES = {

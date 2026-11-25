@@ -200,14 +200,14 @@ None here; P2-17 writes the README section.
 
 | Item | Value |
 |---|---|
-| Slot, base SHA | |
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator (merge gate) | |
-| Commit (slot), commit on `gen-v4` | |
-| Issues and named items | |
+| Slot, base SHA | w3, 478eca34b308add4f320b8dffb55948669f88637 |
+| Start, end, duration | dispatched 2026-11-26 00:48 +07:00 (developer 00:48:16 to 00:58:31; fix round to about 01:13); accepted 01:15 |
+| Waiting for rulings | about 6 min (twelve deviations, SA-Opus) |
+| Agent id, model | b280e888-8e62-487c-8707-56b897b7c60c, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 48; 7,732,889 / 86,659 / 7,339,975 |
+| AI credits | 258.28 |
+| Questions and rulings | no QUESTION; twelve deviations ruled by SA-Opus (pack amendment 3a86165, P2-13c task text and C11): 1 to 4 and 6 to 11 accepted (B8 incomplete without a plan; GateInput.interrupted for stage B; { path, sha256 } inputs; LF-normalised hashes; null counters as a stage that did not run; finite igSetMs as the twin's completed set; required holds only binding-verified triggered rows; an invalid twin is analytic-only; exit 3; assignTwins in p5.mjs). Fixes: 5, stage4-report.md added to SEALED_INPUTS after AUDIT (SA-Opus verified both readings bind on the real report, hash 2e7b716c...); 12, no default historical side: anything but an object with a boolean applicable adds historical to unknown |
+| Fix rounds | 1 (fixes 5 and 12 with their test assertions) |
+| Gates re-run by the orchestrator (merge gate) | slot static guards; merge gate with every phase-2 test file and G-COPIES (results in the bookkeeping); developer: unlocked p2.test.mjs 85/85 (61 s), binding 13/13, trace-reader 15/15, G-PROTECTED, G-WORKTREE, G-FORMAT (4 files), G-CHECK OK |
+| Commit (slot), commit on `gen-v4` | this commit; its SHA on gen-v4 in the bookkeeping |
+| Issues and named items | P2-13f carries the N-V4-16 glue and the reach readings; P2-17 the README section; run-group resolves slots through activation.json (P2-13a, C10); on the real plan isEligible gives 440 rows (140 A, 300 B); no real seal, snapshot or oracle file (lane T) |

@@ -10,6 +10,7 @@ import { matrixDigest, rectRows } from '../../bench/calibration-reference.js';
 import { newRunRecord, SOURCE_FILES } from '../../bench/report.js';
 import { BROWSER_CHECKS, BROWSER_GENERATOR_SOURCES, BROWSER_PAGE, REPLAY_ITEMS, rowMatrix, sha256Hex, verifyRow } from './binding.mjs';
 import { cohorts, equality, memory, oracleOf, smokeGate, stageGates } from './gates.mjs';
+import { coverage, isEligible, triggered } from './p5.mjs';
 import { buildPlan, buildSeal, checkReadout, checkSeal, COPIES, loadSnapshot, pathsOf, rowContextOf, runGroup, STAGE_MAP } from './p2.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -1284,7 +1285,7 @@ describe('the comparator', () => {
     const journals = Object.fromEntries(rows.filter((r) => r.component === 'shipped' && /^(12x12|14x14|15x15b10|16x16|15x20)-nightmare$/.test(r.cell)).map((r) => [r.fileKey, []]));
     const equalityEntries = rows.filter((r) => r.cell === '26x26-nightmare' && r.component === 'shipped').map((r, i) => ({ key: r.key, oracle: 'o', verdict: i % 2 === 0 ? 'equal' : 'prefix-equal' }));
     const gates = stageGates('B', { rows, journals, equality: equalityEntries });
-    assert.deepEqual(gates.map((g) => [g.id, g.status]), [['B1', 'pass'], ['B2', 'pass'], ['B3', 'pass'], ['B4', 'pass'], ['B5', 'pass'], ['B6', 'pass'], ['B7', 'pass'], ['B8', 'not-due']]);
+    assert.deepEqual(gates.map((g) => [g.id, g.status]), [['B1', 'pass'], ['B2', 'pass'], ['B3', 'pass'], ['B4', 'pass'], ['B5', 'pass'], ['B6', 'pass'], ['B7', 'pass'], ['B8', 'incomplete']]);
     assert.ok(gates.slice(0, 7).every((g) => g.rows.length > 0));
     assert.equal(gateOf(gates, 'B4').detail.verdict, 'admitted');
     const b2 = gateOf(gates, 'B2').detail.cells.find((/** @type {any} */ c) => c.cell === '26x26-nightmare');
@@ -1728,5 +1729,287 @@ describe('the smoke gate', () => {
     rmSync(join(w.dir, 'E', 'proofs'), { recursive: true });
     assert.equal(smokeGate(w.rows(), w.plan, w.P).ok, false, 'no proof results is not a pass');
     assert.equal(smokeGate(w.rows(), w.plan, pathsOf(join(w.dir, 'nowhere'))).ok, false, 'no seal is not a pass');
+  });
+});
+
+const SHA_A = 'a'.repeat(64);
+const SHA_B = 'b'.repeat(64);
+const READINGS_OK = { f2Sha256: SHA_A, f4Sha256: SHA_B };
+const NO_HISTORY = () => ({ applicable: false });
+const PRODUCTION = { applicable: false };
+const OUTCOME = (/** @type {number} */ attempt, /** @type {Record<string, any>} */ over = {}) => ({ stage: 'set', attempt, result: 'ok', igNoWindow: null, budgetStop: false, ...over });
+
+/** A published row line, as `loadSnapshot` gives it, with every production field settled. @param {Record<string, any>} [run] @param {Record<string, any>} [extra] */
+const settled = (run = {}, extra = {}) => hand('shipped', 'gen-v4', '10x10-nightmare', 20, run, { stage: 'B', uniqueness: 'any', telemetry: TELEMETRY, binding: { ok: true, problems: [] }, ...extra });
+/** The twin of a row, with its own line (joined by cell, repetition, seed and uniqueness). @param {Record<string, any>} row @param {Record<string, any>} [run] @param {Record<string, any>} [extra] */
+const twinOfRow = (row, run = {}, extra = {}) => hand('conditional-twin', 'uncapped', row.cell, row.rep, run, { stage: 'B', uniqueness: row.uniqueness, telemetry: TELEMETRY, binding: { ok: true, problems: [] }, ...extra });
+const frozenRow = (/** @type {Record<string, any>} */ run = {}) => ({ applicable: true, row: { rep: 20, run: { acceptedCount: 10, partialReason: null, ...run } }, readings: READINGS_OK });
+
+describe('P5 trigger and coverage', () => {
+  it('a no-window attempt followed by success triggers', () => {
+    const row = settled({}, { ledger: { ...LEDGER, calls: 2, ended: 2, outcomes: [OUTCOME(0, { result: 'fail', igNoWindow: 'below' }), OUTCOME(1)] } });
+    assert.deepEqual(triggered(row, PRODUCTION), { triggered: true, reasons: ['no-window'], unknown: [] });
+    assert.deepEqual(triggered(settled(), PRODUCTION), { triggered: false, reasons: [], unknown: [] });
+  });
+
+  it('a no-window attempt after index 3 triggers', () => {
+    const trail = { attempts: [0, 1, 2, 3].map((attempt) => ({ attempt, outcome: attempt === 3 ? 'ok' : 'fail', reason: null, arrival: attempt })), sameSide: 0, boundFired: false, noWindow: { below: 0, above: 1 } };
+    const row = settled({}, { telemetry: { ...TELEMETRY, trail } });
+    assert.deepEqual(triggered(row, PRODUCTION), { triggered: true, reasons: ['no-window'], unknown: [] });
+    const counters = settled({}, { telemetry: { ...TELEMETRY, batchCounters: { budgetStops: 1, screenCapped: 0, rescueReratings: 0, tailReratings: 0 } } });
+    assert.deepEqual(triggered(counters, PRODUCTION).reasons, ['budget-stop']);
+    const bound = settled({ partialReason: 'set:no-window-above' });
+    assert.deepEqual(triggered(bound, PRODUCTION).reasons, ['bound']);
+  });
+
+  it('both set-prefixed clock reasons trigger', () => {
+    for (const partialReason of ['set:time-limit', 'set:response-bound', 'set:reserve-cut', 'time-limit', 'response-bound']) {
+      assert.deepEqual(triggered(settled({ partialReason }), PRODUCTION), { triggered: true, reasons: ['clock-cut'], unknown: [] }, partialReason);
+    }
+    assert.equal(triggered(settled({ partialReason: 'layouts-not-found' }), PRODUCTION).triggered, false);
+  });
+
+  it('missing production reach is unknown', () => {
+    const row = settled({}, { telemetry: null });
+    assert.ok(triggered(row, PRODUCTION).unknown.includes('telemetry'));
+    const [entry] = coverage([row], [], NO_HISTORY).rows;
+    assert.equal(entry.category, 'unresolved');
+    assert.ok(triggered(settled({}, { ledger: { ...LEDGER, outcomes: undefined } }), PRODUCTION).unknown.includes('ledger.outcomes'));
+    assert.ok(triggered(settled({}, { ledger: { ...LEDGER, complete: false } }), PRODUCTION).unknown.includes('ledger'));
+    assert.equal(coverage([settled()], [], NO_HISTORY).rows[0].category, 'analytic-only');
+  });
+
+  it('historical zeros need the signed readings', () => {
+    const row = settled();
+    const bound = coverage([row], [], () => frozenRow());
+    assert.equal(bound.rows[0].category, 'analytic-only');
+    assert.deepEqual(bound.endpoints.lostCompletions, { fromObservedPairs: 0, analyticalZeros: 1, unresolved: 0 });
+    for (const readings of [null, { f2Sha256: SHA_A, f4Sha256: null }]) {
+      const loose = coverage([row], [], () => ({ ...frozenRow(), readings }));
+      assert.equal(loose.rows[0].category, 'unresolved');
+      assert.deepEqual(loose.rows[0].reasons, ['unknown historical.readings']);
+    }
+    assert.deepEqual(triggered(row, frozenRow({ acceptedCount: 8 })).reasons, ['fewer-than-ten']);
+    assert.deepEqual(triggered(row, frozenRow({ partialReason: 'set:reserve-cut' })).reasons, ['clock-cut']);
+  });
+
+  it('a valid new sentinel has no historical unknown', () => {
+    const sentinel = settled({}, { component: 'non-table', key: 'non-table/gen-v4/10x10-nightmare/20' });
+    assert.deepEqual(triggered(sentinel, { applicable: false }), { triggered: false, reasons: [], unknown: [] });
+    assert.deepEqual(triggered(sentinel).unknown, ['historical'], 'production alone is read only from an explicit not-applicable side');
+    assert.deepEqual(triggered(sentinel, /** @type {any} */ ({})).unknown, ['historical']);
+    assert.equal(coverage([sentinel], [], NO_HISTORY).rows[0].category, 'analytic-only');
+    const cut = settled({ acceptedCount: 4, partialReason: 'set:time-limit' }, { component: 'non-table', key: sentinel.key });
+    const result = coverage([cut], [twinOfRow(cut, { igSetMs: 5000 })], NO_HISTORY);
+    assert.equal(result.rows[0].category, 'observed-pair');
+    assert.deepEqual(result.counts, { 'observed-pair': 1, 'analytic-only': 0, unresolved: 0 });
+  });
+
+  it('a missing counterpart or an invalid twin is unresolved', () => {
+    const row = settled();
+    const missing = coverage([row], [], () => ({ applicable: true, row: null, readings: READINGS_OK }));
+    assert.equal(missing.rows[0].category, 'unresolved');
+    assert.deepEqual(missing.rows[0].reasons, ['unknown historical.row']);
+    const cut = settled({ acceptedCount: 6 });
+    const bad = twinOfRow(cut, { igSetMs: 5000 }, { binding: { ok: false, problems: ['receipt hash'] } });
+    const invalid = coverage([cut], [bad], () => frozenRow());
+    assert.equal(invalid.rows[0].category, 'unresolved');
+    assert.match(invalid.rows[0].reasons[0], /required twin missing .*receipt hash/);
+    assert.equal(invalid.requiredTwinsMissing, 1);
+    const erroneous = twinOfRow(cut, { igSetMs: 5000, errors: [{ code: 'x' }] });
+    assert.equal(coverage([cut], [erroneous], () => frozenRow()).rows[0].category, 'unresolved');
+  });
+
+  it('a reached-ten row with an observed twin is a pair', () => {
+    const row = settled();
+    const result = coverage([row], [twinOfRow(row, { igSetMs: 4000 })], () => frozenRow());
+    assert.equal(result.rows[0].category, 'observed-pair');
+    assert.deepEqual([result.rows[0].falseStop, result.rows[0].lostCompletion], [false, false]);
+    assert.deepEqual(result.endpoints, {
+      lostCompletions: { fromObservedPairs: 0, analyticalZeros: 0, unresolved: 0 },
+      falseStops: { fromObservedPairs: 0, analyticalZeros: 0, unresolved: 0 },
+    });
+  });
+
+  it('false stops and lost completions', () => {
+    const fired = { ...TELEMETRY, trail: { ...TELEMETRY.trail, boundFired: true } };
+    const stopped = hand('shipped', 'gen-v4', '10x10-nightmare', 21, {}, { stage: 'B', uniqueness: 'any', telemetry: fired, binding: { ok: true, problems: [] } });
+    const lost = hand('shipped', 'gen-v4', '10x10-nightmare', 22, { acceptedCount: 7 }, { stage: 'B', uniqueness: 'any', telemetry: TELEMETRY, binding: { ok: true, problems: [] } });
+    const result = coverage([stopped, lost], [twinOfRow(stopped, { igSetMs: 3000 }), twinOfRow(lost, { igSetMs: 3000 })], () => frozenRow());
+    assert.deepEqual(result.counts, { 'observed-pair': 2, 'analytic-only': 0, unresolved: 0 });
+    assert.deepEqual(result.rows.map((r) => [r.falseStop, r.lostCompletion]), [[true, false], [false, true]]);
+    assert.deepEqual(result.endpoints.falseStops, { fromObservedPairs: 1, analyticalZeros: 0, unresolved: 0 });
+    assert.deepEqual(result.endpoints.lostCompletions, { fromObservedPairs: 1, analyticalZeros: 0, unresolved: 0 });
+    const notSet = coverage([stopped], [twinOfRow(stopped, { igSetMs: null })], () => frozenRow());
+    assert.equal(notSet.rows[0].falseStop, false, 'a twin whose set did not complete is no false stop');
+    const unlinked = coverage([stopped], [twinOfRow(stopped)], () => frozenRow());
+    assert.equal(unlinked.rows[0].category, 'unresolved', 'a twin without igSetMs cannot tell a false stop');
+  });
+
+  it('a required twin missing is unresolved', () => {
+    const row = settled({ acceptedCount: 5 });
+    const censored = { key: 'conditional-twin/uncapped/10x10-nightmare/20', component: 'conditional-twin', cell: row.cell, rep: row.rep, state: 'interrupted' };
+    const result = coverage([row], [censored], () => frozenRow());
+    assert.equal(result.rows[0].category, 'unresolved');
+    assert.match(result.rows[0].reasons[0], /interrupted/);
+    assert.deepEqual(result.endpoints.lostCompletions, { fromObservedPairs: 0, analyticalZeros: 0, unresolved: 1 });
+    assert.deepEqual(result.endpoints.falseStops, { fromObservedPairs: 0, analyticalZeros: 0, unresolved: 1 });
+    assert.equal(coverage([row], [], () => frozenRow()).rows[0].category, 'unresolved');
+    const other = twinOfRow({ ...row, seed: 'landscape/other/20' }, {}, { seed: 'landscape/other/20' });
+    assert.equal(coverage([row], [other], () => frozenRow()).rows[0].category, 'unresolved', 'a twin of another seed is not joined');
+  });
+});
+
+/** Writes the signed readings and the frozen oracle files of the cells into a state root. @param {string} dir @param {string[]} cells */
+function frozenRoot(dir, cells) {
+  const readings = join(dir, 'docs', 'improve-generating-stages-2-4', 'stage4-report.md');
+  mkdirSync(dirname(readings), { recursive: true });
+  writeFileSync(readings, [
+    '| F2 | N-V4-16: no observed natural set call ended without a window, so the bound and glue were unexercised in stages 2 and 4 | no change |',
+    '| F4 | No recorded call-budget stop; the largest completed-primitive call-work prefix is 8.39 G | no change |',
+    '- SA-Astra (reviewer): accept; F2-F7 agreed.',
+    '',
+  ].join('\r\n'));
+  for (const cell of cells) {
+    const folder = ['14x14-nightmare', '15x15b10-nightmare', '16x16-nightmare'].includes(cell) ? 'fr-frozen' : 'fr-frozen-none';
+    const file = join(dir, 'docs', 'improve-generating', 'evidence', 'frozen', 'V4-S4', folder, `val-${cell}.runs.json`);
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, JSON.stringify({ meta: {}, shard: {}, rows: REP_LIST.map((rep) => ({ rowKey: `${cell}~${rep}`, caseId: cell, rep, seed: `landscape/${cell}/${rep}`, localRep: 0, run: { acceptedCount: 10, partialReason: null } })) }));
+  }
+}
+
+describe('P5 coverage in the report and the twins command', () => {
+  const eligibleOf = () => planOf().rows.filter(isEligible);
+
+  it('B8 covers both stages', () => {
+    const eligible = eligibleOf();
+    assert.deepEqual([eligible.length, eligible.filter((/** @type {any} */ r) => r.stage === 'A').length, eligible.filter((/** @type {any} */ r) => r.stage === 'B').length], [440, 140, 300]);
+    const dir = state('b8');
+    frozenRoot(dir, [...new Set(eligible.filter((/** @type {any} */ r) => r.component === 'shipped').map((/** @type {any} */ r) => r.cell))]);
+    const fired = { ...TELEMETRY, trail: { ...TELEMETRY.trail, boundFired: true } };
+    const cuts = new Map([
+      ['shipped/gen-v4/10x10-nightmare/20', { run: { acceptedCount: 7 } }],
+      ['shipped/gen-v4/10x10-nightmare/21', { telemetry: fired }],
+      ['shipped/gen-v4/12x12-nightmare/20', { run: { partialReason: 'set:time-limit' } }],
+    ]);
+    const aKey = 'non-table/gen-v4/11x11-nightmare/20';
+    cuts.set(aKey, { run: { acceptedCount: 6 } });
+    const lines = eligible.map((/** @type {any} */ r) => hand(r.component, r.arm, r.cell, r.rep, cuts.get(r.key)?.run ?? {}, { stage: r.stage, uniqueness: r.uniqueness, telemetry: cuts.get(r.key)?.telemetry ?? TELEMETRY, binding: { ok: true, problems: [] } }));
+    const twins = lines.filter((l) => cuts.has(l.key) && l.key !== aKey).map((l) => twinOfRow(l, { igSetMs: 4000 }));
+    const gate = (/** @type {any[]} */ rows, /** @type {Record<string, any>} */ extra = {}) => gateOf(stageGates('B', { rows, plan: planOf(), oracleRoot: dir, ...extra }), 'B8');
+
+    const missing = gate([...lines, ...twins]);
+    assert.equal(missing.status, 'incomplete');
+    assert.equal(missing.detail.eligible, 440);
+    assert.equal(missing.rows.length, 440);
+    assert.ok(missing.rows.includes(aKey) && missing.rows.includes('shipped/gen-v4/10x10-nightmare/20'), 'both stages are in the cohort');
+    assert.deepEqual(missing.detail.categories, { 'observed-pair': 3, 'analytic-only': 436, unresolved: 1 });
+    assert.deepEqual(missing.detail.unresolved.map((/** @type {any} */ u) => u.key), [aKey]);
+    assert.equal(missing.detail.requiredTwinsMissing, 1);
+    assert.deepEqual(missing.detail.endpoints.lostCompletions, { fromObservedPairs: 1, analyticalZeros: 436, unresolved: 1 });
+    assert.deepEqual(missing.detail.endpoints.falseStops, { fromObservedPairs: 1, analyticalZeros: 436, unresolved: 1 });
+    assert.match(missing.detail.problems[0], new RegExp(`^B8 ${aKey}: required twin missing`));
+
+    const aTwin = twinOfRow(lines.find((l) => l.key === aKey), { igSetMs: 4000 });
+    const complete = gate([...lines, ...twins, aTwin]);
+    assert.equal(complete.status, 'pass');
+    assert.deepEqual(complete.detail.categories, { 'observed-pair': 4, 'analytic-only': 436, unresolved: 0 });
+
+    const censored = gate([...lines, ...twins.filter((t) => t.key !== 'conditional-twin/uncapped/10x10-nightmare/20'), aTwin], { interrupted: ['conditional-twin/uncapped/10x10-nightmare/20'] });
+    assert.equal(censored.status, 'incomplete', 'an interrupted twin key is censored, never zero');
+    assert.deepEqual(censored.detail.unresolved.map((/** @type {any} */ u) => u.key), ['shipped/gen-v4/10x10-nightmare/20']);
+    assert.match(censored.detail.unresolved[0].reasons[0], /interrupted/);
+    const refused = gate(lines.filter((l) => l.key !== 'shipped/gen-v4/18x18-nightmare/25'), { refused: [{ key: 'shipped/gen-v4/18x18-nightmare/25', stage: 'B', problems: ['receipt hash'] }] });
+    assert.ok(refused.detail.unresolved.some((/** @type {any} */ u) => u.key === 'shipped/gen-v4/18x18-nightmare/25' && /receipt hash/.test(u.reasons[0])));
+    assert.equal(gate([]).status, 'incomplete');
+    assert.equal(gateOf(stageGates('B', { rows: lines }), 'B8').status, 'incomplete', 'no plan, no cohort');
+  });
+
+  /**
+   * A state root with the 440 eligible rows published as stage A's final snapshot and stage B's snapshot before the twins,
+   * and the plan with its twin rows. `cuts` maps a row key to its run fields.
+   * @param {string} name @param {Record<string, Record<string, any>>} cuts @param {any[]} [rows]
+   */
+  function twinWorld(name, cuts, rows = eligibleOf()) {
+    const w = world(name, { rows, runFor: (/** @type {any} */ r) => cuts[r.key] ?? {} });
+    writeFileSync(join(w.dir, 'E', 'plan', 'plan.json'), `${JSON.stringify({ format: 'p2-plan', version: 1, rows: planOf().rows, groups: [] }, null, 2)}\r\n`);
+    mkdirSync(join(w.dir, 'E', 'rows-before-twins'), { recursive: true });
+    for (const ext of ['jsonl', 'sha256']) {
+      writeFileSync(join(w.dir, 'E', 'rows-before-twins', `B.${ext}`), readFileSync(join(w.dir, 'E', 'rows', `B.${ext}`)));
+      rmSync(join(w.dir, 'E', 'rows', `B.${ext}`));
+    }
+    return { ...w, run: (/** @type {string} */ out) => p2(['twins', '--out', out, '--state', w.dir]) };
+  }
+
+  it('the activation receipt', () => {
+    const hell = [21, 26, 27].map((rep) => `shipped/gen-v4/14x14-hell-1/${rep}`);
+    const others = ['non-table/gen-v4/11x11-nightmare/21', 'shipped/gen-v4/12x12-nightmare/20'];
+    const cut = (/** @type {string[]} */ keys) => Object.fromEntries(keys.map((k) => [k, { acceptedCount: 7 }]));
+    const w = twinWorld('twins-receipt', cut([...hell, ...others]));
+    frozenRoot(w.dir, ['14x14-hell-1', '12x12-nightmare']);
+    const out = join(w.dir, 'out');
+    const r = w.run(out);
+    assert.equal(r.status, 0, r.out);
+    const activation = JSON.parse(readFileSync(join(out, 'activation.json'), 'utf8'));
+    const slot = (/** @type {number} */ n) => `conditional-twin/uncapped/unresolved-trigger-${n}/0`;
+    assert.deepEqual(Object.keys(activation), ['planSha256', 'sealSha256', 'inputs', 'predicateVersion', 'eligible', 'required', 'slots', 'inactive', 'overflow']);
+    assert.equal(activation.planSha256, sha256Hex(readFileSync(join(w.dir, 'E', 'plan', 'plan.json'))));
+    assert.equal(activation.sealSha256, w.sealSha256);
+    assert.equal(activation.predicateVersion, 'p2-twins-v1');
+    assert.equal(activation.eligible, 440);
+    assert.deepEqual(activation.required, [...hell, ...others].sort());
+    assert.equal(activation.required.length, 5);
+    assert.deepEqual(activation.slots, { [slot(0)]: others[0], [slot(1)]: others[1], [slot(2)]: null, [slot(3)]: null, [slot(4)]: null });
+    assert.deepEqual(activation.inactive, [slot(2), slot(3), slot(4)]);
+    assert.deepEqual(activation.overflow, { keys: [], groups: [], repriceCountedS: 0, repriceGuardS: 0 });
+    assert.deepEqual(activation.inputs.A, { path: 'rows/A.jsonl', sha256: sha256Hex(readFileSync(join(w.dir, 'E', 'rows', 'A.jsonl'))) });
+    assert.deepEqual(activation.inputs.Bbounded, { path: 'rows-before-twins/B.jsonl', sha256: sha256Hex(readFileSync(join(w.dir, 'E', 'rows-before-twins', 'B.jsonl'))) });
+    assert.deepEqual(activation.inputs.frozen.map((/** @type {any} */ f) => f.path), [
+      'docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-12x12-nightmare.runs.json',
+      'docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-hell-1.runs.json',
+    ]);
+    assert.ok(activation.inputs.frozen.every((/** @type {any} */ f) => /^[0-9a-f]{64}$/.test(f.sha256)));
+    assert.equal(activation.inputs.readings.path, 'docs/improve-generating-stages-2-4/stage4-report.md');
+    assert.match(activation.inputs.readings.sha256, /^[0-9a-f]{64}$/);
+    const md = readFileSync(join(out, 'twins.md'), 'utf8');
+    assert.ok(md.includes('\r\n') && !/[^\r]\n/.test(md) && !/ +\r\n/.test(md));
+    assert.match(md, /fixed conditional-twin\/uncapped\/14x14-hell-1\/21/);
+    assert.match(md, /\| conditional-twin\/uncapped\/unresolved-trigger-2\/0 \| inactive \|/);
+
+    assert.equal(w.run(out).status, 0, 'the same inputs acknowledge the same bytes');
+    const other = twinWorld('twins-receipt-other', cut(others));
+    const again = other.run(out);
+    assert.equal(again.status, 3, again.out);
+    assert.match(again.out, /refused/);
+    assert.deepEqual(JSON.parse(readFileSync(join(out, 'activation.json'), 'utf8')), activation, 'the receipt is untouched');
+
+    const short = twinWorld('twins-short', {}, eligibleOf().slice(1));
+    const refused = short.run(join(short.dir, 'out'));
+    assert.equal(refused.status, 5, refused.out);
+    assert.match(refused.out, /439 eligible rows/);
+    assert.equal(existsSync(join(short.dir, 'out', 'activation.json')), false);
+  });
+
+  it('more than fifteen required twins is a costed finding', () => {
+    const keys = Array.from({ length: 17 }, (_, i) => `shipped/gen-v4/12x12-nightmare/${20 + i}`);
+    const w = twinWorld('twins-overflow', Object.fromEntries(keys.map((k) => [k, { acceptedCount: 7 }])));
+    const out = join(w.dir, 'E', 'twins');
+    const r = w.run(out);
+    assert.equal(r.status, 4, r.out);
+    assert.match(r.out, /4 overflow groups/);
+    const activation = JSON.parse(readFileSync(join(out, 'activation.json'), 'utf8'));
+    assert.equal(activation.required.length, 17);
+    assert.deepEqual(Object.values(activation.slots), keys.slice(0, 5));
+    assert.deepEqual(activation.inactive, []);
+    assert.deepEqual(activation.overflow.keys, keys.slice(5));
+    assert.equal(activation.overflow.keys.length, 12);
+    assert.deepEqual(activation.overflow.groups, [0, 1, 2, 3].map((g) => keys.slice(5 + 3 * g, 8 + 3 * g)));
+    assert.equal(activation.overflow.repriceCountedS, 3308);
+    assert.equal(activation.overflow.repriceGuardS, 4135);
+    assert.match(readFileSync(join(out, 'twins.md'), 'utf8'), /FINDING: 12 required twins/);
+    assert.equal(w.run(out).status, 4, 'the finding repeats on the same receipt');
+    const status = p2(['status', '--stage', 'B', '--state', w.dir]);
+    assert.equal(status.status, 0, status.out);
+    assert.deepEqual(status.out.trim().split('\n'), [1, 2, 3, 4].map((n) => `group o${n}: done 0 interrupted 0 inactive 0 pending 3`));
   });
 });
