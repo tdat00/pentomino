@@ -180,13 +180,13 @@ questions/rulings/deviations; no independent retry or extra test run.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | dispatched 11:31 +07:00 (developer clock 11:24:45 to 11:25:16); locked gate by the orchestrator; accepted 11:40; about 9 min |
+| Waiting for rulings | none |
+| Agent id, model | 3bd4f3e9-ee08-4507-92dd-29651af3a140, claude-sonnet-5.5 |
+| Calls; input, output and cache-read tokens | 9; 359,798 / 5,426 / 307,105 |
+| AI credits | 21.67 |
+| Questions and rulings | none |
+| Fix rounds | 0 |
+| Gates re-run by the orchestrator | step 5-6 locked gate: `p1-run: v26.13.0 exit 0`, `IG P1-02 fold8 exit=0 seconds=18.964 quiet=45`, `# pass 2`, `# fail 0`, `# cancelled 0`, both named cases ok (Test-GateLog returned 18.964); G-STAGE, G-PROTECTED, G-WORKTREE, G-FORMAT and `npm run check` OK |
+| Commit | this task's commit |
+| Issues and named items | none; locked-run account: 18.964 node s + 45 quiet s of the 1,725-s ceiling |

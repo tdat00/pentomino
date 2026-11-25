@@ -1,0 +1,31 @@
+p1-run: C:\Program Files\nodejs\node.exe v26.13.0; node --test --test-reporter=tap --test-name-pattern=pool sizes 1-4 and 8 with shuffled completion orders tests\generate.test.js
+TAP version 13
+# Subtest: deterministic parallel simulation
+    # Subtest: pool sizes 1-4 and 8 with shuffled completion orders agree on fixture-set-0
+    ok 1 - pool sizes 1-4 and 8 with shuffled completion orders agree on fixture-set-0
+      ---
+      duration_ms: 1605.959
+      type: 'test'
+      ...
+    # Subtest: pool sizes 1-4 and 8 with shuffled completion orders agree on fixture-set-1 (slow)
+    ok 2 - pool sizes 1-4 and 8 with shuffled completion orders agree on fixture-set-1 (slow)
+      ---
+      duration_ms: 13870.9394
+      type: 'test'
+      ...
+    1..2
+ok 1 - deterministic parallel simulation
+  ---
+  duration_ms: 15478.1821
+  type: 'suite'
+  ...
+1..1
+# tests 2
+# suites 1
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18767.949
+p1-run: exit 0

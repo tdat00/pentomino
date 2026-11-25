@@ -17,7 +17,7 @@ Dev-Sonnet mechanically drafts P1-04; both SAs still decide and approve its read
 ## 1. Index and estimates
 
 - [x] P1-01 Source-bound adoption (depends on final plan and accepted task pack)
-- [ ] P1-02 Width-8 fold simulation and test-table sentence (depends on P1-01)
+- [x] P1-02 Width-8 fold simulation and test-table sentence (depends on P1-01)
 - [ ] P1-03b Current qualification (depends on P1-02)
 - [ ] P1-04 Readiness note and detailed PR description (depends on P1-03b)
 - [ ] P1-05 Publish phase 1 and update PR #11, never merge (depends on P1-04)
@@ -283,7 +283,7 @@ R1-1 to R1-11 simplify execution without changing these decisions; see `review-1
 | ID | Start | End | Duration | AI credits | Commit |
 |---|---|---|---|---|---|
 | P1-01 | 2026-11-25 11:08 | 2026-11-25 11:29 | about 21 min | 428.24 | this task's commit |
-| P1-02 | | | | | |
+| P1-02 | 2026-11-25 11:31 | 2026-11-25 11:40 | about 9 min | 21.67 | this task's commit |
 | P1-03b | | | | | |
 | P1-04 | | | | | |
 | P1-05 | | | | | |
