@@ -96,8 +96,9 @@ before it is measured or counted.
      - `runtimeDigestOf(copyRoot)`: imports `join(copyRoot, 'tools', 'bench', 'report.js')` by its file URL and
        returns `await computeSourceDigest((path) => readFileSync(join(copyRoot, path), 'utf8'))`;
      - `verifySnapshot` of `tools/ig-proto/snapshot.mjs`;
-     - `sourceDigestOf(root)`: `computeSourceDigest((path) => readFileSync(join(root, path), 'utf8'))` of
-       `tools/bench/report.js`, for the production `sourceDigest` and the today `digest`.
+     - `sourceDigestOf(root)`: imports `<root>/tools/bench/report.js` by its file URL and returns
+       `await computeSourceDigest((path) => readFileSync(join(root, path), 'utf8'))`, so each root is digested with its
+       own `SOURCE_FILES`; for the production `sourceDigest` and the today `digest` (as P2-13a computes them).
    - **P2-13a's refusals stay.** Added refusals (exit 3, `seal: refused <why>`), per copy folder
      `RAW/trees/<source>/<id>/`:
      - `copy <id> rehearsal`: its `p2-copy.json` has `rehearsal !== false`;
@@ -128,7 +129,8 @@ before it is measured or counted.
 3. **The seal in every record.** `activeSeal(paths)` reads `E/seal/seal.json` and returns `{ seal, sealSha256 }`. When the
    file is absent it throws `no seal`.
    - `reserve` writes `sealSha256` into `RAW/pending.json`; without a seal it exits 4 with `reserve: no seal`.
-   - `ledger --append` adds `sealSha256` to the line itself; without a seal it exits 5 and writes nothing.
+   - `ledger --append` adds `sealSha256` to the line itself, after P2-13a's validation of the caller's fields (which
+     rejects an unknown field, so the caller never passes it); without a seal it exits 5 and writes nothing.
    - `runGroup` adds `sealSha256` to every status line, row line and receipt (C4, C5).
    - Every existing state root of `p2.test.mjs` gains a fake `E/seal/seal.json`, written by one helper
      `fakeSeal(dir, copies)`. P2-13d's fake calibrate (mode `ok`) then writes a report that `verifyRow` accepts: its

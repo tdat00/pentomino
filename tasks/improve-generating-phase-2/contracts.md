@@ -130,6 +130,9 @@ It is written after the child returns, killed included. A missing receipt means 
 - **The file.** `E/ledger/ledger.jsonl` gets one line per locked invocation, never rewritten:
   `{ id, stage, group | item, start, end, nodeSeconds, quietS, countedSeconds, limitS, killed, exit, rowsWritten, cause, sealSha256 }`.
   - `cause` is `'ok'`, `'exit'` or `'timeout'`.
+  - **`group`** is the 1-based row group of the stage's schedule, or the string `o<n>` for overflow group n
+    (`run-group.ps1 -OverflowGroup n`, reservation id `B-o<n>.<k>`). The status lines (C5) and receipts (C4) of an
+    overflow group carry the same `group` value (ruling on P2-13a, 2026-11-25).
   - **`rowsWritten`** (review-2 R2-06, verbatim): "Count terminal keys whose unique durable C5 start names this
     invocation, joining by key within the same seal and stage. Never filter terminal records for an undeclared
     invocation field. Recovered terminals retain the original start association; they do not represent another engine
