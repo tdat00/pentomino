@@ -1,0 +1,4198 @@
+{
+  "base": "7c1bad226830667fa6626ff97c960ca3bddd7794",
+  "fork": "6b94ffb45fd8b887c47805739478eeb872088bfd",
+  "branch": "gen-v4",
+  "node": "v26.13.0",
+  "platform": "win32",
+  "scope": "Independent read-only source/evidence analysis; no engine invocation, tree build or measured request.",
+  "newMeasuredSeconds": 0,
+  "engineInvocations": 0,
+  "sourceDigest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+  "sourceFiles": 40,
+  "freeze": {
+    "classes": [
+      {
+        "id": "n-small",
+        "bounds": [
+          "nightmare",
+          1,
+          144
+        ],
+        "cells": [
+          "3x29-nightmare",
+          "10x10-nightmare",
+          "12x12-nightmare"
+        ],
+        "frozenVerdict": "failed",
+        "shippedArmBeforeOwnerException": "fr-frozen-none",
+        "productionScreenWork": null
+      },
+      {
+        "id": "n-mid",
+        "bounds": [
+          "nightmare",
+          196,
+          256
+        ],
+        "cells": [
+          "14x14-nightmare",
+          "15x15b10-nightmare",
+          "16x16-nightmare"
+        ],
+        "frozenVerdict": "admitted",
+        "shippedArmBeforeOwnerException": "fr-frozen",
+        "productionScreenWork": 190000000
+      },
+      {
+        "id": "n-upper",
+        "bounds": [
+          "nightmare",
+          257,
+          324
+        ],
+        "cells": [
+          "15x20-nightmare",
+          "18x18-nightmare"
+        ],
+        "frozenVerdict": "inconclusive",
+        "shippedArmBeforeOwnerException": "fr-frozen-none",
+        "productionScreenWork": null
+      },
+      {
+        "id": "n-large",
+        "bounds": [
+          "nightmare",
+          360,
+          null
+        ],
+        "cells": [
+          "18x20-nightmare",
+          "20x20-nightmare",
+          "20x21-nightmare",
+          "32x15-nightmare",
+          "22x22-nightmare",
+          "24x24-nightmare",
+          "26x26-nightmare"
+        ],
+        "frozenVerdict": "inconclusive",
+        "shippedArmBeforeOwnerException": "fr-frozen-none",
+        "productionScreenWork": null
+      },
+      {
+        "id": "hell-1",
+        "bounds": [
+          "hell-1",
+          1,
+          null
+        ],
+        "cells": [
+          "14x14-hell-1",
+          "20x20-hell-1",
+          "24x24-hell-1",
+          "26x26-hell-1"
+        ],
+        "frozenVerdict": "failed",
+        "shippedArmBeforeOwnerException": "fr-frozen-none",
+        "productionScreenWork": null
+      }
+    ],
+    "values": {
+      "W": {
+        "n-small": null,
+        "n-mid": 190000000,
+        "n-upper": 190000000,
+        "n-large": 190000000,
+        "hell-1": null
+      },
+      "callBudget": {
+        "any": {
+          "nightmare": 10000000000,
+          "hell-1": 40000000000
+        },
+        "require": {
+          "nightmare": 32000000000,
+          "hell-1": 40000000000
+        }
+      },
+      "setAttemptsBound": 4,
+      "deadline": {
+        "reserve": 0.6,
+        "setStageCapMs": 46000,
+        "generationStopMs": 115000,
+        "responseBoundMs": 120000
+      },
+      "c4": false,
+      "rerate": "rescue",
+      "rerateMax": 4,
+      "ranker": null,
+      "perSetLevels": [
+        "hell-1"
+      ]
+    },
+    "priorId": "prior-s3-v1",
+    "priorEntries": 27,
+    "priorEntriesByLevel": {
+      "nightmare": 15,
+      "hell1": 12
+    },
+    "originalPhase0": {
+      "verdict": "fail",
+      "deciding": [
+        "control 26x26-nightmare: fail"
+      ],
+      "line": "Phase 0: FAIL (control 26x26-nightmare: fail)"
+    }
+  },
+  "publishedRows": {
+    "files": 99,
+    "rows": 1500
+  },
+  "oldAccount": {
+    "countedS": 52271.997,
+    "grantedS": 103500,
+    "remainingS": 51228.003,
+    "countedMinutes": 871.1999500000001,
+    "remainingMinutes": 853.8000499999999,
+    "authority": "Closed frozen round. No automatic transfer to the production validation; a new explicit scope/grant is required."
+  },
+  "pricing": {
+    "method": "Exact pure pricing section of manifest.mjs evaluated in memory; no module import or CLI run.",
+    "pricingSourceSha256Lf": "be54320856f6b51c48449e9bd1fd6f2637551d6afb451881701ecaaa17b825bc",
+    "assumptions": {
+      "horizonS": 885,
+      "quietS": 45,
+      "killS": 900,
+      "cutMarginS": 15,
+      "rowMarginS": 10,
+      "startupS": 2,
+      "groupStartS": 3,
+      "projectionFactor": 1.25,
+      "guardFactor": 1.25,
+      "ceilingPerUnitS": 945
+    },
+    "reproducedLockedSteps": 103,
+    "originalPlanQuotes": [
+      {
+        "task": "V4-S4",
+        "lockedSteps": 84,
+        "rowGroups": 80,
+        "rows": 1120,
+        "admissible": true,
+        "projectS": 64964.18910802842,
+        "invocations": 137,
+        "quietS": 6165,
+        "countedS": 71129.18910802843,
+        "guardS": 88911.48638503549,
+        "ceilingS": 1103760,
+        "ceilingInvocations": 1168,
+        "completed": 968,
+        "censored": 200
+      },
+      {
+        "task": "V4-S4C",
+        "lockedSteps": 19,
+        "rowGroups": 19,
+        "rows": 380,
+        "admissible": true,
+        "projectS": 32842.026215726095,
+        "invocations": 51,
+        "quietS": 2295,
+        "countedS": 35137.026215726095,
+        "guardS": 43921.28276965763,
+        "ceilingS": 359100,
+        "ceilingInvocations": 380,
+        "completed": 380,
+        "censored": 0
+      }
+    ],
+    "productionProxy": "1.25 x each applicable frozen arm/cell median response, no P6 or kernel speed credit; not a bound or forecast guarantee.",
+    "seedProposal": {
+      "validation": "landscape/<cell>/<rep>, reps 60-79",
+      "master": "reps 60-64",
+      "requirePilot": "ig-p2/require/<cell>/<rep>, reps 0-4",
+      "noFit": "No fit or retuning from any validation/require output."
+    },
+    "core": {
+      "groups": 64,
+      "rows": 800,
+      "invocations": 71,
+      "nodeS": 17361.727958749998,
+      "quietS": 3195,
+      "countedS": 20556.727958749994,
+      "guardS": 25695.9099484375,
+      "ceilingS": 756000,
+      "completedProjection": 800,
+      "censoredProjection": 0,
+      "countedMinutes": 342.61213264583324,
+      "guardMinutes": 428.2651658072917,
+      "ceilingMinutes": 12600
+    },
+    "uncapped": {
+      "groups": 18,
+      "rows": 360,
+      "invocations": 23,
+      "nodeS": 9770.192245000002,
+      "quietS": 1035,
+      "countedS": 10805.192245000002,
+      "guardS": 13506.49030625,
+      "ceilingS": 340200,
+      "completedProjection": 360,
+      "censoredProjection": 0,
+      "countedMinutes": 180.0865374166667,
+      "guardMinutes": 225.10817177083334,
+      "ceilingMinutes": 5670
+    },
+    "recommended": {
+      "groups": 82,
+      "rows": 1160,
+      "invocations": 94,
+      "nodeS": 27131.920203749996,
+      "quietS": 4230,
+      "countedS": 31361.920203749993,
+      "guardS": 39202.40025468751,
+      "ceilingS": 1096200,
+      "completedProjection": 1160,
+      "censoredProjection": 0,
+      "countedMinutes": 522.6986700624999,
+      "guardMinutes": 653.3733375781252,
+      "ceilingMinutes": 18270
+    },
+    "fullFrozenScopeProxy": {
+      "groups": 99,
+      "rows": 1500,
+      "invocations": 114,
+      "nodeS": 34933.544918125,
+      "quietS": 5130,
+      "countedS": 40063.54491812501,
+      "guardS": 50079.43114765625,
+      "ceilingS": 1417500,
+      "completedProjection": 1500,
+      "censoredProjection": 0,
+      "countedMinutes": 667.7257486354168,
+      "guardMinutes": 834.6571857942708,
+      "ceilingMinutes": 23625
+    },
+    "require": {
+      "groups": 8,
+      "rows": 40,
+      "invocations": 12,
+      "nodeS": 7824,
+      "quietS": 540,
+      "countedS": 8364,
+      "guardS": 10455,
+      "ceilingS": 37800,
+      "completedProjection": 40,
+      "censoredProjection": 0,
+      "countedMinutes": 139.4,
+      "guardMinutes": 174.25,
+      "ceilingMinutes": 630,
+      "cells": [
+        "22x22-nightmare",
+        "32x15-nightmare",
+        "22x22-hell-1",
+        "32x15-hell-1"
+      ],
+      "uniqueness": "require",
+      "workers": 4,
+      "quantity": 10,
+      "maxActive": 484,
+      "diagnosticOnly": [
+        "22x22-hell-1",
+        "32x15-hell-1"
+      ]
+    },
+    "proofs": {
+      "suites": 4,
+      "items": 48,
+      "countedS": 4272,
+      "guardS": 5340,
+      "ceilingS": 45360,
+      "status": "Reserve-based template for proposed parity/certificate/prior/replay/legacy-route proof bundles; final item manifests still required."
+    },
+    "resourceReplays": {
+      "items": 8,
+      "admissible": true,
+      "projectS": 488,
+      "invocations": 1,
+      "quietS": 45,
+      "countedS": 533,
+      "guardS": 666.25,
+      "ceilingS": 7560,
+      "ceilingInvocations": 8,
+      "completed": 8,
+      "censored": 0,
+      "schedule": [
+        {
+          "items": 8,
+          "nodeS": 488
+        }
+      ],
+      "status": "First successful candidate per require cell/arm; absence is unobserved, never a replay pass."
+    },
+    "browser": {
+      "checks": 6,
+      "checkLimitS": 60,
+      "nodeLimitS": 120,
+      "quietSPerInvocation": 45,
+      "ceilingS": 990
+    },
+    "proposedGuardS": 56653.65025468751,
+    "proposedRoundCapMinutes": 945,
+    "ifTransferredCumulativeMinutes": 1816,
+    "fullScopeGuardS": 67530.68114765626,
+    "fullScopeRoundCapMinutes": 1126,
+    "fullScopeIfTransferredCumulativeMinutes": 1997,
+    "exclusions": "Routine unit-test verification, repeated failures, new fits, third-party browser/service calibration and phase-3 offers are not a new measured allocation here.",
+    "recommendedGroups": [
+      {
+        "role": "shipped",
+        "cell": "3x29-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+        "sourceMedianResponseS": 4.688349499999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 5.8604368749999995
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "10x10-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-10x10-nightmare.runs.json",
+        "sourceMedianResponseS": 12.285187050000001,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 15.356483812500002
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "12x12-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-12x12-nightmare.runs.json",
+        "sourceMedianResponseS": 21.714381799999998,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 27.142977249999998
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "14x14-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-nightmare.runs.json",
+        "sourceMedianResponseS": 9.195909899999998,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 11.494887374999998
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "15x15b10-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x15b10-nightmare.runs.json",
+        "sourceMedianResponseS": 11.417181699999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 14.271477124999999
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "16x16-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-16x16-nightmare.runs.json",
+        "sourceMedianResponseS": 8.2994751,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 10.374343875000001
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "15x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x20-nightmare.runs.json",
+        "sourceMedianResponseS": 15.55402885,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 19.4425360625
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "18x18-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x18-nightmare.runs.json",
+        "sourceMedianResponseS": 15.8808574,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 19.85107175
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "18x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x20-nightmare.runs.json",
+        "sourceMedianResponseS": 16.02959475,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 20.0369934375
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "20x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-nightmare.runs.json",
+        "sourceMedianResponseS": 15.398201949999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 19.247752437499997
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "20x21-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x21-nightmare.runs.json",
+        "sourceMedianResponseS": 18.294660949999997,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 22.868326187499996
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "32x15-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+        "sourceMedianResponseS": 14.516763000000001,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 18.14595375
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "22x22-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+        "sourceMedianResponseS": 10.4676011,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 13.084501374999999
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "24x24-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-nightmare.runs.json",
+        "sourceMedianResponseS": 15.80701575,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 19.7587696875
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "26x26-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-26x26-nightmare.runs.json",
+        "sourceMedianResponseS": 15.698883949999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.623604937499998
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "14x14-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-hell-1.runs.json",
+        "sourceMedianResponseS": 90.23025834999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 112.78782293749998
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "20x20-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-hell-1.runs.json",
+        "sourceMedianResponseS": 34.2027772,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 42.7534715
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "24x24-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-hell-1.runs.json",
+        "sourceMedianResponseS": 29.421186700000003,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 36.776483375000005
+        }
+      },
+      {
+        "role": "shipped",
+        "cell": "26x26-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-hell-1.runs.json",
+        "sourceMedianResponseS": 19.681925000000003,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 24.602406250000005
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "6x10-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-6x10-master.runs.json",
+        "sourceMedianResponseS": 1.7387103,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 2.173387875
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "3x29-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-3x29-master.runs.json",
+        "sourceMedianResponseS": 1.5910456,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 1.988807
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "10x10-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-10x10-master.runs.json",
+        "sourceMedianResponseS": 10.922642800000002,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 13.653303500000003
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "12x12-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-12x12-master.runs.json",
+        "sourceMedianResponseS": 4.1296299,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 5.162037375000001
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "14x14-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-14x14-master.runs.json",
+        "sourceMedianResponseS": 2.8204822,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 3.52560275
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "15x15b10-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x15b10-master.runs.json",
+        "sourceMedianResponseS": 4.6521188,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 5.8151485
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "16x16-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-16x16-master.runs.json",
+        "sourceMedianResponseS": 2.2659190000000002,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 2.8323987500000003
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "15x20-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x20-master.runs.json",
+        "sourceMedianResponseS": 6.3019493,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 7.8774366250000005
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "18x18-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x18-master.runs.json",
+        "sourceMedianResponseS": 2.2953908999999997,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 2.8692386249999995
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "18x20-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x20-master.runs.json",
+        "sourceMedianResponseS": 3.2776531,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 4.097066375000001
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "20x20-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x20-master.runs.json",
+        "sourceMedianResponseS": 3.8906675,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 4.863334375
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "20x21-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x21-master.runs.json",
+        "sourceMedianResponseS": 4.9958024000000005,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 6.244753000000001
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "32x15-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-32x15-master.runs.json",
+        "sourceMedianResponseS": 5.2560387,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 6.570048375000001
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "22x22-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-22x22-master.runs.json",
+        "sourceMedianResponseS": 3.820766,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 4.7759575
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "24x24-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-24x24-master.runs.json",
+        "sourceMedianResponseS": 5.786589800000001,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 7.233237250000001
+        }
+      },
+      {
+        "role": "shipped-legacy-master",
+        "cell": "26x26-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-26x26-master.runs.json",
+        "sourceMedianResponseS": 9.5891705,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 11.986463125
+        }
+      },
+      {
+        "role": "phase1-baseline-control",
+        "cell": "3x29-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+        "sourceMedianResponseS": 4.8068786,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 6.00859825
+        }
+      },
+      {
+        "role": "phase1-baseline-control",
+        "cell": "10x10-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-10x10-nightmare.runs.json",
+        "sourceMedianResponseS": 16.846600449999997,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 21.058250562499996
+        }
+      },
+      {
+        "role": "phase1-baseline-control",
+        "cell": "18x18-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x18-nightmare.runs.json",
+        "sourceMedianResponseS": 34.65153005,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 43.314412562499996
+        }
+      },
+      {
+        "role": "phase1-baseline-control",
+        "cell": "18x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x20-nightmare.runs.json",
+        "sourceMedianResponseS": 26.610037100000003,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 33.26254637500001
+        }
+      },
+      {
+        "role": "phase1-baseline-control",
+        "cell": "20x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x20-nightmare.runs.json",
+        "sourceMedianResponseS": 39.1162445,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 48.895305625
+        }
+      },
+      {
+        "role": "phase1-baseline-control",
+        "cell": "20x21-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x21-nightmare.runs.json",
+        "sourceMedianResponseS": 29.53937335,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 36.9242166875
+        }
+      },
+      {
+        "role": "phase1-baseline-control",
+        "cell": "32x15-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+        "sourceMedianResponseS": 10.7338437,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 13.417304625
+        }
+      },
+      {
+        "role": "phase1-baseline-control",
+        "cell": "22x22-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+        "sourceMedianResponseS": 10.997703249999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 13.747129062499999
+        }
+      },
+      {
+        "role": "phase1-baseline-control",
+        "cell": "24x24-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-24x24-nightmare.runs.json",
+        "sourceMedianResponseS": 16.5942759,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 20.742844875
+        }
+      },
+      {
+        "role": "phase1-baseline-control",
+        "cell": "26x26-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-26x26-nightmare.runs.json",
+        "sourceMedianResponseS": 15.698883949999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.623604937499998
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "6x10-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-6x10-master.runs.json",
+        "sourceMedianResponseS": 1.7387103,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 2.173387875
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "3x29-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-3x29-master.runs.json",
+        "sourceMedianResponseS": 1.5910456,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 1.988807
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "10x10-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-10x10-master.runs.json",
+        "sourceMedianResponseS": 10.922642800000002,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 13.653303500000003
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "12x12-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-12x12-master.runs.json",
+        "sourceMedianResponseS": 4.1296299,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 5.162037375000001
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "14x14-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-14x14-master.runs.json",
+        "sourceMedianResponseS": 2.8204822,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 3.52560275
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "15x15b10-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x15b10-master.runs.json",
+        "sourceMedianResponseS": 4.6521188,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 5.8151485
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "16x16-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-16x16-master.runs.json",
+        "sourceMedianResponseS": 2.2659190000000002,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 2.8323987500000003
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "15x20-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x20-master.runs.json",
+        "sourceMedianResponseS": 6.3019493,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 7.8774366250000005
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "18x18-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x18-master.runs.json",
+        "sourceMedianResponseS": 2.2953908999999997,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 2.8692386249999995
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "18x20-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x20-master.runs.json",
+        "sourceMedianResponseS": 3.2776531,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 4.097066375000001
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "20x20-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x20-master.runs.json",
+        "sourceMedianResponseS": 3.8906675,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 4.863334375
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "20x21-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x21-master.runs.json",
+        "sourceMedianResponseS": 4.9958024000000005,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 6.244753000000001
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "32x15-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-32x15-master.runs.json",
+        "sourceMedianResponseS": 5.2560387,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 6.570048375000001
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "22x22-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-22x22-master.runs.json",
+        "sourceMedianResponseS": 3.820766,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 4.7759575
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "24x24-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-24x24-master.runs.json",
+        "sourceMedianResponseS": 5.786589800000001,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 7.233237250000001
+        }
+      },
+      {
+        "role": "phase1-baseline-master",
+        "cell": "26x26-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-26x26-master.runs.json",
+        "sourceMedianResponseS": 9.5891705,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 11.986463125
+        }
+      },
+      {
+        "role": "n-mid-no-screen",
+        "cell": "14x14-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-nightmare.runs.json",
+        "sourceMedianResponseS": 23.4322028,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 29.2902535
+        }
+      },
+      {
+        "role": "n-mid-no-screen",
+        "cell": "15x15b10-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x15b10-nightmare.runs.json",
+        "sourceMedianResponseS": 26.9520629,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 33.690078625
+        }
+      },
+      {
+        "role": "n-mid-no-screen",
+        "cell": "16x16-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-16x16-nightmare.runs.json",
+        "sourceMedianResponseS": 17.3579534,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 21.69744175
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "3x29-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-3x29-nightmare.runs.json",
+        "sourceMedianResponseS": 4.6444079,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 5.805509875
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "10x10-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-10x10-nightmare.runs.json",
+        "sourceMedianResponseS": 12.11811025,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 15.147637812500001
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "12x12-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-12x12-nightmare.runs.json",
+        "sourceMedianResponseS": 21.679990450000002,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 27.099988062500003
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "14x14-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-uncapped/val-14x14-nightmare.runs.json",
+        "sourceMedianResponseS": 9.274164650000001,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 11.592705812500002
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "15x15b10-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-uncapped/val-15x15b10-nightmare.runs.json",
+        "sourceMedianResponseS": 11.3605111,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 14.200638875
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "16x16-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-uncapped/val-16x16-nightmare.runs.json",
+        "sourceMedianResponseS": 8.33001085,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 10.412513562500001
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "15x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-15x20-nightmare.runs.json",
+        "sourceMedianResponseS": 15.555091050000001,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.443863812500002
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "18x18-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-18x18-nightmare.runs.json",
+        "sourceMedianResponseS": 16.00818585,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 20.0102323125
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "18x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-18x20-nightmare.runs.json",
+        "sourceMedianResponseS": 15.896115700000001,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.870144625000002
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "20x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-20x20-nightmare.runs.json",
+        "sourceMedianResponseS": 15.35568765,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.1946095625
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "20x21-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-20x21-nightmare.runs.json",
+        "sourceMedianResponseS": 19.077977100000002,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 23.847471375
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "32x15-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-32x15-nightmare.runs.json",
+        "sourceMedianResponseS": 14.30175165,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 17.8771895625
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "22x22-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-22x22-nightmare.runs.json",
+        "sourceMedianResponseS": 10.2059015,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 12.757376874999999
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "24x24-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-24x24-nightmare.runs.json",
+        "sourceMedianResponseS": 15.4032475,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.254059375
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "14x14-hell-1",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-14x14-hell-1.runs.json",
+        "sourceMedianResponseS": 116.58616855,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 145.7327106875
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "20x20-hell-1",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-20x20-hell-1.runs.json",
+        "sourceMedianResponseS": 34.422228149999995,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 43.027785187499994
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "24x24-hell-1",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-24x24-hell-1.runs.json",
+        "sourceMedianResponseS": 29.24478875,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 36.555985937500004
+        }
+      },
+      {
+        "role": "shipped-uncapped",
+        "cell": "26x26-hell-1",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-26x26-hell-1.runs.json",
+        "sourceMedianResponseS": 19.50335115,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 24.3791889375
+        }
+      }
+    ],
+    "requireGroups": [
+      {
+        "role": "require-bounded",
+        "cell": "22x22-nightmare",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": null,
+        "reason": "No existing require timings: price at the row limit, not at the any-mode time.",
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 130
+        }
+      },
+      {
+        "role": "require-uncapped",
+        "cell": "22x22-nightmare",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": null,
+        "reason": "No existing require timings: price at the row limit, not at the any-mode time.",
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 260
+        }
+      },
+      {
+        "role": "require-bounded",
+        "cell": "32x15-nightmare",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": null,
+        "reason": "No existing require timings: price at the row limit, not at the any-mode time.",
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 130
+        }
+      },
+      {
+        "role": "require-uncapped",
+        "cell": "32x15-nightmare",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": null,
+        "reason": "No existing require timings: price at the row limit, not at the any-mode time.",
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 260
+        }
+      },
+      {
+        "role": "require-bounded",
+        "cell": "22x22-hell-1",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": null,
+        "reason": "No existing require timings: price at the row limit, not at the any-mode time.",
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 130
+        }
+      },
+      {
+        "role": "require-uncapped",
+        "cell": "22x22-hell-1",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": null,
+        "reason": "No existing require timings: price at the row limit, not at the any-mode time.",
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 260
+        }
+      },
+      {
+        "role": "require-bounded",
+        "cell": "32x15-hell-1",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": null,
+        "reason": "No existing require timings: price at the row limit, not at the any-mode time.",
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 130
+        }
+      },
+      {
+        "role": "require-uncapped",
+        "cell": "32x15-hell-1",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": null,
+        "reason": "No existing require timings: price at the row limit, not at the any-mode time.",
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 260
+        }
+      }
+    ],
+    "fullFrozenScopeGroups": [
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "10x10-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-10x10-master.runs.json",
+        "sourceMedianResponseS": 11.071695,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 13.83961875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "12x12-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-12x12-master.runs.json",
+        "sourceMedianResponseS": 4.1948327,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 5.243540875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "14x14-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-14x14-master.runs.json",
+        "sourceMedianResponseS": 2.8140938,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 3.5176172500000003
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "15x15b10-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-15x15b10-master.runs.json",
+        "sourceMedianResponseS": 4.8309477,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 6.038684625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "15x20-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-15x20-master.runs.json",
+        "sourceMedianResponseS": 5.9823161,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 7.477895125
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "16x16-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-16x16-master.runs.json",
+        "sourceMedianResponseS": 2.2313148,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 2.7891434999999998
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x18-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-18x18-master.runs.json",
+        "sourceMedianResponseS": 2.5795627,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 3.224453375
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x20-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-18x20-master.runs.json",
+        "sourceMedianResponseS": 3.3373677,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 4.171709625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x20-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-20x20-master.runs.json",
+        "sourceMedianResponseS": 3.9944678999999996,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 4.993084874999999
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x21-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-20x21-master.runs.json",
+        "sourceMedianResponseS": 4.8415446,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 6.0519307499999995
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "22x22-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-22x22-master.runs.json",
+        "sourceMedianResponseS": 3.8329458,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 4.79118225
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "24x24-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-24x24-master.runs.json",
+        "sourceMedianResponseS": 5.6757075,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 7.094634375
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "26x26-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-26x26-master.runs.json",
+        "sourceMedianResponseS": 9.501335099999999,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 11.876668874999998
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "32x15-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-32x15-master.runs.json",
+        "sourceMedianResponseS": 4.9627823,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 6.203477875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "3x29-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-3x29-master.runs.json",
+        "sourceMedianResponseS": 1.6647264,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 2.080908
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "6x10-master",
+        "rows": 5,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-6x10-master.runs.json",
+        "sourceMedianResponseS": 1.7985844,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 130,
+          "rowS": 2.2482305
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "10x10-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-10x10-nightmare.runs.json",
+        "sourceMedianResponseS": 12.208237,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 15.26029625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "12x12-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-12x12-nightmare.runs.json",
+        "sourceMedianResponseS": 21.5704219,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 26.963027375
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "14x14-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-hell-1.runs.json",
+        "sourceMedianResponseS": 91.03025825,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 113.7878228125
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "14x14-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-nightmare.runs.json",
+        "sourceMedianResponseS": 9.195909899999998,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 11.494887374999998
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "15x15b10-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x15b10-nightmare.runs.json",
+        "sourceMedianResponseS": 11.417181699999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 14.271477124999999
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "15x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x20-nightmare.runs.json",
+        "sourceMedianResponseS": 8.895396049999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 11.1192450625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "16x16-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-16x16-nightmare.runs.json",
+        "sourceMedianResponseS": 8.2994751,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 10.374343875000001
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x18-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-18x18-nightmare.runs.json",
+        "sourceMedianResponseS": 7.39014855,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 9.2376856875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-18x20-nightmare.runs.json",
+        "sourceMedianResponseS": 9.561742,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 11.952177500000001
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x20-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x20-hell-1.runs.json",
+        "sourceMedianResponseS": 34.2036183,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 42.754522875000006
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x20-nightmare.runs.json",
+        "sourceMedianResponseS": 8.02247215,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 10.0280901875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x21-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x21-nightmare.runs.json",
+        "sourceMedianResponseS": 10.18487455,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 12.7310931875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "22x22-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-22x22-nightmare.runs.json",
+        "sourceMedianResponseS": 7.494691049999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 9.368363812499998
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "24x24-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-24x24-hell-1.runs.json",
+        "sourceMedianResponseS": 29.5417356,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 36.9271695
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "24x24-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-24x24-nightmare.runs.json",
+        "sourceMedianResponseS": 10.927715799999998,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 13.659644749999998
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "26x26-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-hell-1.runs.json",
+        "sourceMedianResponseS": 19.402499799999998,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 24.253124749999998
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "26x26-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-nightmare.runs.json",
+        "sourceMedianResponseS": 10.3719554,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 12.964944249999999
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "32x15-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-32x15-nightmare.runs.json",
+        "sourceMedianResponseS": 8.70560285,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 10.8820035625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "3x29-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-3x29-nightmare.runs.json",
+        "sourceMedianResponseS": 4.779843949999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 5.974804937499999
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "10x10-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-10x10-nightmare.runs.json",
+        "sourceMedianResponseS": 12.285187050000001,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 15.356483812500002
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "12x12-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-12x12-nightmare.runs.json",
+        "sourceMedianResponseS": 21.714381799999998,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 27.142977249999998
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "14x14-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-hell-1.runs.json",
+        "sourceMedianResponseS": 90.23025834999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 112.78782293749998
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "14x14-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-nightmare.runs.json",
+        "sourceMedianResponseS": 23.4322028,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 29.2902535
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "15x15b10-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x15b10-nightmare.runs.json",
+        "sourceMedianResponseS": 26.9520629,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 33.690078625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "15x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x20-nightmare.runs.json",
+        "sourceMedianResponseS": 15.55402885,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 19.4425360625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "16x16-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-16x16-nightmare.runs.json",
+        "sourceMedianResponseS": 17.3579534,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 21.69744175
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x18-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x18-nightmare.runs.json",
+        "sourceMedianResponseS": 15.8808574,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 19.85107175
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x20-nightmare.runs.json",
+        "sourceMedianResponseS": 16.02959475,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 20.0369934375
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x20-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-hell-1.runs.json",
+        "sourceMedianResponseS": 34.2027772,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 42.7534715
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-nightmare.runs.json",
+        "sourceMedianResponseS": 15.398201949999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 19.247752437499997
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x21-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x21-nightmare.runs.json",
+        "sourceMedianResponseS": 18.294660949999997,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 22.868326187499996
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "22x22-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+        "sourceMedianResponseS": 10.4676011,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 13.084501374999999
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "24x24-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-hell-1.runs.json",
+        "sourceMedianResponseS": 29.421186700000003,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 36.776483375000005
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "24x24-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-nightmare.runs.json",
+        "sourceMedianResponseS": 15.80701575,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 19.7587696875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "26x26-hell-1",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-hell-1.runs.json",
+        "sourceMedianResponseS": 19.681925000000003,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 24.602406250000005
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "26x26-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-nightmare.runs.json",
+        "sourceMedianResponseS": 15.932972099999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 19.916215124999997
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "32x15-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+        "sourceMedianResponseS": 14.516763000000001,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 18.14595375
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "3x29-nightmare",
+        "rows": 20,
+        "rowLimitS": 130,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+        "sourceMedianResponseS": 4.688349499999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 130,
+          "rowS": 5.8604368749999995
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "10x10-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-10x10-master.runs.json",
+        "sourceMedianResponseS": 10.922642800000002,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 13.653303500000003
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "12x12-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-12x12-master.runs.json",
+        "sourceMedianResponseS": 4.1296299,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 5.162037375000001
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "14x14-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-14x14-master.runs.json",
+        "sourceMedianResponseS": 2.8204822,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 3.52560275
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "15x15b10-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x15b10-master.runs.json",
+        "sourceMedianResponseS": 4.6521188,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 5.8151485
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "15x20-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x20-master.runs.json",
+        "sourceMedianResponseS": 6.3019493,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 7.8774366250000005
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "16x16-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-16x16-master.runs.json",
+        "sourceMedianResponseS": 2.2659190000000002,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 2.8323987500000003
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x18-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x18-master.runs.json",
+        "sourceMedianResponseS": 2.2953908999999997,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 2.8692386249999995
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x20-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x20-master.runs.json",
+        "sourceMedianResponseS": 3.2776531,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 4.097066375000001
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x20-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x20-master.runs.json",
+        "sourceMedianResponseS": 3.8906675,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 4.863334375
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x21-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x21-master.runs.json",
+        "sourceMedianResponseS": 4.9958024000000005,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 6.244753000000001
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "22x22-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-22x22-master.runs.json",
+        "sourceMedianResponseS": 3.820766,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 4.7759575
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "24x24-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-24x24-master.runs.json",
+        "sourceMedianResponseS": 5.786589800000001,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 7.233237250000001
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "26x26-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-26x26-master.runs.json",
+        "sourceMedianResponseS": 9.5891705,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 11.986463125
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "32x15-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-32x15-master.runs.json",
+        "sourceMedianResponseS": 5.2560387,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 6.570048375000001
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "3x29-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-3x29-master.runs.json",
+        "sourceMedianResponseS": 1.5910456,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 1.988807
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "6x10-master",
+        "rows": 5,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-6x10-master.runs.json",
+        "sourceMedianResponseS": 1.7387103,
+        "price": {
+          "type": "rows",
+          "rows": 5,
+          "rowLimitS": 260,
+          "rowS": 2.173387875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "10x10-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-10x10-nightmare.runs.json",
+        "sourceMedianResponseS": 16.846600449999997,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 21.058250562499996
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x18-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x18-nightmare.runs.json",
+        "sourceMedianResponseS": 34.65153005,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 43.314412562499996
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x20-nightmare.runs.json",
+        "sourceMedianResponseS": 26.610037100000003,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 33.26254637500001
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x20-nightmare.runs.json",
+        "sourceMedianResponseS": 39.1162445,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 48.895305625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x21-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x21-nightmare.runs.json",
+        "sourceMedianResponseS": 29.53937335,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 36.9242166875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "22x22-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+        "sourceMedianResponseS": 10.997703249999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 13.747129062499999
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "24x24-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-24x24-nightmare.runs.json",
+        "sourceMedianResponseS": 16.5942759,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 20.742844875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "26x26-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-26x26-nightmare.runs.json",
+        "sourceMedianResponseS": 15.698883949999999,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.623604937499998
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "32x15-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+        "sourceMedianResponseS": 10.7338437,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 13.417304625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "3x29-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+        "sourceMedianResponseS": 4.8068786,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 6.00859825
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "14x14-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-uncapped/val-14x14-nightmare.runs.json",
+        "sourceMedianResponseS": 9.274164650000001,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 11.592705812500002
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "15x15b10-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-uncapped/val-15x15b10-nightmare.runs.json",
+        "sourceMedianResponseS": 11.3605111,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 14.200638875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "16x16-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-uncapped/val-16x16-nightmare.runs.json",
+        "sourceMedianResponseS": 8.33001085,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 10.412513562500001
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "10x10-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-10x10-nightmare.runs.json",
+        "sourceMedianResponseS": 12.11811025,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 15.147637812500001
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "12x12-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-12x12-nightmare.runs.json",
+        "sourceMedianResponseS": 21.679990450000002,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 27.099988062500003
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "14x14-hell-1",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-14x14-hell-1.runs.json",
+        "sourceMedianResponseS": 116.58616855,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 145.7327106875
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "15x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-15x20-nightmare.runs.json",
+        "sourceMedianResponseS": 15.555091050000001,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.443863812500002
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x18-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-18x18-nightmare.runs.json",
+        "sourceMedianResponseS": 16.00818585,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 20.0102323125
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "18x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-18x20-nightmare.runs.json",
+        "sourceMedianResponseS": 15.896115700000001,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.870144625000002
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x20-hell-1",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-20x20-hell-1.runs.json",
+        "sourceMedianResponseS": 34.422228149999995,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 43.027785187499994
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x20-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-20x20-nightmare.runs.json",
+        "sourceMedianResponseS": 15.35568765,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.1946095625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "20x21-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-20x21-nightmare.runs.json",
+        "sourceMedianResponseS": 19.077977100000002,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 23.847471375
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "22x22-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-22x22-nightmare.runs.json",
+        "sourceMedianResponseS": 10.2059015,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 12.757376874999999
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "24x24-hell-1",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-24x24-hell-1.runs.json",
+        "sourceMedianResponseS": 29.24478875,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 36.555985937500004
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "24x24-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-24x24-nightmare.runs.json",
+        "sourceMedianResponseS": 15.4032475,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.254059375
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "26x26-hell-1",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-26x26-hell-1.runs.json",
+        "sourceMedianResponseS": 19.50335115,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 24.3791889375
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "26x26-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-26x26-nightmare.runs.json",
+        "sourceMedianResponseS": 15.944775300000002,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 19.930969125
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "32x15-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-32x15-nightmare.runs.json",
+        "sourceMedianResponseS": 14.30175165,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 17.8771895625
+        }
+      },
+      {
+        "role": "full-frozen-scope-proxy",
+        "cell": "3x29-nightmare",
+        "rows": 20,
+        "rowLimitS": 260,
+        "source": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-3x29-nightmare.runs.json",
+        "sourceMedianResponseS": 4.6444079,
+        "price": {
+          "type": "rows",
+          "rows": 20,
+          "rowLimitS": 260,
+          "rowS": 5.805509875
+        }
+      }
+    ]
+  },
+  "metadataSizeIllustration": {
+    "status": "hypothetical shape arithmetic, not a generated gen-v4 record",
+    "oneExistingCandidateBytes": 313,
+    "oneProposedCandidateBytes": 384,
+    "deltaPerCandidate": 71,
+    "opaqueMetaLimitBytes": 4096,
+    "generationJsonValuesLimit": 100000,
+    "generationJsonDepthLimit": 32,
+    "packFileLimitBytes": 524288,
+    "distinction": "MAX_META_BYTES applies to opaque meta, not generation. Generation uses the JSON value/depth limits; the whole pack has its own byte cap.",
+    "samplePackGenerationBytes": 151
+  },
+  "gitCommands": [
+    {
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "output": "7c1bad226830667fa6626ff97c960ca3bddd7794",
+      "sha256Lf": "172a7e1bf9745d896d30e2a33dfdca48c01deea43dbcac62f78e9ec3cf395aa8"
+    },
+    {
+      "args": [
+        "branch",
+        "--show-current"
+      ],
+      "output": "gen-v4",
+      "sha256Lf": "f1d7714465ab6217d9b42abc874ea772b95be1c86875bb3a57b7ecff2b372b63"
+    },
+    {
+      "args": [
+        "merge-base",
+        "--is-ancestor",
+        "6b94ffb45fd8b887c47805739478eeb872088bfd",
+        "7c1bad226830667fa6626ff97c960ca3bddd7794"
+      ],
+      "output": "",
+      "sha256Lf": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "args": [
+        "diff",
+        "--exit-code",
+        "6b94ffb45fd8b887c47805739478eeb872088bfd",
+        "7c1bad226830667fa6626ff97c960ca3bddd7794",
+        "--",
+        "core",
+        "generator",
+        "player",
+        "tests",
+        "tools"
+      ],
+      "output": "",
+      "sha256Lf": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "inputIndexHash": "52d4c8138d5ed8674004de730d9823d669c6d88b2a0dcacf3b391fb11be70bb3",
+  "inputs": [
+    {
+      "path": "docs/improve-generating-phase-2/request.md",
+      "bytes": 3646,
+      "sha256Raw": "29c4e565590275983ecb99a956b323e041ec80daf80db85945b0948f160237f3",
+      "sha256Lf": "7762c765771092e36d17c7aa6cb599d58acf7a88b7ed02d20df02320ef95cba9"
+    },
+    {
+      "path": "docs/improve-generating/plan.md",
+      "bytes": 68951,
+      "sha256Raw": "2b25a7e93a93ac4ea9b8a55559ddc0a2751e344856c8928fa7409a622401c008",
+      "sha256Lf": "ce6170b8f927a5f8681794a2aad714b4637374b04841e55fe2063f20e705b708"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/stage4-report.md",
+      "bytes": 36690,
+      "sha256Raw": "ce4af4d3491100143af70af950748ce11ac56b575861b210f766f25a7f5dc05c",
+      "sha256Lf": "2e7b716c7b23faf730f2512e9a74cc0af36de76f0e1a505cfad137413843930a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S3/freeze.json",
+      "bytes": 53284,
+      "sha256Raw": "90fa66cdc32b377c9635cef86386c1deac34a7410e4a00e5cea65da7053c30a7",
+      "sha256Lf": "e36c77a2a73995f9e67f99a7b997b06c9f72e34972ebafffdbdba544aa5b673c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4F/verdicts.json",
+      "bytes": 891913,
+      "sha256Raw": "25b15de3089505979ebccc463efed3afb4a6b4dd55b4402356bd105c25c474ad",
+      "sha256Lf": "3749151a11df0802a311e2fff95db57f709d34fa2d7443f4dc692870f732933c"
+    },
+    {
+      "path": "tools/ig-proto/data/prior-s3-v1.json",
+      "bytes": 5095,
+      "sha256Raw": "1a2e18627c63f627f12872e4a47d42f5e25fb4626b93f07e97d57fff77ec477a",
+      "sha256Lf": "536dfd5d70dcdd3fa89f0b18141c161656e5ca968b7a18c52ec218c17cb1e0e1"
+    },
+    {
+      "path": "tools/ig-proto/data/frozen-round-v1.json",
+      "bytes": 5068,
+      "sha256Raw": "8f02467406efa7d85e34e7ee0db752d09d2e14f573427d28b3c4ef3ba9a073bc",
+      "sha256Lf": "be7428d10b91cdf37a9893d373660a23e2c0deea66427a15db0deafe823b6a4b"
+    },
+    {
+      "path": "tools/ig-proto/data/boards-v1.json",
+      "bytes": 87617,
+      "sha256Raw": "9d3aac635db2bbd40ddebc29dc807134e52455e58f6ad2ee9cc15ed9fbfde7b2",
+      "sha256Lf": "4cd0ab3b16dfcbf2d71174461a7d18cd0d75b7f78064869a907f13e73e40b889"
+    },
+    {
+      "path": "tools/ig-proto/plans/V4-S4.json",
+      "bytes": 140826,
+      "sha256Raw": "94a94270054521e1d4568ae4d9fba623b154ccfae30e03bf3c66c119eccbf175",
+      "sha256Lf": "7593eec0c4e977942384289e997454146957e50d40ecde863eed01093434e64c"
+    },
+    {
+      "path": "tools/ig-proto/plans/V4-S4C.json",
+      "bytes": 35229,
+      "sha256Raw": "8081f78e31d4e8bad906cb07f9046a206336d4c299e95faa2c015b6099700ca0",
+      "sha256Lf": "489f89e2c9dd78c04ce93c37e90f12107623400379e5fe7da0680ae13a96e3d7"
+    },
+    {
+      "path": "tools/ig-proto/manifest.mjs",
+      "bytes": 238857,
+      "sha256Raw": "b53ac0949094bdfeaa4d39070e49205fe108038a77da73a8824f6aede98de2a3",
+      "sha256Lf": "e7547558a1172825db6aaac87b0c72d619cf5d864e9477e68e69a32a06cd24e2"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-10x10-master.runs.json",
+      "bytes": 65879,
+      "sha256Raw": "f353a74ac154e43eabc717f477216afd9e0d189090a15b4fe16430e047cddec1",
+      "sha256Lf": "f67b9cc1b501f8ecc21f711ff8df96d934f9b0a84991221b977197261dd19b2e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-12x12-master.runs.json",
+      "bytes": 70677,
+      "sha256Raw": "b5676aae43451f509f142ee6ee167e9f15c706a8ef569b6ad731d7c7694907fe",
+      "sha256Lf": "b8114a9382f80e21466d2ebd186e7f79dfd7f7308e37ba5751385fa1d2477b7c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-14x14-master.runs.json",
+      "bytes": 70759,
+      "sha256Raw": "0cc81dec89db1f4e80639ce92a07c9b6444f315abaa12837966419e71b577a6d",
+      "sha256Lf": "b8016605965fa941498bcf475ed13504c4c00789685cbf5ef1786cc438c3daf2"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-15x15b10-master.runs.json",
+      "bytes": 71147,
+      "sha256Raw": "58bc13c82703f2a6e747596e08b636d8d3c10c34020275bb94cb9d6d7bda762b",
+      "sha256Lf": "68f81367a5c173df6d6368248343536eb691a53bff108e30a08acba086c17f68"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-15x20-master.runs.json",
+      "bytes": 71199,
+      "sha256Raw": "7fcde178ab04e72a7cb238adf8f4a7c87439f5d7f01d0db581e2b51ea4b13e5f",
+      "sha256Lf": "9060add22144d232e0205ff8523a2e6b110063da0e14385773b38fded775715a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-16x16-master.runs.json",
+      "bytes": 71018,
+      "sha256Raw": "0f7e0d5c0a6754087695a1b7c4724a74aef3a2b20226ef07863005dbb494299a",
+      "sha256Lf": "bf68c89eefd31f11012b86d7aa163e8fc79b173f7c14bcbbdf55ae8504a0b582"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-18x18-master.runs.json",
+      "bytes": 71247,
+      "sha256Raw": "996be836d48c8e6a6d80931013e27da88fe9504d1b9d95a30e04a125d2597e53",
+      "sha256Lf": "970ca21cdfa7a4077c1d29aef93078ac23a19bf5bc75fcb3f582f7a52f2b491d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-18x20-master.runs.json",
+      "bytes": 71347,
+      "sha256Raw": "d0f7222e385a812425b2062410c9e4a2ce5aafae687d66a73348fac05b858437",
+      "sha256Lf": "0f5a83b3dfbc6702754ca34d09157d8c8306ef7317001793afe412455c08ba17"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-20x20-master.runs.json",
+      "bytes": 71344,
+      "sha256Raw": "36770df6d7bbdf3a441aece3b5cf680556245c02926bc67a394377d724babffb",
+      "sha256Lf": "16402e57a4c4b992b96f54fd37b8bf1cec4dc07c79043a5bf73dac2d3150f3f1"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-20x21-master.runs.json",
+      "bytes": 71420,
+      "sha256Raw": "e49bf321c07c4c6c3b67ae64e93944b407f682d6f24fc8045d7e73ff101d9edb",
+      "sha256Lf": "f41879f786037a5e3ab0892c9a56171cfb7a540a8cd7e161c27e8d3383bc9df9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-22x22-master.runs.json",
+      "bytes": 71460,
+      "sha256Raw": "307ff288da30c710601c91e24afa5cd8df34efdaeb0f9f294daaac4a2ea17690",
+      "sha256Lf": "c8b989ff7e263971107f208f54b1b93ee72932cee74154f9da6b2b3ca6cfceeb"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-24x24-master.runs.json",
+      "bytes": 71764,
+      "sha256Raw": "5805866250220a1142f6b2030a288f148f86ba4451b55e6ebf020b62046c5aaa",
+      "sha256Lf": "b8a82effbe9d555685b726b6cba1355d0fff641b9e01941f9a0c700f118fb076"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-26x26-master.runs.json",
+      "bytes": 71768,
+      "sha256Raw": "391f398b90cda5b013f0c052c27ca1517da41fa54c063eda6e8f369adb2bd11e",
+      "sha256Lf": "550e9d36e705d83d1af06bf7bb0ad088a4825cf0ea9cf4add9a55899e85b9920"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-32x15-master.runs.json",
+      "bytes": 71521,
+      "sha256Raw": "40e2e809bff8c9295ac53876391e6fbaabc534ca18d99c94c13647c8ffed8e32",
+      "sha256Lf": "de0dbb04d78d29e7ae748d293a815ecb76c3e20b3056f61ea75af59459d6dcc8"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-3x29-master.runs.json",
+      "bytes": 70404,
+      "sha256Raw": "0a6fefcedd25ee4f07b1e4c2684747a3f8e6cee960b9e1db3775a39ca6625717",
+      "sha256Lf": "a68fa7c06d1a7cfc1b2cf00713b5e9b65a13345154ad2a92b160684847978b6d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/master-6x10-master.runs.json",
+      "bytes": 70303,
+      "sha256Raw": "5fe092a04e7eb88b619489d264df17481c7a7a43b6e50c7b69aa87711fbc1779",
+      "sha256Lf": "835eebe86a891061ad8fabee6cc055397e3fca0a7f6eb47533c9603389353be0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-10x10-nightmare.runs.json",
+      "bytes": 238401,
+      "sha256Raw": "b619a4da206af736bda0ea1546a414116cc6ff0dfb9c3e68b3e23ca3625def0d",
+      "sha256Lf": "a8d0608eeef7a386c0630951666be4afecf1ec0bf048bc98670e032e9e7253c0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-12x12-nightmare.runs.json",
+      "bytes": 238971,
+      "sha256Raw": "553237deeb8597a2512392e27658e5e960c07c162e88f8b59d53d6e883bfd906",
+      "sha256Lf": "7463dea8b12f12ff508ad29f08b18b71fa3a49284e3e36a8f813c4aeae517823"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-hell-1.runs.json",
+      "bytes": 194658,
+      "sha256Raw": "713a99797bf6ca1541f98e25f4bfb1873391d4e7d69edf78ef30cee3ab20398a",
+      "sha256Lf": "23d5721c97ce55ad149a31d8788a55e5fb755290a1457104ca2e43478ba28e5a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-nightmare.runs.json",
+      "bytes": 239128,
+      "sha256Raw": "95395fb3e0d4187aaf1146891044d563951e2ef26fb0b19ecbb332987ad55e3a",
+      "sha256Lf": "0ba800b45c53faefc74a6cc237cf003850084a45d150b7d86e2b5098f1ed410c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x15b10-nightmare.runs.json",
+      "bytes": 239860,
+      "sha256Raw": "857807714c87361f070d5e4d7c7c7ca8e1905c1955fffb692efda8d9443276ae",
+      "sha256Lf": "bfd897fb1bf2ad17a29540de4d1462bb716f8014e01ef870936fe24977c803b3"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-15x20-nightmare.runs.json",
+      "bytes": 240607,
+      "sha256Raw": "95a137d38985b706717dc8aae2df151b94ec36c5514ab8026053fbaf42a6ac40",
+      "sha256Lf": "5138cfcf9439d4f9b94ddae6c1b391a168105dc4108f58f2cf098d4800ba0cc1"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-16x16-nightmare.runs.json",
+      "bytes": 240194,
+      "sha256Raw": "d42ed0cf09d4eb873b1693b9c20d557341fbe25d08f0318e83d9b0623d11b865",
+      "sha256Lf": "055d049120884daa93a2bd97ff672704c3ff56a66f62fc58d5f18f650e8a3d09"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-18x18-nightmare.runs.json",
+      "bytes": 240740,
+      "sha256Raw": "7296357ab98dcac4795bcd1794e48baa77b3d73d7d2109862347536068c7ef5e",
+      "sha256Lf": "2390162c8973b1f2b42059512d1883cd6c2d4544796472a05b3f2cbee691ba62"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-18x20-nightmare.runs.json",
+      "bytes": 241356,
+      "sha256Raw": "827f21ae8eced684ccf4f8c893d5cd195589518ed3a5543eed4928ceb721fb52",
+      "sha256Lf": "abf0f42d2c8d9a4fe87d3737cf4fecb903342d8bc16ad54e21c217dae199be27"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x20-hell-1.runs.json",
+      "bytes": 245568,
+      "sha256Raw": "0f2d5e9689e5af569436ca66f4b82ff0fc9322036310fe89b87b90511126b255",
+      "sha256Lf": "496f7e686711f066335d06a37c469302926dc74a0d08006c5949f55bc3dd6fe2"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x20-nightmare.runs.json",
+      "bytes": 241725,
+      "sha256Raw": "fa43191290c67602ea942924ca64a01027f7c085f82b4bb2a85a1b9be4612447",
+      "sha256Lf": "3f35bb44c791b4eff54bb64c824a4993d5e1f5c22715dc1e793ba569e3fe048f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-20x21-nightmare.runs.json",
+      "bytes": 241880,
+      "sha256Raw": "a91160bde0f98a86189ef6a8baffdfdb4195fb0ea5e9e20bfde0c3873fb73305",
+      "sha256Lf": "1b05bc25308c3326fc0733c66cd8acf0e556c39d1b70db0e3c0b64bfe838e879"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-22x22-nightmare.runs.json",
+      "bytes": 242041,
+      "sha256Raw": "23cc303ab4ffe1c945f4e9f44ccb84b9d43e06b0c66b8c5392b92d5a0db22c53",
+      "sha256Lf": "6285f4fec995f671fc5cb18ff5dd57d7d29069b69c7bfde6002a10920bc90142"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-24x24-hell-1.runs.json",
+      "bytes": 245979,
+      "sha256Raw": "1891d84ea2c918941791a55ba42bb1c465bab5e24b137573b453c096908cfea6",
+      "sha256Lf": "3e9741c4fc0c3c5a4bdb117bb25d7f77a719844482e5e7aaee9c5fd25834b674"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-24x24-nightmare.runs.json",
+      "bytes": 242652,
+      "sha256Raw": "c6c60b74ce3600a025ead985a9edc236b2de52ddf9995e0e98e77fd4f6286fd0",
+      "sha256Lf": "0d3664b3a168f4c717ba433581cc3dc4399b9328c7888e583f99ea3afd4cc909"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-hell-1.runs.json",
+      "bytes": 246018,
+      "sha256Raw": "555e700faa55bb04be1c8c807ce37f5cc90b716beeeec1fa490c5d026f23cc2a",
+      "sha256Lf": "961fa46ce62456b6b1fb71137b20f5ad5db4b4073b286033702be9e2c6f98c68"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-26x26-nightmare.runs.json",
+      "bytes": 243412,
+      "sha256Raw": "3d9022aafd34d1ea217685395a42a50e4c87de36bccef41d8c9a88208a163610",
+      "sha256Lf": "281dcb44eba08e85d8214131692ba3d62451d185524eadeee3ef1034eaa01fa2"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-32x15-nightmare.runs.json",
+      "bytes": 241999,
+      "sha256Raw": "9740ac90137cd7c3edbf58b5723824bd784cb5fbac04e07f0800a10553e0861f",
+      "sha256Lf": "16b8753f153f01bad4e8d3221a435718f797a4f19ba503c5837147f0fbd464bf"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-3x29-nightmare.runs.json",
+      "bytes": 237803,
+      "sha256Raw": "30f281d0ca54d7698a2ac47bc65ed1ccb3849a8de6ff14a6872b0645c74fde08",
+      "sha256Lf": "d2d57c96488163c13ccc92db8348678bf896720b6e67bad41893f8015d14248e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-10x10-nightmare.runs.json",
+      "bytes": 238482,
+      "sha256Raw": "85d3543b2b001c44b3666f9c3f63d790a620436e6af500cbb6d9b71a5b5ec08b",
+      "sha256Lf": "e3394480ef18aaea6c2266ce0b78a5264a407e5a808571cb0b9897ff01cf0ec9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-12x12-nightmare.runs.json",
+      "bytes": 239061,
+      "sha256Raw": "18c1892d8c2ec559f9d86f1248d91fcbce3b163fd7d16bd484e37c50ea79af04",
+      "sha256Lf": "4ef97e56a6af028d837827807a531af8f3394916193109ac5a0ce712bf7d518b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-hell-1.runs.json",
+      "bytes": 194649,
+      "sha256Raw": "f8df1943a80fc5016d2168a0e98557eb17d2edef955abdb8a2dc6f39fa1cd1f2",
+      "sha256Lf": "20f2fc53ff7d9fe46d82f1203eb5bfaee325376cb8c1bce9a3536159da8ecfa9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-14x14-nightmare.runs.json",
+      "bytes": 239565,
+      "sha256Raw": "af3db8f38adf0efbe04ec62c0cc462b6260ad58734b87e7f279f3b7ad1d60c00",
+      "sha256Lf": "eaa56f9b3bc9840c91c5489fc1d6218adb45e5639fa618fb7dafec26553002a0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x15b10-nightmare.runs.json",
+      "bytes": 240174,
+      "sha256Raw": "c20b47f3f0470c940c1918140f20eecb25f1d5e67ad7fa6d0dc842723ad746cb",
+      "sha256Lf": "848c30027796c31373925bc5df0b811693a61f0fdad2c77a1f6871f493b272ca"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x20-nightmare.runs.json",
+      "bytes": 240918,
+      "sha256Raw": "7b8b4e151b5ebe3461dacf9d62ced8963cb45b1d6542ba247c490bcc432c0716",
+      "sha256Lf": "3dbed064eb4f179f9360ca93fe42cf955587cde2fbdb32be34f020e12e1b1c23"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-16x16-nightmare.runs.json",
+      "bytes": 240427,
+      "sha256Raw": "96587921189ea3b6b0a29e2cb6703b7ece283558cb08a033ca38f0b220998268",
+      "sha256Lf": "c14c4fd842c9f1504046ce0c98d576c781a824f0ce0e79ccf7a57930a1d96a7b"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x18-nightmare.runs.json",
+      "bytes": 240926,
+      "sha256Raw": "9368a4c15ea23f714bd765036736d49cf3b5ade894b28d8eb79b910b417c8110",
+      "sha256Lf": "39325473dc32cc28cf7d76f7005a9c38ca497b16950da817e206683e423b4e9c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x20-nightmare.runs.json",
+      "bytes": 241540,
+      "sha256Raw": "d990191cbfa6935680425efbfad9ff5e65043b4bd564f32b6acba5025d3011a3",
+      "sha256Lf": "6fd2011815d76f891dce343cb8b2e540b7a76a539520818d494d4d657fbe8827"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-hell-1.runs.json",
+      "bytes": 245620,
+      "sha256Raw": "01d5360edbff095f0af5796f1681b7a2bae1177fb4279692a855708ca88c0dde",
+      "sha256Lf": "aa7d0f0e857fb3a6b2730ee3feaccd87fc574d91a88d75705628fb45c408b012"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-nightmare.runs.json",
+      "bytes": 242024,
+      "sha256Raw": "1e3b89ed6f4a304d4155cdff945560036341bcffc963551482510cc3ae3132ee",
+      "sha256Lf": "b68d0762ddfc6b5122fe5c63e360bfad2e97c0b6ad4becad0ec1c8bf8e70647c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x21-nightmare.runs.json",
+      "bytes": 242051,
+      "sha256Raw": "37a104a5934f1672fe98f93553a623b3480734cc0cc4d73d3112e336c67d7fb9",
+      "sha256Lf": "602275a9621ac459aef8d74851d5f7a74249b2ed3044f46e56a3ec96ae4bf933"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "bytes": 242174,
+      "sha256Raw": "7c87a382c70864a9e13ee9cf8a9ca713636c87d1ac17f95cf36cca71f63c5bf0",
+      "sha256Lf": "0f2d6778536f3bc73b5e6efa6ae1c562b9ff0d16ceb01b55c9cb7aa43b7a49be"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-hell-1.runs.json",
+      "bytes": 246001,
+      "sha256Raw": "b797f4a3427f841524c03d27fcca05cc92c47ce24b8d1b22587fcb916621143d",
+      "sha256Lf": "dc87fed3209eacd875eea2ee52dcb8aa308c8f82f19cedc360062576e8d2bcb9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-24x24-nightmare.runs.json",
+      "bytes": 242878,
+      "sha256Raw": "61a32f28f22b9ce4349365e61eec78f53eab30f8fbb3b9bc76a6ba388881cb75",
+      "sha256Lf": "643e48afff0d74570a3e829075b1e2a1f34676f1e2fd4cbd922542df49cc8361"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-hell-1.runs.json",
+      "bytes": 246194,
+      "sha256Raw": "0598747a64f135dbdc92632ed3f6096be5442bd25bcf6a0faa6cf93945c01e18",
+      "sha256Lf": "44cba6d34511bf245deed8970f6fbb5251087123e3eae5135d083cd1dc321a1f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-26x26-nightmare.runs.json",
+      "bytes": 243709,
+      "sha256Raw": "88752ec058badb52b98c1fa0e5f649981f8d84202084265c3bc70821657ea7be",
+      "sha256Lf": "e5bdbc7c663165a30ad353464b545f67c09596840832c58b6ab14d7ab7d31b0e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "bytes": 242202,
+      "sha256Raw": "b7c67fc9119c534cc6d8ab84d99b6573e8806690a513ab0d5c566518bff20af5",
+      "sha256Lf": "684911fd1fed61aff78a606ff292b202ccb0044c62ca0667aa0898e5f1ebe774"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "bytes": 237878,
+      "sha256Raw": "0a9c30c441ac330151ba5bfe0c9fccb859fc73ca3b84f49b16b11f94f7a85ea4",
+      "sha256Lf": "5f36a7bd8d9f5fa7c9d8b5aba60a7b3615da18f9e8a9350a9e112cdaa22af44e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-10x10-master.runs.json",
+      "bytes": 58992,
+      "sha256Raw": "50456212c1b94a5efb4ab5dc782ce93de8ac2024a9951dc24d4ef25d283aa9b5",
+      "sha256Lf": "ba715a8eb8e902dbcc52ab84bb671aa09e90f85179e300bfb15ac4c5b7e25429"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-12x12-master.runs.json",
+      "bytes": 63812,
+      "sha256Raw": "0bcd12982713232ca24b24ae9ce7b5ebbad0d37c5b6b7cbeaae95909f007709b",
+      "sha256Lf": "3886b5c9d73d66441f9253b7c4f353457867d11c207dfb4e894ea646fb6b308c"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-14x14-master.runs.json",
+      "bytes": 63934,
+      "sha256Raw": "454e8d5bd4e18bf11f9fa718d7756a48e967c981d9d49d22d269908163798fe5",
+      "sha256Lf": "724ae6786958600520ba565553f9b6fdd5ca74ed69f5fe966c39fcef77f501d4"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x15b10-master.runs.json",
+      "bytes": 64162,
+      "sha256Raw": "6a5e16e7956a49085b6da95d8c937c933e9ca762effeda6147794dfc9789b9bd",
+      "sha256Lf": "a3ca53feed62a8c7259daa9675954ede75d0bd6313aac2e8cc2d4493986a36ba"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-15x20-master.runs.json",
+      "bytes": 64267,
+      "sha256Raw": "c119de51df5ed950f0a8e007d1ce2da8ff5c4388054e66e8977ab362e36a6ea9",
+      "sha256Lf": "ac6949b43d86eaf7791fb807a4463e8281f838d8bff718a5e9d77c2efef030e0"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-16x16-master.runs.json",
+      "bytes": 64115,
+      "sha256Raw": "b089a5c5a67f7e083b905faaeef21881f052f18b905a5e2550ac8d0fc56469df",
+      "sha256Lf": "c49cab2610ad529fad43a818b6c22d567cf0262e4fd80eac54d12660ad251e0f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x18-master.runs.json",
+      "bytes": 64224,
+      "sha256Raw": "14d6893db1833dc674534547a39cbf2cad86295f5e580320b37d1b1704603365",
+      "sha256Lf": "7516878ba833de342460fcf7f0b5a34759f768721797fdf00d8ed33651cfa634"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-18x20-master.runs.json",
+      "bytes": 64424,
+      "sha256Raw": "2b1d612a00ee7a9976bd56d39d20f1169fa141c31b36b76b8d65126379edb366",
+      "sha256Lf": "34e75ed6acbe4b6ade58fb33b347af1ce78d2948a88441a6acfc9f9cdf8b9f7f"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x20-master.runs.json",
+      "bytes": 64464,
+      "sha256Raw": "921d6a03b447cf7b5a9380509eda994dca898aa9d616ae22f6fb9c324700e046",
+      "sha256Lf": "4aaa08d44c44b8d16dd0d515d1b86685c95b229f4ac8fb7a8eab11167a4e417e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-20x21-master.runs.json",
+      "bytes": 64475,
+      "sha256Raw": "4f2c2b959e896067ba045cc5e7c2e6838da9b26699fbd3ab77486251356463a7",
+      "sha256Lf": "6c7f414c95ad0b0e1d32b1d59723962aecf361a1f8e80d449fc472d06fddf840"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-22x22-master.runs.json",
+      "bytes": 64518,
+      "sha256Raw": "01ec360c03209a018989a9590293f1e30f409b4c0f2964c93378d43ecf79a64d",
+      "sha256Lf": "5a90e5a44fdd828f2fba978751545cfa6738263282bfa51c42e6823c8c03d691"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-24x24-master.runs.json",
+      "bytes": 64754,
+      "sha256Raw": "985cfed4a572db65e2f4fde3f9049875fab05e71caee6a0f8ce6f7504fba8215",
+      "sha256Lf": "c55b861d8552aedb908d5080f0b2f8d790c27afcea4bc578d4af1eb5f7aace19"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-26x26-master.runs.json",
+      "bytes": 64847,
+      "sha256Raw": "43344696a0aaf8645f649dd031610a6bb2524b0a9515af957b14ce94a2722627",
+      "sha256Lf": "4581f393821677f647a7da31e387b4c6b205ccac7e6efee75f56036f1b946ed6"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-32x15-master.runs.json",
+      "bytes": 64639,
+      "sha256Raw": "d9dc4a93889b674252a5b2206141faf2c3ebefd443d302e842941b23c48b9c08",
+      "sha256Lf": "13831cbd5556052134558e32f2acf91e1d0b04bc0cf1d0699672983cc8af50c1"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-3x29-master.runs.json",
+      "bytes": 63457,
+      "sha256Raw": "37ffb6507471d35a05e6493fcdb914efa88b66945864cc165d67491cd0ed9003",
+      "sha256Lf": "637f9af058fd0f34a33702962bb0bf853524d5327e1af521c83f36687bbb6423"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-6x10-master.runs.json",
+      "bytes": 63305,
+      "sha256Raw": "b10343d45743b4e3e5f18d5bd1c8d607f353339eb4be5f6e935edaa9b9093b25",
+      "sha256Lf": "37d69916e5f4cd51bb356745fb2f22652b553415fe386ac4c3855b5b040f62a9"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-10x10-nightmare.runs.json",
+      "bytes": 231361,
+      "sha256Raw": "77d0f3a957285075c46119d4ea07ded6475924150f056a1a4e51ab6adbbbc776",
+      "sha256Lf": "a2b2f147fcb936be1de16838f89478b83c153db28d450d816f2d190952361c64"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x18-nightmare.runs.json",
+      "bytes": 222012,
+      "sha256Raw": "57007695e9201133a28543d391fe4bf22b78ec5d71fa88bbe85b19769b7a1bb5",
+      "sha256Lf": "ef641499368987f1f6008aaca608cf8361ac726181507a78dad24c224cb17842"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-18x20-nightmare.runs.json",
+      "bytes": 227855,
+      "sha256Raw": "bea316aca556396c5b3f180a56b6af0a30162b77641bdd4168b22d2f7c8cde24",
+      "sha256Lf": "a091aeff0280bf48043fb9e3b952db209c660d29976ccd231e062fce30f1d9d3"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x20-nightmare.runs.json",
+      "bytes": 234754,
+      "sha256Raw": "5a51b0105817e0a0a13d15c7fb02b836758097ba24d500c4fbe0999e13d4614f",
+      "sha256Lf": "d59d2f372be2ccb14899ee50f471215cf7b052c22d9ea9aa828d664b5e11299e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-20x21-nightmare.runs.json",
+      "bytes": 233335,
+      "sha256Raw": "7f0f0c89c359e439af914de1a1422567984fc6ed30cb35deabdd89be93a213b0",
+      "sha256Lf": "1531ed6156759c57a68306b52849c2a77eff378468592fde92efd7409e094b75"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "bytes": 235212,
+      "sha256Raw": "bdfd32ab6a8b05b3b9b053c27feb7e72604d190cf44044aeb7da4ae4190e8eb4",
+      "sha256Lf": "7abdf3bf687d4c7f435a9407f75d2336f6eaeb396e71f2d339988c35d304a33a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-24x24-nightmare.runs.json",
+      "bytes": 235685,
+      "sha256Raw": "81800c42cabcbd828f15716cba63963b27ef4bc167e5f5e17bfee7fb8fb8df0b",
+      "sha256Lf": "b77192bf44179801d4383f486c3c4aaee597bfb893dbf391cc58b35cfc266e97"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-26x26-nightmare.runs.json",
+      "bytes": 236379,
+      "sha256Raw": "28a95990420146788f1d199d0d66e1b24fca7a9aac074a63630c14397dc9ac33",
+      "sha256Lf": "3892ef49ab6159c30419ed7f10018ff91dccf7a811c222d9d53a1f11fcef00dd"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "bytes": 235025,
+      "sha256Raw": "dfc0ff4ba770a4facea992438164cc3961db7c22018b475dbc41356c0e481ce8",
+      "sha256Lf": "29cf2f9c25d77b88a135e915c324594595189c5bf4c0b82b50c4481718e000bc"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "bytes": 230628,
+      "sha256Raw": "2087884c487f71703aabdacbacd1698bd3c7731d0af2e2a05c3ee288e61f994b",
+      "sha256Lf": "5daaa11582da4c2d988ee522713160a9c7f16b1abeae1cc214d9dc1759e7afc5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-uncapped/val-14x14-nightmare.runs.json",
+      "bytes": 238810,
+      "sha256Raw": "1a1898c1d7ed40a53f4e034a5dd9e61ac0e77f60551d53d8f63539aee9752af7",
+      "sha256Lf": "205c35a60691cdf63b7d74570bde1ff801c66211e502785b26b8d1790c40b211"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-uncapped/val-15x15b10-nightmare.runs.json",
+      "bytes": 239456,
+      "sha256Raw": "6c47891baa67fb7786aeb2fdabcec2cfa2f40ff305ba7f7c7448d7cbe228300a",
+      "sha256Lf": "85e49fc61dc35d2e3ba4065e3d9b8958c31510ae0ced376fe87748dc23bff563"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-uncapped/val-16x16-nightmare.runs.json",
+      "bytes": 239775,
+      "sha256Raw": "1e289b94fd9f0ec8c67216c7c12567a651e30cefe594e1d82757dc63e8dce2a1",
+      "sha256Lf": "3cee78e68e1e2bc67ff5a895e665ab6bba4b67b513ee8fd7488abfc86d78acd6"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-10x10-nightmare.runs.json",
+      "bytes": 238025,
+      "sha256Raw": "b583c1d8707814e14e6e80cfa8c80fc3a02da16ce1fc698e27566fd8fd033f79",
+      "sha256Lf": "a9a75464d5135a081e26582388ba6cb900cad54e63c3a8e9021d0e51015e8610"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-12x12-nightmare.runs.json",
+      "bytes": 238577,
+      "sha256Raw": "de521ead1ca98eec5740ad21e8adeb8db6ab414c636a5bf9708260dd1de432f8",
+      "sha256Lf": "8feaf642065bbc8fdae9925e16e8e2e69a8c2e0718f31f82d3b8bf3b83e9c622"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-14x14-hell-1.runs.json",
+      "bytes": 210616,
+      "sha256Raw": "fb4d5d86fe61a2ca35c21553aea2c1e15b8153be9217bc49934bb7a87cadefc4",
+      "sha256Lf": "a04ed446410d148ad840712f815c4454a1d83313105a641ed5910d8851a2b253"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-15x20-nightmare.runs.json",
+      "bytes": 240548,
+      "sha256Raw": "ff70032a801f01e607cce8f325c870b9d0b93582d9bc0da22d73747f222e2065",
+      "sha256Lf": "baaacb788bf11d73046650981b2c6aea547fb9aa942aa4d738c952785b6731b4"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-18x18-nightmare.runs.json",
+      "bytes": 240584,
+      "sha256Raw": "c93d4994fd70d3869a56d96538fffb393a20420362c29e0045578ecc4bae4fb6",
+      "sha256Lf": "10436671bcf81794e6dd234ce6f95484bb2a99779fe4690df60189a204bec7d4"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-18x20-nightmare.runs.json",
+      "bytes": 241225,
+      "sha256Raw": "5b67f4a8d438dbac792258f59cf404b16452c676f594b9a993a35ef0adb07b5a",
+      "sha256Lf": "3d6209b97e98dd4ddbbeecf99a46ab60ae0a88eea5a17d27e6b8cddea0b86c1e"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-20x20-hell-1.runs.json",
+      "bytes": 245267,
+      "sha256Raw": "f80317094c10eed6948f59d61fcb3f2a150dafb2f17e2544fb91797c605c2ee2",
+      "sha256Lf": "b22816a88e67faeb81f3d7ac9be0c3ca3c8e659666d9ccfa7e5966014a4a5951"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-20x20-nightmare.runs.json",
+      "bytes": 241585,
+      "sha256Raw": "2ec9e4376adbef2a0656e14b0902e8fd4164f54269bcce5f770fb8e2b3376bca",
+      "sha256Lf": "252edb529e2a21fa6197bd2ba4147558033966fa22e3d6de93d0f57c3260a81d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-20x21-nightmare.runs.json",
+      "bytes": 241582,
+      "sha256Raw": "f9e5282e02ba24adb0a530370229687beb23dfe1cf546d06119c83cb2ac31b98",
+      "sha256Lf": "c33231ad822d8fe867fdab46a325e3e64d2c1a1d8b93095cd24481ff974ecaee"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-22x22-nightmare.runs.json",
+      "bytes": 241923,
+      "sha256Raw": "79af4f3db61de27eb4b9d1411bae71a66ad15a3b3ab03ba880b479f5581856b0",
+      "sha256Lf": "a1fc8bcca246abb3a0fdb2f7198fcd5587925d8d269e8a4889dc367a79952506"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-24x24-hell-1.runs.json",
+      "bytes": 245607,
+      "sha256Raw": "5e6dbe1ad704a1ce8a86c6abda025052bd04528f1d11d0a6d375beb841fc1deb",
+      "sha256Lf": "7fbcec4d6dca78953d4467af91369cb7fd9d23bcb6edfeabc0d623f9d2d2afc7"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-24x24-nightmare.runs.json",
+      "bytes": 242438,
+      "sha256Raw": "9dfdefd7cad3a582292135409d7f86eb95c255f91e3dbda401fa6416d5297a46",
+      "sha256Lf": "55c10dbd50b59d6cd12696c7d2484fb15b336f55d26c5555f524ea6aeea93d66"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-26x26-hell-1.runs.json",
+      "bytes": 245732,
+      "sha256Raw": "c9ae7a8754da3c9484987e6f2507a9f2cef7c8258c8e288d99fe7ad614cd5ec3",
+      "sha256Lf": "fe7a2c48cd48a199a0eee94dcd0dcb3c572f66c4f97f7b6a646c3066ee2f246a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-26x26-nightmare.runs.json",
+      "bytes": 243085,
+      "sha256Raw": "8f83c23f52c67ab8f42f760e096f6c9da344c1238c903ab8823a2c78c68ec05b",
+      "sha256Lf": "c8736a0b62505d1ad0e5374e93245cdec57b86d814752149a20725e18104f30d"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-32x15-nightmare.runs.json",
+      "bytes": 241920,
+      "sha256Raw": "c865bab08ad71c33e70347453462f4a46a51af83097c935b45af7b8486781494",
+      "sha256Lf": "2cd8fafd083e3971e2811baac0c46fe1fa8cacba6f261bf8ed6e3d42122ddac5"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4C/fr-frozen-none-uncapped/val-3x29-nightmare.runs.json",
+      "bytes": 237515,
+      "sha256Raw": "b80180033ba00969befab785a8cb08e52ed6f507a189db0e58a3292d700e246f",
+      "sha256Lf": "762145909ce48a119e63e19237169210c9d72a9662f878584af5bfc1676df09d"
+    },
+    {
+      "path": "tools/bench/report.js",
+      "bytes": 34456,
+      "sha256Raw": "a180a45cea715bcc4ac0a8b315f0dec4afcf1fed23a58dc6304c0b5d6209c295",
+      "sha256Lf": "13f4d316cfdc2515f457f2aa7c313d02f989a3a3d15fdbf10e667c8bc091630c"
+    },
+    {
+      "path": "core/engine/board.js",
+      "bytes": 15834,
+      "sha256Raw": "a78f55b74e47905723af6a50f00f13a165efb1e044bc508fb9542e381900b43d",
+      "sha256Lf": "443c51c564143b8cd183f44de86aebd090344158f1c6b4356dfd96ab0b21d33e"
+    },
+    {
+      "path": "core/engine/carve.js",
+      "bytes": 29051,
+      "sha256Raw": "e856adc1733be6a92602648052ab17e191f40ecd4f0756c1005d115e54d7b8f3",
+      "sha256Lf": "c2aa481d1a7408f96e029787475ccab35586f6d157d6503c602e660da63a5f0c"
+    },
+    {
+      "path": "core/engine/clues.js",
+      "bytes": 31442,
+      "sha256Raw": "4c1e8ab07d6df07bd0ff54f5e5f4611703a1a030ba984c78a53c7d373f17b468",
+      "sha256Lf": "3eb6c6171654546f02914f323e4a20fb586db754e33b20dc4c63b980cb76a735"
+    },
+    {
+      "path": "core/engine/deduce.js",
+      "bytes": 64074,
+      "sha256Raw": "46c60975827df4faf9e87358fc3153f6bd07b63b6dee05314b80a74a7112ae62",
+      "sha256Lf": "c9571cd61cb32d260d32524cae712c4ba02dc567aff794304e4f601de096d1ce"
+    },
+    {
+      "path": "core/engine/difficulty.js",
+      "bytes": 20173,
+      "sha256Raw": "2e4b985a2ac1e2f36ab732d68eb2f4b8dde61ca33fd40c5dc516590d404b8c87",
+      "sha256Lf": "e68c9a59a85236aaeb934913430757b7c2cfa1cb9dd122c0a7c1935d70ca1d61"
+    },
+    {
+      "path": "core/engine/dlx.js",
+      "bytes": 11236,
+      "sha256Raw": "6f898a7955c2d08a214d7be6d4648d9a5a28d4ca065ca0d3c819d8a8f6dd3df9",
+      "sha256Lf": "0a18f78ef214064300bb63379dbed79946625fdc6687fdaeea8365b7c71bfc6b"
+    },
+    {
+      "path": "core/engine/enumerate.js",
+      "bytes": 10362,
+      "sha256Raw": "af83437b91e3bfc48f84d47567989aa1e4239f1078520f6cb27bfba530ec47ab",
+      "sha256Lf": "8c71fc231a74402ed928d8b34058e3c28a4cdb03d8bed70467a911d917563256"
+    },
+    {
+      "path": "core/engine/game.js",
+      "bytes": 22696,
+      "sha256Raw": "45be79cfea207f27d9bf76d6928ad0aa28a73d16fd85cbce4833adb0ae573f9f",
+      "sha256Lf": "2920fecf746bde12e8fcfbf36894d3abbbf21bc64ea28bdf79b782e050ad58f0"
+    },
+    {
+      "path": "core/engine/generate.js",
+      "bytes": 24192,
+      "sha256Raw": "0051a8e1e8eec901943de138efc7321ba1138b27fec0e364d5ab530708d00f41",
+      "sha256Lf": "20afef3b322705084604435062105ea9d9e25978b94a82cea40880a90f0d6208"
+    },
+    {
+      "path": "core/engine/geometry.js",
+      "bytes": 12148,
+      "sha256Raw": "79b8b05206499938a239eced7d44fad5171d413da15d173273b5e213d2a4f9c2",
+      "sha256Lf": "51af8541bc3827aef5815ba21c1d1fd81f0a013f25110156c39a1a2ebfe129a6"
+    },
+    {
+      "path": "core/engine/hash.js",
+      "bytes": 6136,
+      "sha256Raw": "e523640ee75e0e0dd247e0e53bb968cc5c357fd3c3e9c05049cf2f049a9ca1c3",
+      "sha256Lf": "ed6a5dcb4ba4ed24c5063d8ad4d21cd85001e3a61fbc8bb6de0f5f77d805c51c"
+    },
+    {
+      "path": "core/engine/hints.js",
+      "bytes": 10928,
+      "sha256Raw": "dd710944bedaae511207dfb258cdd4c48a7c7218018d1db53774d64d7d5189af",
+      "sha256Lf": "d536505f65988b650524287879f6baa618070fb031be63b8c0fdf199ef87e523"
+    },
+    {
+      "path": "core/engine/keys.js",
+      "bytes": 15432,
+      "sha256Raw": "52fad017ac885b000a22ede39d9cd7562414fd17747334de4070cc547dc3abea",
+      "sha256Lf": "0f0054da98a74a24ef2ba64df4441e3175df5548dcb83b4bbd0dc3d799c3c0fa"
+    },
+    {
+      "path": "core/engine/levels.js",
+      "bytes": 4601,
+      "sha256Raw": "f1dd8e5109db00f65d34ff92545493104cb3c9ff055c46386c9134a9a961d143",
+      "sha256Lf": "e0d59290f3c265fd56e84ac9ff83cf048458e223673e2e669525aabef302e096"
+    },
+    {
+      "path": "core/engine/pack.js",
+      "bytes": 69663,
+      "sha256Raw": "2b1c3dce89f8d588e5fae10814b61cce86189a2345addf3da52d152605a208bf",
+      "sha256Lf": "e7ac93a03fad7d484bead4ecf4bd84591ea01f5672c8dad37cdfa76467dbc336"
+    },
+    {
+      "path": "core/engine/palette.js",
+      "bytes": 3373,
+      "sha256Raw": "83f8ebb9cf76d779e083ff8bdf21612289e5d8b7ff58eb8e46b33fa059c353b6",
+      "sha256Lf": "21102da1f41bf3833a85b459ead274f80e4f069b0e6c5e63680067b5680e392c"
+    },
+    {
+      "path": "core/engine/placements.js",
+      "bytes": 11790,
+      "sha256Raw": "b399c57b34a998077634d360a933fd2fe2967aa1010a2f4756278a43e9340069",
+      "sha256Lf": "b386c7f8ddc34a8bb2e4fa58dc5dbf6b97835dd4cb7eb0e8c257fbc71c35405b"
+    },
+    {
+      "path": "core/engine/policy.js",
+      "bytes": 15670,
+      "sha256Raw": "df967a7ea4ee239dd73a18cca5f0e06517157be59313484627f6e394afb2ce15",
+      "sha256Lf": "e5e41eb8baaaf4da6b25f52c7e0ed36ff86e9e84a87ca2b4b76512fca52a6e10"
+    },
+    {
+      "path": "core/engine/protocol.js",
+      "bytes": 38908,
+      "sha256Raw": "2966bea96db27f7f525e46e0bed90a748bbbd909c7c3ef6af49d92ccbba23202",
+      "sha256Lf": "b77b25848fdbf322f461ed5ea79c264729e9667d3747ef1adde828fa1dfc1f6f"
+    },
+    {
+      "path": "core/engine/puzzlecode-input.js",
+      "bytes": 10650,
+      "sha256Raw": "309f4dc4bc1cfdd2f69019e08313f972444ecbeec0b1d619027ac0fb27c91244",
+      "sha256Lf": "b03cad0e5482bcbfd51f8eb54977ee5a96951313b4a7b3fd929b9117e123ddc0"
+    },
+    {
+      "path": "core/engine/puzzlecode-v1.js",
+      "bytes": 63227,
+      "sha256Raw": "525e1dd458e818a3c30e8c62e3f45162d5b78fa9bd6b17941891e51eb4780c44",
+      "sha256Lf": "f05cc281d7e5a9eac0553584a77aa78e042abf3148958fd1dd5bcd627332cf25"
+    },
+    {
+      "path": "core/engine/puzzlecode.js",
+      "bytes": 22365,
+      "sha256Raw": "31701f0c53996c277c6a5b585b05923a3dc52838ee9efaf5dd56f917fface760",
+      "sha256Lf": "61dda9d534823c29e3b4353103df3e763fec256aad9317d01cfd0e8ffa721ed3"
+    },
+    {
+      "path": "core/engine/qualification.js",
+      "bytes": 885,
+      "sha256Raw": "142b9861a59a6b64e99a18bbd50079e1a2e56a9b8f4633b04c662a81aef74015",
+      "sha256Lf": "d1059002e0edc368cae09cde1c31e9bc72e74ccb54c357efd3e4823096e57b46"
+    },
+    {
+      "path": "core/engine/replay.js",
+      "bytes": 36726,
+      "sha256Raw": "4929844cc4a0d7d95cc0c6873503ca41a404669699c736a63bd0a6dedac30c63",
+      "sha256Lf": "cf09ed0d8585022ec19dfb76777955126ecb162937969aad5911f56ef44899ea"
+    },
+    {
+      "path": "core/engine/rng.js",
+      "bytes": 6080,
+      "sha256Raw": "78faa8116244bd93794457acfdecf91697190caad961950567c757553208665b",
+      "sha256Lf": "5374ca6e32a3e7a9b6cb28c31c7968dccdf732b70ee045fe29d2a20d6cc75ba0"
+    },
+    {
+      "path": "core/engine/sharecode.js",
+      "bytes": 5264,
+      "sha256Raw": "c3c8e2281052c5c59de66805a12310e926c3f673bdbc8b1073aa313039bbb38b",
+      "sha256Lf": "4d14042d67bfcd9855e7bd162e256dca5727b58eb27cbea9455cbdcbf6b4b227"
+    },
+    {
+      "path": "core/engine/tasks.js",
+      "bytes": 16253,
+      "sha256Raw": "fcf8879f0de07b9650c0783c6d209a59eebbefc2f7658b0cd64988c3740a784d",
+      "sha256Lf": "08a43ec2805744177269804f97619bead7327a562a797edab2a6420dd6fd6ede"
+    },
+    {
+      "path": "core/engine/tiling.js",
+      "bytes": 20602,
+      "sha256Raw": "391615913f49b9efb04ab6b47418a4c1d4bc1676a6a911c68cd30e147ce76521",
+      "sha256Lf": "94c2473e374b4f254320354217e866dfcdf11966375f8000d0296f5a211b2015"
+    },
+    {
+      "path": "core/engine/types.js",
+      "bytes": 15103,
+      "sha256Raw": "50d8f7a876f9655b54333485ffe437a344e1b85a88f8e34de314a9e5cee880bc",
+      "sha256Lf": "8966b6f5a1a6f868e6e6e875985a2712031d26ff6dd7face0f10c4b3b43a4251"
+    },
+    {
+      "path": "core/engine/version.js",
+      "bytes": 87,
+      "sha256Raw": "90d4d78e1b96287b6fba52a9f63bda5cbe15b646ea3af46e2ed167218d9bf15b",
+      "sha256Lf": "bee5adecec5e908403aa8db3a2ab9c8c0455694eb3498a00468fd53a2fe19e9d"
+    },
+    {
+      "path": "core/engine/view.js",
+      "bytes": 6015,
+      "sha256Raw": "e970656ce0cfa3cee04dfadd73d94592d22a55270de25f1d4f390e6177ae43d7",
+      "sha256Lf": "c0cd0d15b3a114d5d48b99a8bea1d00c5448e55997d82730291b7f6728cd8a0a"
+    },
+    {
+      "path": "core/engine/workspace.js",
+      "bytes": 12784,
+      "sha256Raw": "42d91252808d299d92188bc65437654178b635cc82abc35bd88e30b6a626b7f6",
+      "sha256Lf": "47b911e67efb147d574f4fa8c7739d553f12cbb2bba2680494a8f0dc4fc70fb3"
+    },
+    {
+      "path": "core/browser/worker-pool.js",
+      "bytes": 21996,
+      "sha256Raw": "4fc5cbfc0283a62fe527f1c930edcb32816a23b1d9927bcd1c101450387d837d",
+      "sha256Lf": "e605c1da51ee1ea81879af8050a60bc851303cb0a318b2d9a451c2f2a12c3a60"
+    },
+    {
+      "path": "core/browser/generation-client.js",
+      "bytes": 51805,
+      "sha256Raw": "eed76d3d611d7e1dd9b320f0006aa2e2494bd8a4f78f4b496ed7967295c2ca60",
+      "sha256Lf": "23f5dc494baea934e481302ccec31b763fbbebbdfac1893879c39c38283564d8"
+    },
+    {
+      "path": "core/browser/auxiliary.js",
+      "bytes": 8871,
+      "sha256Raw": "c7ce3ebddb5796454f6bfff06785397afaabfaf1761fed82241e0493b000a162",
+      "sha256Lf": "68afc9a6d35a770ed507c983c88f7bc9fd43f1b4a36e708e17cb47e116d1c146"
+    },
+    {
+      "path": "core/workers/engine.worker.js",
+      "bytes": 647,
+      "sha256Raw": "ae4c2d31c23a0d1b21ee1066c8c40055e213ecd3acd6e82f4d1dac548302d168",
+      "sha256Lf": "c0914eeeee30effba24cb55def3f0473f63bb113689ba53e6a3658e18274ef5a"
+    },
+    {
+      "path": "tools/bench/runner.js",
+      "bytes": 35779,
+      "sha256Raw": "8970c6be6c64c8425ee73af403fcc69dd97d10346585dd877e2f668a8f7fe178",
+      "sha256Lf": "9f720febad848803be5504cafdc7c981b98fa01d670c98943b62273d7635097f"
+    },
+    {
+      "path": "tools/bench/responsiveness.js",
+      "bytes": 8907,
+      "sha256Raw": "479a92b187471f0cfec1ef28544ac1892cdd465e8218c65c0c8b938c1a1b5770",
+      "sha256Lf": "0830b07f5785ac3b5679b160561b1648af9d46f74640ac7249cbe3ece4a5cdc9"
+    },
+    {
+      "path": "tools/bench/calibration-reference.js",
+      "bytes": 33445,
+      "sha256Raw": "6c0c2ba6efd7ba5739c3f4196ae00f0efaae15a98ada53751d235f0437e263de",
+      "sha256Lf": "ad3b10fb26b78da8ac7755021c09975e82c6f80984e5358971527bde240be75b"
+    },
+    {
+      "path": "tests/fixtures/replay-case.json",
+      "bytes": 50938,
+      "sha256Raw": "692fee59ceaf4b4ce34a223b65dd2d02a7703b55334ba265c628f6061824f57a",
+      "sha256Lf": "fa701844b2c8b7135757509bc24b2c29c3474098a265262de4237c0fba7068a3"
+    },
+    {
+      "path": "tests/fixtures/generated-sample-pack.json",
+      "bytes": 14459,
+      "sha256Raw": "ea82cefc9a7589920e61fb5c67bf233c84b4689f86ce8d8f19168d6cd60a04bd",
+      "sha256Lf": "872f386d780a7882f27b619357ec34b5239730e55c0b9696187a1b336a200614"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 1816,
+      "sha256Raw": "71900aea50cfa01bdcb08790f842b6e0f7124e610eb70cd8871906d82cd5ca92",
+      "sha256Lf": "f0db02cf54eb19eb3b37aa6519d349e5d61c182738d9b4610567fd0ed6dde48c"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/plan.md",
+      "bytes": 48563,
+      "sha256Raw": "8391ae2afcdfc82e3d9479615b1d43f123034465b9a498d3c3c9e6bf988f2c7a",
+      "sha256Lf": "2fa90684e990179debe55eed21066d46f0cbd71d4a0bd41b3d150f7bb6499838"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/s06-reading.md",
+      "bytes": 20987,
+      "sha256Raw": "7e36205a3a7024c4dc963681f9c5c0fae644b74c43609ee517d0629a5e8bf9dc",
+      "sha256Lf": "1c124ae6acb5d10f1abc2d96ba32d39d8095efeb3dc281173b3531b58cc3aa5a"
+    },
+    {
+      "path": "docs/improve-generating/evidence/frozen/V4-S4F/verdicts.md",
+      "bytes": 25632,
+      "sha256Raw": "aefcdfebf503e907f3cfe8f0822634487f3f8de4c255d349d9c3caa2ccd6a7de",
+      "sha256Lf": "c1aed57ad3f4b6ab543403ae87fe7e8d5a9c30235b0095037d43176b60afbffb"
+    },
+    {
+      "path": "tasks/improve-generating-stages-2-4/check-list.md",
+      "bytes": 105432,
+      "sha256Raw": "f754c4f06e63c4bf842c473b6ca549817945074efa11b6eb4c4592e41fd774d3",
+      "sha256Lf": "8de7cfb24e9a7666bf7af98ebecd86b5b62ddee560874a402a4bdacdebe16b86"
+    },
+    {
+      "path": "tasks/improve-generating-v4/check-list.md",
+      "bytes": 201341,
+      "sha256Raw": "753b0f314ac8f836dbcba47412e5635f0a6f6824c1ac8efcafa400b87fd9efbd",
+      "sha256Lf": "73d4960bd5fc479f9ab55d0ac41250888cbe2d7316ce92e0e9e5341376afdb61"
+    },
+    {
+      "path": "tasks/improve-generating-v4/T11g-frozen-round-manifest.md",
+      "bytes": 22488,
+      "sha256Raw": "b56c5130f3020fddff26ba2e4f21b98d6956709932ef154463d8d2741ef8a892",
+      "sha256Lf": "db4f9e95fdff8715dd54f7fa21e1a9938cb1aeba7f9263f6659f201101716621"
+    },
+    {
+      "path": "tools/ig-proto/variants/fr-frozen.json",
+      "bytes": 1222,
+      "sha256Raw": "00203334b83f8f8838a3dadc3deabc1345f8cf7e82a3402d4d34b70c428bdc0a",
+      "sha256Lf": "29af6f1862eaf9ef832dfd4d373c7343198c3f94107ecf54eadcca41f4fdc219"
+    },
+    {
+      "path": "tools/ig-proto/variants/fr-frozen-none.json",
+      "bytes": 381,
+      "sha256Raw": "eca2dfe7b94a1a485822d3f0d3af4f4380fca4e253f70a376cd5186eec8bd8a8",
+      "sha256Lf": "d2a2423ba251d6e0aff890f2a47cc1c543c0c6a5efc16d0252700ddc3972e2bd"
+    },
+    {
+      "path": "tools/ig-proto/variants/v4.json",
+      "bytes": 8304,
+      "sha256Raw": "2da970b74f142069d2c476a5713f4638b1b0e3ee53fc648feaa8e76533adc42c",
+      "sha256Lf": "f5e70dfbb3c98d250c492c32984c5c9917aa3f56d40c8eb8b4c055ac4e30d33c"
+    },
+    {
+      "path": "tools/ig-proto/variants/v4-ps.json",
+      "bytes": 3428,
+      "sha256Raw": "4278e47b754edbad3d850c735c960069fbd06c9cb44564694bfdae11f47227b2",
+      "sha256Lf": "0b423a894b3a3b0be6d740bd3d77b78545c747edc066ac93500d88a3469d0db6"
+    },
+    {
+      "path": "tools/ig-proto/variants/v4-p5.json",
+      "bytes": 2320,
+      "sha256Raw": "96b5734168a776c658f839a4aa2cab16976642fd8bf501ccbbb0bb88a7eafaa7",
+      "sha256Lf": "d96afe2c9b726d5beab621728e8849ff4a4bf54bcc0d6a7866fb44e6bbfa4447"
+    },
+    {
+      "path": "tools/ig-proto/variants/p5-mode.json",
+      "bytes": 1656,
+      "sha256Raw": "ae465eb369291c22e134fb76f6c7c1ca1e0e7eebf4dfc94f71a861d7889183e5",
+      "sha256Lf": "8387afe9266debca0af8030b1c29fae5cb05ba1220e2c96e9c3be70e61bd332e"
+    },
+    {
+      "path": "tools/ig-proto/variants/ps-levels.json",
+      "bytes": 1284,
+      "sha256Raw": "0ebbc42e03dfdb9930959c19daad4662f2e4872e1d1f90849242d25da7cc64df",
+      "sha256Lf": "1b2651e066f5785c5ce226f38da8a4abf7ddfa64d3493052e4f439324aee102a"
+    },
+    {
+      "path": "tools/ig-proto/variants/live.json",
+      "bytes": 14550,
+      "sha256Raw": "79f43a26b300493e3aec872e0a0173881738d52e6a8693cfa58abe344064edeb",
+      "sha256Lf": "973b447e63fff624ce27c0ad07267311c54d23e522be8eb075b6fcf12d815ccc"
+    },
+    {
+      "path": "tools/ig-proto/variants/instr.json",
+      "bytes": 3389,
+      "sha256Raw": "2f585239d064a8f4042c47d408f6aee4ec5a29750fb927ad307c2dc5124d6720",
+      "sha256Lf": "3c85252a241311d05f5894352b5de6bdfb1b07d2d96ca536196825c6b8992a84"
+    },
+    {
+      "path": "tools/ig-proto/variants/files/v4/core/engine/ig-select-v4.js",
+      "bytes": 53024,
+      "sha256Raw": "60d15e528c6d57d7a1eef3e9d7e20f1e75aa06a83d0c1e13e5fab8bf30c9d76b",
+      "sha256Lf": "157a0e580a0d8d26dfd54e7dc68701b1e30e590557f80f264eb96225e6d39917"
+    },
+    {
+      "path": "tools/ig-proto/lib/lane-worker.mjs",
+      "bytes": 31007,
+      "sha256Raw": "6b1ff9d08bcdb43492ea3534aeddbb2c2aa9254b4973a1405a8e495a0592163f",
+      "sha256Lf": "6228dda5413bd89ffc86088a96d21fd394dd9ce9185def924951ef89a58fb061"
+    },
+    {
+      "path": "tools/ig-proto/live-deadline.mjs",
+      "bytes": 28659,
+      "sha256Raw": "493381284a734b6fad4dfc80f548ece942b34de261a8f171fee0c6225a1337a7",
+      "sha256Lf": "9a19ad6dc6ff020227df3cc664bba476b2d282e08424782f79d5c55764f65bfd"
+    },
+    {
+      "path": "generator/jobs.js",
+      "bytes": 29408,
+      "sha256Raw": "8a235a223440e071b376688540d7c2c2023a84ae0eea62ea4dc0eab1ee6335a2",
+      "sha256Lf": "0754488742c6f253b37d651b70b40b795bb1c7104503f32925ee2b549af76b32"
+    },
+    {
+      "path": "generator/state.js",
+      "bytes": 69140,
+      "sha256Raw": "94bc00899ddfcb3ac64f187e158159dd61c9245396416bb5901a9c0b1cfc10e4",
+      "sha256Lf": "d197b4e5542bb89afc9abcf20f1d61dc90b7775afd550f7e56f7d2ebe7f4691e"
+    },
+    {
+      "path": "generator/locale.en.js",
+      "bytes": 24163,
+      "sha256Raw": "6a5f439a5a772234eae45a4edf08307a01d4cb7eb732efb7300c3e9b36d2954d",
+      "sha256Lf": "c2c08044166877b1a854560ad7a5d515a306cb5dd5f0960ec9ba81b03fad5b5d"
+    },
+    {
+      "path": "generator/locale.vi.js",
+      "bytes": 27989,
+      "sha256Raw": "19c78532c53e58478300fb360d1d787da23efc21158a3ff38aaca944862b621a",
+      "sha256Lf": "04bd4659d5a305f98ed5c1ccde026528053cc61e72aa4253ec981d26b511e63b"
+    },
+    {
+      "path": "generator/ui/replay-cache.js",
+      "bytes": 7935,
+      "sha256Raw": "a7a48bddf482edcdb13a59c70b59d869721530065f6465dd3e1bd68bb040514a",
+      "sha256Lf": "805b270319a9bd79bddf04c1395f013ea08dde2ae1659705d1753c72fa9a59fb"
+    },
+    {
+      "path": "generator/ui/replay-model.js",
+      "bytes": 40416,
+      "sha256Raw": "e19bd44d61f1c55c538a57ad732924fc97f17a0dcd4ba1b184de26afb3c73640",
+      "sha256Lf": "e3b3f5f333d686b33bb9f852cf651b969560bd8c71262d09b6055fde9f0f5cc6"
+    },
+    {
+      "path": "tools/record-fixtures.mjs",
+      "bytes": 26948,
+      "sha256Raw": "8727b2905f8036d1da800b23f5cb1923150d76b973de51db16509d030fafb120",
+      "sha256Lf": "9cfcfb7ec0d1ca744f3965c9ded4cf649912bb168a742455e40ae7ab4dad8437"
+    },
+    {
+      "path": "tools/generate.mjs",
+      "bytes": 26696,
+      "sha256Raw": "5cedd74170ee053451d99e927727ea4064170a5fdac720bc73af6c0c1034b700",
+      "sha256Lf": "a45fd5efc2d51be41e5255432593b3404acd7ed0f2c1e9be7eae2c5c4a575618"
+    },
+    {
+      "path": "docs/design-detail.md",
+      "bytes": 507257,
+      "sha256Raw": "f584c6578005d002dff8b64597856e29dd28ccc59100348e2e3563ef4c23b364",
+      "sha256Lf": "0424e426b891f1f509dc47b0ea7c84055c9e67fff872ce310f3af5173f592f26"
+    },
+    {
+      "path": "docs/design-brief.md",
+      "bytes": 30473,
+      "sha256Raw": "fb002e83992fe664bdc82ad34b615fab20d193a978d0c5506a880edc385c7eec",
+      "sha256Lf": "27df639790bece1f7e8b6d16b88332273a703cc870930fab42d3cce348b6f6d2"
+    },
+    {
+      "path": "DEVELOPERGUIDE.md",
+      "bytes": 15797,
+      "sha256Raw": "082e3a1bc909885bb063aeaf9acda5514d85a5691ec52ef20cdec13ab31c33c1",
+      "sha256Lf": "765e8498f00ba34b27b4503ce97a69af844494c507b4b2dc5cd388ab23ede635"
+    },
+    {
+      "path": "DEVELOPERGUIDE.vn.md",
+      "bytes": 19304,
+      "sha256Raw": "eec4d31797c1353bf22f1c7505f6e20bd25ea22737d8d5ca266e6e0257fe7e8e",
+      "sha256Lf": "475fd130018b3976694230a82e3976175f98fcb054e73b15d9573ce74d5e6f76"
+    },
+    {
+      "path": "tests/generate.test.js",
+      "bytes": 49174,
+      "sha256Raw": "b387be6c6ff036f22569c9643038dc4cd293b3b92813bbb404e5b7a126b81800",
+      "sha256Lf": "b3137267a3a39d361ab2f83c34ec46c8c08324aac7437de204ef31c8eb474868"
+    },
+    {
+      "path": "tests/generation-client.test.js",
+      "bytes": 71313,
+      "sha256Raw": "629b33c3d9b89b1acdaa104378d4a95c2607b463337eedadc3d93d1eb725d308",
+      "sha256Lf": "6e14dd940a65a946fd21f3c96ba9a5ca0501733a05b93789a32120cd1d3fbdef"
+    },
+    {
+      "path": "tests/protocol.test.js",
+      "bytes": 30165,
+      "sha256Raw": "3a4ec755854afc503d6337999e817e008b115ff24a7e4047dd3420cb6e8024bf",
+      "sha256Lf": "2f1a5075297742dd2281d1f3c9d73bac02e709f9bc0c7c3adc84234efc4aefb1"
+    },
+    {
+      "path": "tests/replay.test.js",
+      "bytes": 86788,
+      "sha256Raw": "8d1dbcba96b40855ed7f3084788c89ebdda85121176fad3b18d6ec2bbe157ef4",
+      "sha256Lf": "803edcbbc9e7a5f1f850c8eb3b7aae95fc196a075d63df97e1970e401582c773"
+    },
+    {
+      "path": "tests/replay-model.test.js",
+      "bytes": 77602,
+      "sha256Raw": "eee0684e2e2516a1903bfb0f9c94800c9eb45c19a814543c085bcf2b57d78c8e",
+      "sha256Lf": "5c39434d93b504ef40416520f9905c85051076c0e702943c9abeac1efa8932d8"
+    },
+    {
+      "path": "tests/tasks.test.js",
+      "bytes": 40475,
+      "sha256Raw": "efe25ce2bcc024de7c6a40797b3c9abe35de67e38e0c401bf9b00df5963d7207",
+      "sha256Lf": "c09397dff49c072b492719e5b40bbc888cf16ef96a28b6c0487aa9266752c3dc"
+    },
+    {
+      "path": "docs/improve-generating-phase-2/evidence/sa-astra/round1-audit.mjs",
+      "bytes": 18547,
+      "sha256Raw": "f698ec21b5d2e74a534ff569b847febfa9ceccfe3afc0687019e0dabdae0ad7c",
+      "sha256Lf": "908455ee69451cb64cf97338ee7c525866d12ee2fa9a117e5f81f706aefb599b"
+    }
+  ]
+}
