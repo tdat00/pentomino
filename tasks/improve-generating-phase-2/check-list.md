@@ -79,7 +79,7 @@ order and the merges.
 - [x] P2-16c The real no-window glue on a scripted-rating copy (P2-12d, P2-09)
 - [x] P2-16b The browser deadline page and its six checks (P2-09, P2-11b, P2-16e)
 - [x] P2-16a Integrated worker cases and the pre-seal gate list (P2-15, P2-13a)
-- [ ] P2-17 Guides, README, tools README and the release-notes text (P2-15, P2-12c, P2-12e, P2-13f, P2-14b, P2-16b, P2-16c)
+- [x] P2-17 Guides, README, tools README and the release-notes text (P2-15, P2-12c, P2-12e, P2-13f, P2-14b, P2-16b, P2-16c)
 
 ### After development (serial)
 
@@ -618,7 +618,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-16b | w1, 3b06cbc | 2026-11-26 00:20 | 2026-11-26 00:51 | about 31 min | 158.87 | cf24d85 |
 | P2-16c | w2, 3c77a46 | 2026-11-26 01:18 | 2026-11-26 01:26 | about 8 min | 71.43 | 1369fd2 |
 | P2-16e | w3, df72615 | 2026-11-25 22:27 | 2026-11-25 22:36 | about 9 min | 54.34 | e14e7a4 |
-| P2-17 | | | | | | |
+| P2-17 | w1, f8e1f93 | 2026-11-26 02:33 | 2026-11-26 03:28 | about 55 min | 334.31 | 570d522 |
 | P2-18 | main | | | | | |
 | P2-19 | main | | | | | |
 | P2-20 | main | | | | | |
