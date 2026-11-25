@@ -68,8 +68,11 @@ reported as zero.
 1. **`glue-reach.mjs`** exports `glue(rows)` and `reach(rows)`, each grouped by `component`, `arm` and `cell`.
 2. **`glue(rows)`.** Per row:
    - **The raw side.** The outcomes with `stage === 'set'` and `attempt` 0, 1, 2 or 3. A raw natural match is all four
-     present with the same non-null `igNoWindow`. The raw evidence is complete when `ledger.complete` is true and
-     `ledger.outcomes` exists.
+     present with the same non-null `igNoWindow`. The raw evidence is complete when `ledger.complete` is true,
+     `ledger.outcomes` exists, every one of these outcomes has `igNoWindow` `null`, `'below'` or `'above'` (C1 writes
+     it on every `end` line), and the repeated outcomes of one attempt (a pool retry) agree on it. A missing or
+     malformed `igNoWindow`, or repeats that disagree, make the row incomplete, never a "no match" (ruling on P2-13f,
+     2026-11-26).
    - **The transport.** For each raw outcome with a non-null `igNoWindow`, the client entry is the element of
      `trail.attempts` whose `attempt` equals the outcome's. Its `reason` must be `` `no-window-${igNoWindow}` ``.
      - A different reason is a glue discrepancy, `unexplained`.
@@ -84,14 +87,18 @@ reported as zero.
      (`{ key, attempt, raw, transported or expected, class }`, with the client entries in `arrival` order), and
      `refused` (rows without a valid binding).
    - **`status`:** `exercised` when `rawMatches > 0`; `unexercised` when it is 0 and every row's raw evidence is
-     complete; otherwise `unknown`, with the incomplete keys.
+     complete; otherwise `unknown`, with the incomplete keys. A group whose rows all have `variant` `p2-today` is
+     `not-applicable`: today's search has no bound, and its `igNoWindow` is always `null` (ruling on P2-13f,
+     2026-11-26).
 3. **`reach(rows)`**, per group:
    - the budget stops: the sum of `budgetStops` of `setCounters` and `batchCounters` (F4);
    - the re-rating starts: `ledger.rerateStarts`, by phase;
    - the re-rating completions: `rescueReratings` and `tailReratings`;
    - the screen-capped profiles: `screenCapped` (F7).
 
-   A zero is printed `0 (unexercised)`. A row without these fields is listed as unknown and adds no zero.
+   A zero is printed `0 (unexercised)`. A row without these fields is listed as unknown and adds no zero. In a group
+   whose rows all have `variant` `p2-today`, every reading prints `n/a (today's search)`: today's search has no budget,
+   screen or re-rating, so neither a zero nor an unknown applies.
 4. **The report.** `p2.mjs report --stage B` adds `readings: { glue, reach }` to `report.json`, over the rows of both
    final snapshots, and one table per reading to `report.md`. The readings are not gates; B8 stays P2-13c's.
 5. **Tests.** Write the cases below. The end-to-end case adds the mode `nowindow` to P2-13d's fake calibrate: it writes
@@ -106,7 +113,8 @@ reported as zero.
 | same | `an uncapped row that continues is no missing-bound defect` | the same raw match on a `p2-uncapped` row whose transported reasons are `no-window-below` and which later succeeds | no `reconcile` entry; no transport discrepancy |
 | same | `the glue names a discrepancy by attempt` | raw set attempt 1 `igNoWindow: 'above'`; the client entry with `attempt: 1` has `reason: 'not-in-band'` | one `unexplained` discrepancy for that row and attempt 1 |
 | same | `the glue classifies an unexpected public reason` | a raw match `below` on `p2-gen4`, `sameSide: 'below'`, `boundFired: false`, `partialReason: 'set:time-limit'`; then the same with `partialReason: null` | `declared`; `unexplained` |
-| same | `unexercised needs complete raw evidence` | rows with no raw match, all with complete ledgers; then one with `ledger.complete` false | `unexercised`; `unknown`, naming that row |
+| same | `unexercised needs complete raw evidence` | rows with no raw match, all with complete ledgers; then one with `ledger.complete` false; then one whose set outcome of attempt 2 has no `igNoWindow` field; then one with two outcomes of attempt 1, `'below'` and `null` | `unexercised`; `unknown`, naming that row; `unknown`, naming that row; `unknown`, naming that row |
+| same | `today's search is not applicable` | two `p2-today` rows of one cell, `telemetry: null`, complete ledgers whose set outcomes have `igNoWindow: null` | glue `status: 'not-applicable'`; every reach reading prints `n/a (today's search)` |
 | same | `zero reach is unexercised` | rows with zero counters and zero `rerateStarts` | each reading printed `0 (unexercised)` |
 | same | `raw outcomes and rescue starts survive to the readings` | fake calibrate `nowindow`; `runGroup`; `publish`; `loadSnapshot`; then P2-13c's `triggered` and this task's `reach` | the row's `ledger.outcomes` and `rerateStarts` are present; `triggered` with `no-window` and no unknown; `reach` counts one `rescue` start |
 
