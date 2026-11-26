@@ -253,13 +253,13 @@ The stage-A gates are computed by `p2.mjs report` (P2-13b).
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | the orchestrator; the SA agents for the readout |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-26 03:59 +07:00 (stage-A loop from group 2, HEAD 46d9af6); end 2026-11-26 16:24 +07:00 (commit); 12 h 25 min elapsed, of which 05:00-10:36 the host was down after a Windows Update restart |
+| Waiting for rulings | host-restart ruling (SA-Opus) 10:36-10:50 (14 min, pack amendment 8898fcd); owner Q-P2-A3 14:03-16:22 (2 h 19 min); host down 05:00-10:36 (5 h 36 min) |
+| Agent id, model | the orchestrator (runs); SA-Opus e5de0a5f-b2e9-40cc-a148-6e89d41227b4 (claude-opus-5.5, re-spawned after the restart: ruling, projection script, readout draft); SA-Astra 53bbea9e-b968-4aee-b81d-9959756c75a3 (gpt-6-astra, re-spawned: readout review). The earlier SA sessions were lost in the restart |
+| Calls; input, output and cache-read tokens | SA-Opus 97 calls; 25,184,644 input, 225,815 output, 23,832,587 cache-read. SA-Astra 15 calls; 1,314,034 input, 23,776 output, 1,183,538 cache-read |
+| AI credits | SA-Opus 1,604.290; SA-Astra 400.343; total 2,004.633 |
+| Questions and rulings | Host restart at 05:00:05 +07:00 (MoUsoCoreWorker.exe, System event 1074; Kernel-General 13 at 05:00:54.787, boot 12 at 05:00:56.764) cut A-9.13: accounting stop. SA-Opus ruling 8898fcd: charge A-9.13 from its lock stamp 21:56:56.514Z to the shutdown event, nodeSeconds 238.273, countedSeconds 283.273, killed true, exit -1, cause exit; release; remove the stale lock; resume at group 9; the cut key is never rerun. Recovery block run verbatim (log p219-recover.log): `ledger: appended A-9.13`, `release: A-9.13`, `seal: OK`, A spent 5357.556 s. Owner Q-P2-R1 (pause Windows Update): `b` (Discord 1575354696246497312), restarts accepted. SA-Opus projection check at 12:08: stage A fits (margin 41-75 min); projection run after every group, all `continue`. Owner Q-P2-A3 (continue with A3 incomplete): `a` (Discord 1575441672895070261) |
+| Fix rounds | readout: 1 review round (SA-Astra five wording findings, all applied by SA-Opus; SA-Astra accept 14:00) |
+| Gates re-run by the orchestrator | groups 2-23 all exit 0 (groups 15 and 16 re-called after exit 7); status: every key terminal, 1 interrupted (require/uncapped/32x15-hell-1/2, no-report, A-9.13); replay probes A-replay-probes.32 exit 0, 8/8 measured margin ok, 654.144 s; six browser checks exit 0 (2.1-11.8 s), every receipt cleanup null; publish `A 317 rows a08095673b4bbc36ff718d3b60976bef34e701590062e9e0cbfa6f26d2e47a98`; report `A incomplete (A1 pass, A2 pass, A3 incomplete, A4 pass, A5 pass, A6 pass)`, report.json sha256 1d850b12a9a03ed61f40d3c84fce88edda01b84c96d52785b8ff11ba965e3cd2; ledger A 15148.081 s (252.468 min) of 410 in 38 lines, B 0; seal --check OK; ledger --check --stage B after the commit (see the bookkeeping commit) |
+| Commit | this commit (improve-generating-phase-2 P2-19: stage A and its readout) |
+| Issues and named items | INC-P2-19-RESTART (host restart, one require row missing, 283.273 s charged); A3 incomplete 49/50 with owner continuation; `require` on the large boards: gen-v4 reached ten in 1 of 20 requests (14 empty at the 46-s automatic set cut, 5 one-puzzle partials), today 0 of 10, uncapped 2 of 19 - to the validation report and phase 3 (readout section 5); 3x29 thin control lower bound 0.904 vs 0.9; P5 trigger signs 11x11/22 and 21x21/37 for stage B activation |

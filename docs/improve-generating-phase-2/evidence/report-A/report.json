@@ -1,0 +1,1741 @@
+{
+  "stage": "A",
+  "status": "incomplete",
+  "snapshots": [
+    {
+      "path": "rows/A.jsonl",
+      "sha256": "a08095673b4bbc36ff718d3b60976bef34e701590062e9e0cbfa6f26d2e47a98"
+    }
+  ],
+  "bindings": [],
+  "equality": [
+    {
+      "key": "smoke/gen-v4/10x10-master/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-10x10-master.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/10x10-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-10x10-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/14x14-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen/val-14x14-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/15x20-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-15x20-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/18x18-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-18x18-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/20x20-hell-1/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-20x20-hell-1.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/22x22-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "smoke/gen-v4/26x26-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-26x26-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/21",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/21",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/22",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/22",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/23",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/23",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/24",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/24",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/25",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/25",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/26",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/26",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/27",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/27",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/28",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/28",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/29",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/29",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/30",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/30",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/31",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/31",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/32",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/32",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/33",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/33",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/34",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/34",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/35",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/35",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/36",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/36",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/37",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/37",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/38",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/38",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/22x22-nightmare/39",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/22x22-nightmare/39",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-22x22-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/21",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/21",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/22",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/22",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/23",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/23",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/24",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/24",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/25",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/25",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/26",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/26",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/27",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/27",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/28",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/28",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/29",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/29",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/30",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/30",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/31",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/31",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/32",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/32",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/33",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/33",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/34",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/34",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/35",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/35",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/36",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/36",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/37",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/37",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/38",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/38",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/32x15-nightmare/39",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/32x15-nightmare/39",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-32x15-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/20",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/21",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/21",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/22",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/22",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/23",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/23",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/24",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/24",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/25",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/25",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/26",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/26",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/27",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/27",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/28",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/28",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/29",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/29",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/30",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/30",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/31",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/31",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/32",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/32",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/33",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/33",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/34",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/34",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/35",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/35",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/36",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/36",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/37",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/37",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/38",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/38",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "baseline-control/today/3x29-nightmare/39",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/log-link/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    },
+    {
+      "key": "shipped/gen-v4/3x29-nightmare/39",
+      "oracle": "docs/improve-generating/evidence/frozen/V4-S4/fr-frozen-none/val-3x29-nightmare.runs.json",
+      "verdict": "equal"
+    }
+  ],
+  "gates": [
+    {
+      "id": "A1",
+      "stage": "A",
+      "status": "pass",
+      "rows": [
+        "shipped/gen-v4/3x29-nightmare/20",
+        "shipped/gen-v4/3x29-nightmare/21",
+        "shipped/gen-v4/3x29-nightmare/22",
+        "shipped/gen-v4/3x29-nightmare/23",
+        "shipped/gen-v4/3x29-nightmare/24",
+        "shipped/gen-v4/3x29-nightmare/25",
+        "shipped/gen-v4/3x29-nightmare/26",
+        "shipped/gen-v4/3x29-nightmare/27",
+        "shipped/gen-v4/3x29-nightmare/28",
+        "shipped/gen-v4/3x29-nightmare/29",
+        "shipped/gen-v4/3x29-nightmare/30",
+        "shipped/gen-v4/3x29-nightmare/31",
+        "shipped/gen-v4/3x29-nightmare/32",
+        "shipped/gen-v4/3x29-nightmare/33",
+        "shipped/gen-v4/3x29-nightmare/34",
+        "shipped/gen-v4/3x29-nightmare/35",
+        "shipped/gen-v4/3x29-nightmare/36",
+        "shipped/gen-v4/3x29-nightmare/37",
+        "shipped/gen-v4/3x29-nightmare/38",
+        "shipped/gen-v4/3x29-nightmare/39",
+        "baseline-control/today/3x29-nightmare/20",
+        "baseline-control/today/3x29-nightmare/21",
+        "baseline-control/today/3x29-nightmare/22",
+        "baseline-control/today/3x29-nightmare/23",
+        "baseline-control/today/3x29-nightmare/24",
+        "baseline-control/today/3x29-nightmare/25",
+        "baseline-control/today/3x29-nightmare/26",
+        "baseline-control/today/3x29-nightmare/27",
+        "baseline-control/today/3x29-nightmare/28",
+        "baseline-control/today/3x29-nightmare/29",
+        "baseline-control/today/3x29-nightmare/30",
+        "baseline-control/today/3x29-nightmare/31",
+        "baseline-control/today/3x29-nightmare/32",
+        "baseline-control/today/3x29-nightmare/33",
+        "baseline-control/today/3x29-nightmare/34",
+        "baseline-control/today/3x29-nightmare/35",
+        "baseline-control/today/3x29-nightmare/36",
+        "baseline-control/today/3x29-nightmare/37",
+        "baseline-control/today/3x29-nightmare/38",
+        "baseline-control/today/3x29-nightmare/39",
+        "shipped/gen-v4/22x22-nightmare/20",
+        "shipped/gen-v4/22x22-nightmare/21",
+        "shipped/gen-v4/22x22-nightmare/22",
+        "shipped/gen-v4/22x22-nightmare/23",
+        "shipped/gen-v4/22x22-nightmare/24",
+        "shipped/gen-v4/22x22-nightmare/25",
+        "shipped/gen-v4/22x22-nightmare/26",
+        "shipped/gen-v4/22x22-nightmare/27",
+        "shipped/gen-v4/22x22-nightmare/28",
+        "shipped/gen-v4/22x22-nightmare/29",
+        "shipped/gen-v4/22x22-nightmare/30",
+        "shipped/gen-v4/22x22-nightmare/31",
+        "shipped/gen-v4/22x22-nightmare/32",
+        "shipped/gen-v4/22x22-nightmare/33",
+        "shipped/gen-v4/22x22-nightmare/34",
+        "shipped/gen-v4/22x22-nightmare/35",
+        "shipped/gen-v4/22x22-nightmare/36",
+        "shipped/gen-v4/22x22-nightmare/37",
+        "shipped/gen-v4/22x22-nightmare/38",
+        "shipped/gen-v4/22x22-nightmare/39",
+        "baseline-control/today/22x22-nightmare/20",
+        "baseline-control/today/22x22-nightmare/21",
+        "baseline-control/today/22x22-nightmare/22",
+        "baseline-control/today/22x22-nightmare/23",
+        "baseline-control/today/22x22-nightmare/24",
+        "baseline-control/today/22x22-nightmare/25",
+        "baseline-control/today/22x22-nightmare/26",
+        "baseline-control/today/22x22-nightmare/27",
+        "baseline-control/today/22x22-nightmare/28",
+        "baseline-control/today/22x22-nightmare/29",
+        "baseline-control/today/22x22-nightmare/30",
+        "baseline-control/today/22x22-nightmare/31",
+        "baseline-control/today/22x22-nightmare/32",
+        "baseline-control/today/22x22-nightmare/33",
+        "baseline-control/today/22x22-nightmare/34",
+        "baseline-control/today/22x22-nightmare/35",
+        "baseline-control/today/22x22-nightmare/36",
+        "baseline-control/today/22x22-nightmare/37",
+        "baseline-control/today/22x22-nightmare/38",
+        "baseline-control/today/22x22-nightmare/39",
+        "shipped/gen-v4/32x15-nightmare/20",
+        "shipped/gen-v4/32x15-nightmare/21",
+        "shipped/gen-v4/32x15-nightmare/22",
+        "shipped/gen-v4/32x15-nightmare/23",
+        "shipped/gen-v4/32x15-nightmare/24",
+        "shipped/gen-v4/32x15-nightmare/25",
+        "shipped/gen-v4/32x15-nightmare/26",
+        "shipped/gen-v4/32x15-nightmare/27",
+        "shipped/gen-v4/32x15-nightmare/28",
+        "shipped/gen-v4/32x15-nightmare/29",
+        "shipped/gen-v4/32x15-nightmare/30",
+        "shipped/gen-v4/32x15-nightmare/31",
+        "shipped/gen-v4/32x15-nightmare/32",
+        "shipped/gen-v4/32x15-nightmare/33",
+        "shipped/gen-v4/32x15-nightmare/34",
+        "shipped/gen-v4/32x15-nightmare/35",
+        "shipped/gen-v4/32x15-nightmare/36",
+        "shipped/gen-v4/32x15-nightmare/37",
+        "shipped/gen-v4/32x15-nightmare/38",
+        "shipped/gen-v4/32x15-nightmare/39",
+        "baseline-control/today/32x15-nightmare/20",
+        "baseline-control/today/32x15-nightmare/21",
+        "baseline-control/today/32x15-nightmare/22",
+        "baseline-control/today/32x15-nightmare/23",
+        "baseline-control/today/32x15-nightmare/24",
+        "baseline-control/today/32x15-nightmare/25",
+        "baseline-control/today/32x15-nightmare/26",
+        "baseline-control/today/32x15-nightmare/27",
+        "baseline-control/today/32x15-nightmare/28",
+        "baseline-control/today/32x15-nightmare/29",
+        "baseline-control/today/32x15-nightmare/30",
+        "baseline-control/today/32x15-nightmare/31",
+        "baseline-control/today/32x15-nightmare/32",
+        "baseline-control/today/32x15-nightmare/33",
+        "baseline-control/today/32x15-nightmare/34",
+        "baseline-control/today/32x15-nightmare/35",
+        "baseline-control/today/32x15-nightmare/36",
+        "baseline-control/today/32x15-nightmare/37",
+        "baseline-control/today/32x15-nightmare/38",
+        "baseline-control/today/32x15-nightmare/39"
+      ],
+      "detail": {
+        "cells": [
+          {
+            "cell": "3x29-nightmare",
+            "verdict": "pass",
+            "reasons": [],
+            "reachedTen": 20,
+            "deadlineViolations": 0,
+            "p95Ms": 6191.8955000000005,
+            "noRegression": {
+              "geoMean": 1.0055591106074877,
+              "lower": 0.9040950837489583,
+              "pass": true
+            }
+          },
+          {
+            "cell": "22x22-nightmare",
+            "verdict": "pass",
+            "reasons": [],
+            "reachedTen": 20,
+            "deadlineViolations": 0,
+            "p95Ms": 14821.6584,
+            "noRegression": {
+              "geoMean": 1.1132285235462225,
+              "lower": 1.0086803018244468,
+              "pass": true
+            }
+          },
+          {
+            "cell": "32x15-nightmare",
+            "verdict": "pass",
+            "reasons": [],
+            "reachedTen": 20,
+            "deadlineViolations": 0,
+            "p95Ms": 21851.9316,
+            "noRegression": {
+              "geoMean": 1.0963163237723854,
+              "lower": 0.9720320508518986,
+              "pass": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "stage": "A",
+      "status": "pass",
+      "rows": [
+        "non-table/gen-v4/11x11-nightmare/20",
+        "non-table/gen-v4/11x11-nightmare/21",
+        "non-table/gen-v4/11x11-nightmare/22",
+        "non-table/gen-v4/11x11-nightmare/23",
+        "non-table/gen-v4/11x11-nightmare/24",
+        "non-table/gen-v4/11x11-nightmare/25",
+        "non-table/gen-v4/11x11-nightmare/26",
+        "non-table/gen-v4/11x11-nightmare/27",
+        "non-table/gen-v4/11x11-nightmare/28",
+        "non-table/gen-v4/11x11-nightmare/29",
+        "non-table/gen-v4/11x11-nightmare/30",
+        "non-table/gen-v4/11x11-nightmare/31",
+        "non-table/gen-v4/11x11-nightmare/32",
+        "non-table/gen-v4/11x11-nightmare/33",
+        "non-table/gen-v4/11x11-nightmare/34",
+        "non-table/gen-v4/11x11-nightmare/35",
+        "non-table/gen-v4/11x11-nightmare/36",
+        "non-table/gen-v4/11x11-nightmare/37",
+        "non-table/gen-v4/11x11-nightmare/38",
+        "non-table/gen-v4/11x11-nightmare/39",
+        "non-table/today/11x11-nightmare/20",
+        "non-table/today/11x11-nightmare/21",
+        "non-table/today/11x11-nightmare/22",
+        "non-table/today/11x11-nightmare/23",
+        "non-table/today/11x11-nightmare/24",
+        "non-table/today/11x11-nightmare/25",
+        "non-table/today/11x11-nightmare/26",
+        "non-table/today/11x11-nightmare/27",
+        "non-table/today/11x11-nightmare/28",
+        "non-table/today/11x11-nightmare/29",
+        "non-table/today/11x11-nightmare/30",
+        "non-table/today/11x11-nightmare/31",
+        "non-table/today/11x11-nightmare/32",
+        "non-table/today/11x11-nightmare/33",
+        "non-table/today/11x11-nightmare/34",
+        "non-table/today/11x11-nightmare/35",
+        "non-table/today/11x11-nightmare/36",
+        "non-table/today/11x11-nightmare/37",
+        "non-table/today/11x11-nightmare/38",
+        "non-table/today/11x11-nightmare/39",
+        "non-table/gen-v4/18x19-nightmare/20",
+        "non-table/gen-v4/18x19-nightmare/21",
+        "non-table/gen-v4/18x19-nightmare/22",
+        "non-table/gen-v4/18x19-nightmare/23",
+        "non-table/gen-v4/18x19-nightmare/24",
+        "non-table/gen-v4/18x19-nightmare/25",
+        "non-table/gen-v4/18x19-nightmare/26",
+        "non-table/gen-v4/18x19-nightmare/27",
+        "non-table/gen-v4/18x19-nightmare/28",
+        "non-table/gen-v4/18x19-nightmare/29",
+        "non-table/gen-v4/18x19-nightmare/30",
+        "non-table/gen-v4/18x19-nightmare/31",
+        "non-table/gen-v4/18x19-nightmare/32",
+        "non-table/gen-v4/18x19-nightmare/33",
+        "non-table/gen-v4/18x19-nightmare/34",
+        "non-table/gen-v4/18x19-nightmare/35",
+        "non-table/gen-v4/18x19-nightmare/36",
+        "non-table/gen-v4/18x19-nightmare/37",
+        "non-table/gen-v4/18x19-nightmare/38",
+        "non-table/gen-v4/18x19-nightmare/39",
+        "non-table/today/18x19-nightmare/20",
+        "non-table/today/18x19-nightmare/21",
+        "non-table/today/18x19-nightmare/22",
+        "non-table/today/18x19-nightmare/23",
+        "non-table/today/18x19-nightmare/24",
+        "non-table/today/18x19-nightmare/25",
+        "non-table/today/18x19-nightmare/26",
+        "non-table/today/18x19-nightmare/27",
+        "non-table/today/18x19-nightmare/28",
+        "non-table/today/18x19-nightmare/29",
+        "non-table/today/18x19-nightmare/30",
+        "non-table/today/18x19-nightmare/31",
+        "non-table/today/18x19-nightmare/32",
+        "non-table/today/18x19-nightmare/33",
+        "non-table/today/18x19-nightmare/34",
+        "non-table/today/18x19-nightmare/35",
+        "non-table/today/18x19-nightmare/36",
+        "non-table/today/18x19-nightmare/37",
+        "non-table/today/18x19-nightmare/38",
+        "non-table/today/18x19-nightmare/39",
+        "non-table/gen-v4/21x21-nightmare/20",
+        "non-table/gen-v4/21x21-nightmare/21",
+        "non-table/gen-v4/21x21-nightmare/22",
+        "non-table/gen-v4/21x21-nightmare/23",
+        "non-table/gen-v4/21x21-nightmare/24",
+        "non-table/gen-v4/21x21-nightmare/25",
+        "non-table/gen-v4/21x21-nightmare/26",
+        "non-table/gen-v4/21x21-nightmare/27",
+        "non-table/gen-v4/21x21-nightmare/28",
+        "non-table/gen-v4/21x21-nightmare/29",
+        "non-table/gen-v4/21x21-nightmare/30",
+        "non-table/gen-v4/21x21-nightmare/31",
+        "non-table/gen-v4/21x21-nightmare/32",
+        "non-table/gen-v4/21x21-nightmare/33",
+        "non-table/gen-v4/21x21-nightmare/34",
+        "non-table/gen-v4/21x21-nightmare/35",
+        "non-table/gen-v4/21x21-nightmare/36",
+        "non-table/gen-v4/21x21-nightmare/37",
+        "non-table/gen-v4/21x21-nightmare/38",
+        "non-table/gen-v4/21x21-nightmare/39",
+        "non-table/today/21x21-nightmare/20",
+        "non-table/today/21x21-nightmare/21",
+        "non-table/today/21x21-nightmare/22",
+        "non-table/today/21x21-nightmare/23",
+        "non-table/today/21x21-nightmare/24",
+        "non-table/today/21x21-nightmare/25",
+        "non-table/today/21x21-nightmare/26",
+        "non-table/today/21x21-nightmare/27",
+        "non-table/today/21x21-nightmare/28",
+        "non-table/today/21x21-nightmare/29",
+        "non-table/today/21x21-nightmare/30",
+        "non-table/today/21x21-nightmare/31",
+        "non-table/today/21x21-nightmare/32",
+        "non-table/today/21x21-nightmare/33",
+        "non-table/today/21x21-nightmare/34",
+        "non-table/today/21x21-nightmare/35",
+        "non-table/today/21x21-nightmare/36",
+        "non-table/today/21x21-nightmare/37",
+        "non-table/today/21x21-nightmare/38",
+        "non-table/today/21x21-nightmare/39",
+        "non-table/gen-v4/15x15-nightmare/20",
+        "non-table/gen-v4/15x15-nightmare/21",
+        "non-table/gen-v4/15x15-nightmare/22",
+        "non-table/gen-v4/15x15-nightmare/23",
+        "non-table/gen-v4/15x15-nightmare/24",
+        "non-table/gen-v4/15x15-nightmare/25",
+        "non-table/gen-v4/15x15-nightmare/26",
+        "non-table/gen-v4/15x15-nightmare/27",
+        "non-table/gen-v4/15x15-nightmare/28",
+        "non-table/gen-v4/15x15-nightmare/29",
+        "non-table/gen-v4/15x15-nightmare/30",
+        "non-table/gen-v4/15x15-nightmare/31",
+        "non-table/gen-v4/15x15-nightmare/32",
+        "non-table/gen-v4/15x15-nightmare/33",
+        "non-table/gen-v4/15x15-nightmare/34",
+        "non-table/gen-v4/15x15-nightmare/35",
+        "non-table/gen-v4/15x15-nightmare/36",
+        "non-table/gen-v4/15x15-nightmare/37",
+        "non-table/gen-v4/15x15-nightmare/38",
+        "non-table/gen-v4/15x15-nightmare/39"
+      ],
+      "detail": {
+        "cells": [
+          {
+            "cell": "11x11-nightmare",
+            "verdict": "pass",
+            "reasons": [],
+            "reachedTen": 19,
+            "deadlineViolations": 0,
+            "p95Ms": 78441.0822,
+            "noRegression": {
+              "geoMean": 1.9356883334036135,
+              "lower": 1.6267047275022377,
+              "pass": true
+            }
+          },
+          {
+            "cell": "18x19-nightmare",
+            "verdict": "pass",
+            "reasons": [],
+            "reachedTen": 20,
+            "deadlineViolations": 0,
+            "p95Ms": 27259.684,
+            "noRegression": {
+              "geoMean": 1.2946232989954325,
+              "lower": 0.991264127622478,
+              "pass": true
+            }
+          },
+          {
+            "cell": "21x21-nightmare",
+            "verdict": "pass",
+            "reasons": [],
+            "reachedTen": 20,
+            "deadlineViolations": 0,
+            "p95Ms": 35652.4461,
+            "noRegression": {
+              "geoMean": 1.1072732155493896,
+              "lower": 0.9300200854621793,
+              "pass": true
+            }
+          },
+          {
+            "cell": "15x15-nightmare",
+            "verdict": "pass",
+            "reasons": [],
+            "reachedTen": 20,
+            "requests": 20,
+            "completionOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "A3",
+      "stage": "A",
+      "status": "incomplete",
+      "rows": [
+        "require/gen-v4/22x22-hell-1/0",
+        "require/gen-v4/22x22-hell-1/1",
+        "require/gen-v4/22x22-hell-1/2",
+        "require/gen-v4/22x22-hell-1/3",
+        "require/gen-v4/22x22-hell-1/4",
+        "require/gen-v4/22x22-nightmare/0",
+        "require/gen-v4/22x22-nightmare/1",
+        "require/gen-v4/22x22-nightmare/2",
+        "require/gen-v4/22x22-nightmare/3",
+        "require/gen-v4/22x22-nightmare/4",
+        "require/gen-v4/32x15-hell-1/0",
+        "require/gen-v4/32x15-hell-1/1",
+        "require/gen-v4/32x15-hell-1/2",
+        "require/gen-v4/32x15-hell-1/3",
+        "require/gen-v4/32x15-hell-1/4",
+        "require/gen-v4/32x15-nightmare/0",
+        "require/gen-v4/32x15-nightmare/1",
+        "require/gen-v4/32x15-nightmare/2",
+        "require/gen-v4/32x15-nightmare/3",
+        "require/gen-v4/32x15-nightmare/4",
+        "require/uncapped/22x22-hell-1/0",
+        "require/uncapped/22x22-hell-1/1",
+        "require/uncapped/22x22-hell-1/2",
+        "require/uncapped/22x22-hell-1/3",
+        "require/uncapped/22x22-hell-1/4",
+        "require/uncapped/22x22-nightmare/0",
+        "require/uncapped/22x22-nightmare/1",
+        "require/uncapped/22x22-nightmare/2",
+        "require/uncapped/22x22-nightmare/3",
+        "require/uncapped/22x22-nightmare/4",
+        "require/uncapped/32x15-hell-1/0",
+        "require/uncapped/32x15-hell-1/1",
+        "require/uncapped/32x15-hell-1/3",
+        "require/uncapped/32x15-hell-1/4",
+        "require/uncapped/32x15-nightmare/0",
+        "require/uncapped/32x15-nightmare/1",
+        "require/uncapped/32x15-nightmare/2",
+        "require/uncapped/32x15-nightmare/3",
+        "require/uncapped/32x15-nightmare/4",
+        "require/today/22x22-nightmare/0",
+        "require/today/22x22-nightmare/1",
+        "require/today/22x22-nightmare/2",
+        "require/today/22x22-nightmare/3",
+        "require/today/22x22-nightmare/4",
+        "require/today/32x15-nightmare/0",
+        "require/today/32x15-nightmare/1",
+        "require/today/32x15-nightmare/2",
+        "require/today/32x15-nightmare/3",
+        "require/today/32x15-nightmare/4"
+      ],
+      "detail": {
+        "expected": 50,
+        "cells": [
+          {
+            "arm": "gen-v4",
+            "cell": "22x22-hell-1",
+            "rows": 5,
+            "reachedTen": 0,
+            "statuses": {
+              "valid": 5,
+              "invalid": 0,
+              "incorrect": 0,
+              "censored": 0,
+              "error": 0
+            },
+            "unique": 0,
+            "budgetStops": 0,
+            "deadlineStops": 5
+          },
+          {
+            "arm": "gen-v4",
+            "cell": "22x22-nightmare",
+            "rows": 5,
+            "reachedTen": 0,
+            "statuses": {
+              "valid": 5,
+              "invalid": 0,
+              "incorrect": 0,
+              "censored": 0,
+              "error": 0
+            },
+            "unique": 0,
+            "budgetStops": 0,
+            "deadlineStops": 5
+          },
+          {
+            "arm": "gen-v4",
+            "cell": "32x15-hell-1",
+            "rows": 5,
+            "reachedTen": 0,
+            "statuses": {
+              "valid": 5,
+              "invalid": 0,
+              "incorrect": 0,
+              "censored": 0,
+              "error": 0
+            },
+            "unique": 0,
+            "budgetStops": 0,
+            "deadlineStops": 5
+          },
+          {
+            "arm": "gen-v4",
+            "cell": "32x15-nightmare",
+            "rows": 5,
+            "reachedTen": 1,
+            "statuses": {
+              "valid": 5,
+              "invalid": 0,
+              "incorrect": 0,
+              "censored": 0,
+              "error": 0
+            },
+            "unique": 0,
+            "budgetStops": 0,
+            "deadlineStops": 4
+          },
+          {
+            "arm": "today",
+            "cell": "22x22-nightmare",
+            "rows": 5,
+            "reachedTen": 0,
+            "statuses": {
+              "valid": 5,
+              "invalid": 0,
+              "incorrect": 0,
+              "censored": 0,
+              "error": 0
+            },
+            "unique": 0,
+            "budgetStops": 0,
+            "deadlineStops": 5
+          },
+          {
+            "arm": "today",
+            "cell": "32x15-nightmare",
+            "rows": 5,
+            "reachedTen": 0,
+            "statuses": {
+              "valid": 5,
+              "invalid": 0,
+              "incorrect": 0,
+              "censored": 0,
+              "error": 0
+            },
+            "unique": 0,
+            "budgetStops": 0,
+            "deadlineStops": 5
+          },
+          {
+            "arm": "uncapped",
+            "cell": "22x22-hell-1",
+            "rows": 5,
+            "reachedTen": 0,
+            "statuses": {
+              "valid": 5,
+              "invalid": 0,
+              "incorrect": 0,
+              "censored": 0,
+              "error": 0
+            },
+            "unique": 0,
+            "budgetStops": 0,
+            "deadlineStops": 5
+          },
+          {
+            "arm": "uncapped",
+            "cell": "22x22-nightmare",
+            "rows": 5,
+            "reachedTen": 1,
+            "statuses": {
+              "valid": 5,
+              "invalid": 0,
+              "incorrect": 0,
+              "censored": 0,
+              "error": 0
+            },
+            "unique": 0,
+            "budgetStops": 0,
+            "deadlineStops": 4
+          },
+          {
+            "arm": "uncapped",
+            "cell": "32x15-hell-1",
+            "rows": 4,
+            "reachedTen": 0,
+            "statuses": {
+              "valid": 4,
+              "invalid": 0,
+              "incorrect": 0,
+              "censored": 0,
+              "error": 0
+            },
+            "unique": 0,
+            "budgetStops": 0,
+            "deadlineStops": 4
+          },
+          {
+            "arm": "uncapped",
+            "cell": "32x15-nightmare",
+            "rows": 5,
+            "reachedTen": 1,
+            "statuses": {
+              "valid": 5,
+              "invalid": 0,
+              "incorrect": 0,
+              "censored": 0,
+              "error": 0
+            },
+            "unique": 0,
+            "budgetStops": 0,
+            "deadlineStops": 4
+          }
+        ],
+        "problems": [
+          "A3 require/uncapped/32x15-hell-1/2: no row line"
+        ]
+      }
+    },
+    {
+      "id": "A4",
+      "stage": "A",
+      "status": "pass",
+      "rows": [],
+      "detail": {
+        "items": [
+          {
+            "n": 1,
+            "cell": "26x26-hell-1",
+            "status": "pass",
+            "problems": []
+          },
+          {
+            "n": 2,
+            "cell": "20x20-hell-1",
+            "status": "pass",
+            "problems": []
+          },
+          {
+            "n": 3,
+            "cell": "24x24-nightmare",
+            "status": "pass",
+            "problems": []
+          },
+          {
+            "n": 4,
+            "cell": "22x22-nightmare",
+            "status": "pass",
+            "problems": []
+          },
+          {
+            "n": 5,
+            "cell": "22x22-hell-1",
+            "status": "pass",
+            "problems": []
+          },
+          {
+            "n": 6,
+            "cell": "32x15-hell-1",
+            "status": "pass",
+            "problems": []
+          },
+          {
+            "n": 7,
+            "cell": "22x22-nightmare",
+            "status": "pass",
+            "problems": []
+          },
+          {
+            "n": 8,
+            "cell": "32x15-nightmare",
+            "status": "pass",
+            "problems": []
+          }
+        ],
+        "problems": []
+      }
+    },
+    {
+      "id": "A5",
+      "stage": "A",
+      "status": "pass",
+      "rows": [],
+      "detail": {
+        "checks": [
+          {
+            "check": "set-bound",
+            "status": "pass",
+            "seconds": 6.4,
+            "problems": []
+          },
+          {
+            "check": "batch-prefix",
+            "status": "pass",
+            "seconds": 6.4,
+            "problems": []
+          },
+          {
+            "check": "late-fence",
+            "status": "pass",
+            "seconds": 8.4,
+            "problems": []
+          },
+          {
+            "check": "fresh-after-pause",
+            "status": "pass",
+            "seconds": 9.3,
+            "problems": []
+          },
+          {
+            "check": "no-window-texts",
+            "status": "pass",
+            "seconds": 0.2,
+            "problems": []
+          },
+          {
+            "check": "screen-capped-step",
+            "status": "pass",
+            "seconds": 0.1,
+            "problems": []
+          }
+        ],
+        "problems": []
+      }
+    },
+    {
+      "id": "A6",
+      "stage": "A",
+      "status": "pass",
+      "rows": [
+        "smoke/gen-v4/10x10-master/20",
+        "smoke/gen-v4/10x10-nightmare/20",
+        "smoke/gen-v4/14x14-nightmare/20",
+        "smoke/gen-v4/15x20-nightmare/20",
+        "smoke/gen-v4/18x18-nightmare/20",
+        "smoke/gen-v4/20x20-hell-1/20",
+        "smoke/gen-v4/22x22-nightmare/20",
+        "smoke/gen-v4/26x26-nightmare/20",
+        "require/gen-v4/22x22-hell-1/0",
+        "require/uncapped/22x22-hell-1/0",
+        "require/uncapped/22x22-hell-1/1",
+        "require/gen-v4/22x22-hell-1/1",
+        "require/gen-v4/22x22-hell-1/2",
+        "require/uncapped/22x22-hell-1/2",
+        "require/uncapped/22x22-hell-1/3",
+        "require/gen-v4/22x22-hell-1/3",
+        "require/gen-v4/22x22-hell-1/4",
+        "require/uncapped/22x22-hell-1/4",
+        "require/gen-v4/22x22-nightmare/0",
+        "require/today/22x22-nightmare/0",
+        "require/uncapped/22x22-nightmare/0",
+        "require/uncapped/22x22-nightmare/1",
+        "require/today/22x22-nightmare/1",
+        "require/gen-v4/22x22-nightmare/1",
+        "require/gen-v4/22x22-nightmare/2",
+        "require/today/22x22-nightmare/2",
+        "require/uncapped/22x22-nightmare/2",
+        "require/uncapped/22x22-nightmare/3",
+        "require/today/22x22-nightmare/3",
+        "require/gen-v4/22x22-nightmare/3",
+        "require/gen-v4/22x22-nightmare/4",
+        "require/today/22x22-nightmare/4",
+        "require/uncapped/22x22-nightmare/4",
+        "require/gen-v4/32x15-hell-1/0",
+        "require/uncapped/32x15-hell-1/0",
+        "require/uncapped/32x15-hell-1/1",
+        "require/gen-v4/32x15-hell-1/1",
+        "require/gen-v4/32x15-hell-1/2",
+        "require/uncapped/32x15-hell-1/3",
+        "require/gen-v4/32x15-hell-1/3",
+        "require/gen-v4/32x15-hell-1/4",
+        "require/uncapped/32x15-hell-1/4",
+        "require/gen-v4/32x15-nightmare/0",
+        "require/today/32x15-nightmare/0",
+        "require/uncapped/32x15-nightmare/0",
+        "require/uncapped/32x15-nightmare/1",
+        "require/today/32x15-nightmare/1",
+        "require/gen-v4/32x15-nightmare/1",
+        "require/gen-v4/32x15-nightmare/2",
+        "require/today/32x15-nightmare/2",
+        "require/uncapped/32x15-nightmare/2",
+        "require/uncapped/32x15-nightmare/3",
+        "require/today/32x15-nightmare/3",
+        "require/gen-v4/32x15-nightmare/3",
+        "require/gen-v4/32x15-nightmare/4",
+        "require/today/32x15-nightmare/4",
+        "require/uncapped/32x15-nightmare/4",
+        "non-table/gen-v4/11x11-nightmare/20",
+        "non-table/today/11x11-nightmare/20",
+        "non-table/today/11x11-nightmare/21",
+        "non-table/gen-v4/11x11-nightmare/21",
+        "non-table/gen-v4/11x11-nightmare/22",
+        "non-table/today/11x11-nightmare/22",
+        "non-table/today/11x11-nightmare/23",
+        "non-table/gen-v4/11x11-nightmare/23",
+        "non-table/gen-v4/11x11-nightmare/24",
+        "non-table/today/11x11-nightmare/24",
+        "non-table/today/11x11-nightmare/25",
+        "non-table/gen-v4/11x11-nightmare/25",
+        "non-table/gen-v4/11x11-nightmare/26",
+        "non-table/today/11x11-nightmare/26",
+        "non-table/today/11x11-nightmare/27",
+        "non-table/gen-v4/11x11-nightmare/27",
+        "non-table/gen-v4/11x11-nightmare/28",
+        "non-table/today/11x11-nightmare/28",
+        "non-table/today/11x11-nightmare/29",
+        "non-table/gen-v4/11x11-nightmare/29",
+        "non-table/gen-v4/11x11-nightmare/30",
+        "non-table/today/11x11-nightmare/30",
+        "non-table/today/11x11-nightmare/31",
+        "non-table/gen-v4/11x11-nightmare/31",
+        "non-table/gen-v4/11x11-nightmare/32",
+        "non-table/today/11x11-nightmare/32",
+        "non-table/today/11x11-nightmare/33",
+        "non-table/gen-v4/11x11-nightmare/33",
+        "non-table/gen-v4/11x11-nightmare/34",
+        "non-table/today/11x11-nightmare/34",
+        "non-table/today/11x11-nightmare/35",
+        "non-table/gen-v4/11x11-nightmare/35",
+        "non-table/gen-v4/11x11-nightmare/36",
+        "non-table/today/11x11-nightmare/36",
+        "non-table/today/11x11-nightmare/37",
+        "non-table/gen-v4/11x11-nightmare/37",
+        "non-table/gen-v4/11x11-nightmare/38",
+        "non-table/today/11x11-nightmare/38",
+        "non-table/today/11x11-nightmare/39",
+        "non-table/gen-v4/11x11-nightmare/39",
+        "non-table/gen-v4/15x15-nightmare/20",
+        "non-table/gen-v4/15x15-nightmare/21",
+        "non-table/gen-v4/15x15-nightmare/22",
+        "non-table/gen-v4/15x15-nightmare/23",
+        "non-table/gen-v4/15x15-nightmare/24",
+        "non-table/gen-v4/15x15-nightmare/25",
+        "non-table/gen-v4/15x15-nightmare/26",
+        "non-table/gen-v4/15x15-nightmare/27",
+        "non-table/gen-v4/15x15-nightmare/28",
+        "non-table/gen-v4/15x15-nightmare/29",
+        "non-table/gen-v4/15x15-nightmare/30",
+        "non-table/gen-v4/15x15-nightmare/31",
+        "non-table/gen-v4/15x15-nightmare/32",
+        "non-table/gen-v4/15x15-nightmare/33",
+        "non-table/gen-v4/15x15-nightmare/34",
+        "non-table/gen-v4/15x15-nightmare/35",
+        "non-table/gen-v4/15x15-nightmare/36",
+        "non-table/gen-v4/15x15-nightmare/37",
+        "non-table/gen-v4/15x15-nightmare/38",
+        "non-table/gen-v4/15x15-nightmare/39",
+        "non-table/gen-v4/18x19-nightmare/20",
+        "non-table/today/18x19-nightmare/20",
+        "non-table/today/18x19-nightmare/21",
+        "non-table/gen-v4/18x19-nightmare/21",
+        "non-table/gen-v4/18x19-nightmare/22",
+        "non-table/today/18x19-nightmare/22",
+        "non-table/today/18x19-nightmare/23",
+        "non-table/gen-v4/18x19-nightmare/23",
+        "non-table/gen-v4/18x19-nightmare/24",
+        "non-table/today/18x19-nightmare/24",
+        "non-table/today/18x19-nightmare/25",
+        "non-table/gen-v4/18x19-nightmare/25",
+        "non-table/gen-v4/18x19-nightmare/26",
+        "non-table/today/18x19-nightmare/26",
+        "non-table/today/18x19-nightmare/27",
+        "non-table/gen-v4/18x19-nightmare/27",
+        "non-table/gen-v4/18x19-nightmare/28",
+        "non-table/today/18x19-nightmare/28",
+        "non-table/today/18x19-nightmare/29",
+        "non-table/gen-v4/18x19-nightmare/29",
+        "non-table/gen-v4/18x19-nightmare/30",
+        "non-table/today/18x19-nightmare/30",
+        "non-table/today/18x19-nightmare/31",
+        "non-table/gen-v4/18x19-nightmare/31",
+        "non-table/gen-v4/18x19-nightmare/32",
+        "non-table/today/18x19-nightmare/32",
+        "non-table/today/18x19-nightmare/33",
+        "non-table/gen-v4/18x19-nightmare/33",
+        "non-table/gen-v4/18x19-nightmare/34",
+        "non-table/today/18x19-nightmare/34",
+        "non-table/today/18x19-nightmare/35",
+        "non-table/gen-v4/18x19-nightmare/35",
+        "non-table/gen-v4/18x19-nightmare/36",
+        "non-table/today/18x19-nightmare/36",
+        "non-table/today/18x19-nightmare/37",
+        "non-table/gen-v4/18x19-nightmare/37",
+        "non-table/gen-v4/18x19-nightmare/38",
+        "non-table/today/18x19-nightmare/38",
+        "non-table/today/18x19-nightmare/39",
+        "non-table/gen-v4/18x19-nightmare/39",
+        "non-table/gen-v4/21x21-nightmare/20",
+        "non-table/today/21x21-nightmare/20",
+        "non-table/today/21x21-nightmare/21",
+        "non-table/gen-v4/21x21-nightmare/21",
+        "non-table/gen-v4/21x21-nightmare/22",
+        "non-table/today/21x21-nightmare/22",
+        "non-table/today/21x21-nightmare/23",
+        "non-table/gen-v4/21x21-nightmare/23",
+        "non-table/gen-v4/21x21-nightmare/24",
+        "non-table/today/21x21-nightmare/24",
+        "non-table/today/21x21-nightmare/25",
+        "non-table/gen-v4/21x21-nightmare/25",
+        "non-table/gen-v4/21x21-nightmare/26",
+        "non-table/today/21x21-nightmare/26",
+        "non-table/today/21x21-nightmare/27",
+        "non-table/gen-v4/21x21-nightmare/27",
+        "non-table/gen-v4/21x21-nightmare/28",
+        "non-table/today/21x21-nightmare/28",
+        "non-table/today/21x21-nightmare/29",
+        "non-table/gen-v4/21x21-nightmare/29",
+        "non-table/gen-v4/21x21-nightmare/30",
+        "non-table/today/21x21-nightmare/30",
+        "non-table/today/21x21-nightmare/31",
+        "non-table/gen-v4/21x21-nightmare/31",
+        "non-table/gen-v4/21x21-nightmare/32",
+        "non-table/today/21x21-nightmare/32",
+        "non-table/today/21x21-nightmare/33",
+        "non-table/gen-v4/21x21-nightmare/33",
+        "non-table/gen-v4/21x21-nightmare/34",
+        "non-table/today/21x21-nightmare/34",
+        "non-table/today/21x21-nightmare/35",
+        "non-table/gen-v4/21x21-nightmare/35",
+        "non-table/gen-v4/21x21-nightmare/36",
+        "non-table/today/21x21-nightmare/36",
+        "non-table/today/21x21-nightmare/37",
+        "non-table/gen-v4/21x21-nightmare/37",
+        "non-table/gen-v4/21x21-nightmare/38",
+        "non-table/today/21x21-nightmare/38",
+        "non-table/today/21x21-nightmare/39",
+        "non-table/gen-v4/21x21-nightmare/39",
+        "shipped/gen-v4/22x22-nightmare/20",
+        "baseline-control/today/22x22-nightmare/20",
+        "baseline-control/today/22x22-nightmare/21",
+        "shipped/gen-v4/22x22-nightmare/21",
+        "shipped/gen-v4/22x22-nightmare/22",
+        "baseline-control/today/22x22-nightmare/22",
+        "baseline-control/today/22x22-nightmare/23",
+        "shipped/gen-v4/22x22-nightmare/23",
+        "shipped/gen-v4/22x22-nightmare/24",
+        "baseline-control/today/22x22-nightmare/24",
+        "baseline-control/today/22x22-nightmare/25",
+        "shipped/gen-v4/22x22-nightmare/25",
+        "shipped/gen-v4/22x22-nightmare/26",
+        "baseline-control/today/22x22-nightmare/26",
+        "baseline-control/today/22x22-nightmare/27",
+        "shipped/gen-v4/22x22-nightmare/27",
+        "shipped/gen-v4/22x22-nightmare/28",
+        "baseline-control/today/22x22-nightmare/28",
+        "baseline-control/today/22x22-nightmare/29",
+        "shipped/gen-v4/22x22-nightmare/29",
+        "shipped/gen-v4/22x22-nightmare/30",
+        "baseline-control/today/22x22-nightmare/30",
+        "baseline-control/today/22x22-nightmare/31",
+        "shipped/gen-v4/22x22-nightmare/31",
+        "shipped/gen-v4/22x22-nightmare/32",
+        "baseline-control/today/22x22-nightmare/32",
+        "baseline-control/today/22x22-nightmare/33",
+        "shipped/gen-v4/22x22-nightmare/33",
+        "shipped/gen-v4/22x22-nightmare/34",
+        "baseline-control/today/22x22-nightmare/34",
+        "baseline-control/today/22x22-nightmare/35",
+        "shipped/gen-v4/22x22-nightmare/35",
+        "shipped/gen-v4/22x22-nightmare/36",
+        "baseline-control/today/22x22-nightmare/36",
+        "baseline-control/today/22x22-nightmare/37",
+        "shipped/gen-v4/22x22-nightmare/37",
+        "shipped/gen-v4/22x22-nightmare/38",
+        "baseline-control/today/22x22-nightmare/38",
+        "baseline-control/today/22x22-nightmare/39",
+        "shipped/gen-v4/22x22-nightmare/39",
+        "shipped/gen-v4/32x15-nightmare/20",
+        "baseline-control/today/32x15-nightmare/20",
+        "baseline-control/today/32x15-nightmare/21",
+        "shipped/gen-v4/32x15-nightmare/21",
+        "shipped/gen-v4/32x15-nightmare/22",
+        "baseline-control/today/32x15-nightmare/22",
+        "baseline-control/today/32x15-nightmare/23",
+        "shipped/gen-v4/32x15-nightmare/23",
+        "shipped/gen-v4/32x15-nightmare/24",
+        "baseline-control/today/32x15-nightmare/24",
+        "baseline-control/today/32x15-nightmare/25",
+        "shipped/gen-v4/32x15-nightmare/25",
+        "shipped/gen-v4/32x15-nightmare/26",
+        "baseline-control/today/32x15-nightmare/26",
+        "baseline-control/today/32x15-nightmare/27",
+        "shipped/gen-v4/32x15-nightmare/27",
+        "shipped/gen-v4/32x15-nightmare/28",
+        "baseline-control/today/32x15-nightmare/28",
+        "baseline-control/today/32x15-nightmare/29",
+        "shipped/gen-v4/32x15-nightmare/29",
+        "shipped/gen-v4/32x15-nightmare/30",
+        "baseline-control/today/32x15-nightmare/30",
+        "baseline-control/today/32x15-nightmare/31",
+        "shipped/gen-v4/32x15-nightmare/31",
+        "shipped/gen-v4/32x15-nightmare/32",
+        "baseline-control/today/32x15-nightmare/32",
+        "baseline-control/today/32x15-nightmare/33",
+        "shipped/gen-v4/32x15-nightmare/33",
+        "shipped/gen-v4/32x15-nightmare/34",
+        "baseline-control/today/32x15-nightmare/34",
+        "baseline-control/today/32x15-nightmare/35",
+        "shipped/gen-v4/32x15-nightmare/35",
+        "shipped/gen-v4/32x15-nightmare/36",
+        "baseline-control/today/32x15-nightmare/36",
+        "baseline-control/today/32x15-nightmare/37",
+        "shipped/gen-v4/32x15-nightmare/37",
+        "shipped/gen-v4/32x15-nightmare/38",
+        "baseline-control/today/32x15-nightmare/38",
+        "baseline-control/today/32x15-nightmare/39",
+        "shipped/gen-v4/32x15-nightmare/39",
+        "shipped/gen-v4/3x29-nightmare/20",
+        "baseline-control/today/3x29-nightmare/20",
+        "baseline-control/today/3x29-nightmare/21",
+        "shipped/gen-v4/3x29-nightmare/21",
+        "shipped/gen-v4/3x29-nightmare/22",
+        "baseline-control/today/3x29-nightmare/22",
+        "baseline-control/today/3x29-nightmare/23",
+        "shipped/gen-v4/3x29-nightmare/23",
+        "shipped/gen-v4/3x29-nightmare/24",
+        "baseline-control/today/3x29-nightmare/24",
+        "baseline-control/today/3x29-nightmare/25",
+        "shipped/gen-v4/3x29-nightmare/25",
+        "shipped/gen-v4/3x29-nightmare/26",
+        "baseline-control/today/3x29-nightmare/26",
+        "baseline-control/today/3x29-nightmare/27",
+        "shipped/gen-v4/3x29-nightmare/27",
+        "shipped/gen-v4/3x29-nightmare/28",
+        "baseline-control/today/3x29-nightmare/28",
+        "baseline-control/today/3x29-nightmare/29",
+        "shipped/gen-v4/3x29-nightmare/29",
+        "shipped/gen-v4/3x29-nightmare/30",
+        "baseline-control/today/3x29-nightmare/30",
+        "baseline-control/today/3x29-nightmare/31",
+        "shipped/gen-v4/3x29-nightmare/31",
+        "shipped/gen-v4/3x29-nightmare/32",
+        "baseline-control/today/3x29-nightmare/32",
+        "baseline-control/today/3x29-nightmare/33",
+        "shipped/gen-v4/3x29-nightmare/33",
+        "shipped/gen-v4/3x29-nightmare/34",
+        "baseline-control/today/3x29-nightmare/34",
+        "baseline-control/today/3x29-nightmare/35",
+        "shipped/gen-v4/3x29-nightmare/35",
+        "shipped/gen-v4/3x29-nightmare/36",
+        "baseline-control/today/3x29-nightmare/36",
+        "baseline-control/today/3x29-nightmare/37",
+        "shipped/gen-v4/3x29-nightmare/37",
+        "shipped/gen-v4/3x29-nightmare/38",
+        "baseline-control/today/3x29-nightmare/38",
+        "baseline-control/today/3x29-nightmare/39",
+        "shipped/gen-v4/3x29-nightmare/39"
+      ],
+      "detail": {
+        "limits": {
+          "processMiB": 1536,
+          "accountedMiB": 1196
+        },
+        "problems": []
+      }
+    },
+    {
+      "id": "B1",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B2",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B3",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B4",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B5",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B6",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B7",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    },
+    {
+      "id": "B8",
+      "stage": "B",
+      "status": "not-due",
+      "rows": [],
+      "detail": {}
+    }
+  ],
+  "ledger": "A spent 15148.081 s (252.468 min) authorization 24600.000 s (410.000 min) remaining 9451.919 s (157.532 min)\nB spent 0.000 s (0.000 min) authorization 24120.000 s (402.000 min) remaining 24120.000 s (402.000 min)"
+}

@@ -1,0 +1,2 @@
+CHECK-START screen-capped-step
+CHECK-END PASS 0.1 s screen-capped-step

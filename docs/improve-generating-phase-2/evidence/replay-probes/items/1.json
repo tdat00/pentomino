@@ -1,0 +1,59 @@
+{
+  "n": 1,
+  "group": "any",
+  "lane": 1,
+  "cell": "26x26-hell-1",
+  "uniqueness": "any",
+  "copy": {
+    "id": "p2-gen4-diag",
+    "treeId": "8d3b5a6a491cfcb584201eabd85bad59d0daa3be34d8d52ddcc61e1cdee3ecb2"
+  },
+  "seed": "p2-replay/26x26-hell-1/0",
+  "status": "measured",
+  "reason": null,
+  "detail": null,
+  "batchStatus": "complete",
+  "puzzles": [
+    {
+      "id": "p50873cd306bc",
+      "kind": "calibration",
+      "status": "matched",
+      "steps": 46,
+      "bytes": 204811,
+      "work": 1597788577
+    },
+    {
+      "id": "p58d7431d6385",
+      "kind": "candidate",
+      "status": "matched",
+      "steps": 54,
+      "bytes": 271475,
+      "work": 2072103782
+    },
+    {
+      "id": "p7572d64fb946",
+      "kind": "candidate",
+      "status": "matched",
+      "steps": 62,
+      "bytes": 348296,
+      "work": 4821928652
+    },
+    {
+      "id": "pf18cc6f13870",
+      "kind": "candidate",
+      "status": "matched",
+      "steps": 59,
+      "bytes": 318318,
+      "work": 4153723361
+    }
+  ],
+  "maxima": {
+    "steps": 62,
+    "bytes": 348296,
+    "work": 4821928652
+  },
+  "margin": "ok",
+  "exceeded": [],
+  "seconds": 25.729,
+  "setSeconds": 4.531
+}

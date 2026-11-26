@@ -1,0 +1,43 @@
+{
+  "n": 6,
+  "group": "require",
+  "lane": 2,
+  "cell": "32x15-hell-1",
+  "uniqueness": "require",
+  "copy": {
+    "id": "p2-gen4-diag",
+    "treeId": "8d3b5a6a491cfcb584201eabd85bad59d0daa3be34d8d52ddcc61e1cdee3ecb2"
+  },
+  "seed": "p2-replay/32x15-hell-1/0",
+  "status": "measured",
+  "reason": null,
+  "detail": null,
+  "batchStatus": "partial",
+  "puzzles": [
+    {
+      "id": "pe28282f97e0e",
+      "kind": "calibration",
+      "status": "matched",
+      "steps": 105,
+      "bytes": 642656,
+      "work": 20465809242
+    },
+    {
+      "id": "p679e2d1f118f",
+      "kind": "candidate",
+      "status": "matched",
+      "steps": 86,
+      "bytes": 472491,
+      "work": 35723499801
+    }
+  ],
+  "maxima": {
+    "steps": 105,
+    "bytes": 642656,
+    "work": 35723499801
+  },
+  "margin": "ok",
+  "exceeded": [],
+  "seconds": 320.703,
+  "setSeconds": 79.23
+}
