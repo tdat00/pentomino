@@ -4,7 +4,7 @@
 |---|---|
 | Feature | `improve-generating-phase-2` |
 | Plan | `docs/improve-generating-phase-2/plan.md`, `Final (2026-11-25, base 7c1bad2)`, committed at `97a6326`; joint `report.md` |
-| Repository, branch, base | `Q:\git\pentomino`, `gen-v4` (draft PR #14 into `main`, never merged), `97a6326` |
+| Repository, branch, base | `Q:\git\pentomino`, `gen-v4` (PR #14 into `main`; a draft, never merged, until the owner approved its merge, D-P2-19), `97a6326` |
 | Pack author / reviewer | SA-Opus / SA-Astra |
 | Executors | Dev-Sonnet (`claude-sonnet-5.5`) for every developer task (at most three at once, D-P2-17); the orchestrator for every locked measurement, every commit, rebase and merge, the push and PR #14 (P2-18 to P2-20, P2-22); both SAs for the readouts and the validation report (P2-19, P2-21) |
 | Status | Revision 3, answering `review-3.md` (R3-01, R3-02) after `review-2.md` (R2-01 to R2-06 and its §8), for SA-Astra's final acceptance |
@@ -637,7 +637,7 @@ if ($pr.state -ne 'OPEN' -or -not $pr.isDraft -or $pr.baseRefName -ne 'main' -or
 
 ## 4. Decisions register
 
-Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P2-17 is recorded by this pack.
+Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P2-17 to D-P2-19 are recorded by this pack.
 
 | ID | Decision | Decided by | Date | Source commit / record |
 |---|---|---|---|---|
@@ -659,6 +659,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | D-P2-16 | Q-P2-5, option (a): the texts of 4.9 with the plain-language wording B of the four no-window strings, the guide sentence, and the statement of 4.11 replacing "no fail-fast" at `design-detail.md:1805`. The owner may reword later; that is an ordinary text task with no behaviour change | Owner: "Q-P2-5: đồng ý duyệt, tôi sẽ sửa sau nếu thấy không phù hợp." ("approved; I will change it later if I find it unsuitable") | 2026-11-25 15:06:53 +07:00 | Discord message `1575060196269490259`; the question: `sa-opus/answered-questions.md` |
 | D-P2-17 | Parallel development is allowed and should be optimized for speed: this overrides "one task per repository at a time" for this pack. At most three developers at once (lanes S, C, T; §3.7), each task in its own worktree slot and short branch; the orchestrator commits, rebases and merges one task at a time after its merge gate. Locked and timed runs stay one at a time through the lock; no idle declaration is granted; the ledger, staging and every other decision are unchanged | Owner: "cho phép chạy song song, hãy tối ưu để tăng tốc độ" ("parallel running is allowed; optimize to increase speed"); execution rules: pack author, reviewed by SA-Astra (R15) | 2026-11-25 17:45:12 +07:00 | Discord message `1575100035077771386`; `sa-opus/parallel-schedule.md`; `review-1.md` R15 |
 | D-P2-18 | PR #11 is squash-merged into `main` (`626918c`); PR #14 is rebased onto `main` and not merged. Execution: §3.7's block, once, before P2-21's commit. The rebase is done only while both bases have the identical tree, and it is checked commit by commit. `gen-v4-pre-rebase` stays a local backup; `E/rebase/rebase-map.json` maps every old commit, the sealed `fa0bda2` included, to its counterpart; one force-push with a lease. The seal, the rows and the ledger do not change | Owner: "Pr#11 đã được merge rồi. Hãy rebase PR#14 (không merge)" ("PR #11 has already been merged. Rebase PR #14 (do not merge)"); execution: pack author | 2026-11-26 21:17 +07:00 | Discord message `1575515759550144573`; §3.7 |
+| D-P2-19 | PR #14 is merged into `main`. This is Q-P2-V1's option (a): it supersedes "keep PR #14 a draft" of the owner's answer (b) and "not merged" of D-P2-02 and D-P2-18, and keeps the limitations accepted under (b): the INCOMPLETE verdict (P2-T01, one eligible row without equality evidence), automatic `require` on large boards, the bound never exercised, and CLI boards of 577 to 675 cells unmeasured. Execution (orchestrator): `gh pr ready 14`, then a squash merge as for PR #11; `gen-v4` and its rebase map stay. The site workflow (`pages.yml`) then tests and deploys `main`, so `gen-v4` ships on its route. No release or tag | Owner: "Đồng ý merge PR#14" ("I agree to merge PR #14"); execution: orchestrator | 2026-11-26 22:49 +07:00 | Discord message `1575539022967742510`; validation report §17 |
 
 ## 5. Named items
 
@@ -678,7 +679,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | INC-P2-11b | `tests/generator-import.test.js:512` failed on `gen-v4` from P2-11b (`df15064`) to P2-15: its fake client lacked `newScope`; P2-11b's gate was focused | repaired by P2-15's K12 | closed |
 | N-P2-14b-REQ | Early warning for stage A (P2-B07): in the pre-seal replay-probe rehearsal under `require`, 3 of 4 sets hit the 115-s stop (22x22 Hell 1, 22x22 Nightmare, 32x15 Nightmare, seed index 0); 32x15 Hell 1's batch ended partial with one ordinary puzzle besides the calibration | seed index 0 only; not population evidence | stage A's 50 require rows; the stage-A readout reads them first (SA-Opus ruling, 6cf7e8c) |
 | INC-P2-19-RESTART | Windows Update (`MoUsoCoreWorker.exe`, System event 1074) restarted the host at 2026-11-26 05:00:05 +07:00, during `A-9.13` (stage A, group 9). Charged under §3.5's host-restart rule: node 238.273 s, from the lock stamp 21:56:56.514Z to the kernel's shutdown event 13 at 22:00:54.787Z; 283.273 counted; `cause: 'exit'`, `killed: true`, `exit: -1`; `rowsWritten` 1. `require/uncapped/32x15-hell-1/2` was running: it becomes `interrupted` (`no-report`) and is never run again, so A3 lacks one of its 50 row lines and is `incomplete` | one row of 318; A spent 5,357.556 s (89.293 min) after the charge | the stage-A readout (C12's owner continuation); Windows Update itself: the owner's Q-P2-R1 |
-| Merge, release | Not authorized | neither PR merged | a later explicit owner instruction |
+| Merge, release | PR #11 merged (D-P2-18); PR #14's merge approved by the owner (D-P2-19); no release or tag | the squash merge deploys `main` through `pages.yml` | closed by D-P2-19 |
 
 ## 6. Execution summary (orchestrator)
 
