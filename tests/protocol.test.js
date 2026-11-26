@@ -52,7 +52,7 @@ const V3_ESTIMATE = {
 };
 const V3_SUMMARY = { model: 'difficulty-v3', score: 30, level: 'expert', saturated: false, censored: true };
 
-const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case.json', import.meta.url), 'utf8'));
+const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case-v4.json', import.meta.url), 'utf8'));
 /**
  * The replay payload of one fixture puzzle, as the Generator's client builds it (design §8.1): the set of its pack in
  * wire form, the puzzle's id, clues, solution and rating, and the pack's set origin with the puzzle's own `made` record.
@@ -260,6 +260,23 @@ describe('task messages', () => {
     assert.ok(!task('puzzleCandidate', { ...c, seenClues: [1] }).ok);
     assert.ok(task('puzzleCandidate', { ...c, seenLayouts: ['0'.repeat(1352)] }).ok, 'a key of a 676-cell board');
     assert.ok(!task('puzzleCandidate', { ...c, seenLayouts: ['0'.repeat(2049)] }).ok);
+  });
+
+  test('puzzleCandidate accepts an optional igPrior from 1 to 128', () => {
+    const c = PAYLOADS.puzzleCandidate();
+    for (const igPrior of [1, 128]) {
+      const parsed = /** @type {any} */ (task('puzzleCandidate', { ...c, igPrior }));
+      assert.ok(parsed.ok, String(igPrior));
+      assert.equal(parsed.value.payload.igPrior, igPrior);
+    }
+    const absent = /** @type {any} */ (task('puzzleCandidate', c));
+    assert.ok(absent.ok);
+    assert.equal(Object.hasOwn(absent.value.payload, 'igPrior'), false);
+    for (const igPrior of [0, 129, 1.5, '3']) {
+      const parsed = /** @type {any} */ (task('puzzleCandidate', { ...c, igPrior }));
+      assert.ok(!parsed.ok, String(igPrior));
+      assert.deepEqual(parsed.issues.map((/** @type {any} */ i) => i.path), ['payload.igPrior'], String(igPrior));
+    }
   });
 
   test('validatePayload reports unknown kinds and verifyPack accepts any pack value', () => {

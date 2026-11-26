@@ -1,0 +1,33 @@
+{
+  "id": "p2-uncapped",
+  "extends": ["p2-gen4"],
+  "description": "The counterfactual with the selected prior and screen tables but without the budget, the bound and the combined deadline, with its own algorithm id gen-v4-proto:p2-uncapped, never published as the shipping build (R2).",
+  "edits": [
+    {
+      "id": "un-1",
+      "file": "core/engine/gen-v4.js",
+      "find": "export const CALL_BUDGET = Object.freeze({ any: Object.freeze({ nightmare: 10000000000, 'hell-1': 40000000000 }), require: Object.freeze({ nightmare: 32000000000, 'hell-1': 40000000000 }) });",
+      "replace": "export const CALL_BUDGET = Object.freeze({ any: Object.freeze({}), require: Object.freeze({}) });"
+    },
+    {
+      "id": "un-2",
+      "file": "core/browser/generation-client.js",
+      "find": "        const bound = setBound(results);\n        if (bound !== null) {",
+      "replace": "        const bound = null;\n        if (bound !== null) {"
+    },
+    {
+      "id": "un-3",
+      "file": "tools/bench/runner.js",
+      "find": "  const scope = usesGenV4(caseDef.levelId, boardFromRows(caseDef.boardRows)) ? { origin: s.t0, setCutAt: s.t0 + DEADLINE.setStageCapMs } : undefined;",
+      "replace": "  const scope = undefined;"
+    },
+    {
+      "id": "un-4",
+      "file": "core/engine/version.js",
+      "find": "export const ALGO_ID = 'gen-v4';",
+      "replace": "export const ALGO_ID = 'gen-v4-proto:p2-uncapped';"
+    }
+  ],
+  "files": [],
+  "params": { "p2": "p2-uncapped" }
+}

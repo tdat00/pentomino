@@ -7,7 +7,8 @@ import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { parsePack, provenanceProblem } from '../core/engine/pack.js';
-import { checkRecipe, compareExpected, DEFAULT_MAX_ACTIVE, parseArgs, run } from '../tools/generate.mjs';
+import { rectRows } from '../tools/bench/calibration-reference.js';
+import { checkRecipe, cliScope, compareExpected, DEFAULT_MAX_ACTIVE, parseArgs, run } from '../tools/generate.mjs';
 import { nodeWorkerFactory } from '../tools/node-worker.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -273,5 +274,22 @@ describe('the command line tool', () => {
     } finally {
       rmSync(artifacts, { recursive: true, force: true });
     }
+  });
+});
+
+describe('request scope', () => {
+  test('the CLI scope follows the route', () => {
+    const client = { newScope: (/** @type {boolean} */ r) => ({ origin: 0, setCutAt: r ? 46000 : null }) };
+    for (const levelId of ['nightmare', 'hard']) {
+      assert.deepEqual(
+        cliScope(/** @type {any} */ (client), levelId, rectRows(10, 10)),
+        levelId === 'nightmare' ? { origin: 0, setCutAt: 46000 } : undefined,
+      );
+    }
+  });
+
+  test('the CLI scope is off on the full 26x26 board', () => {
+    const client = { newScope: (/** @type {boolean} */ r) => ({ origin: 0, setCutAt: r ? 46000 : null }) };
+    assert.equal(cliScope(/** @type {any} */ (client), 'nightmare', rectRows(26, 26)), undefined);
   });
 });

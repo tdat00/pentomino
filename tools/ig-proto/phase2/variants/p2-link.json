@@ -1,0 +1,138 @@
+{
+  "id": "p2-link",
+  "extends": ["base"],
+  "description": "The frozen identity and link layer for every measured copy (P2-12d): the igStage and igAttempt contexts of generate.js (log-5 to log-7), the row line of calibrate.mjs (log-8), the link journal edits (link-1 to link-17), the set and puzzle keys of the bench details (instr-7) and the frozen ig-link.js, each verbatim.",
+  "edits": [
+    {
+      "id": "log-5",
+      "file": "core/engine/generate.js",
+      "find": "  const cal = selectClues({\n    board,\n",
+      "replace": "  const cal = selectClues({\n    igStage: 'set',\n    igAttempt: attempt,\n    board,\n"
+    },
+    {
+      "id": "log-6",
+      "file": "core/engine/generate.js",
+      "find": "    return { fail: 'layout' };\n  }\n  const sel = selectClues({\n",
+      "replace": "    return { fail: 'layout' };\n  }\n  const sel = selectClues({\n    igStage: 'batch',\n"
+    },
+    {
+      "id": "log-7",
+      "file": "core/engine/generate.js",
+      "find": "  const rng = createRng(ctx.batchSeed, `completion/${key}`);\n  const sel = selectClues({\n",
+      "replace": "  const rng = createRng(ctx.batchSeed, `completion/${key}`);\n  const sel = selectClues({\n    igStage: 'completion',\n"
+    },
+    {
+      "id": "log-8",
+      "file": "tools/calibrate.mjs",
+      "find": "  const input = JSON.parse(Buffer.concat(chunks).toString('utf8'));\n",
+      "replace": "  const input = JSON.parse(Buffer.concat(chunks).toString('utf8'));\n  if (process.env.IG_LOG_DIR !== undefined) {\n    if (process.env.IG_ROW === undefined || process.env.IG_SEED !== input.spec.seed) {\n      throw new Error(`ig-proto: row identity mismatch (IG_ROW ${process.env.IG_ROW}, IG_SEED ${process.env.IG_SEED}, seed ${input.spec.seed})`);\n    }\n    appendFileSync(`${process.env.IG_LOG_DIR}/${process.env.IG_ROW}.row.jsonl`, `${JSON.stringify({ t: 'row', row: process.env.IG_ROW, seed: input.spec.seed, caseId: input.spec.caseId, localRep: input.spec.rep, pid: process.pid })}\\n`);\n  }\n"
+    },
+    {
+      "id": "link-1",
+      "file": "core/engine/generate.js",
+      "find": "    igStage: 'batch',\n",
+      "replace": "    igStage: 'batch',\n    igAttempt: `${slot}/${attempt}`,\n"
+    },
+    {
+      "id": "link-2",
+      "file": "core/browser/generation-client.js",
+      "append": "\n// ig-proto, variant link (V4-T06): the batch linkage journal.\nimport { igLink, igLinkEnd, igLinkStart } from './ig-link.js';\n"
+    },
+    {
+      "id": "link-3",
+      "file": "core/browser/generation-client.js",
+      "find": "      cache.set(key(slot, attempt), entry);\n      inflight += 1;\n",
+      "replace": "      cache.set(key(slot, attempt), entry);\n      inflight += 1;\n      igLink('dispatch', { slot, attempt, inflight });\n"
+    },
+    {
+      "id": "link-4",
+      "file": "core/browser/generation-client.js",
+      "find": "        Object.assign(entry, { done: true, ok: true, value });\n        inflight -= 1;\n",
+      "replace": "        Object.assign(entry, { done: true, ok: true, value });\n        inflight -= 1;\n        igLink('complete', { slot, attempt, ok: true, inflight, outcome: isObject(value) && typeof value.fail === 'string' ? value.fail : 'candidate' });\n"
+    },
+    {
+      "id": "link-5",
+      "file": "core/browser/generation-client.js",
+      "find": "        Object.assign(entry, { done: true, ok: false, error });\n        inflight -= 1;\n",
+      "replace": "        Object.assign(entry, { done: true, ok: false, error });\n        inflight -= 1;\n        igLink('complete', { slot, attempt, ok: false, inflight, outcome: 'error' });\n"
+    },
+    {
+      "id": "link-6",
+      "file": "core/browser/generation-client.js",
+      "find": "        const awaited = foldNext(state);\n",
+      "replace": "        const awaited = foldNext(state);\n        igLink('await', awaited === null ? { slot: null, attempt: null } : { slot: awaited.slot, attempt: awaited.attempt });\n"
+    },
+    {
+      "id": "link-7",
+      "file": "core/browser/generation-client.js",
+      "find": "        progress({ slot: awaited.slot, attempt: awaited.attempt });\n",
+      "replace": "        igLink('consume', { slot: awaited.slot, attempt: awaited.attempt, result: state.accepted.length > before ? 'accepted' : 'fail' in outcome ? outcome.fail : 'rejected', accepted: state.accepted.length });\n        progress({ slot: awaited.slot, attempt: awaited.attempt });\n"
+    },
+    {
+      "id": "link-8",
+      "file": "core/browser/generation-client.js",
+      "find": "      for (const calibration of state.accepted) {\n        accept(calibration);\n      }\n",
+      "replace": "      igLinkStart(batchSeed, quantity);\n      for (const calibration of state.accepted) {\n        accept(calibration);\n        igLink('calibration', { accepted: accepted.length });\n      }\n"
+    },
+    {
+      "id": "link-9",
+      "file": "core/browser/generation-client.js",
+      "find": "      throw toFault(e, detail());\n    } finally {\n      controller.abort();\n      finish(job);\n    }\n",
+      "replace": "      throw toFault(e, detail());\n    } finally {\n      controller.abort();\n      igLinkEnd(cache, status, reason, accepted.length);\n      finish(job);\n    }\n"
+    },
+    {
+      "id": "link-10",
+      "file": "tools/bench/runner.js",
+      "find": "  run.responseMs = s.tDone - s.t0;\n",
+      "replace": "  run.responseMs = s.tDone - s.t0;\n  run.igSetMs = s.set?.status === 'complete' ? s.tSet - s.t0 : null;\n  run.igAcceptedMs = kept.map((v) => s.acceptedAt[v.index] - s.t0);\n"
+    },
+    {
+      "id": "link-11",
+      "file": "core/browser/generation-client.js",
+      "find": "        emit(hooks.onProgress, {\n          revision: job.revision, job: /** @type {const} */ ('set'), stage: 'carving', attempt: j, elapsedMs: clock.now() - job.startedAt,\n",
+      "replace": "        igLink('set-complete', { attempt: j, outcome: isObject(value) && value.ok === true ? 'ok' : isObject(value) ? String(value.reason) : 'invalid' });\n        emit(hooks.onProgress, {\n          revision: job.revision, job: /** @type {const} */ ('set'), stage: 'carving', attempt: j, elapsedMs: clock.now() - job.startedAt,\n"
+    },
+    {
+      "id": "link-12",
+      "file": "core/browser/generation-client.js",
+      "find": "              Object.assign(entry, { done: true, ok: true, value });\n              job.wake?.();\n",
+      "replace": "              Object.assign(entry, { done: true, ok: true, value });\n              igLink('completion-complete', { index: entries.indexOf(entry), key: igCompletionKey(set, layout), valueKey: isObject(value) && typeof value.layoutKey === 'string' ? 'c/' + value.layoutKey : null, outcome: isObject(value) && typeof value.fail === 'string' ? value.fail : 'candidate' });\n              job.wake?.();\n"
+    },
+    {
+      "id": "link-13",
+      "file": "tools/node-worker.mjs",
+      "find": "    terminate: () => {\n      worker.terminate().catch(() => {});\n    },\n",
+      "replace": "    terminate: () => {\n      const igId = igWorkerId(worker);\n      igLinkWorker('worker-end-request', igId);\n      worker.terminate().then(() => igLinkWorker('worker-end', igId), (e) => igLinkWorker('worker-end-failed', igId, e));\n    },\n"
+    },
+    {
+      "id": "link-14",
+      "file": "tools/node-worker.mjs",
+      "append": "\n// ig-proto, variant link (V4-T06b): confirmed worker terminations for the work ledger.\nimport { igLinkWorker, igWorkerId } from '../core/browser/ig-link.js';\n"
+    },
+    {
+      "id": "link-15",
+      "file": "core/browser/generation-client.js",
+      "find": "            const layout = unused[launched];\n            launched += 1;\n",
+      "replace": "            const layout = unused[launched];\n            launched += 1;\n            igLink('completion-dispatch', { index: launched - 1, key: igCompletionKey(set, layout) });\n"
+    },
+    {
+      "id": "link-16",
+      "file": "core/engine/generate.js",
+      "find": "    igStage: 'completion',\n",
+      "replace": "    igStage: 'completion',\n    igAttempt: 'c/' + key,\n"
+    },
+    {
+      "id": "link-17",
+      "file": "core/browser/generation-client.js",
+      "append": "\n// ig-proto, variant link (V4-T06b): completion keys.\nimport { igCompletionKey } from './ig-link.js';\n"
+    },
+    {
+      "id": "instr-7",
+      "file": "tools/bench/runner.js",
+      "find": "      resultDigest: sha256Hex(canonicalJson({\n",
+      "replace": "      igSetKey: sha256Hex(canonicalJson(set.pieces.map((p) => p.cells))),\n      igPuzzleKeys: kept.map((v) => sha256Hex(canonicalJson({ layoutKey: v.layoutKey, clueKey: v.clueKey }))),\n      resultDigest: sha256Hex(canonicalJson({\n"
+    }
+  ],
+  "files": ["p2-link"],
+  "params": { "link": true }
+}

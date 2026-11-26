@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { boardFromRows } from '../core/engine/board.js';
-import { certify, makeUnique, selectClues, SKIP_BOUNDS } from '../core/engine/clues.js';
+import { certify, makeUnique, selectClues, selectCluesV3, SKIP_BOUNDS } from '../core/engine/clues.js';
 import { IncompleteRatingError, inBand, rate, rateV2, UnsatisfiableError } from '../core/engine/difficulty.js';
 import { setAttempt } from '../core/engine/generate.js';
 import { clueKey } from '../core/engine/keys.js';
@@ -26,13 +26,13 @@ const layout = recipeWitness();
 const K = pieces.length;
 
 /**
- * @param {Partial<Parameters<typeof selectClues>[0]> & { seed?: string }} o
+ * @param {Partial<Parameters<typeof selectClues>[0]> & { seed?: string, select?: typeof selectClues }} o
  * @returns {{ result: ReturnType<typeof selectClues>, rated: { clues: Pose[], rating: Rating }[] }}
  */
 function run(o) {
   /** @type {{ clues: Pose[], rating: Rating }[]} */
   const rated = [];
-  const result = selectClues({
+  const result = (o.select ?? selectClues)({
     board,
     pieces,
     layout,
@@ -265,7 +265,7 @@ test('repeated subsets are rejected before rating', () => {
 test('a band no subset reaches fails without relabelling and within 64 ratings', () => {
   for (const id of ['nightmare', 'hell-1']) {
     const target = level(id);
-    const { result, rated } = run({ target, seed: `none-${id}`, rate: rateV2 });
+    const { result, rated } = run({ target, seed: `none-${id}`, rate: rateV2, select: selectCluesV3 });
     assert.deepEqual(result, { ok: false, reason: 'not-in-band' });
     assert.ok(rated.length > 0 && rated.length <= 64);
     assert.equal(distinctSubsets(rated), rated.length);
@@ -676,8 +676,8 @@ test('slow: a 15 x 20 Nightmare calibration (K = 24) is in band under v3 (D36: r
   assert.equal(set.set.pieces.length, 24);
   assert.equal(set.calibration.rating.model, 'difficulty-v3');
   assert.ok(inBand(set.calibration.rating, level('nightmare')));
-  assert.equal(set.calibration.rating.score, 70);
-  assert.equal(set.calibration.clues.length, 3);
+  assert.equal(set.calibration.rating.score, 69);
+  assert.equal(set.calibration.clues.length, 5);
 });
 
 test('a retired Hell level is refused at once: 22 x 22 hell-3 is not offered for 484 cells (D36, P-OD9; the real case is retired)', () => {

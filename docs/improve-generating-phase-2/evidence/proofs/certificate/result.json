@@ -1,0 +1,120 @@
+{
+  "format": "p2-proof",
+  "version": 1,
+  "bundle": "certificate",
+  "status": "pass",
+  "quick": false,
+  "cases": [
+    {
+      "case": "14x14-nightmare-0",
+      "status": "pass",
+      "problems": [],
+      "screens": 6,
+      "certified": 3,
+      "screenCapped": 0,
+      "capped": 3,
+      "cell": "14x14-nightmare",
+      "ms": 12547
+    },
+    {
+      "case": "14x14-nightmare-1",
+      "status": "pass",
+      "problems": [],
+      "screens": 3,
+      "certified": 1,
+      "screenCapped": 0,
+      "capped": 2,
+      "cell": "14x14-nightmare",
+      "ms": 6399
+    },
+    {
+      "case": "14x14-nightmare-2",
+      "status": "pass",
+      "problems": [],
+      "screens": 5,
+      "certified": 2,
+      "screenCapped": 0,
+      "capped": 3,
+      "cell": "14x14-nightmare",
+      "ms": 10411
+    },
+    {
+      "case": "15x15b10-nightmare-0",
+      "status": "pass",
+      "problems": [],
+      "screens": 3,
+      "certified": 1,
+      "screenCapped": 0,
+      "capped": 2,
+      "cell": "15x15b10-nightmare",
+      "ms": 6984
+    },
+    {
+      "case": "15x15b10-nightmare-1",
+      "status": "pass",
+      "problems": [],
+      "screens": 11,
+      "certified": 3,
+      "screenCapped": 0,
+      "capped": 8,
+      "cell": "15x15b10-nightmare",
+      "ms": 28344
+    },
+    {
+      "case": "15x15b10-nightmare-2",
+      "status": "pass",
+      "problems": [],
+      "screens": 2,
+      "certified": 1,
+      "screenCapped": 0,
+      "capped": 1,
+      "cell": "15x15b10-nightmare",
+      "ms": 4305
+    },
+    {
+      "case": "16x16-nightmare-0",
+      "status": "pass",
+      "problems": [],
+      "screens": 8,
+      "certified": 6,
+      "screenCapped": 0,
+      "capped": 2,
+      "cell": "16x16-nightmare",
+      "ms": 8880
+    },
+    {
+      "case": "16x16-nightmare-1",
+      "status": "pass",
+      "problems": [],
+      "screens": 9,
+      "certified": 4,
+      "screenCapped": 0,
+      "capped": 5,
+      "cell": "16x16-nightmare",
+      "ms": 18123
+    },
+    {
+      "case": "16x16-nightmare-2",
+      "status": "pass",
+      "problems": [],
+      "screens": 7,
+      "certified": 5,
+      "screenCapped": 0,
+      "capped": 2,
+      "cell": "16x16-nightmare",
+      "ms": 10252
+    }
+  ],
+  "counts": {
+    "cases": 9,
+    "pass": 9,
+    "fail": 0,
+    "certified": 26,
+    "screenCapped": 0,
+    "capped": 28
+  },
+  "sources": {
+    "sourceDigest": "9bacb12577bdbbf11e4e0b6d5506f9716931b2d815523e8030ff6c9a8bd8e99d",
+    "copies": []
+  }
+}

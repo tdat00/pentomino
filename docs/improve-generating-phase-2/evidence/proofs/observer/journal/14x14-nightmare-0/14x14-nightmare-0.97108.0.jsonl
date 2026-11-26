@@ -1,0 +1,16 @@
+{"t":"worker","pid":97108,"threadId":0,"at":1795638037775.5635}
+{"t":"start","call":"14x14-nightmare-0:97108:0:1","stage":"set","attempt":0,"level":"nightmare","A":196,"at":1795638037775.508}
+{"t":"caps","call":"14x14-nightmare-0:97108:0:1","count":true}
+{"t":"begin","call":"14x14-nightmare-0:97108:0:1","kind":"screen","bound":1987587404}
+{"t":"p","call":"14x14-nightmare-0:97108:0:1","i":0,"tuple":["call",4,"capped",null,190099981,0]}
+{"t":"begin","call":"14x14-nightmare-0:97108:0:1","kind":"screen","bound":1750808960}
+{"t":"p","call":"14x14-nightmare-0:97108:0:1","i":1,"tuple":["call",5,"capped",null,190091845,0]}
+{"t":"begin","call":"14x14-nightmare-0:97108:0:1","kind":"screen","bound":1256919480}
+{"t":"p","call":"14x14-nightmare-0:97108:0:1","i":2,"tuple":["call",7,"rated",55,11006768,14129519]}
+{"t":"begin","call":"14x14-nightmare-0:97108:0:1","kind":"screen","bound":1096191440}
+{"t":"p","call":"14x14-nightmare-0:97108:0:1","i":3,"tuple":["call",7,"capped",null,190042480,0]}
+{"t":"begin","call":"14x14-nightmare-0:97108:0:1","kind":"screen","bound":1174709352}
+{"t":"p","call":"14x14-nightmare-0:97108:0:1","i":4,"tuple":["call",7,"rated",52,116485674,18085842]}
+{"t":"begin","call":"14x14-nightmare-0:97108:0:1","kind":"screen","bound":1235778832}
+{"t":"p","call":"14x14-nightmare-0:97108:0:1","i":5,"tuple":["call",7,"rated",70,126182660,80049750]}
+{"t":"end","call":"14x14-nightmare-0:97108:0:1","result":"ok","work":936174519,"profiles":6,"locate":{"countWork":0},"igNoWindow":null,"budgetStop":false,"clueCount":7,"at":1795638040998.2546}

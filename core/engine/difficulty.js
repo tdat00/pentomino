@@ -472,6 +472,38 @@ export function completeDiagnostic(board, pieces, clues, rating, ws) {
 }
 
 /**
+ * A search rating under a lowered main-work limit (`gen-v4`'s screen, design §7.9): the measurement of `rateLean`
+ * (`mode` 'lean'), `rate` ('full') or `rateDetailed` ('detailed') with `DEDUCE.work` replaced by `work`. Throws as
+ * they do; an `IncompleteRatingError` is a capped path. With `work === DEDUCE.work` the result equals theirs.
+ * @param {Board} board
+ * @param {Piece[]} pieces
+ * @param {Pose[]} clues
+ * @param {Workspace} ws
+ * @param {number} work Main-work limit, an integer from 1 to `DEDUCE.work`.
+ * @param {'lean' | 'full' | 'detailed'} mode
+ * @returns {{ rating: RatingV3, detail: RatingDetail | null }}
+ */
+export function rateWithLimits(board, pieces, clues, ws, work, mode) {
+  if (!Number.isInteger(work) || work < 1 || work > DEDUCE.work) {
+    throw new RangeError('work must be an integer from 1 to DEDUCE.work');
+  }
+  const limits = { deduce: { ...DEDUCE, work }, dlx: SCORE.caps };
+  const { metrics, detail } = measureV3Core(board, pieces, clues, ws, limits, mode === 'detailed', mode !== 'lean');
+  return { rating: ratingOf(metrics), detail };
+}
+
+/**
+ * P2's certificate: a rating made under the main-work limit `work` is the canonical rating when its main-phase work
+ * (`work - censusWork`) is at most `work`; otherwise it is screen-capped (a direction, never accepted or shown).
+ * @param {MetricsV3} metrics
+ * @param {number} work
+ * @returns {boolean}
+ */
+export function screenCertified(metrics, work) {
+  return metrics.work - metrics.censusWork <= work;
+}
+
+/**
  * @param {MetricsV3} metrics
  * @returns {RatingV3}
  */

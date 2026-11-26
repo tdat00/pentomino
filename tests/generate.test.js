@@ -14,6 +14,7 @@ import {
   certifyTask,
   completionCandidate,
   dispatchOrder,
+  failureOf,
   firstSetAttempt,
   foldAccept,
   foldNext,
@@ -24,6 +25,7 @@ import {
   runCompletion,
   runFold,
   setAttempt,
+  ZERO_COUNTERS,
 } from '../core/engine/generate.js';
 import { poseCells } from '../core/engine/geometry.js';
 import { clueKey, layoutDistance, layoutKey, minLayoutDistance } from '../core/engine/keys.js';
@@ -388,6 +390,42 @@ describe('calibration reuse and history capacity', () => {
       assert.throws(() => foldStart(ctxFor({ quantity })), RangeError);
     }
   });
+
+  test('runFold applies the per-set prior on Hell 1, as the client does', () => {
+    /** @param {BatchContext} ctx */
+    const priors = (ctx) => {
+      /** @type {(number | undefined)[]} */
+      const seen = [];
+      runFold(ctx, (c) => {
+        seen.push(c.igPrior);
+        return { fail: 'not-in-band' };
+      });
+      return seen;
+    };
+    const hell = (/** @type {object} */ over = {}) => ctxFor({
+      targetLevelId: 'hell-1',
+      quantity: 2,
+      calibration: calibration({ rating: { ...FAKE_RATING, level: 'hell-1' }, igWindow: { wc: 6 } }),
+      ...over,
+    });
+    const unique = { status: /** @type {const} */ ('unique'), model: /** @type {const} */ ('dlx-v1'), rowLimit: 10000, verified: true };
+    const nightmare = hell({
+      targetLevelId: 'nightmare',
+      calibration: calibration({ rating: { ...FAKE_RATING, level: 'nightmare' }, igWindow: { wc: 6 } }),
+    });
+    const applied = [
+      priors(hell()),
+      priors(hell({ seenLayouts: new Set([layoutKey(board, pieces, base)]) })),
+      priors(hell({ uniqueness: 'require', calibration: calibration({ rating: { ...FAKE_RATING, level: 'hell-1' }, igWindow: { wc: 6 }, certificate: unique }) })),
+    ];
+    const table = [priors(hell({ uniqueness: 'require' })), priors(nightmare), priors(hell({ calibration: undefined }))];
+    for (const seen of [applied[0], applied[1], applied[2]]) {
+      assert.ok(seen.length > 0 && seen.every((p) => p === 6), String(seen));
+    }
+    for (const seen of table) {
+      assert.ok(seen.length > 0 && seen.every((p) => p === undefined), String(seen));
+    }
+  });
 });
 
 describe('dispatch priority and scheduler simulation', () => {
@@ -561,13 +599,16 @@ describe('set attempts and puzzle candidates', () => {
       attempt: 0,
       start: 'witness',
       skips: { subsets: [], repairs: [] },
+      igPrior: null,
       versions: provenanceVersions(),
     });
     assert.deepEqual(Object.keys(c.made), ['schema', 'kind', 'batchSeed', 'targetLevel', 'uniqueness', 'slot', 'attempt',
-      'start', 'skips', 'versions']);
+      'start', 'skips', 'igPrior', 'versions']);
     const v = currentVersions();
-    assert.deepEqual(provenanceVersions(), { algo: v.algo, policy: v.policy, rng: v.rng, seedScheme: SEED_SCHEME, ratingModel: v.model });
-    assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel']);
+    assert.deepEqual(provenanceVersions(), {
+      algo: v.algo, policy: v.policy, rng: v.rng, seedScheme: SEED_SCHEME, ratingModel: v.model, priorTable: 'prior-s3-v1', screenTable: 'screen-v4-v1',
+    });
+    assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel', 'priorTable', 'screenTable']);
     assert.equal(provenanceProblem('made', c.made), null);
     const other = /** @type {PuzzleCandidate} */ (puzzleCandidate(realCtx({ uniqueness: 'any', batchSeed: 'x#2' }), 3, 1));
     assert.deepEqual([other.made.slot, other.made.attempt, other.made.batchSeed], [3, 1, 'x#2']);
@@ -686,6 +727,31 @@ describe('set attempts and puzzle candidates', () => {
     }
     assert.equal(summary(fold), before);
     assert.equal(summary(runFold(ctx)), before);
+  });
+
+  test('provenanceVersions follows ALGO_ID\'s family', () => {
+    assert.deepEqual(Object.keys(provenanceVersions()), ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel', 'priorTable', 'screenTable']);
+    assert.equal(provenanceVersions().algo, 'gen-v4');
+    assert.equal(provenanceVersions().priorTable, 'prior-s3-v1');
+    assert.equal(provenanceVersions().screenTable, 'screen-v4-v1');
+    const c = puzzleCandidate(realCtx(), 1, 0);
+    assert.ok('made' in c);
+    assert.equal(c.made.igPrior, null);
+    assert.deepEqual(c.made.versions, provenanceVersions());
+  });
+
+  test('failureOf transports the no-window side', () => {
+    const counters = { budgetStops: 1, screenCapped: 2, rescueReratings: 3, tailReratings: 4 };
+    assert.deepEqual(failureOf({ reason: 'not-in-band', igNoWindow: 'above', counters }), { ok: false, reason: 'no-window-above', counters });
+    assert.deepEqual(failureOf({ reason: 'not-in-band' }), { ok: false, reason: 'not-in-band', counters: ZERO_COUNTERS });
+  });
+
+  test('results carry zero counters on today\'s route', () => {
+    const r = setAttempt(request(), 0);
+    assert.ok(r.ok);
+    assert.deepEqual(r.counters, ZERO_COUNTERS);
+    const c = puzzleCandidate(realCtx(), 1, 0);
+    assert.deepEqual(c.counters, ZERO_COUNTERS);
   });
 
   describe('completion pass', () => {
@@ -832,6 +898,26 @@ describe('deterministic parallel simulation', () => {
       }
     });
   }
+
+  test('slow: gen-v4 fold sizes 1, 2, 4 and 8 agree on 10x10 Nightmare', () => {
+    const seedText = 'p2-16a/fold';
+    const r = setAttempt({ board: rectangle(10, 10), rotation: 0, levelId: 'nightmare', seedText, uniqueness: 'any', execution }, 0);
+    assert.ok(r.ok);
+    /** @type {BatchContext} */
+    const ctx = {
+      set: r.set, targetLevelId: 'nightmare', quantity: 3, batchSeed: `${seedText}#1`, uniqueness: 'any',
+      seenLayouts: new Set(), seenClues: new Set(), calibration: r.calibration, execution,
+    };
+    const serial = runFold(ctx);
+    assert.ok(serial.accepted.length >= 1, 'the serial reference produces puzzles');
+    const want = summary(serial);
+    const memo = /** @type {Map<string, PuzzleCandidate | { fail: string }>} */ (new Map());
+    for (const width of [1, 2, 4, 8]) {
+      for (const order of ['a', 'b']) {
+        assert.equal(summary(simulate(ctx, memo, width, `${order}${width}`)), want, `width ${width} order ${order}`);
+      }
+    }
+  });
 });
 
 describe('recorded generation fixture', () => {
@@ -918,5 +1004,11 @@ describe('recorded generation fixture', () => {
     assert.equal(run('--replay-case', '--search', '--from', '50').status, 2, 'the seeds are 0 to 49');
     assert.equal(run('--replay-case', '--check', '--seed', '0').status, 2);
     assert.equal(run('--search').status, 2, 'the search belongs to the replay-case mode');
+    const refusal = run('--replay-case', '--refusal');
+    assert.equal(refusal.status, 0);
+    assert.match(refusal.stdout, /record-fixtures: refusal case OK/);
+    assert.equal(run('--replay-case', '--recipe', 'screen', '--create').status, 2, 'a recording needs a seed');
+    assert.equal(run('--replay-case', '--recipe', 'nope', '--check').status, 2, 'an unknown recipe is a usage error');
+    assert.equal(run('--replay-case', '--check', '--file', 'replay-case.json').status, 1, "the old case's versions differ");
   });
 });

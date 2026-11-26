@@ -1,0 +1,316 @@
+{
+  "base": "97a6326a5ff149ad27f667c777987fe73df35d07",
+  "kind": "static task-contract review; synthetic consequences are not implementation test results",
+  "generatorRuns": 0,
+  "ratingRuns": 0,
+  "replayRuns": 0,
+  "browserRuns": 0,
+  "countedMachineSeconds": 0,
+  "taskFiles": 36,
+  "developmentTasksBeforeMeasurement": 31,
+  "publicationTextTask": 1,
+  "developerHours": 78.25,
+  "maximumTaskHours": 3,
+  "estimatedDependencyPathHours": 23.5,
+  "localeKeysMatch": 9,
+  "guideLanguagesMatch": 2,
+  "schedule": {
+    "A": {
+      "rows": 318,
+      "rowInvocations": 23,
+      "countedMinutes": 330.65582390700007,
+      "guardMinutes": 409.1947798837501,
+      "roundedStageCap": 410
+    },
+    "B": {
+      "rows": 695,
+      "rowInvocations": 26,
+      "countedMinutes": 321.2576285316666,
+      "guardMinutes": 401.5720356645833,
+      "roundedStageCap": 402
+    }
+  },
+  "totalCountedMinutes": 651.9134524386667,
+  "totalGuardMinutes": 810.7668155483334,
+  "totalStageCap": 812,
+  "horizonAdmissionViolations": 0,
+  "dependencyCounterexamples": [
+    {
+      "task": "P2-12e",
+      "uses": "proofs.mjs / proofs.test.mjs",
+      "producer": "P2-12c",
+      "producerIsPrerequisite": false
+    },
+    {
+      "task": "P2-16e",
+      "uses": "tests/browser/deadline.html in sourcesOf unit test",
+      "producer": "P2-16b",
+      "producerIsPrerequisite": false
+    },
+    {
+      "task": "P2-16c",
+      "uses": "ctx.igStage / ctx.igAttempt for scripted rating seams",
+      "producer": "P2-12d",
+      "producerIsPrerequisite": false
+    },
+    {
+      "task": "P2-16a",
+      "uses": "unconditional complete phase2 test-file runner",
+      "producer": "P2-12e",
+      "producerIsPrerequisite": false
+    }
+  ],
+  "producerConsumer": {
+    "rowWorkFields": [
+      "complete",
+      "problems",
+      "calls",
+      "ended",
+      "terminated",
+      "open",
+      "lo",
+      "hi",
+      "ratingWork",
+      "countWork",
+      "outcomes",
+      "rerateStarts"
+    ],
+    "storedFieldsAsWritten": [
+      "complete",
+      "problems",
+      "calls",
+      "ended",
+      "terminated",
+      "open",
+      "lo",
+      "hi",
+      "ratingWork",
+      "countWork"
+    ],
+    "naturalMatchRaw": true,
+    "naturalMatchTransportAsWritten": false,
+    "endLookupAsWritten": 0,
+    "endLookupWithCallJoin": 1,
+    "terminalInvocationFilterAsWritten": 0,
+    "terminalStartJoin": 1,
+    "eligibleByStage": {
+      "A": 140,
+      "B": 300
+    },
+    "overflow": {
+      "twins": 12,
+      "groups": 4,
+      "writtenCountedS": 3300,
+      "correctedCountedS": 3308
+    },
+    "browserProducer": "E/browser/<check>/receipt.json",
+    "browserConsumerAsWritten": "E/browser/receipt.json"
+  },
+  "inputs": [
+    {
+      "path": "core/browser/generation-client.js",
+      "sha256": "eed76d3d611d7e1dd9b320f0006aa2e2494bd8a4f78f4b496ed7967295c2ca60"
+    },
+    {
+      "path": "docs/improve-generating-phase-2/evidence/sa-astra/round1-cross-audit.json",
+      "sha256": "4656808db66609850ddbeb0b992773e15d052156a182e6b8c439552e869f31e4"
+    },
+    {
+      "path": "docs/improve-generating-phase-2/evidence/sa-opus/p2-parallel-plan.mjs",
+      "sha256": "2ea8134c628be7026e10a95f64ad42086e4c2fe209987042e2ed33f1cc9b7719"
+    },
+    {
+      "path": "docs/improve-generating-phase-2/plan.md",
+      "sha256": "3c368df3ac90706273f9e5fe968c2e73b9d2e937614ea108dd84bc1edb9e0193"
+    },
+    {
+      "path": "docs/improve-generating-phase-2/sa-opus/parallel-schedule.md",
+      "sha256": "187988d60557ad6ecb7ce3e9878e5a6ad2222c75a73d73e7166eb06c4cea737f"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/check-list.md",
+      "sha256": "491ae8381b5afc5de4186c99d4618dd711e5816db9b22c85dd8b34291d383196"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/contracts.md",
+      "sha256": "fbb5c85cc72c2c143afc2763681db4a3d38d6dc3d745a8cf767f5135ed8aa54d"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-01-gen-v4-tables.md",
+      "sha256": "7973f40d63844c54b8e741a119f7395d764fd27633a263ec640ce8fd16dd0ef3"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-02-clue-primitives.md",
+      "sha256": "b4f9c3c0cc74588c48417de3f04e0c44bd2f8d54469d2c1187ec43521932f6bd"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-03-screen-rating.md",
+      "sha256": "dfc052de26c846d50ececfce57f384e40f79ece10148fbd6540afdd494c0258c"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-04-select-v4-port.md",
+      "sha256": "3b7f6cef4ad934d9c470d4a212e2e508f8bce9327ebe0e71a968c7273adde6ed"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-05a-select-v4-vectors.md",
+      "sha256": "e69d512dcd72ca59678c81eb45926168d03b96aef03633988c96f0ea3b42e4e1"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-05b-select-v4-budget-parity.md",
+      "sha256": "1a54860a73577cd1bc3086e95c96243892282b521fbb135a75cf54787d0208d5"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-06-reasons-counters-bound.md",
+      "sha256": "54696fe5e5f1e5cce0efaf056562470491b602e1f062f6d6b8b48363f54e6674"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-07-per-set-prior.md",
+      "sha256": "11f9911b3e6bf5524c287069c8f7f159185742244f55b3aa877bea016e236c38"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-08-provenance-replay.md",
+      "sha256": "575ba0fface9c34965dd68fcd18161fe05e34c326e87c6b6f9dbfd80b7933434"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-09-steps-texts-notices.md",
+      "sha256": "812c4364a326dff80ea2528aee5aacd3734a6b53123c48d9dfc6bb750bebef52"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-10-request-scopes.md",
+      "sha256": "b08dbecbb141433e22eafb0c2fb8011c815fe051250cda804f6e26921e66722d"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-11a-response-guard.md",
+      "sha256": "b304bfb09edcdb2c734448caf743410ca7f6b26552bd2fcc7b0d57eb626f4b0c"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-11b-guard-wiring.md",
+      "sha256": "aa604156b895ce838039bfc0a28f7198a405a1e5686f965aaf9337e2df04b369"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-12a-bench-telemetry.md",
+      "sha256": "22d5092ff4948961270b3c83da7e96acbaf96f8c4f3b30c952ccaca9e2730481"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-12b-copies.md",
+      "sha256": "f146eab686272c5255f3f4f892f9db29cbd4a91d6d4c0ca1e79534c14ede4df1"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-12c-proof-bundles.md",
+      "sha256": "105e5a42dbaf7bbb5c8980bb9a7a8e4e81de53c46964e02500e3b6de56f1fedf"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-12d-trace-layer.md",
+      "sha256": "1cd8e8efe5ed4fac075047a8a282afe7da1b617b08156f308e4ee7f45cff33c3"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-12e-proof-bundles-prior-legacy.md",
+      "sha256": "5ec0a1c5a77ef66bc763b07bab417a897f41c2c07f98bb0c4abf36a26c5a60c9"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-13a-stage-driver.md",
+      "sha256": "aec3b4051926f3e2e74edc810e094e722c45244de7f9407e7c9882571d17022d"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-13b-comparator.md",
+      "sha256": "ce9f055879d617d34fd94cb3ab03325bd28ad6ba339b1e97dec600430d5287a1"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-13c-p5-glue-reach.md",
+      "sha256": "611ff332216c5cfcc0117e920072c4255e1c366bd31e5f2f1273826af388fe67"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-13d-rows-and-publication.md",
+      "sha256": "37842225d1b9fd0ab5f8b73d010ad842d801a599f95792dfba3ec0014aa5ebf8"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-13r-trace-reader.md",
+      "sha256": "93ab429bd990c7677d38b884a02d7b88e0ff7f9ebabf84c141433afa974bb5dd"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-14a-replay-fixture-modes.md",
+      "sha256": "1cd087def884f60e3bf43831674bc726c6d9fad770dd0504dc6bda318f506a81"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-14b-replay-probes.md",
+      "sha256": "c888b61133fdc7bdd622fa30c637937a33904864550e67e572116c7ae668620a"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-15-cutover.md",
+      "sha256": "ad205ed2a62897c648066d83ac5ed02b5773c2950aa51c9b24b4d950c72893fd"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-16a-integrated-cases.md",
+      "sha256": "438aa6ef028ed3bedf1378404564ddb71a9b6d5fa5741b76070f1fab2ff69916"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-16b-browser-deadline-checks.md",
+      "sha256": "6a859d5a210393e91756f294cb740ebf151f41fe8ca1d88b7772b28680c28b41"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-16c-no-window-glue.md",
+      "sha256": "ac87b5c4b5456389999aa31669c069152211748a1727bde902028a5fa1797719"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-16e-browser-runner.md",
+      "sha256": "2c26d5bd206bbb682139df1ff293dd2b7b84e2aa9ca28861fc0198f17882393f"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-17-guides-and-release-notes.md",
+      "sha256": "f7c9cb2d1a5972780e0a03e575e57108ab97c00a7d6fd743f3330e2f31559aaf"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-18-seal-proofs-smoke.md",
+      "sha256": "87f2c5e190877da98f83a091c431f3dec38a27cb5c7290de5addba2e20f4717f"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-19-stage-a.md",
+      "sha256": "c9ab00719e989ea5c263c1c3db350359b5e35f061b759afe5f145b845890f9ac"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-20-stage-b.md",
+      "sha256": "c33e274077eaeb561bdd87f6936e97d9eb5efc1e25232adbe2fd522f24cc95e7"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-21-validation-report.md",
+      "sha256": "639ab55ffa200ad6207f9d14322734a1e39d95e9204781494830714fdc0c50e5"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-22-publish.md",
+      "sha256": "cbc7a11d92aa5411561ce7c94622b3125e6294bf7de8e2ebd87772d966dbd36e"
+    },
+    {
+      "path": "tools/bench/report.js",
+      "sha256": "a180a45cea715bcc4ac0a8b315f0dec4afcf1fed23a58dc6304c0b5d6209c295"
+    },
+    {
+      "path": "tools/ig-proto/lib/ledger.mjs",
+      "sha256": "84f574131ceb039b92c6bf29ce830b6ae64ef30e28c1d62b24620d1486a1652a"
+    },
+    {
+      "path": "tools/ig-proto/lib/paths.mjs",
+      "sha256": "5222e5d3a8612db37eab79c2f93cfa86ca57c12c5037331a7f598953b79f5ceb"
+    },
+    {
+      "path": "tools/ig-proto/lib/tree.mjs",
+      "sha256": "a437fc3a34c799de5999add50e63f440b4859a5ab6f03c60e59c2016295aa892"
+    },
+    {
+      "path": "tools/ig-proto/lock/ig-lock.ps1",
+      "sha256": "810ebf8fb985c6c9fe941201f2fa469eb33551deb56b0d919b9f1c209045b844"
+    },
+    {
+      "path": "tools/ig-proto/snapshot.mjs",
+      "sha256": "bc7ef32f50f893e935d079d14edc82a316246e503759651249acec0abb770a31"
+    },
+    {
+      "path": "tools/ig-proto/verdicts.mjs",
+      "sha256": "e4a37c5a3acd5202c89e3c47d643fb343e2bcaf5667053466408d19a3e1ed195"
+    },
+    {
+      "path": "tools/record-fixtures.mjs",
+      "sha256": "8727b2905f8036d1da800b23f5cb1923150d76b973de51db16509d030fafb120"
+    }
+  ],
+  "inputIndexHash": "abe9036592eac9adc938dbb868af64014fa859b0a75927c2b75c73c8c6c90ecd"
+}

@@ -1,0 +1,12 @@
+pack 1: ok, puzzles 4 of 4, made records 4 (candidates 3) kept 1 dropped with a warning 3, set origin warnings 1, warnings 4
+  warning provenance-ignored generation.setOrigin: versions: unknown field "priorTable"
+  warning provenance-ignored generation.made.pd11cdaba80c2: unknown field "igPrior"
+  warning provenance-ignored generation.made.pf3572f966ab9: unknown field "igPrior"
+  warning provenance-ignored generation.made.p3138ca2efae3: unknown field "igPrior"
+pack 2: ok, puzzles 4 of 4, made records 4 (candidates 4) kept 0 dropped with a warning 4, set origin warnings 1, warnings 5
+  warning provenance-ignored generation.setOrigin: versions: unknown field "priorTable"
+  warning provenance-ignored generation.made.p1f6d5ccd2409: unknown field "igPrior"
+  warning provenance-ignored generation.made.p4168836f859b: unknown field "igPrior"
+  warning provenance-ignored generation.made.p5bb81da063e3: unknown field "igPrior"
+  warning provenance-ignored generation.made.pad3b55b4eb21: unknown field "igPrior"
+forward check: ok

@@ -1,0 +1,63 @@
+Phase-2 round-1 cross-review validation (SA-Astra)
+Repository: Q:\git\pentomino
+Branch/base: gen-v4, 7c1bad226830667fa6626ff97c960ca3bddd7794
+Start: 2026-11-25T14:54:48.8727308+07:00
+End: 2026-11-25T14:54:51.1019601+07:00
+
+1. Syntax
+   node --check docs\improve-generating-phase-2\evidence\sa-astra\round1-cross-audit.mjs
+   Exit 0.
+
+2. Read-only data/price audit
+   node docs\improve-generating-phase-2\evidence\sa-astra\round1-cross-audit.mjs
+   Exit 0. No engine invocation, generated puzzle, rating, replay, tree build or measurement.
+   99 published row files, 1,500 historical rows.
+   1,013 proposed rows: 998 unconditional, 15 conditional planning slots.
+   A: 318 rows, 23 projected row invocations, 330.655823907 counted minutes, 409.194779884 guard.
+   B: 695 rows, 26 projected row invocations, 321.257628532 counted minutes, 401.572035665 guard.
+   Rounded proposed stage authorizations: 410 + 402 = 812 minutes.
+   Conditional eligible population: 360 original gen-v4 + 80 sentinel gen-v4 rows.
+   Fifteen is an allowance, not permission to omit required twins; unknown remains unknown.
+   Full-row-limit non-table stress: 1,303-minute allowance; not an observed runtime.
+   The existing .json and .md proposal outputs were hashed before/after this rerun: byte-identical.
+
+3. Repository checks
+   npm run check
+   Exit 0:
+   check-conventions: OK
+   check-site: OK
+   These do not replace the explicit docs/evidence formatting check below.
+
+4. Protected-source guard
+   git --no-pager diff --exit-code 7c1bad2 -- .
+   Exit 0, no output.
+   git ls-files --others --exclude-standard -- core generator player shared tools tests
+   Exit 0, no output.
+   No tracked production, tests, tools or old documents changed.
+   Only the author's new cross-review/evidence files were written; the other SA's files were read only.
+
+5. Explicit text format
+   At the recorded gate: 8 own phase-2 files (the initial analysis/evidence and new cross-review/audit).
+   Strict UTF-8 decode with [Text.UTF8Encoding]::new($false,$true).
+   Reject BOM, (?<!\r)\n, \r(?!\n), (?m)[ \t]+\r?$, or missing final CRLF.
+   All pass. This ninth file is checked separately after writing.
+
+6. Raw-input integrity
+   For every record.inputs entry:
+     (Get-FileHash $input.path.Replace('/', '\') -Algorithm SHA256).Hash.ToLowerInvariant()
+     must equal input.sha256Raw.
+   125 of 125 pass.
+   Input-index SHA-256:
+   c8b44c730194b51d0e4d31134b5cf9190c31d7bdb92a392e2fab715019b780b3
+
+7. Joint acceptance
+   SA-Opus independently recomputed all row prices and schedules without executing this author's script:
+   evidence\sa-opus\p2-xr-verify-astra.mjs and .md.
+   1,013 of 1,013 row prices equal; both stage schedules equal.
+   His round-1-cross-review.md section 8.6 and message of 2026-11-25 accept the technical reconciliation.
+   The author accepts his final plain-language no-window EN/VI refinement, now in her review section 6.
+   All SA-joint questions are resolved.
+   Owner Q-P2-1 (scope/funding/account) and Q-P2-5 (texts/document correction) remain.
+
+No unit suite, browser check, generation experiment, solver benchmark or engine replay was run.
+No locked machine-measurement time was spent. No commit, push or PR mutation.

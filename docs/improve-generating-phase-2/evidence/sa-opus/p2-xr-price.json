@@ -1,0 +1,136 @@
+{
+  "pricing": {
+    "horizonS": 885,
+    "quietS": 45,
+    "killS": 900,
+    "cutMarginS": 15,
+    "rowMarginS": 10,
+    "startupS": 2,
+    "groupStartS": 3,
+    "projectionFactor": 1.25,
+    "guardFactor": 1.25,
+    "ceilingPerUnitS": 945
+  },
+  "calibration": [
+    {
+      "task": "V4-S4",
+      "actualRowsCountedS": 26642.47500000001,
+      "astraCountedS": 28812.733290625005,
+      "astraGuardS": 36015.91661328125,
+      "opusCountedS": 26836.9382181,
+      "astraOverActual": 1.0814585841077076,
+      "opusOverActual": 1.0072989922332662,
+      "invocationsPriced": 90
+    },
+    {
+      "task": "V4-S4C",
+      "actualRowsCountedS": 9670.158,
+      "astraCountedS": 11250.811627500001,
+      "astraGuardS": 14063.514534375,
+      "opusCountedS": 9637.075243199999,
+      "astraOverActual": 1.1634568563926257,
+      "opusOverActual": 0.9965788814619161,
+      "invocationsPriced": 24
+    }
+  ],
+  "components": [
+    {
+      "name": "core: gen-v4 shipped on the 19 frozen Nightmare and Hell 1 cells x 20 (26x26 by the legacy route)",
+      "rows": 380,
+      "invocations": 22,
+      "countedS": 10503.605999999998,
+      "guardS": 13129.5075
+    },
+    {
+      "name": "core: gen-v4 on the 16 Master cells x 5",
+      "rows": 80,
+      "invocations": 16,
+      "countedS": 1210.341105,
+      "guardS": 1512.9263812500003
+    },
+    {
+      "name": "core: today (6b94ffb) on the 10 controls x 20",
+      "rows": 200,
+      "invocations": 14,
+      "countedS": 5797.88427125,
+      "guardS": 7247.3553390625
+    },
+    {
+      "name": "core: today on the 16 Master cells x 5",
+      "rows": 80,
+      "invocations": 16,
+      "countedS": 1210.341105,
+      "guardS": 1512.9263812500003
+    },
+    {
+      "name": "core: n-mid without the screen (measurement copy) x 20",
+      "rows": 60,
+      "invocations": 3,
+      "countedS": 1834.5554774999998,
+      "guardS": 2293.1943468749996
+    },
+    {
+      "name": "boards without a prior cell, both arms x 20 (11x11, 18x19, 21x21; proxies 10x10, 18x18, 20x21)",
+      "rows": 120,
+      "invocations": 8,
+      "countedS": 3563.4552312500005,
+      "guardS": 4454.3190390625
+    },
+    {
+      "name": "board without a prior cell, gen-v4 only x 20 (15x15; proxy 15x15b10 with the screen)",
+      "rows": 20,
+      "invocations": 1,
+      "countedS": 332.4295424999999,
+      "guardS": 415.5369281249999
+    },
+    {
+      "name": "port smoke: 8 representative requests before the timed matrix (frozen reps 20; one mixed step)",
+      "rows": 8,
+      "invocations": 1,
+      "countedS": 202.2598603125,
+      "guardS": 252.824825390625
+    },
+    {
+      "name": "N-V4-15: require x 5, Nightmare 22x22 and 32x15 (today, gen-v4, uncapped), Hell 1 22x22 and 32x15 (gen-v4, uncapped), at the row limits",
+      "rows": 50,
+      "invocations": 16,
+      "countedS": 11152,
+      "guardS": 13940
+    },
+    {
+      "name": "predeclared conditional uncapped twins: 15 main-matrix rows (frozen: 10 rows, all 14x14 Hell 1) at that twin's proxy",
+      "rows": 15,
+      "invocations": 3,
+      "countedS": 2326.9906603125,
+      "guardS": 2908.738325390625
+    }
+  ],
+  "items": [
+    {
+      "name": "four proof bundles (observers, certificate, prior, legacy route), at the measured cost of V4-S4's parity steps",
+      "countedS": 1400.916
+    },
+    {
+      "name": "resource replays (SA-Astra's 8 items)",
+      "countedS": 533
+    },
+    {
+      "name": "browser functional checks (SA-Astra's 6, ceiling)",
+      "countedS": 990,
+      "guardIsCounted": true
+    }
+  ],
+  "total": {
+    "rows": 1013,
+    "countedS": 41057.77925312499,
+    "guardS": 51074.72406640624
+  },
+  "stageA": {
+    "countedS": 18338.3391128125,
+    "guardS": 22922.923891015624
+  },
+  "stageB": {
+    "countedS": 22719.440140312487,
+    "guardS": 28151.800175390617
+  }
+}

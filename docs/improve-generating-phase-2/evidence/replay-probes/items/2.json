@@ -1,0 +1,59 @@
+{
+  "n": 2,
+  "group": "any",
+  "lane": 2,
+  "cell": "20x20-hell-1",
+  "uniqueness": "any",
+  "copy": {
+    "id": "p2-gen4-diag",
+    "treeId": "8d3b5a6a491cfcb584201eabd85bad59d0daa3be34d8d52ddcc61e1cdee3ecb2"
+  },
+  "seed": "p2-replay/20x20-hell-1/0",
+  "status": "measured",
+  "reason": null,
+  "detail": null,
+  "batchStatus": "complete",
+  "puzzles": [
+    {
+      "id": "pe1238ff09e0a",
+      "kind": "calibration",
+      "status": "matched",
+      "steps": 43,
+      "bytes": 140542,
+      "work": 236018023
+    },
+    {
+      "id": "pcb312b181f32",
+      "kind": "candidate",
+      "status": "matched",
+      "steps": 52,
+      "bytes": 195356,
+      "work": 1068457047
+    },
+    {
+      "id": "p7c7e7c2d6966",
+      "kind": "candidate",
+      "status": "matched",
+      "steps": 54,
+      "bytes": 210926,
+      "work": 1604643678
+    },
+    {
+      "id": "p17a70a85a3a2",
+      "kind": "candidate",
+      "status": "matched",
+      "steps": 57,
+      "bytes": 232349,
+      "work": 1587749704
+    }
+  ],
+  "maxima": {
+    "steps": 57,
+    "bytes": 232349,
+    "work": 1604643678
+  },
+  "margin": "ok",
+  "exceeded": [],
+  "seconds": 13.347,
+  "setSeconds": 1.18
+}

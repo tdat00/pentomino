@@ -17,6 +17,7 @@ import { clueKey } from '../core/engine/keys.js';
 import { level, levelForScore } from '../core/engine/levels.js';
 import { BUDGETS, pieceCountRange } from '../core/engine/policy.js';
 import { createRng } from '../core/engine/rng.js';
+import { stepMaker } from '../core/engine/replay.js';
 import { isValidLayout, lnsWalk } from '../core/engine/tiling.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
 import { expectedOf } from '../tools/record-fixtures.mjs';
@@ -1375,4 +1376,27 @@ test('observe.charge reaches the calibration with and without a recorder; carvin
   assert.equal(calls, 1);
   assert.throws(() => puzzleCandidate(ctx, 1, 0, { charge: throwing }), (e) => e === boom);
   assert.equal(calls, 2);
+});
+
+test('the step builder maps budget and no-window events', () => {
+  const input = /** @type {any} */ ({ set: { pieces: [{ id: 'A' }] } });
+  const next = stepMaker(/** @type {any} */ ({ set: null }), input);
+  /** @type {import('../core/engine/types.js').RecordEvent[]} */
+  const events = [
+    { stage: 'set', kind: 'count', range: [5, 6], k: 5 },
+    { stage: 'set', kind: 'carve', mode: 'flat', parts: null },
+    { stage: 'clues', kind: 'budget', source: 'candidate' },
+    { stage: 'clues', kind: 'no-window', source: 'candidate', side: 'below' },
+    { stage: 'clues', kind: 'no-window', source: 'calibration', side: 'above' },
+  ];
+  const steps = events.map((event) => next(event));
+  assert.deepEqual(steps.slice(0, 2).map((s) => [s.stage, s.kind]), [[1, 'count'], [2, 'carve']]);
+  assert.deepEqual(steps.slice(2).map((s) => [s.stage, s.kind, s.note, s.args]), [
+    [5, 'budget', 'replay.step.budget', { source: 'candidate' }],
+    [5, 'noWindow', 'replay.step.noWindow', { side: 'below', source: 'candidate' }],
+    [5, 'noWindow', 'replay.step.noWindow', { side: 'above', source: 'calibration' }],
+  ]);
+  for (const s of steps.slice(2)) {
+    assert.deepEqual([s.rating, s.breakdown, s.detail, s.band, s.board.clues, s.board.lifted], [null, null, null, null, [], []]);
+  }
 });

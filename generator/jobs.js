@@ -4,6 +4,7 @@
 import { boardToRows } from '../core/engine/board.js';
 import { readPuzzleCode } from '../core/browser/handoff.js';
 import { createDisplayRatings, needsDisplayRating } from '../core/browser/display-rating.js';
+import { createResponseGuard } from '../core/browser/generation-deadline.js';
 import { createPuzzleCodeClient } from '../core/browser/puzzle-code-client.js';
 import { PoolError, isAbortError } from '../core/browser/worker-pool.js';
 import { clueKey, layoutKey } from '../core/engine/keys.js';
@@ -132,6 +133,7 @@ export function duplicateGuard(set, existing) {
 export function batchShortfall(reason, o) {
   const params = () => ({ n: o.n, q: o.q, level: levelLabel(o.levelId) });
   switch (reason) {
+    case 'response-bound':
     case 'time-limit':
       return notice('N-PARTIAL', () => formatNotice('N-PARTIAL', params()), 'warning');
     case 'layouts-not-found': {
@@ -312,10 +314,12 @@ export function createJobController(options) {
     const { levelId, uniqueness, rotation } = state;
     const board = state.board;
     const revision = begin('set');
+    const scope = client.newScope(false);
+    const responseGuard = createResponseGuard({ clock: client.clock(), client, origin: scope.origin });
     /** @type {Awaited<ReturnType<GenerationClient['generateSet']>>} */
     let result;
     try {
-      result = await client.generateSet({
+      result = await responseGuard.set(client.generateSet({
         boardRows: boardToRows(board),
         rotation,
         levelId,
@@ -323,10 +327,13 @@ export function createJobController(options) {
         uniqueness,
         maxActive: capFor(hardware),
         revision,
-      });
+        scope,
+      }));
     } catch (error) {
       finish(revision, (s) => ({ ...s, notice: errorNotice(error, s) }));
       return;
+    } finally {
+      responseGuard.clear();
     }
     if (result.status === 'complete' && result.set !== undefined && result.calibration !== undefined) {
       const { set, calibration } = result;
@@ -349,7 +356,11 @@ export function createJobController(options) {
     } else if (result.status === 'cancelled') {
       finish(revision, (s) => ({ ...s, notice: notice('M-CANCELLED-SET', () => formatMessage('M-CANCELLED-SET'), 'info') }));
     } else {
-      finish(revision, (s) => ({ ...s, notice: notice('N-NOSET', () => formatNotice('N-NOSET', { level: levelLabel(levelId) }), 'warning') }));
+      const variant = result.reason === 'no-window-below' ? 'below' : result.reason === 'no-window-above' ? 'above' : undefined;
+      finish(revision, (s) => ({
+        ...s,
+        notice: notice('N-NOSET', () => formatNotice('N-NOSET', { level: levelLabel(levelId) }, variant), 'warning'),
+      }));
     }
   }
 
@@ -393,6 +404,8 @@ export function createJobController(options) {
       && made.levelId === targetLevelId && made.uniqueness === uniqueness;
     const revision = begin('batch', { batchIndex: begun.batchIndex });
     certRevision = revision;
+    const scope = client.newScope(false);
+    const responseGuard = createResponseGuard({ clock: client.clock(), client, origin: scope.origin });
     /** @param {Puzzle[]} list @returns {Record<string, string>} */
     const seedsFor = (list) => Object.fromEntries(list.map((p) => [p.id, begun.batchSeed]));
     /** @type {Record<string, Made>} */
@@ -407,7 +420,7 @@ export function createJobController(options) {
     /** @type {unknown} */
     let failure = null;
     try {
-      result = await client.generateBatch({
+      result = await responseGuard.batch(client.generateBatch({
         set,
         rotation: state.rotation,
         targetLevelId,
@@ -423,6 +436,7 @@ export function createJobController(options) {
         ...(made === null ? {} : { setLevel: made.levelId }),
         ...(state.setOrigin === null ? {} : { setOrigin: state.setOrigin }),
         revision,
+        scope,
       }, {
         onAccepted: (event) => {
           if (!isCurrent(revision) || !guard.admit(event.puzzle)) {
@@ -448,9 +462,11 @@ export function createJobController(options) {
             store.update((s) => applyCertificate(s, event.puzzleId, event.certificate));
           }
         },
-      });
+      }));
     } catch (error) {
       failure = error;
+    } finally {
+      responseGuard.clear();
     }
     if (!isCurrent(revision)) {
       return;
@@ -487,7 +503,7 @@ export function createJobController(options) {
       if (guard.rejected.size > 0 && failure === null && !dropped) {
         outcome = notice('M-DUPLICATE', () => formatMessage('M-DUPLICATE'), 'error');
       }
-      const pendingIds = result !== null && status !== 'cancelled' && reason !== 'time-limit'
+      const pendingIds = result !== null && status !== 'cancelled' && reason !== 'time-limit' && reason !== 'response-bound'
         ? kept.filter((p) => p.certificate === null || p.certificate === undefined).map((p) => p.id)
         : [];
       // The records of the puzzles kept, on top of those the set had before this request.

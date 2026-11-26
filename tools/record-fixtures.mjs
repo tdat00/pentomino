@@ -18,26 +18,36 @@
 //   node tools/record-fixtures.mjs --replay-case --create --seed <n>     refuses an existing file
 //   node tools/record-fixtures.mjs --replay-case --check                 regenerates the recorded seed, never writes
 //   node tools/record-fixtures.mjs --replay-case --replace --seed <n> --reason <text>
+//   node tools/record-fixtures.mjs --replay-case --refusal               the old replay-case.json is refused by version
 //
 // The seeds are `replay-case-0..49`; `--seed` and `--from` take an integer from 0 to 49.
+// `--recipe hard|screen` (default hard) picks the recipe: `screen` is a 14 x 14 Nightmare `any` set whose steps show the
+// screen (seeds `replay-case-screen-0..49`) and needs the gen-v4 family. `--file <name>` picks the file inside `--dir`;
+// the default is replay-case-v4.json (hard, gen-v4 family), replay-case.json (hard, before it) and
+// replay-case-v4-screen.json (screen). `--refusal` always reads replay-case.json.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { basename, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 
 import { createGenerationClient } from '../core/browser/generation-client.js';
 import { createPool } from '../core/browser/worker-pool.js';
 import { boardFromRows, boardToRows } from '../core/engine/board.js';
 import { selectClues } from '../core/engine/clues.js';
 import { IncompleteRatingError, MODEL, rate, rateV2 } from '../core/engine/difficulty.js';
-import { firstSetAttempt, runFold } from '../core/engine/generate.js';
+import { firstSetAttempt, provenanceVersions, runFold } from '../core/engine/generate.js';
 import { canonicalKey } from '../core/engine/geometry.js';
+import { isV4Family, PRIOR_TABLE_ID, SCREEN_TABLE_ID } from '../core/engine/gen-v4.js';
 import { clueKey, layoutKey, puzzleId } from '../core/engine/keys.js';
 import { level } from '../core/engine/levels.js';
+import { parsePack, serializePack } from '../core/engine/pack.js';
 import { POLICY_ID } from '../core/engine/policy.js';
+import { replayPuzzle, sameVersions } from '../core/engine/replay.js';
 import { createRng, RNG_ID, SEED_SCHEME } from '../core/engine/rng.js';
 import { isValidLayout } from '../core/engine/tiling.js';
 import { ALGO_ID, APP_VERSION } from '../core/engine/version.js';
 import { createWorkspace, MAIN_WORKSPACE_BYTES, SCRATCH_WORKSPACE_BYTES } from '../core/engine/workspace.js';
+import { rectRows } from './bench/calibration-reference.js';
 import { nodeWorkerFactory } from './node-worker.mjs';
 
 /** @typedef {import('../core/engine/types.js').Pose} Pose */
@@ -49,7 +59,11 @@ export const BOARD_ROWS = Object.freeze(Array(6).fill('#'.repeat(10)));
 export const SEED_COUNT = 50;
 export const SAMPLE_LEVELS = /** @type {const} */ (['easy', 'normal', 'hard']);
 const FIXTURE_FILES = /** @type {const} */ ({ recipe: 'generation-case.json', sample: 'generated-sample-pack.json' });
+// The old (gen-v3) replay case: the default file before the gen-v4 family, and the file of the refusal check.
 const REPLAY_FILE = 'replay-case.json';
+const REPLAY_FILE_V4 = 'replay-case-v4.json';
+const REPLAY_FILE_V4_SCREEN = 'replay-case-v4-screen.json';
+const REPLAY_RECIPES = /** @type {const} */ (['hard', 'screen']);
 // A search run stops between seeds once this much time has passed, so that one command fits the 590 s helper bound.
 const REPLAY_SEARCH_BOUND_MS = 540_000;
 const REPLAY_CREATED_AT = '2026-01-01T00:00:00.000Z';
@@ -66,7 +80,7 @@ const DEFAULT_DIR = fileURLToPath(new URL('../tests/fixtures/', import.meta.url)
  * @property {1} batchIndex
  * @property {string} batchSeed
  * @property {'any'} uniqueness
- * @property {{ algo: string, policy: string, rng: string, model: string }} versions
+ * @property {{ algo: string, policy: string, rng: string, model: string, priorTable?: string, screenTable?: string }} versions
  * @property {{ pieceKeys: string[], layoutKeys: string[], clueKeys: string[], scores: number[] }} expected
  */
 
@@ -85,7 +99,8 @@ function newExecution() {
 
 /** @returns {Recipe['versions']} */
 export function currentVersions() {
-  return { algo: ALGO_ID, policy: POLICY_ID, rng: RNG_ID, model: MODEL };
+  const versions = { algo: ALGO_ID, policy: POLICY_ID, rng: RNG_ID, model: MODEL };
+  return isV4Family(ALGO_ID) ? { ...versions, priorTable: PRIOR_TABLE_ID, screenTable: SCREEN_TABLE_ID } : versions;
 }
 
 /**
@@ -356,8 +371,8 @@ export function checkFixtures(dir) {
  * @typedef {object} ReplayRecipe
  * @property {string[]} boardRows
  * @property {0} rotation
- * @property {'hard'} levelId
- * @property {'require'} uniqueness
+ * @property {'hard' | 'nightmare'} levelId
+ * @property {'require' | 'any'} uniqueness
  * @property {number} quantity
  * @property {string} seedText
  */
@@ -370,14 +385,37 @@ export function checkFixtures(dir) {
  * @property {Pack[]} packs Batch 1 (it reuses the set's calibration puzzle) and batch 2.
  */
 
+/** @typedef {typeof REPLAY_RECIPES[number]} ReplayRecipeName */
+
 /**
  * @param {number} n
+ * @param {ReplayRecipeName} [recipe] `hard` (default) or `screen`: a 14 x 14 Nightmare set whose replayed steps show the
+ *   screen.
  * @returns {ReplayRecipe}
  */
-function replayRecipeOf(n) {
+function replayRecipeOf(n, recipe = 'hard') {
+  if (recipe === 'screen') {
+    return { boardRows: rectRows(14, 14), rotation: 0, levelId: 'nightmare', uniqueness: 'any', quantity: 4, seedText: `${replaySeedPrefix(recipe)}${n}` };
+  }
   return {
-    boardRows: [...BOARD_ROWS], rotation: 0, levelId: 'hard', uniqueness: 'require', quantity: 4, seedText: `replay-case-${n}`,
+    boardRows: [...BOARD_ROWS], rotation: 0, levelId: 'hard', uniqueness: 'require', quantity: 4, seedText: `${replaySeedPrefix(recipe)}${n}`,
   };
+}
+
+/**
+ * @param {ReplayRecipeName} recipe
+ * @returns {string} The seed text without its number.
+ */
+function replaySeedPrefix(recipe) {
+  return recipe === 'screen' ? 'replay-case-screen-' : 'replay-case-';
+}
+
+/**
+ * @param {ReplayRecipeName} recipe
+ * @returns {string} What the recipe's search looks for, as the printed notes say it.
+ */
+function qualifierName(recipe) {
+  return recipe === 'screen' ? 'screen steps' : 'subset skip';
 }
 
 /**
@@ -386,6 +424,37 @@ function replayRecipeOf(n) {
  */
 function hasSubsetSkip(made) {
   return Object.values(made).some((m) => m.kind === 'candidate' && m.skips !== 'overflow' && m.skips.subsets.length > 0);
+}
+
+/**
+ * The screen condition: the replays of the candidate puzzles of the packs hold a rated step of the locate phase and an
+ * unrateable step that was screen-capped.
+ * @param {import('../core/browser/generation-client.js').GenerationClient} client
+ * @param {import('../core/engine/types.js').PieceSet} set
+ * @param {import('../core/engine/types.js').SetOrigin} setOrigin
+ * @param {{ pack: Pack, made: Record<string, import('../core/engine/types.js').Made> }[]} batches
+ * @returns {Promise<boolean>}
+ */
+async function hasScreenSteps(client, set, setOrigin, batches) {
+  let locate = false;
+  let capped = false;
+  for (const { pack, made } of batches) {
+    for (const puzzle of pack.puzzles) {
+      const record = made[puzzle.id];
+      if (record?.kind !== 'candidate') {
+        continue;
+      }
+      const { steps } = await client.replayPuzzle({ set, puzzle: /** @type {any} */ (puzzle), setOrigin, made: record });
+      for (const step of steps) {
+        locate = locate || (step.kind === 'rated' && step.args.phase === 'locate');
+        capped = capped || (step.kind === 'unrateable' && step.args.reason === 'screen-capped');
+      }
+      if (locate && capped) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /**
@@ -407,13 +476,14 @@ function describeRecords(records) {
 
 /**
  * Generates replay seed `n` once through the ordinary client path: the set, batch 1 (which must reuse the calibration
- * puzzle) and batch 2, all complete.
+ * puzzle) and batch 2, all complete. The screen recipe also needs the screen steps in the replays of its candidates.
  * @param {import('../core/browser/generation-client.js').GenerationClient} client
  * @param {number} n
- * @returns {Promise<{ file: ReplayFile, subsetSkip: boolean, records: Record<string, import('../core/engine/types.js').Made>[] } | { failed: string }>}
+ * @param {ReplayRecipeName} [recipeName]
+ * @returns {Promise<{ file: ReplayFile, qualifies: boolean, records: Record<string, import('../core/engine/types.js').Made>[] } | { failed: string }>}
  */
-async function generateReplaySeed(client, n) {
-  const recipe = replayRecipeOf(n);
+async function generateReplaySeed(client, n, recipeName = 'hard') {
+  const recipe = replayRecipeOf(n, recipeName);
   const { boardRows, rotation, levelId, uniqueness, quantity, seedText } = recipe;
   try {
     const set = await client.generateSet({ boardRows, rotation, levelId, seedText, uniqueness, maxActive: 676 });
@@ -442,9 +512,13 @@ async function generateReplaySeed(client, n) {
     if (b2.status !== 'complete' || b2.pack === undefined) {
       return { failed: `batch 2 is ${b2.status}${b2.reason === undefined ? '' : ` (${b2.reason})`}` };
     }
+    const batches = [{ pack: b1.pack, made: b1.made }, { pack: b2.pack, made: b2.made }];
+    if (recipeName === 'screen' && !(await hasScreenSteps(client, set.set, set.setOrigin, batches))) {
+      return { failed: 'no locate and screen-capped steps' };
+    }
     return {
       file: { version: 1, recipe, versions: currentVersions(), packs: [b1.pack, b2.pack] },
-      subsetSkip: hasSubsetSkip(b1.made) || hasSubsetSkip(b2.made),
+      qualifies: recipeName === 'screen' || hasSubsetSkip(b1.made) || hasSubsetSkip(b2.made),
       records: [b1.made, b2.made],
     };
   } catch (e) {
@@ -470,10 +544,12 @@ async function withReplayClient(fn) {
 /**
  * The bounded, resumable search: prints one line per seed and writes nothing. Selection of the seed is the caller's.
  * @param {number} from First seed.
+ * @param {ReplayRecipeName} recipe
  * @returns {Promise<number>} Exit code: 0 after a seed qualifies or after seed 49, 1 at the time bound.
  */
-async function searchReplayCase(from) {
+async function searchReplayCase(from, recipe) {
   const started = Date.now();
+  const what = qualifierName(recipe);
   return withReplayClient(async (client) => {
     for (let n = from; n < SEED_COUNT; n += 1) {
       if (Date.now() - started >= REPLAY_SEARCH_BOUND_MS) {
@@ -481,15 +557,15 @@ async function searchReplayCase(from) {
         return 1;
       }
       const seedStarted = Date.now();
-      const r = await generateReplaySeed(client, n);
-      const subsetSkip = 'file' in r && r.subsetSkip;
-      console.log(`replay-case-${n}: ${'file' in r ? 'ok' : `failed ${r.failed}`}, subset skip ${subsetSkip ? 'yes' : 'no'}, ${Date.now() - seedStarted} ms`);
-      if (subsetSkip) {
-        console.log(`selected replay-case-${n}`);
+      const r = await generateReplaySeed(client, n, recipe);
+      const qualifies = 'file' in r && r.qualifies;
+      console.log(`${replaySeedPrefix(recipe)}${n}: ${'file' in r ? 'ok' : `failed ${r.failed}`}, ${what} ${qualifies ? 'yes' : 'no'}, ${Date.now() - seedStarted} ms`);
+      if (qualifies) {
+        console.log(`selected ${replaySeedPrefix(recipe)}${n}`);
         return 0;
       }
     }
-    console.log('no seed with a subset skip');
+    console.log(`no seed with ${recipe === 'screen' ? 'screen steps' : 'a subset skip'}`);
     return 0;
   });
 }
@@ -497,11 +573,13 @@ async function searchReplayCase(from) {
 /**
  * Regenerates the recorded seed and compares the whole file text.
  * @param {string} path
+ * @param {ReplayRecipeName} recipe
  * @returns {Promise<string[]>} Differences; empty when the file replays identically.
  */
-async function checkReplayCase(path) {
+async function checkReplayCase(path, recipe) {
+  const name = basename(path);
   if (!existsSync(path)) {
-    return [`${REPLAY_FILE}: file missing (record it with --replay-case --search, then --create --seed <n>)`];
+    return [`${name}: file missing (record it with --replay-case --search, then --create --seed <n>)`];
   }
   const text = readFileSync(path, 'utf8');
   /** @type {any} */
@@ -509,21 +587,23 @@ async function checkReplayCase(path) {
   try {
     recorded = JSON.parse(text);
   } catch {
-    return [`${REPLAY_FILE} is not valid JSON`];
+    return [`${name} is not valid JSON`];
   }
-  const match = /^replay-case-(\d+)$/.exec(String(recorded?.recipe?.seedText));
-  const n = match === null ? NaN : Number(match[1]);
+  const prefix = replaySeedPrefix(recipe);
+  const seedText = String(recorded?.recipe?.seedText);
+  const match = seedText.startsWith(prefix) ? /^\d+$/.exec(seedText.slice(prefix.length)) : null;
+  const n = match === null ? NaN : Number(match[0]);
   if (!Number.isInteger(n) || n >= SEED_COUNT) {
-    return [`${REPLAY_FILE}: recipe.seedText is not replay-case-0 ... replay-case-${SEED_COUNT - 1}`];
+    return [`${name}: recipe.seedText is not ${prefix}0 ... ${prefix}${SEED_COUNT - 1}`];
   }
   /** @type {string[]} */
   const problems = [];
   if (JSON.stringify(recorded.versions) !== JSON.stringify(currentVersions())) {
     problems.push('recorded versions differ from the current algo/policy/rng/model ids (approved change needs --replace)');
   }
-  const r = await withReplayClient((client) => generateReplaySeed(client, n));
+  const r = await withReplayClient((client) => generateReplaySeed(client, n, recipe));
   if (!('file' in r)) {
-    return [...problems, `replay-case-${n} no longer meets the conditions: ${r.failed}`];
+    return [...problems, `${prefix}${n} no longer meets the conditions: ${r.failed}`];
   }
   const rebuilt = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (r.file));
   for (const key of ['recipe', 'versions']) {
@@ -538,7 +618,7 @@ async function checkReplayCase(path) {
   });
   // Git stores the file with LF and a checkout may give LF or CRLF, so the line ends are not compared.
   if (problems.length === 0 && toFileText(r.file).replace(/\r\n/g, '\n') !== text.replace(/\r\n/g, '\n')) {
-    problems.push(`${REPLAY_FILE} text differs from the replay (formatting)`);
+    problems.push(`${name} text differs from the replay (formatting)`);
   }
   return problems;
 }
@@ -559,6 +639,76 @@ function seedOption(argv, name) {
 }
 
 /**
+ * The refusal check, apart from any regeneration: the old `replay-case.json` still parses, serializes back with its
+ * `generation` fields unchanged, and (once the running versions are not the file's) every puzzle of it is refused by
+ * version.
+ * @param {string} dir
+ * @returns {{ problems: string[], skipped: boolean }}
+ */
+function checkRefusal(dir) {
+  const path = resolve(dir, REPLAY_FILE);
+  if (!existsSync(path)) {
+    return { problems: [`${REPLAY_FILE}: file missing`], skipped: false };
+  }
+  /** @type {any} */
+  let recorded;
+  try {
+    recorded = JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    return { problems: [`${REPLAY_FILE} is not valid JSON`], skipped: false };
+  }
+  if (!Array.isArray(recorded?.packs) || recorded.packs.length === 0) {
+    return { problems: [`${REPLAY_FILE}: no packs`], skipped: false };
+  }
+  /** @type {string[]} */
+  const problems = [];
+  /** @type {Pack[]} */
+  const packs = [];
+  recorded.packs.forEach((/** @type {unknown} */ raw, /** @type {number} */ i) => {
+    const parsed = parsePack(JSON.stringify(raw));
+    if (!parsed.ok) {
+      problems.push(`pack ${i + 1} does not parse: ${parsed.issues.map((issue) => `${issue.path} ${issue.code}`).join(', ')}`);
+      return;
+    }
+    packs.push(parsed.value);
+    const written = JSON.parse(serializePack(parsed.value));
+    if (!isDeepStrictEqual(written.generation, /** @type {any} */ (raw).generation)) {
+      problems.push(`pack ${i + 1} does not serialize back with its generation provenance unchanged`);
+    }
+  });
+  const running = provenanceVersions();
+  const same = recorded.packs.every((/** @type {any} */ raw) => sameVersions(raw?.generation?.setOrigin?.versions ?? {}, running));
+  if (problems.length > 0 || same) {
+    return { problems, skipped: problems.length === 0 };
+  }
+  const workspaces = { ws: createWorkspace(MAIN_WORKSPACE_BYTES), scratch: createWorkspace(SCRATCH_WORKSPACE_BYTES) };
+  packs.forEach((pack, i) => {
+    const set = { board: boardFromRows(pack.board.rows), pieces: pack.pieces, witness: pack.witness ?? null, carving: pack.generation?.carving, macroRegion: pack.generation?.macroRegion };
+    for (const puzzle of pack.puzzles) {
+      const result = replayPuzzle({ set: /** @type {any} */ (set), puzzle, generation: pack.generation }, workspaces);
+      if (result.status !== 'unavailable' || result.reason !== 'set-versions') {
+        problems.push(`pack ${i + 1}, puzzle ${puzzle.id}: replay is ${result.status}${result.reason === null ? '' : ` (${result.reason})`}, not unavailable (set-versions)`);
+      }
+    }
+  });
+  return { problems, skipped: false };
+}
+
+/**
+ * @param {string[]} argv
+ * @param {string} name
+ * @returns {string | undefined | null} The option's value; undefined when absent; null when it has none.
+ */
+function valueOption(argv, name) {
+  const at = argv.indexOf(name);
+  if (at < 0) {
+    return undefined;
+  }
+  const text = argv[at + 1];
+  return text === undefined || text.startsWith('--') ? null : text;
+}
+
+/**
  * The `--replay-case` modes (gate GF-P4).
  * @param {string[]} argv
  * @param {string} dir
@@ -566,15 +716,19 @@ function seedOption(argv, name) {
  */
 async function replayMain(argv, dir) {
   const usage = 'usage: record-fixtures.mjs --replay-case --search [--from <n>] | --create --seed <n> | --check'
-    + ' | --replace --seed <n> --reason <text> [--dir <path>]   (n: 0 ... 49)';
-  const modes = ['--search', '--create', '--check', '--replace'].filter((m) => argv.includes(m));
+    + ' | --replace --seed <n> --reason <text> | --refusal [--recipe hard|screen] [--file <name>] [--dir <path>]   (n: 0 ... 49)';
+  const modes = ['--search', '--create', '--check', '--replace', '--refusal'].filter((m) => argv.includes(m));
   const seed = seedOption(argv, '--seed');
   const from = seedOption(argv, '--from');
+  const recipeText = valueOption(argv, '--recipe');
+  const fileText = valueOption(argv, '--file');
   const reasonAt = argv.indexOf('--reason');
   const reason = reasonAt >= 0 ? argv[reasonAt + 1] : undefined;
   const writes = modes[0] === '--create' || modes[0] === '--replace';
+  const recipe = /** @type {ReplayRecipeName | undefined} */ (REPLAY_RECIPES.find((r) => r === (recipeText ?? 'hard')));
   if (modes.length !== 1 || seed === null || from === null || (writes ? seed === undefined : seed !== undefined)
-    || (modes[0] !== '--search' && from !== undefined)) {
+    || (modes[0] !== '--search' && from !== undefined) || recipe === undefined
+    || fileText === null || (fileText !== undefined && (fileText === '' || basename(fileText) !== fileText))) {
     console.error(usage);
     return 2;
   }
@@ -582,12 +736,29 @@ async function replayMain(argv, dir) {
     console.error('record-fixtures: --replace needs --reason "<approved semantic/version change>"');
     return 2;
   }
-  const path = resolve(dir, REPLAY_FILE);
+  if (modes[0] === '--refusal') {
+    const { problems, skipped } = checkRefusal(dir);
+    if (problems.length > 0) {
+      console.error(problems.join('\n'));
+      return 1;
+    }
+    console.log(skipped
+      ? 'record-fixtures: refusal case skipped (the running versions are the file\'s)'
+      : 'record-fixtures: refusal case OK');
+    return 0;
+  }
+  if (recipe === 'screen' && !isV4Family(ALGO_ID)) {
+    console.error('record-fixtures: the screen recipe needs the gen-v4 family');
+    return 2;
+  }
+  const defaultFile = recipe === 'screen' ? REPLAY_FILE_V4_SCREEN : isV4Family(ALGO_ID) ? REPLAY_FILE_V4 : REPLAY_FILE;
+  const file = fileText ?? defaultFile;
+  const path = resolve(dir, file);
   if (modes[0] === '--search') {
-    return searchReplayCase(from ?? 0);
+    return searchReplayCase(from ?? 0, recipe);
   }
   if (modes[0] === '--check') {
-    const problems = await checkReplayCase(path);
+    const problems = await checkReplayCase(path, recipe);
     if (problems.length > 0) {
       console.error(problems.join('\n'));
       return 1;
@@ -596,17 +767,17 @@ async function replayMain(argv, dir) {
     return 0;
   }
   if (modes[0] === '--create' && existsSync(path)) {
-    console.error(`record-fixtures: ${REPLAY_FILE} already exists; --create never overwrites (use --replace for an approved change)`);
+    console.error(`record-fixtures: ${file} already exists; --create never overwrites (use --replace for an approved change)`);
     return 1;
   }
   const n = /** @type {number} */ (seed);
-  const r = await withReplayClient((client) => generateReplaySeed(client, n));
+  const r = await withReplayClient((client) => generateReplaySeed(client, n, recipe));
   if (!('file' in r)) {
-    console.error(`record-fixtures: replay-case-${n} does not meet the conditions: ${r.failed}`);
+    console.error(`record-fixtures: ${replaySeedPrefix(recipe)}${n} does not meet the conditions: ${r.failed}`);
     return 1;
   }
   writeFileSync(path, toFileText(r.file));
-  console.log(`record-fixtures: wrote replay-case-${n} (${path}); subset skip ${r.subsetSkip ? 'yes' : 'no'}`);
+  console.log(`record-fixtures: wrote ${replaySeedPrefix(recipe)}${n} (${path}); ${qualifierName(recipe)} ${r.qualifies ? 'yes' : 'no'}`);
   console.log(describeRecords(r.records).join('\n'));
   return 0;
 }
@@ -627,7 +798,7 @@ export async function main(argv) {
   if (modes.length !== 1 || ['--search', '--seed', '--from'].some((flag) => argv.includes(flag))) {
     console.error('usage: record-fixtures.mjs --create | --check | --replace --reason <text> [--dir <path>]\n'
       + '       record-fixtures.mjs --replay-case --search [--from <n>] | --create --seed <n> | --check'
-      + ' | --replace --seed <n> --reason <text> [--dir <path>]');
+      + ' | --replace --seed <n> --reason <text> | --refusal [--recipe hard|screen] [--file <name>] [--dir <path>]');
     return 2;
   }
   const paths = [FIXTURE_FILES.recipe, FIXTURE_FILES.sample].map((name) => resolve(dir, name));

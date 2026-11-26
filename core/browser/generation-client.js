@@ -5,13 +5,14 @@
 
 import { activeCount, boardFromRows, boardToRows, validateForGeneration } from '../engine/board.js';
 import { countRowLimit } from '../engine/clues.js';
+import { DEADLINE, PER_SET_LEVELS, perSetPrior, SET_ATTEMPTS_BOUND } from '../engine/gen-v4.js';
 import {
   candidateContext, completionAccept, dispatchOrder, foldAccept, foldNext, foldStart, GenerationError as HistoryError,
-  provenanceVersions,
+  provenanceVersions, ZERO_COUNTERS,
 } from '../engine/generate.js';
 import { puzzleId } from '../engine/keys.js';
 import { level } from '../engine/levels.js';
-import { createPack, provenanceProblem, validatePackSliced } from '../engine/pack.js';
+import { createPack, provenanceProblem, validatePack, validatePackSliced } from '../engine/pack.js';
 import { BUDGETS, ENUMERATION, pieceCountRange, POLICY_ID } from '../engine/policy.js';
 import { batchSeedFor, normalizeSeedText, RNG_ID, SEED_SCHEME } from '../engine/rng.js';
 import { isValidLayout } from '../engine/tiling.js';
@@ -36,6 +37,14 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
 /** @typedef {import('./worker-pool.js').Pool} Pool */
 
 /**
+ * One monotonic request clock: `origin` is the request's start on the client clock; `setCutAt` the instant that ends the
+ * set stage with `reserve-cut`, or null when the request has no reserve.
+ * @typedef {object} RequestScope
+ * @property {number} origin
+ * @property {number | null} setCutAt
+ */
+
+/**
  * @typedef {object} SetInput
  * @property {string[]} boardRows `#` active, `.` blocked; never changed implicitly.
  * @property {number} rotation Presentation only: 0, 45, ... 315 counter-clockwise degrees.
@@ -44,6 +53,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {'any' | 'require'} uniqueness
  * @property {number} maxActive Enabled active-cell cap of the device (the board minimum is 30).
  * @property {string} [revision] Owner tag echoed by every hook; defaults to `g<requestId>`.
+ * @property {RequestScope} [scope] From `newScope`; without it the request starts its own 115-s stop and has no reserve.
  */
 
 /**
@@ -64,6 +74,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {number} [setAttempt] Provenance only.
  * @property {SetOrigin} [setOrigin] Origin of the set, as its set result gave it; written into the pack unchanged.
  * @property {string} [revision]
+ * @property {RequestScope} [scope] The scope of the set request of the same automatic request, when there is one.
  */
 
 /**
@@ -106,7 +117,10 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  */
 
 /**
- * `failed` carries `reason` `time-limit`, `attempts-exhausted` (only with `maxSetAttempts`).
+ * `failed` carries `reason` `time-limit`, `reserve-cut` (the scope's set-stage cut passed), `response-bound` (the
+ * response guard's bound passed; the guard writes it, never the client), `attempts-exhausted` (only
+ * with `maxSetAttempts`), `no-window-below` or `no-window-above` (the first four attempts all ended without a window on
+ * that side).
  * @typedef {object} SetJobResult
  * @property {'complete' | 'failed' | 'cancelled'} status
  * @property {PieceSet} [set]
@@ -116,6 +130,13 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {Pack} [pack] Kind `piece-set`, no puzzles.
  * @property {string} [reason]
  * @property {Record<string, number>} [failures] Failed attempts by engine reason.
+ * @property {import('../engine/types.js').SelectCounters} counters Request total of the attempts' selection
+ *   counters (validation telemetry, never stored).
+ * @property {{ attempts: { attempt: number, outcome: string, reason: string | null, arrival: number }[],
+ *   sameSide: 'below' | 'above' | null, boundFired: boolean, noWindow: { below: number, above: number } }} trail
+ *   The first `SET_ATTEMPTS_BOUND` attempts in their order of arrival; `sameSide` the common no-window side of
+ *   them (also when a cancellation or the time limit returned first); `boundFired` whether the bound ended the
+ *   request; `noWindow` every settled attempt with a no-window reason, whatever its index.
  */
 
 /**
@@ -151,7 +172,10 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {Record<string, Made>} made Origin record of each accepted puzzle, by puzzle id.
  * @property {string[]} seenLayouts
  * @property {string[]} seenClues
- * @property {'layouts-not-found' | 'difficulty-not-found' | 'uniqueness-not-proved' | 'time-limit'} [reason]
+ * @property {import('../engine/types.js').SelectCounters} counters Request total of the candidates' selection
+ *   counters, every candidate and completion result received (validation telemetry, never stored).
+ * @property {'layouts-not-found' | 'difficulty-not-found' | 'uniqueness-not-proved' | 'time-limit' | 'response-bound'} [reason]
+ *   `response-bound`: the response guard returned the consumed, validated prefix (`prefixSnapshot`).
  * @property {ArrangementReport} [arrangements] Present whenever the batch stopped with `layouts-not-found`, also
  *   when the completion pass then filled it (`status` `complete`, no `reason`).
  */
@@ -160,6 +184,8 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @typedef {object} GenerationClient
  * @property {(input: SetInput, hooks?: GenerationHooks) => Promise<SetJobResult>} generateSet
  * @property {(input: BatchInput, hooks?: GenerationHooks) => Promise<BatchJobResult>} generateBatch
+ * @property {(reserve: boolean) => RequestScope} newScope A scope that starts now; with `reserve` true its set stage is
+ *   cut `DEADLINE.setStageCapMs` after the origin.
  * @property {(input: { boardRows: string[], pieces: Piece[], clues: Pose[], revision?: string }) => Promise<Pose[] | null>} solveWitness
  *   One arrangement of a piece set that keeps the given clues (the solver's first solution within its row limit), or
  *   null when none was found, the search was cancelled or it ran out of time.
@@ -175,6 +201,9 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  *   `PoolAbortError('cancelled' | 'closed')`, `WorkerTaskError` (for example `invalid-request`) or `PoolError`
  *   (`invalid-task` for a payload the protocol refuses, `worker-unavailable`).
  * @property {() => void} cancel
+ * @property {() => BatchJobResult | null} prefixSnapshot The latest request's batch prefix as a `partial` /
+ *   `response-bound` result (with a validated `pack` when it has puzzles), or null when that request has no snapshot.
+ * @property {() => Clock} clock The clock this client reads.
  * @property {() => void} recycle
  */
 
@@ -187,6 +216,7 @@ import { isAbortError, PoolError, systemClock, WorkerTaskError } from './worker-
  * @property {boolean} cancelled Cancel, supersession or a closed pool.
  * @property {boolean} timedOut
  * @property {(() => void) | null} wake
+ * @property {(() => BatchJobResult) | undefined} [snapshot] A batch's prefix snapshot for the response guard.
  */
 
 export const MAX_BATCH = 10;
@@ -446,9 +476,56 @@ function usableCalibration(set, cal) {
 }
 
 /**
+ * P5's bound (plan v4 P5): the common `no-window-<side>` reason when the first SET_ATTEMPTS_BOUND attempts all
+ * failed without a window on the same side, else null. A budget stop or any other reason has no side.
+ * @param {Map<number, { kind: string, reason?: string }>} results
+ * @returns {'no-window-below' | 'no-window-above' | null}
+ */
+export function setBound(results) {
+  const n = SET_ATTEMPTS_BOUND;
+  if (!Number.isInteger(n) || n < 1) {
+    return null;
+  }
+  /** @type {string | null} */
+  let side = null;
+  for (let j = 0; j < n; j += 1) {
+    const r = results.get(j);
+    if (r === undefined || r.kind !== 'fail' || typeof r.reason !== 'string' || !r.reason.startsWith('no-window-')) {
+      return null;
+    }
+    if (side !== null && side !== r.reason) {
+      return null;
+    }
+    side = r.reason;
+  }
+  return /** @type {'no-window-below' | 'no-window-above' | null} */ (side);
+}
+
+/**
+ * Adds the selection counters of a worker reply (a candidate or a set attempt, ok or failed) to a request total.
+ * A reply without counters (a `gen-v3` worker, an invalid reply) adds nothing.
+ * @param {Record<string, number>} total
+ * @param {unknown} reply
+ */
+function addCounters(total, reply) {
+  const c = isObject(reply) && isObject(reply.counters) ? reply.counters : null;
+  if (c === null) {
+    return;
+  }
+  for (const name of Object.keys(ZERO_COUNTERS)) {
+    const n = c[name];
+    if (typeof n === 'number' && Number.isFinite(n)) {
+      total[name] += n;
+    }
+  }
+}
+
+/**
  * @param {Pool} pool
- * @param {{ clock?: Clock, createdAt?: () => string, maxSetAttempts?: number }} [options] `createdAt` supplies the
- *   metadata timestamp; `maxSetAttempts` (default unbounded) ends a set request as `attempts-exhausted`.
+ * @param {{ clock?: Clock, createdAt?: () => string, maxSetAttempts?: number,
+ *   assemblyGate?: (phase: 'set' | 'batch') => Promise<void> }} [options] `createdAt` supplies the
+ *   metadata timestamp; `maxSetAttempts` (default unbounded) ends a set request as `attempts-exhausted`;
+ *   `assemblyGate` is tests only: awaited directly before a pack assembly.
  * @returns {GenerationClient}
  */
 export function createGenerationClient(pool, options = {}) {
@@ -466,8 +543,12 @@ export function createGenerationClient(pool, options = {}) {
     kinds: ['rate', 'replayPuzzle'],
   });
 
-  /** @param {string | undefined} revision @returns {Job} */
-  function begin(revision) {
+  /**
+   * @param {string | undefined} revision
+   * @param {RequestScope} [scope]
+   * @returns {Job}
+   */
+  function begin(revision, scope) {
     const requestId = lastRequestId + 1;
     const tag = revisionOf(revision, requestId);
     /** @type {Job} */
@@ -477,6 +558,7 @@ export function createGenerationClient(pool, options = {}) {
       pool.beginRequest({
         requestId,
         revision: tag,
+        origin: scope?.origin,
         onTimeout: () => {
           job.timedOut = true;
           job.wake?.();
@@ -550,6 +632,28 @@ export function createGenerationClient(pool, options = {}) {
     throw toFault(error, detail);
   }
 
+  /** @param {unknown} scope */
+  function checkScope(scope) {
+    if (scope === undefined) {
+      return;
+    }
+    const valid = isObject(scope)
+      && typeof scope.origin === 'number' && Number.isFinite(scope.origin) && scope.origin <= clock.now()
+      && (scope.setCutAt === null || (typeof scope.setCutAt === 'number' && Number.isFinite(scope.setCutAt) && scope.setCutAt >= scope.origin));
+    if (!valid) {
+      throw new GenerationError('invalid-input', 'scope is invalid');
+    }
+  }
+
+  /**
+   * @param {boolean} reserve
+   * @returns {RequestScope}
+   */
+  function newScope(reserve) {
+    const origin = clock.now();
+    return { origin, setCutAt: reserve === true ? origin + DEADLINE.setStageCapMs : null };
+  }
+
   /**
    * @param {SetInput} input
    * @returns {{ board: Board, rotation: number, seedText: string, levelId: string, uniqueness: 'any' | 'require' }}
@@ -558,6 +662,7 @@ export function createGenerationClient(pool, options = {}) {
     if (!isObject(input)) {
       throw new GenerationError('invalid-input', 'The set request must be an object');
     }
+    checkScope(input.scope);
     const cap = input.maxActive;
     if (!Number.isInteger(cap) || cap < MIN_ACTIVE_CAP || cap > MAX_ACTIVE_CAP) {
       throw new GenerationError('invalid-input', `maxActive must be an integer from ${MIN_ACTIVE_CAP} to ${MAX_ACTIVE_CAP}`);
@@ -595,7 +700,9 @@ export function createGenerationClient(pool, options = {}) {
   async function generateSet(input, hooks = {}) {
     const request = checkSet(input);
     const maxAttempts = options.maxSetAttempts ?? Infinity;
-    const job = begin(input.revision);
+    const job = begin(input.revision, input.scope);
+    const cutAt = typeof input.scope?.setCutAt === 'number' ? input.scope.setCutAt : null;
+    const cutTimer = cutAt === null ? null : clock.setTimeout(() => job.wake?.(), Math.max(0, cutAt - clock.now()));
     const { board, levelId, seedText, uniqueness, rotation } = request;
     const boardRows = boardToRows(board);
     const size = pool.size;
@@ -605,6 +712,49 @@ export function createGenerationClient(pool, options = {}) {
     const inflight = new Map();
     let next = 0;
     let winner = -1;
+    const counters = { ...ZERO_COUNTERS };
+    /** @type {NonNullable<SetJobResult['trail']>} */
+    const trail = { attempts: [], sameSide: null, boundFired: false, noWindow: { below: 0, above: 0 } };
+    let arrivals = 0;
+
+    /**
+     * Counts a settled attempt: its counters, its place in the trail (attempts below the bound only) and its
+     * no-window side (every attempt).
+     * @param {number} j
+     * @param {unknown} [value] The worker's reply; none for a rejection.
+     */
+    const settled = (j, value) => {
+      const r = results.get(j);
+      const arrival = arrivals;
+      arrivals += 1;
+      addCounters(counters, value);
+      const reason = r?.kind === 'fail' ? r.reason : null;
+      if (j < SET_ATTEMPTS_BOUND && r !== undefined) {
+        trail.attempts.push({ attempt: j, outcome: r.kind, reason, arrival });
+      }
+      if (reason === 'no-window-below') {
+        trail.noWindow.below += 1;
+      } else if (reason === 'no-window-above') {
+        trail.noWindow.above += 1;
+      }
+    };
+
+    /**
+     * The request totals as a copy: attempts that settle after the request returned do not change a result.
+     * @returns {{ counters: SetJobResult['counters'], trail: SetJobResult['trail'] }}
+     */
+    const telemetry = () => {
+      const bound = setBound(results);
+      return {
+        counters: { ...counters },
+        trail: {
+          attempts: trail.attempts.map((a) => ({ ...a })),
+          sameSide: trail.boundFired ? trail.sameSide : bound === null ? null : bound === 'no-window-below' ? 'below' : 'above',
+          boundFired: trail.boundFired,
+          noWindow: { ...trail.noWindow },
+        },
+      };
+    };
 
     /** @param {number} j */
     const launch = (j) => {
@@ -632,6 +782,7 @@ export function createGenerationClient(pool, options = {}) {
         } else {
           results.set(j, { kind: 'fail', reason: String(value.reason) });
         }
+        settled(j, value);
         emit(hooks.onProgress, {
           revision: job.revision, job: /** @type {const} */ ('set'), stage: 'carving', attempt: j, elapsedMs: clock.now() - job.startedAt,
         });
@@ -643,6 +794,7 @@ export function createGenerationClient(pool, options = {}) {
         } else {
           results.set(j, { kind: 'fault', error });
         }
+        settled(j);
         job.wake?.();
       });
     };
@@ -662,10 +814,16 @@ export function createGenerationClient(pool, options = {}) {
     try {
       for (;;) {
         if (job.cancelled) {
-          return { status: 'cancelled' };
+          return { status: 'cancelled', ...telemetry() };
         }
         if (job.timedOut) {
-          return { status: 'failed', reason: 'time-limit', failures: tally() };
+          return { status: 'failed', reason: 'time-limit', failures: tally(), ...telemetry() };
+        }
+        const bound = setBound(results);
+        if (bound !== null) {
+          trail.sameSide = bound === 'no-window-below' ? 'below' : 'above';
+          trail.boundFired = true;
+          return { status: 'failed', reason: bound, failures: tally(), ...telemetry() };
         }
         // The lowest successful attempt wins: scan the resolved prefix in order.
         for (let j = 0; ; j += 1) {
@@ -675,25 +833,34 @@ export function createGenerationClient(pool, options = {}) {
           }
           if (r.kind === 'fault') {
             const reason = stopReason(job, r.error, {});
-            return reason === 'cancelled' ? { status: 'cancelled' } : { status: 'failed', reason, failures: tally() };
+            return reason === 'cancelled'
+              ? { status: 'cancelled', ...telemetry() }
+              : { status: 'failed', reason, failures: tally(), ...telemetry() };
           }
           if (r.kind === 'ok') {
-            return await finishSet(request, r.value);
+            const { counters: total, trail: record } = telemetry();
+            return await finishSet(request, r.value, total, record);
           }
           if (r.kind === 'skipped') {
             break;
           }
+        }
+        if (cutAt !== null && clock.now() >= cutAt) {
+          return { status: 'failed', reason: 'reserve-cut', failures: tally(), ...telemetry() };
         }
         while (winner < 0 && inflight.size < size && next < maxAttempts) {
           launch(next);
           next += 1;
         }
         if (inflight.size === 0 && winner < 0 && next >= maxAttempts) {
-          return { status: 'failed', reason: 'attempts-exhausted', failures: tally() };
+          return { status: 'failed', reason: 'attempts-exhausted', failures: tally(), ...telemetry() };
         }
         await waitEvent(job);
       }
     } finally {
+      if (cutTimer !== null) {
+        clock.clearTimeout(cutTimer);
+      }
       for (const c of inflight.values()) {
         c.abort();
       }
@@ -704,9 +871,11 @@ export function createGenerationClient(pool, options = {}) {
   /**
    * @param {{ board: Board, rotation: number, seedText: string, levelId: string, uniqueness: 'any' | 'require' }} request
    * @param {any} value Successful setAttempt result.
+   * @param {SetJobResult['counters']} total The request's selection counters.
+   * @param {SetJobResult['trail']} trail The request's attempt trail.
    * @returns {Promise<SetJobResult>}
    */
-  async function finishSet(request, value) {
+  async function finishSet(request, value, total, trail) {
     const { board } = request;
     const raw = value.set;
     if (!isObject(raw) || !Array.isArray(raw.pieces) || !isObject(value.calibration)) {
@@ -732,6 +901,7 @@ export function createGenerationClient(pool, options = {}) {
       uniqueness: request.uniqueness,
       versions: provenanceVersions(),
     };
+    await options.assemblyGate?.('set');
     const pack = await assemblePack({
       board,
       rotation: request.rotation,
@@ -748,7 +918,9 @@ export function createGenerationClient(pool, options = {}) {
         setOrigin,
       }),
     }, {});
-    return { status: 'complete', set, calibration: value.calibration, attempt: value.attempt, setOrigin, pack };
+    return {
+      status: 'complete', set, calibration: value.calibration, attempt: value.attempt, setOrigin, pack, counters: total, trail,
+    };
   }
 
   /**
@@ -764,6 +936,7 @@ export function createGenerationClient(pool, options = {}) {
     const history = { seenLayouts: Array.isArray(input.seenLayouts) ? input.seenLayouts.slice() : [], seenClues: Array.isArray(input.seenClues) ? input.seenClues.slice() : [] };
     try {
       const { set } = input;
+      checkScope(input.scope);
       boardToRows(set.board);
       const setSeed = checkedSeed(input.setSeed, 'setSeed');
       const seenLayouts = checkedKeys(input.seenLayouts);
@@ -847,7 +1020,7 @@ export function createGenerationClient(pool, options = {}) {
       }
       throw new GenerationError('invalid-input', e instanceof Error ? e.message : 'The batch request is invalid', detail);
     }
-    const job = begin(input.revision);
+    const job = begin(input.revision, input.scope);
     const frozen = candidateContext(ctx, state);
     const base = {
       set: wireSet(set),
@@ -858,6 +1031,7 @@ export function createGenerationClient(pool, options = {}) {
       seenLayouts: [...frozen.seenLayouts],
       seenClues: [...frozen.seenClues],
     };
+    const prior = PER_SET_LEVELS.includes(levelId) ? perSetPrior(request.calibration, levelId, uniqueness) : {};
     /** @type {Map<string, { done: boolean, ok?: boolean, value?: unknown, error?: unknown }>} */
     const cache = new Map();
     const controller = new AbortController();
@@ -866,6 +1040,7 @@ export function createGenerationClient(pool, options = {}) {
     /** @type {Record<string, Made>} */
     const made = {};
     let inflight = 0;
+    const counters = { ...ZERO_COUNTERS };
     /** @type {'complete' | 'partial' | 'cancelled'} */
     let status = 'partial';
     /** @type {BatchJobResult['reason']} */
@@ -877,6 +1052,45 @@ export function createGenerationClient(pool, options = {}) {
     let searched = false;
     let totalSeen = 0;
     const detail = () => ({ accepted: accepted.slice(), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] });
+    const packParts = () => ({
+      board: set.board,
+      rotation: request.rotation,
+      pieces: set.pieces,
+      witness: set.witness,
+      puzzles: accepted.slice(),
+      generation: generationMeta({
+        setSeed: request.setSeed,
+        setLevel: input.setLevel,
+        setAttempt: input.setAttempt,
+        set,
+        uniqueness,
+        createdAt: createdAt(),
+        batch: { batchSeed, batchLevel: levelId, batchIndex: input.batchIndex },
+        setOrigin: request.setOrigin,
+        made,
+      }),
+    });
+    // The response guard's prefix (lv-16, lv-19): the consumed, validated fold prefix, never waiting for an assembly.
+    job.snapshot = () => {
+      /** @type {BatchJobResult} */
+      const snapshot = {
+        status: 'partial',
+        reason: 'response-bound',
+        accepted: accepted.slice(),
+        made: structuredClone(made),
+        seenLayouts: [...state.seenLayouts],
+        seenClues: [...state.seenClues],
+        counters: { ...counters },
+      };
+      if (accepted.length > 0) {
+        const checked = validatePack(createPack(packParts()));
+        if (!checked.ok) {
+          throw new GenerationError('internal', 'The generated pack failed validation', { ...detail(), issues: checked.issues });
+        }
+        snapshot.pack = checked.value;
+      }
+      return snapshot;
+    };
     const elapsed = () => clock.now() - job.startedAt;
     /** @param {Partial<GenerationProgress>} extra */
     const progress = (extra) => emit(hooks.onProgress, {
@@ -900,9 +1114,10 @@ export function createGenerationClient(pool, options = {}) {
       const onWorker = (/** @type {{ stage: string, rowTrials: number, bytes: number }} */ p) => progress({
         stage: p.stage, slot, attempt, bytes: p.bytes, rowTrials: p.rowTrials,
       });
-      runTask(job, 'puzzleCandidate', { ...base, slot, attempt }, controller.signal, onWorker).then((value) => {
+      runTask(job, 'puzzleCandidate', { ...base, ...prior, slot, attempt }, controller.signal, onWorker).then((value) => {
         Object.assign(entry, { done: true, ok: true, value });
         inflight -= 1;
+        addCounters(counters, value);
         job.wake?.();
       }, (error) => {
         Object.assign(entry, { done: true, ok: false, error });
@@ -1050,6 +1265,7 @@ export function createGenerationClient(pool, options = {}) {
             runTask(job, 'completionCandidate', { ...payloadBase, layout }, passController.signal, (p) => progress({
               stage: p.stage, slot: accepted.length + 1, bytes: p.bytes, rowTrials: p.rowTrials,
             })).then((value) => {
+              addCounters(counters, value);
               Object.assign(entry, { done: true, ok: true, value });
               job.wake?.();
             }, (error) => {
@@ -1175,7 +1391,10 @@ export function createGenerationClient(pool, options = {}) {
     }
 
     /** @type {BatchJobResult} */
-    const result = { status, accepted, made: structuredClone(made), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues] };
+    const result = {
+      status, accepted, made: structuredClone(made), seenLayouts: [...state.seenLayouts], seenClues: [...state.seenClues],
+      counters: { ...counters },
+    };
     if (reason !== undefined) {
       result.reason = reason;
     }
@@ -1183,24 +1402,8 @@ export function createGenerationClient(pool, options = {}) {
       result.arrangements = arrangements;
     }
     if (accepted.length > 0) {
-      result.pack = await assemblePack({
-        board: set.board,
-        rotation: request.rotation,
-        pieces: set.pieces,
-        witness: set.witness,
-        puzzles: accepted,
-        generation: generationMeta({
-          setSeed: request.setSeed,
-          setLevel: input.setLevel,
-          setAttempt: input.setAttempt,
-          set,
-          uniqueness,
-          createdAt: createdAt(),
-          batch: { batchSeed, batchLevel: levelId, batchIndex: input.batchIndex },
-          setOrigin: request.setOrigin,
-          made,
-        }),
-      }, detail());
+      await options.assemblyGate?.('batch');
+      result.pack = await assemblePack(packParts(), detail());
     }
     if (hooks.onCertificate !== undefined && status !== 'cancelled' && reason !== 'time-limit' && !job.timedOut) {
       queueCertificates(job, set, accepted, hooks);
@@ -1291,6 +1494,9 @@ export function createGenerationClient(pool, options = {}) {
   return {
     generateSet,
     generateBatch,
+    newScope,
+    prefixSnapshot: () => latest?.snapshot?.() ?? null,
+    clock: () => clock,
     solveWitness,
     submitAuxiliary: (kind, payload, submitOptions) => aux.submit(kind, payload, submitOptions ?? {}),
     replayPuzzle,

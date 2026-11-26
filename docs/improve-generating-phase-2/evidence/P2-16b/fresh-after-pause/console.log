@@ -1,0 +1,3 @@
+CHECK-START fresh-after-pause
+DEADLINE fresh-after-pause elapsed 5791 ms (115818 ms virtual)
+CHECK-END PASS 9.3 s fresh-after-pause

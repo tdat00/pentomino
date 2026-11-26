@@ -1,0 +1,20 @@
+{
+  "id": "p2-glue",
+  "extends": ["p2-gen4"],
+  "description": "The no-window glue proof copy (P2-16c): p2-gen4 with test seams that script the ratings of chosen set attempts inside the worker, so the production selector, setAttempt, protocol, pool and client carry the scripted outcomes.",
+  "edits": [
+    {
+      "id": "gl-1",
+      "file": "core/engine/select-v4.js",
+      "find": "export function selectCluesV4(ctx) {\n",
+      "replace": "export function selectCluesV4(ctx) {\n  ctx = { ...ctx, ...glueSeams(ctx) };\n"
+    },
+    {
+      "id": "gl-2",
+      "file": "core/engine/select-v4.js",
+      "append": "\nimport { glueSeams } from './p2-glue.js';\n"
+    }
+  ],
+  "files": ["p2-glue"],
+  "params": { "glue": true }
+}

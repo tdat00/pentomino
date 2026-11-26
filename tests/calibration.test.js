@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { PoolAbortError, systemClock } from '../core/browser/worker-pool.js';
 import { activeCount, boardFromRows, validateForGeneration } from '../core/engine/board.js';
 import { canonicalJson, sha256Hex } from '../core/engine/hash.js';
 import { level, offeredLevels } from '../core/engine/levels.js';
@@ -13,6 +14,7 @@ import {
   RETIRED_REFERENCE_ROWS, sampleCounts,
 } from '../tools/bench/calibration-reference.js';
 import { newRunRecord, evaluateCell, returnedEveryArrangement, validateRunRecord } from '../tools/bench/report.js';
+import { createNotApplicable } from '../tools/bench/responsiveness.js';
 import { releaseHost, runCase, validateMatrix } from '../tools/bench/runner.js';
 import { createNodeHost, loadMatrix, parseArgs, readCheckpoint, reportBase, run, runInChild } from '../tools/calibrate.mjs';
 
@@ -509,5 +511,50 @@ describe('Node runner end to end', () => {
     assert.match(lines(`${base}.md`), /Production-engine calibration landscape/);
     assert.match(lines(`${base}.md`), /## v3 measures per cell/);
     rmSync(ARTIFACTS, { recursive: true, force: true });
+  });
+});
+
+describe('bench run telemetry', () => {
+  const caseDef = {
+    id: 'd7x5-easy', boardRows: Array(5).fill('#'.repeat(7)), rotation: 0, levelId: 'easy', maxActive: 676, quantity: 10,
+    uniqueness: /** @type {const} */ ('any'), seedPrefix: 'owner', repetitions: 1,
+  };
+  const spec = { caseId: caseDef.id, rep: 0, seed: 'demo', probeKind: /** @type {const} */ ('generation') };
+  const counterKeys = ['budgetStops', 'rescueReratings', 'screenCapped', 'tailReratings'];
+
+  test('a run record carries the telemetry', async () => {
+    const host = createNodeHost({ workers: 2, lifecycle: 'cold', freshProcess: false, source: { commit: 'c', digest: 'd', versions: {} } });
+    try {
+      const row = await runCase(spec, caseDef, host);
+      assert.deepEqual(validateRunRecord(row), []);
+      const { setCounters, batchCounters, trail } = /** @type {any} */ (row).telemetry;
+      assert.deepEqual(Object.keys(setCounters).sort(), counterKeys);
+      assert.deepEqual(Object.keys(batchCounters).sort(), counterKeys);
+      assert.deepEqual(Object.keys(trail).sort(), ['attempts', 'boundFired', 'noWindow', 'sameSide']);
+      assert.ok(Array.isArray(trail.attempts) && trail.attempts.length >= 1 && trail.attempts.length <= 4);
+      assert.equal(typeof trail.boundFired, 'boolean');
+      assert.deepEqual(Object.keys(trail.noWindow).sort(), ['above', 'below']);
+    } finally {
+      releaseHost(host);
+    }
+  });
+
+  test('a failed set still has telemetry', async () => {
+    const pool = {
+      size: 2, run: () => Promise.reject(new PoolAbortError('deadline')), runIdle: () => Promise.reject(new PoolAbortError('deadline')),
+      cancelAll() {}, recycle() {}, beginRequest() {}, endRequest() {},
+      memory: () => ({ workerBytes: 0, mainBytes: 0, totalBytes: 0, peakBytes: 0, mainBudgetBytes: 0 }),
+      setMainBytes() {}, close() {},
+    };
+    const host = /** @type {any} */ ({
+      kind: 'node', platform: 'test', browserOrNode: 'node test', workerCount: 2, lifecycle: 'cold', sourceCommit: 'c',
+      sourceDigest: 'd', versions: {}, clock: systemClock, createPool: () => pool,
+      responsiveness: createNotApplicable(), clickCancel: (/** @type {() => void} */ h) => setTimeout(h, 0),
+    });
+    const row = await runCase(spec, caseDef, host);
+    assert.equal(row.partialReason, 'set:time-limit');
+    const { batchCounters, trail } = /** @type {any} */ (row).telemetry;
+    assert.equal(batchCounters, null);
+    assert.ok(trail !== null && Array.isArray(trail.attempts) && trail.noWindow.below === 0 && trail.noWindow.above === 0);
   });
 });

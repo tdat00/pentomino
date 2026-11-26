@@ -4,6 +4,7 @@
 // whitelisted and copied; ratings and certificates are claims (`verified` never read).
 
 import { activeCount, boardFromRows, boardToRows, regions } from './board.js';
+import { isV4Family, SKIP_BOUNDS_V4 } from './gen-v4.js';
 import { canonicalKey, canonicalT, hasHole, isConnected, normalizeCells, poseCells } from './geometry.js';
 import { level } from './levels.js';
 import { BUDGETS } from './policy.js';
@@ -60,6 +61,12 @@ const MADE_CANDIDATE_KEYS = [
 const MADE_PLAIN_KEYS = ['schema', 'kind'];
 const SKIPS_KEYS = ['subsets', 'repairs'];
 const VERSION_KEYS = ['algo', 'policy', 'rng', 'seedScheme', 'ratingModel'];
+// The provenance shape follows the record's own algo: the gen-v4 family has seven keys (plan 4.3).
+const VERSION_KEYS_V4 = [...VERSION_KEYS, 'priorTable', 'screenTable'];
+const MADE_CANDIDATE_KEYS_V4 = [
+  'schema', 'kind', 'batchSeed', 'targetLevel', 'uniqueness', 'slot', 'attempt', 'start', 'skips', 'igPrior', 'versions',
+];
+const SUBSET_ORDINALS_V4 = SKIP_BOUNDS_V4.subsets;
 const MAX_VERSION_UNITS = 64;
 const MAX_BATCH_SEED_UNITS = 256;
 const MAX_SLOT = 10;
@@ -1141,16 +1148,26 @@ function isLevelId(v) {
 }
 
 /**
+ * Whether a raw `versions` value names the gen-v4 family: `gen-v4` or `gen-v4-proto:<variant id>`.
+ * @param {unknown} versions
+ * @returns {boolean}
+ */
+function isV4Versions(versions) {
+  return isV4Family(isPlainObject(versions) ? ownValue(versions, 'algo') : undefined);
+}
+
+/**
  * @param {unknown} v
  * @returns {string | null}
  */
 function versionsProblem(v) {
-  const shape = exactKeysProblem(v, VERSION_KEYS);
+  const keys = isV4Versions(v) ? VERSION_KEYS_V4 : VERSION_KEYS;
+  const shape = exactKeysProblem(v, keys);
   if (shape !== null) {
     return `versions: ${shape}`;
   }
   const o = /** @type {Record<string, unknown>} */ (v);
-  for (const key of VERSION_KEYS) {
+  for (const key of keys) {
     const id = o[key];
     if (typeof id !== 'string' || id.length < 1 || id.length > MAX_VERSION_UNITS) {
       return `versions.${key} must be a string of 1 to ${MAX_VERSION_UNITS} characters`;
@@ -1189,9 +1206,10 @@ function ordinalsProblem(name, list, maxCount, bound) {
 
 /**
  * @param {unknown} v
+ * @param {number} [subsetBound] Exclusive bound of a subset ordinal.
  * @returns {string | null}
  */
-function skipsProblem(v) {
+function skipsProblem(v, subsetBound = PROVENANCE.subsetOrdinals) {
   if (v === 'overflow') {
     return null;
   }
@@ -1200,7 +1218,7 @@ function skipsProblem(v) {
     return `skips: ${shape}`;
   }
   const o = /** @type {Record<string, unknown>} */ (v);
-  return ordinalsProblem('subsets', o.subsets, PROVENANCE.subsetSkips, PROVENANCE.subsetOrdinals)
+  return ordinalsProblem('subsets', o.subsets, PROVENANCE.subsetSkips, subsetBound)
     ?? ordinalsProblem('repairs', o.repairs, PROVENANCE.repairSkips, PROVENANCE.repairOrdinals);
 }
 
@@ -1244,7 +1262,8 @@ function madeProblem(v) {
   if (kind !== 'calibration' && kind !== 'candidate' && kind !== 'completion') {
     return 'kind must be "calibration", "candidate" or "completion"';
   }
-  const shape = exactKeysProblem(v, kind === 'candidate' ? MADE_CANDIDATE_KEYS : MADE_PLAIN_KEYS);
+  const v4 = kind === 'candidate' && isV4Versions(ownValue(v, 'versions'));
+  const shape = exactKeysProblem(v, kind !== 'candidate' ? MADE_PLAIN_KEYS : v4 ? MADE_CANDIDATE_KEYS_V4 : MADE_CANDIDATE_KEYS);
   if (shape !== null) {
     return shape;
   }
@@ -1275,7 +1294,10 @@ function madeProblem(v) {
   if (o.start !== 'witness' && o.start !== 'restart') {
     return 'start must be "witness" or "restart"';
   }
-  return skipsProblem(o.skips) ?? versionsProblem(o.versions);
+  if (v4 && o.igPrior !== null && !isIntIn(o.igPrior, 1, MAX_PIECES)) {
+    return `igPrior must be null or an integer from 1 to ${MAX_PIECES}`;
+  }
+  return skipsProblem(o.skips, v4 ? SUBSET_ORDINALS_V4 : PROVENANCE.subsetOrdinals) ?? versionsProblem(o.versions);
 }
 
 /**
@@ -1319,6 +1341,7 @@ function copyVersions(v) {
     rng: /** @type {string} */ (v.rng),
     seedScheme: /** @type {string} */ (v.seedScheme),
     ratingModel: /** @type {string} */ (v.ratingModel),
+    ...(isV4Versions(v) ? { priorTable: v.priorTable, screenTable: v.screenTable } : {}),
   };
 }
 
@@ -1341,6 +1364,7 @@ function copyMade(v) {
     attempt: v.attempt,
     start: v.start,
     skips: skips === 'overflow' ? skips : { subsets: skips.subsets.slice(), repairs: skips.repairs.slice() },
+    ...(isV4Versions(v.versions) ? { igPrior: v.igPrior } : {}),
     versions: copyVersions(/** @type {Record<string, unknown>} */ (v.versions)),
   });
 }

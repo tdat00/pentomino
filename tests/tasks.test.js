@@ -90,6 +90,26 @@ describe('executeTask returns exact engine results', () => {
     }, 1, 0));
   });
 
+  test('an igPrior payload is accepted and today\'s search ignores it', () => {
+    const set = /** @type {any} */ (setAttempt({ board, rotation: 0, levelId: 'hard', seedText: 'fixture-set-0', uniqueness: 'any', execution: execution() }, 0)).set;
+    const payload = {
+      set: wireSet(set),
+      targetLevelId: 'hard',
+      quantity: 10,
+      batchSeed: 'fixture-set-0#1',
+      uniqueness: 'any',
+      seenLayouts: ['x'],
+      seenClues: [],
+      slot: 1,
+      attempt: 0,
+    };
+    const withPrior = /** @type {any} */ (executeTask('puzzleCandidate', { ...payload, igPrior: 5 }, execution()));
+    const without = /** @type {any} */ (executeTask('puzzleCandidate', payload, execution()));
+    assert.equal(withPrior.made.igPrior, 5);
+    assert.equal(without.made.igPrior, null);
+    assert.deepEqual({ ...withPrior, made: { ...withPrior.made, igPrior: null } }, without);
+  });
+
   test('certify, rate and solveFirst', () => {
     const ws = createWorkspace(MAIN_WORKSPACE_BYTES);
     const clues = cluesOf('LUNFX');
@@ -612,7 +632,7 @@ describe('puzzle-code tasks', () => {
 });
 
 describe('replayPuzzle task', () => {
-  const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('tests/fixtures/replay-case.json', root), 'utf8'));
+  const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('tests/fixtures/replay-case-v4.json', root), 'utf8'));
   /**
    * The payload of one fixture puzzle as the Generator's client builds it (design §8.1).
    * @param {number} [packIndex]

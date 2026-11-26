@@ -956,3 +956,38 @@ describe('pool with the real task handler', () => {
     pool.close();
   });
 });
+
+describe('request origin', () => {
+  test('a request origin earlier than now shortens the 115-s stop', () => {
+    const { pool, clock } = setup();
+    clock.advance(9000);
+    assert.equal(clock.now(), 10000);
+    /** @type {any[]} */
+    const timeouts = [];
+    pool.beginRequest({ requestId: 1, revision: 'r1', origin: 4000, onTimeout: (info) => timeouts.push({ ...info, at: clock.now() }) });
+    clock.advance(108999);
+    assert.equal(timeouts.length, 0);
+    clock.advance(1);
+    assert.equal(timeouts.length, 1);
+    assert.equal(timeouts[0].at, 4000 + TIME.dispatchStopMs);
+    assert.equal(timeouts[0].elapsedMs, TIME.dispatchStopMs);
+    pool.close();
+  });
+
+  test('a later or invalid origin is ignored', () => {
+    for (const origin of [20000, Number.NaN, Infinity, undefined]) {
+      const { pool, clock } = setup();
+      clock.advance(9000);
+      /** @type {any[]} */
+      const timeouts = [];
+      pool.beginRequest({ requestId: 1, revision: 'r1', origin, onTimeout: (info) => timeouts.push({ ...info, at: clock.now() }) });
+      clock.advance(TIME.dispatchStopMs - 1);
+      assert.equal(timeouts.length, 0, `origin ${origin}`);
+      clock.advance(1);
+      assert.equal(timeouts.length, 1, `origin ${origin}`);
+      assert.equal(timeouts[0].at, 10000 + TIME.dispatchStopMs);
+      assert.equal(timeouts[0].elapsedMs, TIME.dispatchStopMs);
+      pool.close();
+    }
+  });
+});

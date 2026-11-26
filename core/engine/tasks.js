@@ -176,6 +176,7 @@ export function executeTask(kind, payload, execution) {
         uniqueness: p.uniqueness,
         seenLayouts: new Set(p.seenLayouts),
         seenClues: new Set(p.seenClues),
+        ...(p.igPrior === undefined ? {} : { igPrior: p.igPrior }),
         execution,
       }, p.slot, p.attempt);
     case 'completionCandidate':

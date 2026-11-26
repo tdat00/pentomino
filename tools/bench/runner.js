@@ -5,9 +5,11 @@
 // generation client, so no algorithm lives here. Rows are never dropped: a
 // failed, cancelled or crashed run is recorded with its reason.
 import { createGenerationClient, GenerationError } from '../../core/browser/generation-client.js';
+import { guardSetThenBatch } from '../../core/browser/generation-deadline.js';
 import { isAbortError } from '../../core/browser/worker-pool.js';
 import { activeCount, boardFromRows, validateForGeneration } from '../../core/engine/board.js';
 import { inBand } from '../../core/engine/difficulty.js';
+import { DEADLINE, usesGenV4 } from '../../core/engine/gen-v4.js';
 import { canonicalJson, sha256Hex } from '../../core/engine/hash.js';
 import { clueKey, layoutKey } from '../../core/engine/keys.js';
 import { level } from '../../core/engine/levels.js';
@@ -36,7 +38,7 @@ import { newRunRecord, QUANTITY, runKey } from './report.js';
  * @property {string} levelId
  * @property {number} maxActive Candidate cap being qualified; passed to generation validation only.
  * @property {10} quantity
- * @property {'any'} uniqueness
+ * @property {'any' | 'require'} uniqueness
  * @property {string} seedPrefix
  * @property {number} repetitions
  * @property {string[]} [seeds] Explicit set seeds, one per repetition.
@@ -171,8 +173,8 @@ function checkCase(c, at, ids, add) {
   if (c.quantity !== QUANTITY) {
     add(`${at}.quantity`, `quantity must be ${QUANTITY}`);
   }
-  if (c.uniqueness !== 'any') {
-    add(`${at}.uniqueness`, 'uniqueness must be "any"');
+  if (c.uniqueness !== 'any' && c.uniqueness !== 'require') {
+    add(`${at}.uniqueness`, 'uniqueness must be "any" or "require"');
   }
   try {
     const counts = area > 0 ? pieceCountRange(level(c.levelId).id, area) : [];
@@ -534,54 +536,65 @@ const newState = () => ({
  */
 async function generate(s, spec, caseDef, host, clock, client) {
   s.t0 = clock.now();
+  const scope = usesGenV4(caseDef.levelId, boardFromRows(caseDef.boardRows)) ? { origin: s.t0, setCutAt: s.t0 + DEADLINE.setStageCapMs } : undefined;
   try {
-    const set = await client.generateSet({
-      boardRows: caseDef.boardRows,
-      rotation: caseDef.rotation,
-      levelId: caseDef.levelId,
-      seedText: spec.seed,
-      uniqueness: caseDef.uniqueness,
-      maxActive: caseDef.maxActive,
-    });
-    s.set = set;
-    s.tSet = clock.now();
-    if (set.status !== 'complete' || set.set === undefined) {
-      return;
+    const { batch } = await guardSetThenBatch(
+      { clock, client, scope },
+      () => client.generateSet({
+        boardRows: caseDef.boardRows,
+        rotation: caseDef.rotation,
+        levelId: caseDef.levelId,
+        seedText: spec.seed,
+        uniqueness: caseDef.uniqueness,
+        maxActive: caseDef.maxActive,
+        scope,
+      }),
+      (set) => {
+        s.set = set;
+        s.tSet = clock.now();
+        if (set.status !== 'complete' || set.set === undefined) {
+          return null;
+        }
+        s.faultPhase = 'batch';
+        return client.generateBatch({
+          set: set.set,
+          rotation: caseDef.rotation,
+          targetLevelId: caseDef.levelId,
+          quantity: QUANTITY,
+          setSeed: spec.seed,
+          batchIndex: 1,
+          uniqueness: caseDef.uniqueness,
+          seenLayouts: [],
+          seenClues: [],
+          calibration: set.calibration,
+          setLevel: caseDef.levelId,
+          setAttempt: set.attempt,
+          scope,
+        }, {
+          onAccepted: (event) => {
+            s.accepted.push(event.puzzle);
+            s.acceptedAt.push(clock.now());
+            if (spec.probeKind === 'cancel' && event.index === 0 && !s.cancelScheduled) {
+              s.cancelScheduled = true;
+              host.clickCancel(() => {
+                s.cancelAt = clock.now();
+                client.cancel();
+              });
+            }
+          },
+          onCertificate: (event) => {
+            s.certificates.set(event.puzzleId, event.certificate.status);
+            s.lastCertificateAt = clock.now();
+            if (s.certificates.size >= s.expectedCertificates) {
+              s.wake?.();
+            }
+          },
+        });
+      },
+    );
+    if (batch !== null) {
+      s.batch = batch;
     }
-    s.faultPhase = 'batch';
-    s.batch = await client.generateBatch({
-      set: set.set,
-      rotation: caseDef.rotation,
-      targetLevelId: caseDef.levelId,
-      quantity: QUANTITY,
-      setSeed: spec.seed,
-      batchIndex: 1,
-      uniqueness: caseDef.uniqueness,
-      seenLayouts: [],
-      seenClues: [],
-      calibration: set.calibration,
-      setLevel: caseDef.levelId,
-      setAttempt: set.attempt,
-    }, {
-      onAccepted: (event) => {
-        s.accepted.push(event.puzzle);
-        s.acceptedAt.push(clock.now());
-        if (spec.probeKind === 'cancel' && event.index === 0 && !s.cancelScheduled) {
-          s.cancelScheduled = true;
-          host.clickCancel(() => {
-            s.cancelAt = clock.now();
-            client.cancel();
-          });
-        }
-      },
-      onCertificate: (event) => {
-        s.certificates.set(event.puzzleId, event.certificate.status);
-        s.lastCertificateAt = clock.now();
-        if (s.certificates.size >= s.expectedCertificates) {
-          s.wake?.();
-        }
-      },
-    });
   } catch (e) {
     s.fault = e;
   } finally {
@@ -615,6 +628,9 @@ function waitForCertificates(s, host, timeoutMs) {
 
 /**
  * Copies the outcome of a finished run into its record (everything after the timed interval).
+ * Every record, a failed set's too, gets `run.telemetry = { setCounters, batchCounters, trail }`: the clue-selection
+ * counters of the set and batch jobs and the set stage's ordered trail, each `null` when its job has none
+ * (`tasks/improve-generating-phase-2/contracts.md` C6). It is not provenance and is not stored in packs.
  * @param {RunRecord} run
  * @param {RunState} s
  * @param {RunSpec} spec
@@ -629,6 +645,7 @@ function fillRecord(run, s, spec, caseDef, certificatesAwaited) {
   run.acceptedCount = kept.length;
   run.ratingSaturatedCount = kept.filter((v) => v.puzzle.rating?.saturated === true).length;
   run.ratingCensoredCount = kept.filter((v) => isCensored(v.puzzle.rating)).length;
+  run.telemetry = { setCounters: s.set?.counters ?? null, batchCounters: s.batch?.counters ?? null, trail: s.set?.trail ?? null };
   if (kept.length >= QUANTITY) {
     run.tenthReadyMs = s.acceptedAt[kept[QUANTITY - 1].index] - s.t0;
   }

@@ -1,3 +1,4 @@
 * text=auto
 *.cmd text eol=crlf
 *.png binary
+docs/improve-generating-phase-2/evidence/proofs/*/journal/** -text

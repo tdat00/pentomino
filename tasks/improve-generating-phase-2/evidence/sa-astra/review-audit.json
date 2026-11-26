@@ -1,0 +1,794 @@
+{
+  "base": "97a6326a5ff149ad27f667c777987fe73df35d07",
+  "taskFiles": 27,
+  "developerHours": 59,
+  "developerTaskFiles": 23,
+  "fullGateFiles": [
+    "P2-01-gen-v4-tables.md",
+    "P2-02-clue-primitives.md",
+    "P2-03-screen-rating.md",
+    "P2-04-select-v4-port.md",
+    "P2-05-select-v4-proofs.md",
+    "P2-06-reasons-counters-bound.md",
+    "P2-07-per-set-prior.md",
+    "P2-08-provenance-replay.md",
+    "P2-09-steps-texts-notices.md",
+    "P2-10-request-scopes.md",
+    "P2-11-host-guard.md",
+    "P2-12a-bench-telemetry.md",
+    "P2-12b-copies-and-trace.md",
+    "P2-12c-proof-bundles.md",
+    "P2-13a-stage-driver.md",
+    "P2-13b-comparator.md",
+    "P2-13c-p5-glue-reach.md",
+    "P2-14-replay-fixtures-and-probes.md",
+    "P2-15-cutover.md",
+    "P2-16a-integrated-cases.md",
+    "P2-16b-browser-deadline-checks.md"
+  ],
+  "minimumDeveloperAndOrchestratorFullRuns": 42,
+  "localeKeysMatch": 9,
+  "guideLanguagesMatch": 2,
+  "approved": {
+    "rows": 1013,
+    "A": 409.1947798837501,
+    "B": 401.5720356645833,
+    "authorization": {
+      "A": 410,
+      "B": 402
+    }
+  },
+  "changedSchedule": {
+    "splitSmokeExtraCountedS": 47,
+    "splitSmokeGuardMinutesA": 410.17394655041676,
+    "replayOriginalCountedS": 533,
+    "replaySerialCountedS": 1336,
+    "replayExtraCountedS": 803,
+    "combinedGuardMinutesA": 426.9031132170834,
+    "roundedStagesSameDurationAssumptions": 829,
+    "note": "Arithmetic using the same 120-s/item proxy, not a measured runtime or request for a larger grant."
+  },
+  "groups": {
+    "A": [
+      {
+        "group": 1,
+        "rows": 11,
+        "components": {
+          "smoke": 8,
+          "require": 3
+        },
+        "first": "smoke/gen-v4/10x10-master/20",
+        "last": "require/uncapped/22x22-hell-1/1",
+        "nodeS": 806.1273889199999
+      },
+      {
+        "group": 2,
+        "rows": 4,
+        "components": {
+          "require": 4
+        },
+        "first": "require/gen-v4/22x22-hell-1/1",
+        "last": "require/uncapped/22x22-hell-1/3",
+        "nodeS": 782
+      },
+      {
+        "group": 3,
+        "rows": 4,
+        "components": {
+          "require": 4
+        },
+        "first": "require/gen-v4/22x22-hell-1/3",
+        "last": "require/gen-v4/22x22-nightmare/0",
+        "nodeS": 652
+      },
+      {
+        "group": 4,
+        "rows": 3,
+        "components": {
+          "require": 3
+        },
+        "first": "require/today/22x22-nightmare/0",
+        "last": "require/uncapped/22x22-nightmare/1",
+        "nodeS": 782
+      },
+      {
+        "group": 5,
+        "rows": 4,
+        "components": {
+          "require": 4
+        },
+        "first": "require/today/22x22-nightmare/1",
+        "last": "require/today/22x22-nightmare/2",
+        "nodeS": 782
+      },
+      {
+        "group": 6,
+        "rows": 3,
+        "components": {
+          "require": 3
+        },
+        "first": "require/uncapped/22x22-nightmare/2",
+        "last": "require/today/22x22-nightmare/3",
+        "nodeS": 782
+      },
+      {
+        "group": 7,
+        "rows": 4,
+        "components": {
+          "require": 4
+        },
+        "first": "require/gen-v4/22x22-nightmare/3",
+        "last": "require/uncapped/22x22-nightmare/4",
+        "nodeS": 782
+      },
+      {
+        "group": 8,
+        "rows": 4,
+        "components": {
+          "require": 4
+        },
+        "first": "require/gen-v4/32x15-hell-1/0",
+        "last": "require/gen-v4/32x15-hell-1/1",
+        "nodeS": 782
+      },
+      {
+        "group": 9,
+        "rows": 4,
+        "components": {
+          "require": 4
+        },
+        "first": "require/gen-v4/32x15-hell-1/2",
+        "last": "require/gen-v4/32x15-hell-1/3",
+        "nodeS": 782
+      },
+      {
+        "group": 10,
+        "rows": 4,
+        "components": {
+          "require": 4
+        },
+        "first": "require/gen-v4/32x15-hell-1/4",
+        "last": "require/today/32x15-nightmare/0",
+        "nodeS": 782
+      },
+      {
+        "group": 11,
+        "rows": 3,
+        "components": {
+          "require": 3
+        },
+        "first": "require/uncapped/32x15-nightmare/0",
+        "last": "require/today/32x15-nightmare/1",
+        "nodeS": 782
+      },
+      {
+        "group": 12,
+        "rows": 4,
+        "components": {
+          "require": 4
+        },
+        "first": "require/gen-v4/32x15-nightmare/1",
+        "last": "require/uncapped/32x15-nightmare/2",
+        "nodeS": 782
+      },
+      {
+        "group": 13,
+        "rows": 4,
+        "components": {
+          "require": 4
+        },
+        "first": "require/uncapped/32x15-nightmare/3",
+        "last": "require/gen-v4/32x15-nightmare/4",
+        "nodeS": 782
+      },
+      {
+        "group": 14,
+        "rows": 7,
+        "components": {
+          "require": 2,
+          "non-table": 5
+        },
+        "first": "require/today/32x15-nightmare/4",
+        "last": "non-table/gen-v4/11x11-nightmare/22",
+        "nodeS": 632.6151173299999
+      },
+      {
+        "group": 15,
+        "rows": 28,
+        "components": {
+          "non-table": 28
+        },
+        "first": "non-table/today/11x11-nightmare/22",
+        "last": "non-table/gen-v4/11x11-nightmare/36",
+        "nodeS": 649.4222063399999
+      },
+      {
+        "group": 16,
+        "rows": 33,
+        "components": {
+          "non-table": 33
+        },
+        "first": "non-table/today/11x11-nightmare/36",
+        "last": "non-table/today/18x19-nightmare/22",
+        "nodeS": 659.2524654449999
+      },
+      {
+        "group": 17,
+        "rows": 20,
+        "components": {
+          "non-table": 20
+        },
+        "first": "non-table/today/18x19-nightmare/23",
+        "last": "non-table/today/18x19-nightmare/32",
+        "nodeS": 654.1058220499999
+      },
+      {
+        "group": 18,
+        "rows": 20,
+        "components": {
+          "non-table": 20
+        },
+        "first": "non-table/today/18x19-nightmare/33",
+        "last": "non-table/today/21x21-nightmare/22",
+        "nodeS": 629.8274583499999
+      },
+      {
+        "group": 19,
+        "rows": 23,
+        "components": {
+          "non-table": 23
+        },
+        "first": "non-table/today/21x21-nightmare/23",
+        "last": "non-table/gen-v4/21x21-nightmare/34",
+        "nodeS": 650.06408778
+      },
+      {
+        "group": 20,
+        "rows": 32,
+        "components": {
+          "non-table": 11,
+          "shipped": 11,
+          "baseline-control": 10
+        },
+        "first": "non-table/today/21x21-nightmare/34",
+        "last": "shipped/gen-v4/22x22-nightmare/30",
+        "nodeS": 637.6660905399998
+      },
+      {
+        "group": 21,
+        "rows": 37,
+        "components": {
+          "baseline-control": 19,
+          "shipped": 18
+        },
+        "first": "baseline-control/today/22x22-nightmare/30",
+        "last": "baseline-control/today/32x15-nightmare/28",
+        "nodeS": 616.7888699749998
+      },
+      {
+        "group": 22,
+        "rows": 52,
+        "components": {
+          "baseline-control": 26,
+          "shipped": 26
+        },
+        "first": "baseline-control/today/32x15-nightmare/29",
+        "last": "baseline-control/today/3x29-nightmare/34",
+        "nodeS": 617.6333921150003
+      },
+      {
+        "group": 23,
+        "rows": 10,
+        "components": {
+          "baseline-control": 5,
+          "shipped": 5
+        },
+        "first": "baseline-control/today/3x29-nightmare/35",
+        "last": "shipped/gen-v4/3x29-nightmare/39",
+        "nodeS": 72.930535575
+      }
+    ],
+    "B": [
+      {
+        "group": 1,
+        "rows": 29,
+        "components": {
+          "shipped": 15,
+          "baseline-control": 14
+        },
+        "first": "shipped/gen-v4/10x10-nightmare/20",
+        "last": "shipped/gen-v4/10x10-nightmare/34",
+        "nodeS": 667.5484370499998
+      },
+      {
+        "group": 2,
+        "rows": 31,
+        "components": {
+          "baseline-control": 6,
+          "shipped": 25
+        },
+        "first": "baseline-control/today/10x10-nightmare/34",
+        "last": "shipped/gen-v4/12x12-nightmare/39",
+        "nodeS": 760.8464315500003
+      },
+      {
+        "group": 3,
+        "rows": 9,
+        "components": {
+          "shipped": 9
+        },
+        "first": "shipped/gen-v4/14x14-hell-1/20",
+        "last": "shipped/gen-v4/14x14-hell-1/28",
+        "nodeS": 778.9946755699998
+      },
+      {
+        "group": 4,
+        "rows": 9,
+        "components": {
+          "shipped": 9
+        },
+        "first": "shipped/gen-v4/14x14-hell-1/29",
+        "last": "shipped/gen-v4/14x14-hell-1/37",
+        "nodeS": 778.9946755699998
+      },
+      {
+        "group": 5,
+        "rows": 33,
+        "components": {
+          "shipped": 17,
+          "n-mid-no-screen": 16
+        },
+        "first": "shipped/gen-v4/14x14-hell-1/38",
+        "last": "n-mid-no-screen/no-screen/14x14-nightmare/35",
+        "nodeS": 761.9519295999996
+      },
+      {
+        "group": 6,
+        "rows": 35,
+        "components": {
+          "shipped": 18,
+          "n-mid-no-screen": 17
+        },
+        "first": "shipped/gen-v4/14x14-nightmare/35",
+        "last": "n-mid-no-screen/no-screen/15x15b10-nightmare/32",
+        "nodeS": 772.3286780999999
+      },
+      {
+        "group": 7,
+        "rows": 39,
+        "components": {
+          "n-mid-no-screen": 9,
+          "shipped": 30
+        },
+        "first": "n-mid-no-screen/no-screen/15x15b10-nightmare/33",
+        "last": "shipped/gen-v4/16x16-nightmare/22",
+        "nodeS": 749.3351683750002
+      },
+      {
+        "group": 8,
+        "rows": 40,
+        "components": {
+          "n-mid-no-screen": 18,
+          "shipped": 20,
+          "baseline-control": 2
+        },
+        "first": "n-mid-no-screen/no-screen/16x16-nightmare/22",
+        "last": "shipped/gen-v4/18x18-nightmare/22",
+        "nodeS": 689.6638794999999
+      },
+      {
+        "group": 9,
+        "rows": 20,
+        "components": {
+          "baseline-control": 10,
+          "shipped": 10
+        },
+        "first": "baseline-control/today/18x18-nightmare/22",
+        "last": "shipped/gen-v4/18x18-nightmare/32",
+        "nodeS": 654.1058220499999
+      },
+      {
+        "group": 10,
+        "rows": 20,
+        "components": {
+          "baseline-control": 10,
+          "shipped": 10
+        },
+        "first": "baseline-control/today/18x18-nightmare/32",
+        "last": "shipped/gen-v4/18x20-nightmare/22",
+        "nodeS": 637.36234116
+      },
+      {
+        "group": 11,
+        "rows": 24,
+        "components": {
+          "baseline-control": 12,
+          "shipped": 12
+        },
+        "first": "baseline-control/today/18x20-nightmare/22",
+        "last": "shipped/gen-v4/18x20-nightmare/34",
+        "nodeS": 683.28974384
+      },
+      {
+        "group": 12,
+        "rows": 22,
+        "components": {
+          "baseline-control": 6,
+          "shipped": 16
+        },
+        "first": "baseline-control/today/18x20-nightmare/34",
+        "last": "shipped/gen-v4/20x20-hell-1/30",
+        "nodeS": 775.2659648200001
+      },
+      {
+        "group": 13,
+        "rows": 18,
+        "components": {
+          "shipped": 14,
+          "baseline-control": 4
+        },
+        "first": "shipped/gen-v4/20x20-hell-1/31",
+        "last": "shipped/gen-v4/20x20-nightmare/24",
+        "nodeS": 633.7604559900002
+      },
+      {
+        "group": 14,
+        "rows": 21,
+        "components": {
+          "baseline-control": 11,
+          "shipped": 10
+        },
+        "first": "baseline-control/today/20x20-nightmare/24",
+        "last": "baseline-control/today/20x20-nightmare/34",
+        "nodeS": 655.882431925
+      },
+      {
+        "group": 15,
+        "rows": 23,
+        "components": {
+          "baseline-control": 11,
+          "shipped": 12
+        },
+        "first": "baseline-control/today/20x20-nightmare/35",
+        "last": "shipped/gen-v4/20x21-nightmare/26",
+        "nodeS": 669.6956452549999
+      },
+      {
+        "group": 16,
+        "rows": 24,
+        "components": {
+          "baseline-control": 12,
+          "shipped": 12
+        },
+        "first": "baseline-control/today/20x21-nightmare/26",
+        "last": "shipped/gen-v4/20x21-nightmare/38",
+        "nodeS": 687.41353166
+      },
+      {
+        "group": 17,
+        "rows": 23,
+        "components": {
+          "baseline-control": 2,
+          "shipped": 21
+        },
+        "first": "baseline-control/today/20x21-nightmare/38",
+        "last": "shipped/gen-v4/24x24-hell-1/39",
+        "nodeS": 761.0687214850002
+      },
+      {
+        "group": 18,
+        "rows": 33,
+        "components": {
+          "shipped": 17,
+          "baseline-control": 16
+        },
+        "first": "shipped/gen-v4/24x24-nightmare/20",
+        "last": "shipped/gen-v4/24x24-nightmare/36",
+        "nodeS": 658.5924252900002
+      },
+      {
+        "group": 19,
+        "rows": 27,
+        "components": {
+          "baseline-control": 4,
+          "shipped": 23
+        },
+        "first": "baseline-control/today/24x24-nightmare/36",
+        "last": "shipped/gen-v4/26x26-hell-1/39",
+        "nodeS": 676.1588963099997
+      },
+      {
+        "group": 20,
+        "rows": 33,
+        "components": {
+          "shipped": 17,
+          "baseline-control": 16
+        },
+        "first": "shipped/gen-v4/26x26-nightmare/20",
+        "last": "shipped/gen-v4/26x26-nightmare/36",
+        "nodeS": 620.3226508249998
+      },
+      {
+        "group": 21,
+        "rows": 65,
+        "components": {
+          "baseline-control": 4,
+          "shipped": 3,
+          "shipped-master": 29,
+          "baseline-master": 29
+        },
+        "first": "baseline-control/today/26x26-nightmare/36",
+        "last": "shipped-master/gen-v4/16x16-master/23",
+        "nodeS": 616.7153108949996
+      },
+      {
+        "group": 22,
+        "rows": 83,
+        "components": {
+          "shipped-master": 42,
+          "baseline-master": 41
+        },
+        "first": "shipped-master/gen-v4/16x16-master/24",
+        "last": "shipped-master/gen-v4/3x29-master/20",
+        "nodeS": 618.5496583400006
+      },
+      {
+        "group": 23,
+        "rows": 23,
+        "components": {
+          "baseline-master": 10,
+          "shipped-master": 9,
+          "conditional-twin": 4
+        },
+        "first": "baseline-master/today/3x29-master/20",
+        "last": "conditional-twin/uncapped/14x14-hell-1/30",
+        "nodeS": 624.90133234
+      },
+      {
+        "group": 24,
+        "rows": 5,
+        "components": {
+          "conditional-twin": 5
+        },
+        "first": "conditional-twin/uncapped/14x14-hell-1/31",
+        "last": "conditional-twin/uncapped/14x14-hell-1/37",
+        "nodeS": 746.8072156999999
+      },
+      {
+        "group": 25,
+        "rows": 3,
+        "components": {
+          "conditional-twin": 3
+        },
+        "first": "conditional-twin/uncapped/14x14-hell-1/38",
+        "last": "conditional-twin/uncapped/unresolved-trigger-1/0",
+        "nodeS": 643.9016887
+      },
+      {
+        "group": 26,
+        "rows": 3,
+        "components": {
+          "conditional-twin": 3
+        },
+        "first": "conditional-twin/uncapped/unresolved-trigger-2/0",
+        "last": "conditional-twin/uncapped/unresolved-trigger-4/0",
+        "nodeS": 782
+      }
+    ]
+  },
+  "verifiedNonFindings": [
+    "Frozen selector has 1320 lines; task copy range is not truncated.",
+    "Matrix version/profile/cases/repetitions/seeds schema is supported; explicit seeds preserve rep20 text.",
+    "tree.mjs supports supplied sources/manifests/filesRoot/dest; missing base manifest falls back to variants/base.json.",
+    "verdicts.cellGate(kind, rows, options) is the real API; imported module does not build a tree at import time.",
+    "resultDigest hashes layout keys, clue keys and scores, not algorithm-version metadata.",
+    "master-10x10-master.runs.json is the real oracle filename.",
+    "After B group22 all conditional-eligible bounded rows exist; group23 still has19 Master rows and4 known twins."
+  ],
+  "sourceContracts": {
+    "realMasterPath": "docs/improve-generating/evidence/frozen/V4-S4/log-link/master-10x10-master.runs.json",
+    "outputIsBaseName": true,
+    "firstAGroupIsMixed": true,
+    "browserAppForcesOnePuzzlePerPress": true,
+    "genV4PushHasNoAutomaticWorkflow": true
+  },
+  "parallelReview": {
+    "proposalContainsThreeLanes": false,
+    "ownerDecision": "1575100035077771386",
+    "noIdleDeclaration": true,
+    "taskSizeConflict": true
+  },
+  "engineInvocations": 0,
+  "countedMeasurementSeconds": 0,
+  "inputIndexHash": "0bd8bc4f393c448990142f772ee0fb29b91439e871bb511a10240245c189b2d8",
+  "inputs": [
+    {
+      "path": "tasks/improve-generating-phase-2/P2-01-gen-v4-tables.md",
+      "sha256Raw": "0230841c27f063766efab4cf11e9661e7dc340647cfaaf5b0d7b3592dd206bd2"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-02-clue-primitives.md",
+      "sha256Raw": "53f0c5d3f8a8de5e0bf261d05bdedc49096eb714a6afb7f38f2d021a8d259fc3"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-03-screen-rating.md",
+      "sha256Raw": "99b770ce1a5fb5b7b0f76eb2bb3c2010e75ae1d0f7a2f5981185053ccba57c98"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-04-select-v4-port.md",
+      "sha256Raw": "0c9fea9e3c3e23efdfec15accd08c7f0d9cd118d1749ef6e859326ffbfa29e78"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-05-select-v4-proofs.md",
+      "sha256Raw": "974f01ef93dc5a52ef2b686b31937f2e20e9bed73551eda15c37804f40de8348"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-06-reasons-counters-bound.md",
+      "sha256Raw": "6ed2f1895cfbeb3d54e452aec1a0894269af656387e06e5732fa13acdef1daf6"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-07-per-set-prior.md",
+      "sha256Raw": "9cf4d4df4c4c29749b7bb2c41afeb9ab9ec40812f742e51df8e2f3699c8948c3"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-08-provenance-replay.md",
+      "sha256Raw": "a1aa2a2aae13c8a8456790e0418043f666befef1c4a583e5138f63fb0e4f68b7"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-09-steps-texts-notices.md",
+      "sha256Raw": "b163efee5abc6cd46b8a1cca2b5ad9f45049f200fc5bfc27169e9cfe66331282"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-10-request-scopes.md",
+      "sha256Raw": "fed760ef33d38d7df007103f34b936e46a875e27a84a633f88d36569e1684f62"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-11-host-guard.md",
+      "sha256Raw": "b620d593c1f044777889e906ba0e01dee6488d76f95e43ef43bdc7509662a266"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-12a-bench-telemetry.md",
+      "sha256Raw": "0240a9590bf24f4e9d4e6b26e383c2157685423df7193edf02d9afbb44e96d6a"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-12b-copies-and-trace.md",
+      "sha256Raw": "762415c211cac35f29816f0335d6a0641ff21fdbd1d031287a57e08474f37b63"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-12c-proof-bundles.md",
+      "sha256Raw": "8b1a9acb8a9734cef1bf7dd9c8cefeb2329a59a7a4d44edb560aea88f4b3aa10"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-13a-stage-driver.md",
+      "sha256Raw": "b5f97bb3e25c1452f95ee9534159d60e39c692deafcc72692a1aec9fc41ae549"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-13b-comparator.md",
+      "sha256Raw": "418700cfae3023d54c5368260aa89703d320708a3ba885140b4b712b120b52ca"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-13c-p5-glue-reach.md",
+      "sha256Raw": "f9adf0dcf62bcf9559eb20f7cac3572433ae4892d026c006ec14685908495ae5"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-14-replay-fixtures-and-probes.md",
+      "sha256Raw": "9429be394a4377f217509f971c48493fe53508be506395b266eaf8ac98009c2a"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-15-cutover.md",
+      "sha256Raw": "040498dfcaf26a606ae7aab3ba8b960d9b13ab0e0c231f5c69b6a288f5d16364"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-16a-integrated-cases.md",
+      "sha256Raw": "0f7ca6b19de3eb623ef2b9820d2480eadcd7239b5f4cbe6db7d2265ea7c753ea"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-16b-browser-deadline-checks.md",
+      "sha256Raw": "b736aef5924d846599e47d8b7d03d5d249e5ea78881584f0e6ad15b100b49aa0"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-17-guides-and-release-notes.md",
+      "sha256Raw": "1bef8adb06c9fb3fd2ccefeb96544d896b197183feabf6fdf88daa30f95728ba"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-18-seal-proofs-smoke.md",
+      "sha256Raw": "c5b4f54593a0ae17e925ecee9733c14ba3e50991897233c8a9c2cb0f956d010e"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-19-stage-a.md",
+      "sha256Raw": "076ac78822f1f3efaf09723373bb08b95f43f641341eb6866bca1ff3bab1939d"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-20-stage-b.md",
+      "sha256Raw": "de2dc4e39f20e70853ff86f1bd35fc8bed39d6029c82add2ef91d6d37c0d8db9"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-21-validation-report.md",
+      "sha256Raw": "879d7c93a2295710a48f240dac6316c01cccd8e923b55ea3b592a42f46243a93"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-22-publish.md",
+      "sha256Raw": "201544a3ad602fd44707ad11ba68cb1f68806ceb0a7bfd4f38a7a4cf5e7787d9"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/check-list.md",
+      "sha256Raw": "8de63d7e020e7f674b4e5ef3be38abdb8f64fd7115531eb4db2063151e0afe4f"
+    },
+    {
+      "path": "docs/improve-generating-phase-2/plan.md",
+      "sha256Raw": "3c368df3ac90706273f9e5fe968c2e73b9d2e937614ea108dd84bc1edb9e0193"
+    },
+    {
+      "path": "docs/improve-generating-phase-2/sa-opus/parallel-schedule.md",
+      "sha256Raw": "8c37af569dd04b8d2848af626810405095988d7a8c929e0f018a859dac946be1"
+    },
+    {
+      "path": "docs/improve-generating-phase-2/evidence/sa-astra/round1-cross-audit.json",
+      "sha256Raw": "4656808db66609850ddbeb0b992773e15d052156a182e6b8c439552e869f31e4"
+    },
+    {
+      "path": "tools/ig-proto/variants/files/v4/core/engine/ig-select-v4.js",
+      "sha256Raw": "60d15e528c6d57d7a1eef3e9d7e20f1e75aa06a83d0c1e13e5fab8bf30c9d76b"
+    },
+    {
+      "path": "tools/ig-proto/lib/tree.mjs",
+      "sha256Raw": "a437fc3a34c799de5999add50e63f440b4859a5ab6f03c60e59c2016295aa892"
+    },
+    {
+      "path": "tools/bench/runner.js",
+      "sha256Raw": "8970c6be6c64c8425ee73af403fcc69dd97d10346585dd877e2f668a8f7fe178"
+    },
+    {
+      "path": "tools/calibrate.mjs",
+      "sha256Raw": "e530c9a63963c357dc9fe5395adee9a55700bfe2781c72b4d27ca962dde3363b"
+    },
+    {
+      "path": "tools/ig-proto/verdicts.mjs",
+      "sha256Raw": "e4a37c5a3acd5202c89e3c47d643fb343e2bcaf5667053466408d19a3e1ed195"
+    },
+    {
+      "path": "core/browser/generation-client.js",
+      "sha256Raw": "eed76d3d611d7e1dd9b320f0006aa2e2494bd8a4f78f4b496ed7967295c2ca60"
+    },
+    {
+      "path": "core/engine/generate.js",
+      "sha256Raw": "0051a8e1e8eec901943de138efc7321ba1138b27fec0e364d5ab530708d00f41"
+    },
+    {
+      "path": "core/workers/engine.worker.js",
+      "sha256Raw": "ae4c2d31c23a0d1b21ee1066c8c40055e213ecd3acd6e82f4d1dac548302d168"
+    },
+    {
+      "path": "generator/app.js",
+      "sha256Raw": "d595ea14a17ce98e2235969513ae6026807ed12a1310cd5b7a344199d8f293da"
+    },
+    {
+      "path": "generator/jobs.js",
+      "sha256Raw": "8a235a223440e071b376688540d7c2c2023a84ae0eea62ea4dc0eab1ee6335a2"
+    },
+    {
+      "path": "tests/generator-controller.test.js",
+      "sha256Raw": "2bb214b5d828a072a1d06bebbbaeae5316318a14d862dc6a07a7b5004eec35ca"
+    },
+    {
+      "path": "tests/replay-model.test.js",
+      "sha256Raw": "eee0684e2e2516a1903bfb0f9c94800c9eb45c19a814543c085bcf2b57d78c8e"
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "sha256Raw": "799326601d87ab204cb09889505b8309c76e8255c0909b0bcf5dbeaa7b8dd809"
+    },
+    {
+      "path": "tools/ig-proto/lock/ig-lock.ps1",
+      "sha256Raw": "810ebf8fb985c6c9fe941201f2fa469eb33551deb56b0d919b9f1c209045b844"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/evidence/sa-astra/argument-probe.ps1",
+      "sha256Raw": "c675260e8e03021c7e0123804639c1217415aa6eafe4b58582448ec40ed1beb1"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/evidence/sa-astra/review-audit.mjs",
+      "sha256Raw": "a6ca6819a4359beb62bdb50e60d0357040a76e70cf5341371c6deb7d9e6f7d11"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+SA-Astra phase-2 round-1 analysis validation, 2026-11-25T13:32:15.1887721+07:00
+Base 7c1bad226830667fa6626ff97c960ca3bddd7794; read-only arithmetic and documentation. No engine/test invocation or measurement.
+Command: node --check docs\improve-generating-phase-2\evidence\sa-astra\round1-audit.mjs
+exit 0
+Command: node docs\improve-generating-phase-2\evidence\sa-astra\round1-audit.mjs
+{
+  "base": "7c1bad226830667fa6626ff97c960ca3bddd7794",
+  "sourceDigest": "a51e8196fd16ef24a785dd9ea39663a454c6ea3574e7011ea074e0cd99c334c4",
+  "inputs": 190,
+  "reproducedLockedSteps": 103,
+  "rowsRead": {
+    "files": 99,
+    "rows": 1500
+  },
+  "oldAccount": {
+    "countedS": 52271.997,
+    "grantedS": 103500,
+    "remainingS": 51228.003,
+    "countedMinutes": 871.1999500000001,
+    "remainingMinutes": 853.8000499999999,
+    "authority": "Closed frozen round. No automatic transfer to the production validation; a new explicit scope/grant is required."
+  },
+  "prices": {
+    "core": {
+      "groups": 64,
+      "rows": 800,
+      "invocations": 71,
+      "nodeS": 17361.727958749998,
+      "quietS": 3195,
+      "countedS": 20556.727958749994,
+      "guardS": 25695.9099484375,
+      "ceilingS": 756000,
+      "completedProjection": 800,
+      "censoredProjection": 0,
+      "countedMinutes": 342.61213264583324,
+      "guardMinutes": 428.2651658072917,
+      "ceilingMinutes": 12600
+    },
+    "uncapped": {
+      "groups": 18,
+      "rows": 360,
+      "invocations": 23,
+      "nodeS": 9770.192245000002,
+      "quietS": 1035,
+      "countedS": 10805.192245000002,
+      "guardS": 13506.49030625,
+      "ceilingS": 340200,
+      "completedProjection": 360,
+      "censoredProjection": 0,
+      "countedMinutes": 180.0865374166667,
+      "guardMinutes": 225.10817177083334,
+      "ceilingMinutes": 5670
+    },
+    "recommended": {
+      "groups": 82,
+      "rows": 1160,
+      "invocations": 94,
+      "nodeS": 27131.920203749996,
+      "quietS": 4230,
+      "countedS": 31361.920203749993,
+      "guardS": 39202.40025468751,
+      "ceilingS": 1096200,
+      "completedProjection": 1160,
+      "censoredProjection": 0,
+      "countedMinutes": 522.6986700624999,
+      "guardMinutes": 653.3733375781252,
+      "ceilingMinutes": 18270
+    },
+    "require": {
+      "groups": 8,
+      "rows": 40,
+      "invocations": 12,
+      "nodeS": 7824,
+      "quietS": 540,
+      "countedS": 8364,
+      "guardS": 10455,
+      "ceilingS": 37800,
+      "completedProjection": 40,
+      "censoredProjection": 0,
+      "countedMinutes": 139.4,
+      "guardMinutes": 174.25,
+      "ceilingMinutes": 630
+    },
+    "proofGuardMin": 89,
+    "resourceReplayGuardMin": 11.104166666666666,
+    "browserCeilingMin": 16.5,
+    "totalGuardMin": 944.2275042447919,
+    "requestNewRoundCapMin": 945,
+    "equivalentOldAccountCapMin": 1816,
+    "fullScopeGuardMin": 1125.5113524609376,
+    "fullScopeCapMin": 1126
+  },
+  "metadataSizeIllustration": {
+    "status": "hypothetical shape arithmetic, not a generated gen-v4 record",
+    "oneExistingCandidateBytes": 313,
+    "oneProposedCandidateBytes": 384,
+    "deltaPerCandidate": 71,
+    "opaqueMetaLimitBytes": 4096,
+    "generationJsonValuesLimit": 100000,
+    "generationJsonDepthLimit": 32,
+    "packFileLimitBytes": 524288,
+    "distinction": "MAX_META_BYTES applies to opaque meta, not generation. Generation uses the JSON value/depth limits; the whole pack has its own byte cap.",
+    "samplePackGenerationBytes": 151
+  },
+  "engineInvocations": 0
+}
+Command: npm run check
+
+> check
+> node tools/check-conventions.mjs && node tools/check-site.mjs .
+
+check-conventions: OK
+check-site: OK
+
+Final document/input checks (read-only Node stdin script):
+format: OK (4 files); 10 sections; 10 summary lines; four questions; 16 tasks total43h; 190 raw input hashes current.
+Pricing: 1160+40 rows, 944.227504 guard minutes, cap945; full alternative cap1126; old-account equivalent1816.
+Input index SHA-256: 52d4c8138d5ed8674004de730d9823d669c6d88b2a0dcacf3b391fb11be70bb3
+The first author-check spelling test incorrectly matched h === 26 inside width === 26; the corrected check pins the exact Board.width/height names. This was a check defect, not a document or engine failure.
+Command: git --no-pager diff --exit-code 7c1bad2 -- .
+exit0, empty; tracked runtime/tests/plans/evidence unchanged.
+Owned scope: four new files under sa-astra and evidence/sa-astra only; no other phase-2 SA folder was read.

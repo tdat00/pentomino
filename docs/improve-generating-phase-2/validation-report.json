@@ -1,0 +1,617 @@
+{
+  "format": "p2-validation-report",
+  "version": 1,
+  "report": "validation-report.md",
+  "verdict": "Phase 2: INCOMPLETE (P2-B01 to P2-B03, P2-B05 and P2-B06: pass; P2-T01: incomplete—one eligible row without equality evidence; P2-B04: pass; P2-B07: read on 49 of 50 rows, owner continuation recorded)",
+  "seal": {
+    "sha256": "bca8cfd2db491e686fb37f5ed2bf640e4eac3c93513c005f775f971bf4979f5b",
+    "commit": "fa0bda2eba4caddebaa29e86cb9e3164369ddcb3",
+    "node": "v26.13.0"
+  },
+  "criteria": [
+    {
+      "id": "P2-T01",
+      "status": "incomplete",
+      "scope": "all 818 eligible measured rows",
+      "source": "evidence/report-B/report.json equality",
+      "numbers": {
+        "compared": 818,
+        "equal": 796,
+        "prefixEqual": 21,
+        "noEvidence": 1,
+        "differ": 0
+      },
+      "noEvidence": [
+        {
+          "key": "shipped/gen-v4/14x14-hell-1/33",
+          "why": "missing igSetKey"
+        }
+      ],
+      "note": "Of 818 eligible observations, 796 are equal and 21 prefix-equal; one provides no equality evidence. No port difference was observed."
+    },
+    {
+      "id": "P2-B01",
+      "status": "pass",
+      "source": "evidence/report-B/report.json gates.B1.detail.cells",
+      "cells": [
+        {
+          "cell": "12x12-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadEnds": 0,
+          "deadlineViolations": 0
+        },
+        {
+          "cell": "14x14-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadEnds": 0,
+          "deadlineViolations": 0
+        },
+        {
+          "cell": "15x15b10-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadEnds": 0,
+          "deadlineViolations": 0
+        },
+        {
+          "cell": "16x16-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadEnds": 0,
+          "deadlineViolations": 0
+        },
+        {
+          "cell": "15x20-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadEnds": 0,
+          "deadlineViolations": 0
+        }
+      ]
+    },
+    {
+      "id": "P2-B02",
+      "status": "pass",
+      "source": [
+        "evidence/report-A/report.json gates.A1.detail.cells",
+        "evidence/report-B/report.json gates.B2.detail.cells"
+      ],
+      "cells": [
+        {
+          "cell": "3x29-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadlineViolations": 0,
+          "geoMean": 1.006,
+          "lower": 0.904
+        },
+        {
+          "cell": "22x22-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadlineViolations": 0,
+          "geoMean": 1.113,
+          "lower": 1.009
+        },
+        {
+          "cell": "32x15-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadlineViolations": 0,
+          "geoMean": 1.096,
+          "lower": 0.972
+        },
+        {
+          "cell": "10x10-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadlineViolations": 0,
+          "geoMean": 1.538,
+          "lower": 1.335
+        },
+        {
+          "cell": "18x20-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadlineViolations": 0,
+          "geoMean": 1.701,
+          "lower": 1.472
+        },
+        {
+          "cell": "20x20-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadlineViolations": 0,
+          "geoMean": 2.148,
+          "lower": 1.771
+        },
+        {
+          "cell": "20x21-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadlineViolations": 0,
+          "geoMean": 1.619,
+          "lower": 1.411
+        },
+        {
+          "cell": "24x24-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadlineViolations": 0,
+          "geoMean": 1.246,
+          "lower": 1.129
+        },
+        {
+          "cell": "18x18-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "completionOnly": true
+        },
+        {
+          "cell": "26x26-nightmare",
+          "verdict": "pass",
+          "identity": {
+            "equal": 20,
+            "prefixEqual": 0,
+            "noEvidence": 0,
+            "missing": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "P2-B03",
+      "status": "pass",
+      "source": "evidence/report-B/report.json gates.B3.detail.cells",
+      "numbers": {
+        "cells": 16,
+        "withDifferences": 0
+      }
+    },
+    {
+      "id": "P2-B04",
+      "status": "pass",
+      "source": "evidence/report-A/report.json gates.A2.detail.cells",
+      "cells": [
+        {
+          "cell": "11x11-nightmare",
+          "verdict": "pass",
+          "reachedTen": 19,
+          "deadlineViolations": 0,
+          "geoMean": 1.936,
+          "lower": 1.627
+        },
+        {
+          "cell": "18x19-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadlineViolations": 0,
+          "geoMean": 1.295,
+          "lower": 0.991
+        },
+        {
+          "cell": "21x21-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "deadlineViolations": 0,
+          "geoMean": 1.107,
+          "lower": 0.93
+        },
+        {
+          "cell": "15x15-nightmare",
+          "verdict": "pass",
+          "reachedTen": 20,
+          "completionOnly": true
+        }
+      ]
+    },
+    {
+      "id": "P2-B05",
+      "status": "pass",
+      "source": "evidence/report-B/report.json gates.B4.detail",
+      "numbers": {
+        "verdict": "admitted",
+        "clue": {
+          "n": 60,
+          "medianDiff": 0,
+          "moved2": 0,
+          "pass": true
+        },
+        "fasterGeoMean": 2.308,
+        "fasterLower": 2.181,
+        "cellGeoMeans": {
+          "14x14-nightmare": 2.632,
+          "15x15b10-nightmare": 2.41,
+          "16x16-nightmare": 1.937
+        },
+        "workPerAcceptedG": {
+          "screen": [
+            1.039,
+            2.265
+          ],
+          "noScreen": [
+            2.645,
+            4.285
+          ]
+        },
+        "completion": {
+          "14x14-nightmare": {
+            "screen": 20,
+            "noScreen": 20
+          },
+          "15x15b10-nightmare": {
+            "screen": 20,
+            "noScreen": 20
+          },
+          "16x16-nightmare": {
+            "screen": 20,
+            "noScreen": 20
+          }
+        }
+      }
+    },
+    {
+      "id": "P2-B06",
+      "status": "reported",
+      "gateStatus": "pass",
+      "source": "evidence/report-B/report.json gates.B5.detail",
+      "numbers": {
+        "populations": 71,
+        "paired": 32,
+        "historical": 64
+      }
+    },
+    {
+      "id": "P2-B07",
+      "status": "read",
+      "gateStatus": "incomplete",
+      "source": [
+        "evidence/rows/A.jsonl (component require)",
+        "evidence/report-A/report.json gates.A3.detail"
+      ],
+      "rows": {
+        "expected": 50,
+        "read": 49,
+        "interrupted": [
+          "require/uncapped/32x15-hell-1/2"
+        ]
+      },
+      "arms": {
+        "gen-v4": {
+          "requests": 20,
+          "reachedTen": 1,
+          "puzzles": 15,
+          "empty": 14,
+          "stops": {
+            "set:reserve-cut": 14,
+            "time-limit": 5
+          }
+        },
+        "today": {
+          "requests": 10,
+          "reachedTen": 0,
+          "puzzles": 13,
+          "empty": 4,
+          "stops": {
+            "set:time-limit": 4,
+            "time-limit": 6
+          }
+        },
+        "uncapped": {
+          "requests": 19,
+          "reachedTen": 2,
+          "puzzles": 43,
+          "empty": 5,
+          "stops": {
+            "time-limit": 12,
+            "set:time-limit": 5
+          }
+        }
+      },
+      "ownerContinuation": "1575441672895070261"
+    },
+    {
+      "id": "P2-B08",
+      "status": "pass",
+      "source": [
+        "evidence/browser/no-window-texts/receipt.json status",
+        "evidence/browser/screen-capped-step/receipt.json status",
+        "evidence/browser/late-fence/receipt.json status",
+        "evidence/browser/fresh-after-pause/receipt.json status"
+      ],
+      "note": "old records and refused steps are unit-tested: P2-18 pre-seal gate 1, 1629 of 1629 in 140.913 s (supplemental input: P2-18 execution log)"
+    },
+    {
+      "id": "P2-T10",
+      "status": "pass",
+      "source": [
+        "evidence/report-B/report.json gates.B8.detail",
+        "evidence/report-B/report.json readings"
+      ],
+      "numbers": {
+        "eligible": 440,
+        "categories": {
+          "observed-pair": 12,
+          "analytic-only": 428,
+          "unresolved": 0
+        },
+        "endpoints": {
+          "lostCompletions": {
+            "fromObservedPairs": 3,
+            "analyticalZeros": 428,
+            "unresolved": 0
+          },
+          "falseStops": {
+            "fromObservedPairs": 0,
+            "analyticalZeros": 428,
+            "unresolved": 0
+          }
+        },
+        "requiredTwinsMissing": 0,
+        "glue": {
+          "not-applicable": 31,
+          "unexercised": 60,
+          "unknown": 1
+        }
+      },
+      "lostCompletions": [
+        {
+          "row": "shipped/gen-v4/14x14-hell-1/26",
+          "bounded": {
+            "puzzles": 7,
+            "stop": "time-limit",
+            "responseS": 115.114
+          },
+          "twin": {
+            "puzzles": 10,
+            "tenthReadyS": 127.292,
+            "responseS": 127.465
+          }
+        },
+        {
+          "row": "shipped/gen-v4/14x14-hell-1/31",
+          "bounded": {
+            "puzzles": 5,
+            "stop": "time-limit",
+            "responseS": 115.099
+          },
+          "twin": {
+            "puzzles": 10,
+            "tenthReadyS": 156.91,
+            "responseS": 157.072
+          }
+        },
+        {
+          "row": "shipped/gen-v4/14x14-hell-1/38",
+          "bounded": {
+            "puzzles": 9,
+            "stop": "time-limit",
+            "responseS": 115.16
+          },
+          "twin": {
+            "puzzles": 10,
+            "tenthReadyS": 116.923,
+            "responseS": 117.093
+          }
+        }
+      ],
+      "note": "Three observed deadline-cut losses: no recorded budget stop or bound firing; the bound never fired"
+    },
+    {
+      "id": "P2-T11",
+      "status": "pass",
+      "source": [
+        "evidence/replay-probes/receipt.json items",
+        "evidence/report-A/report.json gates.A4"
+      ]
+    },
+    {
+      "id": "P2-T12",
+      "status": "pass",
+      "source": [
+        "evidence/report-A/report.json gates.A6",
+        "evidence/report-B/report.json gates.B7",
+        "evidence/rows/<S>.jsonl run.peakProcessBytes, run.peakAccountedBytes"
+      ],
+      "numbers": {
+        "limitsMiB": {
+          "process": 1536,
+          "accounted": 1196
+        },
+        "A": {
+          "process": {
+            "key": "require/uncapped/32x15-nightmare/1",
+            "mib": 505
+          },
+          "accounted": {
+            "key": "smoke/gen-v4/26x26-nightmare/20",
+            "mib": 220
+          }
+        },
+        "B": {
+          "process": {
+            "key": "shipped/gen-v4/26x26-nightmare/21",
+            "mib": 527
+          },
+          "accounted": {
+            "key": "shipped/gen-v4/26x26-nightmare/34",
+            "mib": 229
+          }
+        }
+      }
+    },
+    {
+      "id": "P2-T13",
+      "status": "pass",
+      "scope": "the browser part",
+      "source": [
+        "evidence/browser/<check>/receipt.json",
+        "evidence/report-A/report.json gates.A5"
+      ]
+    },
+    {
+      "id": "proofs",
+      "status": "pass",
+      "source": "evidence/proofs/<bundle>/result.json status, quick, counts",
+      "smoke": {
+        "status": "complete",
+        "gates": [
+          "S1 pass",
+          "S2 pass"
+        ]
+      }
+    }
+  ],
+  "ledger": {
+    "A": {
+      "authorizedS": 24600,
+      "spentS": 15148.081,
+      "spentMin": 252.468,
+      "remainingS": 9451.919,
+      "lines": 38
+    },
+    "B": {
+      "authorizedS": 24120,
+      "spentS": 16107.131,
+      "spentMin": 268.452,
+      "remainingS": 8012.869,
+      "lines": 28
+    },
+    "total": {
+      "authorizedS": 48720,
+      "spentS": 31255.212,
+      "spentMin": 520.92
+    },
+    "hostRestart": "A-9.13"
+  },
+  "deviations": [
+    "INC-P2-19-RESTART: A-9.13 charged 283.273 s; require/uncapped/32x15-hell-1/2 interrupted",
+    "equality: shipped/gen-v4/14x14-hell-1/33 no evidence",
+    "trace gap: 10x10 Master rep 24, three worker journals missing on each arm",
+    "P5: three lost completions against the frozen round's two (rep 31 added), all deadline cuts",
+    "N-P2-15-K8",
+    "sentinel machine time above the proxy prices"
+  ],
+  "decisions": [
+    {
+      "id": "Q-P2-V1",
+      "addressee": "owner",
+      "status": "open",
+      "question": "Accept the incomplete qualification (one eligible row without equality evidence) and ship gen-v4 by merging PR #14?",
+      "options": {
+        "a": "accept the limitation; merge PR #14",
+        "b": "accept the limitation; keep PR #14 a draft",
+        "c": "do not accept; PR #14 stays a draft"
+      },
+      "recommendation": "a, conditional on explicit acceptance of these limitations",
+      "meanwhile": "P2-22 waits for the owner decision on the incomplete qualification. Acceptance of that limitation does not turn missing evidence into a pass.",
+      "context": "PR #11 is merged (626918c on main); PR #14 is rebased onto main on the owner instruction of 2026-11-26 21:17 (D-P2-18)"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "evidence/rows-smoke/A.jsonl",
+      "sha256": "5cfd937b5e9f3a92af1b51b13c5f2939c1219a4c1dea16c2b49bab1d018f6999"
+    },
+    {
+      "path": "evidence/rows/A.jsonl",
+      "sha256": "a08095673b4bbc36ff718d3b60976bef34e701590062e9e0cbfa6f26d2e47a98"
+    },
+    {
+      "path": "evidence/rows-before-twins/B.jsonl",
+      "sha256": "590b54ee4c0f98a2caa695092a4e3fac7c78b13ded76c91790d831bc86efdcf6"
+    },
+    {
+      "path": "evidence/rows/B.jsonl",
+      "sha256": "0fefb8b3695f515709652d14197ccd3ad4bef724eb29a348210fa85e3cdd2ceb"
+    },
+    {
+      "path": "evidence/twins/activation.json",
+      "sha256": "f67e4d7674735b97a9af57086a1b00add2d5271e01e02ec8987b3b23cb43f536"
+    },
+    {
+      "path": "evidence/seal/seal.json",
+      "sha256": "bca8cfd2db491e686fb37f5ed2bf640e4eac3c93513c005f775f971bf4979f5b"
+    },
+    {
+      "path": "evidence/report-smoke/report.json",
+      "sha256": "696c349773e714fa0509421a2141ced60b4cf106a854ae13c3af151688323b70"
+    },
+    {
+      "path": "evidence/report-A/report.json",
+      "sha256": "1d850b12a9a03ed61f40d3c84fce88edda01b84c96d52785b8ff11ba965e3cd2"
+    },
+    {
+      "path": "evidence/report-B/report.json",
+      "sha256": "6dc4758059da186ea35045d31a84cf2a9f8189659df008075880025448668855"
+    },
+    {
+      "path": "evidence/proofs/observer/result.json",
+      "sha256": "848943a22d530e7538ba9948ab6c0f3f24b375bb49725d6d84566287a79dcdea"
+    },
+    {
+      "path": "evidence/proofs/certificate/result.json",
+      "sha256": "b767cb4d519026615056798af117fe3792f403e9d13b635052af45043f06cca3"
+    },
+    {
+      "path": "evidence/proofs/prior-replay/result.json",
+      "sha256": "f5c807d11f21545b96d2a4c8bbdf43e059264ef3d876f2eba42bc010d9b87d59"
+    },
+    {
+      "path": "evidence/proofs/legacy/result.json",
+      "sha256": "058d695c535a7f240d61adcb1755e70aefa53b61d9f98c2f23473c48ee246053"
+    },
+    {
+      "path": "evidence/replay-probes/receipt.json",
+      "sha256": "c8454abec3961758c41c610770977757dcec117bc952c09dd009cd22ced133e7"
+    },
+    {
+      "path": "evidence/browser/set-bound/receipt.json",
+      "sha256": "64138fe92719f7c33dfd45df276aff3c758ccacec4e09b9bbfd4f386849a519d"
+    },
+    {
+      "path": "evidence/browser/batch-prefix/receipt.json",
+      "sha256": "49db659d12cd91d8600b6f32a4ccbb5969fe6c5151092f7927873083ba415156"
+    },
+    {
+      "path": "evidence/browser/late-fence/receipt.json",
+      "sha256": "45e03bae0125a1593264b54ac02af6eed1585bbd7d49b0dac04db5d03f6d92b5"
+    },
+    {
+      "path": "evidence/browser/fresh-after-pause/receipt.json",
+      "sha256": "180d1f58d3a61e4df2e038e35f227c93826695fd10343ebad8286780abbb9de1"
+    },
+    {
+      "path": "evidence/browser/no-window-texts/receipt.json",
+      "sha256": "4cbe0121b4d65ca9f211923c76d6f7f95be40dcc584090d05e3ca4a1c47f213b"
+    },
+    {
+      "path": "evidence/browser/screen-capped-step/receipt.json",
+      "sha256": "542373e774a70ba61ce877636be8bc4db779c58ccc3f1f6c1c3080bf2e59ee7b"
+    },
+    {
+      "path": "evidence/ledger/ledger.jsonl",
+      "sha256": "bdb5b06de934d00cbcd6fc7825f5a2de14453192ef618382026b2985ec60b3c5"
+    },
+    {
+      "path": "stage-a-readout.md",
+      "sha256": "34d7038fb35756df2e6cb76e166f2b96f718b6828c298a9a2e99b47ee0baf9e0"
+    },
+    {
+      "path": "tasks/improve-generating-phase-2/P2-18-seal-proofs-smoke.md",
+      "sha256": "10fa26b10307a12a4e4f1c3f119c3bcb9df6a44de961fc191b31f8740159d6e6",
+      "role": "supplemental: its execution log, solely for pre-seal verification results"
+    },
+    {
+      "path": "docs/improve-generating-stages-2-4/stage4-report.md",
+      "sha256": "2e7b716c7b23faf730f2512e9a74cc0af36de76f0e1a505cfad137413843930a",
+      "role": "transitive, through report-B gates.B8.detail.readings; hashed after LF normalization"
+    }
+  ],
+  "signOff": {
+    "SA-Opus": "accept, 2026-11-26",
+    "SA-Astra": "accept, 2026-11-26"
+  }
+}

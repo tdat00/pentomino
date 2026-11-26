@@ -35,15 +35,15 @@ export const CRITERIA = Object.freeze({
 
 /** Files whose content identifies the measured code; the same list is hashed by Node and by the browser page. */
 export const SOURCE_FILES = Object.freeze([
-  'core/engine/board.js', 'core/engine/carve.js', 'core/engine/clues.js', 'core/engine/deduce.js', 'core/engine/difficulty.js',
-  'core/engine/dlx.js', 'core/engine/enumerate.js', 'core/engine/game.js', 'core/engine/generate.js', 'core/engine/geometry.js',
+  'core/engine/board.js', 'core/engine/carve.js', 'core/engine/clue-primitives.js', 'core/engine/clues.js', 'core/engine/deduce.js', 'core/engine/difficulty.js',
+  'core/engine/dlx.js', 'core/engine/enumerate.js', 'core/engine/game.js', 'core/engine/generate.js', 'core/engine/gen-v4.js', 'core/engine/geometry.js',
   'core/engine/hash.js', 'core/engine/hints.js', 'core/engine/keys.js', 'core/engine/levels.js', 'core/engine/pack.js',
   'core/engine/palette.js', 'core/engine/placements.js', 'core/engine/policy.js', 'core/engine/protocol.js',
   'core/engine/puzzlecode-input.js', 'core/engine/puzzlecode-v1.js', 'core/engine/puzzlecode.js',
-  'core/engine/qualification.js', 'core/engine/replay.js', 'core/engine/rng.js', 'core/engine/sharecode.js',
+  'core/engine/qualification.js', 'core/engine/replay.js', 'core/engine/rng.js', 'core/engine/select-v4.js', 'core/engine/sharecode.js',
   'core/engine/tasks.js', 'core/engine/tiling.js', 'core/engine/types.js', 'core/engine/version.js',
   'core/engine/view.js', 'core/engine/workspace.js', 'core/browser/worker-pool.js',
-  'core/browser/generation-client.js', 'core/browser/auxiliary.js',
+  'core/browser/generation-client.js', 'core/browser/generation-deadline.js', 'core/browser/auxiliary.js',
   'core/workers/engine.worker.js', 'tools/bench/runner.js', 'tools/bench/report.js',
   'tools/bench/responsiveness.js', 'tools/bench/calibration-reference.js',
 ]);
@@ -98,6 +98,7 @@ export const SOURCE_FILES = Object.freeze([
  * @property {boolean} interrupted Stopped by the user or an interrupt; excluded from the rates.
  * @property {Record<string, any> | null} details Set summary, policy check, result digest.
  * @property {Record<string, any>[]} samples Landscape profile samples (diagnostics, not accepted puzzles).
+ * @property {{ setCounters: Record<string, number> | null, batchCounters: Record<string, number> | null, trail: Record<string, any> } | null} [telemetry] Selection counters of the set and batch stages and the set-attempt trail of a generation run.
  */
 
 /** @param {Partial<RunRecord>} init @returns {RunRecord} */

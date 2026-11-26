@@ -58,7 +58,7 @@ describe('matrix validation', () => {
     assert.ok(issuesOf(matrixOf({ levelId: 'hell-3', boardRows: rect(18, 20) })).some((m) => /not offered/.test(m)));
     assert.ok(issuesOf(matrixOf({ levelId: 'nope' })).some((m) => /levelId/.test(m)));
     assert.ok(issuesOf(matrixOf({ quantity: 5 })).some((m) => /quantity/.test(m)));
-    assert.ok(issuesOf(matrixOf({ uniqueness: 'require' })).some((m) => /uniqueness/.test(m)));
+    assert.ok(issuesOf(matrixOf({ uniqueness: 'maybe' })).some((m) => /uniqueness/.test(m)));
     assert.ok(issuesOf(matrixOf({ maxActive: 50 })).some((m) => /allows at most 50/.test(m)));
     assert.ok(issuesOf(matrixOf({ rotation: 30 })).some((m) => /rotation/.test(m)));
     assert.ok(issuesOf({ version: 2, profile: 'x', cases: [] }).length >= 3);
@@ -221,4 +221,12 @@ describe('timed interval', () => {
     await runCase({ caseId: 'f', rep: 0, seed: 'p/f/0', probeKind: /** @type {const} */ ('generation') }, caseDef, host);
     assert.deepEqual(order.slice(0, 2), ['idle', 'start']);
   });
+});
+
+test('a matrix case may require uniqueness', () => {
+  assert.deepEqual(issuesOf(matrixOf({ uniqueness: 'require' })), []);
+  assert.equal(validateMatrix(matrixOf({ uniqueness: 'require' })).cases[0].uniqueness, 'require');
+  const refused = checkMatrix(matrixOf({ uniqueness: 'maybe' })).issues;
+  assert.deepEqual(refused.map((i) => i.path), ['cases[0].uniqueness']);
+  assert.equal(refused[0].message, 'uniqueness must be "any" or "require"');
 });

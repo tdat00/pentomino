@@ -4,11 +4,12 @@ import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 
 import { createGenerationClient, GenerationError } from '../core/browser/generation-client.js';
+import { createResponseGuard } from '../core/browser/generation-deadline.js';
 import { createPool, PoolAbortError } from '../core/browser/worker-pool.js';
 import { boardFromRows } from '../core/engine/board.js';
 import { firstSetAttempt, provenanceVersions, puzzleCandidate } from '../core/engine/generate.js';
 import { canonicalKey } from '../core/engine/geometry.js';
-import { layoutDistance } from '../core/engine/keys.js';
+import { clueKey, layoutDistance, layoutKey } from '../core/engine/keys.js';
 import { provenanceProblem, validatePack } from '../core/engine/pack.js';
 import { replayPuzzle } from '../core/engine/replay.js';
 import { createTaskHandler } from '../core/engine/tasks.js';
@@ -193,6 +194,18 @@ const setSuccess = (n) => ({ ok: true, set: fixture().set, calibration: fixture(
 const scripted = (t, offset = 0) => (t.payload.attempt === 0
   ? { value: fixture().chosen[t.payload.slot - 1 + offset] }
   : { value: { fail: 'layout' } });
+
+/** The fixture calibration shown as Hell 1 with a window count of 6. @param {object} [over] */
+const hellCalibration = (over = {}) => {
+  const { calibration } = fixture();
+  return { ...calibration, rating: { ...calibration.rating, level: 'hell-1' }, igWindow: { wc: 6 }, ...over };
+};
+/** A Hell 1 batch whose candidates all fail; the completion pass never starts. @param {object} over */
+const hellRun = async (over) => {
+  const h = harness({ handler: (t) => (t.kind === 'puzzleCandidate' ? { value: { fail: 'not-in-band' } } : undefined) });
+  const result = await clientOf(h).generateBatch(batchInput({ targetLevelId: 'hell-1', quantity: 2, ...over }));
+  return { h, result, candidates: h.tasks.filter((t) => t.kind === 'puzzleCandidate') };
+};
 
 /** @param {Promise<unknown>} promise */
 function track(promise) {
@@ -759,6 +772,47 @@ describe('batch requests', () => {
     assert.equal(await invalid({ targetLevelId: 'nope' }), 'invalid-input');
   });
 
+  test('Hell 1 candidates carry the calibration\'s window count; the completion pass does not', async () => {
+    const { h, result, candidates } = await hellRun({ calibration: hellCalibration() });
+    assert.deepEqual([result.status, result.reason], ['partial', 'difficulty-not-found']);
+    assert.equal(result.accepted.length, 1);
+    assert.equal(result.accepted[0].id, fixture().calibration.id);
+    assert.ok(candidates.length >= 12);
+    assert.ok(candidates.every((t) => t.payload.igPrior === 6));
+    assert.ok(h.tasks.filter((t) => t.kind !== 'puzzleCandidate').every((t) => !('igPrior' in t.payload)));
+  });
+
+  test('the prior applies when the calibration\'s keys are already seen', async () => {
+    const { set, calibration } = fixture();
+    const { result, candidates } = await hellRun({
+      calibration: hellCalibration(),
+      seenLayouts: [layoutKey(set.board, set.pieces, calibration.solution)],
+      seenClues: [clueKey(set.board, set.pieces, calibration.clues)],
+    });
+    assert.ok(result.accepted.every((p) => p.id !== calibration.id));
+    assert.ok(candidates.length >= 12);
+    assert.ok(candidates.every((t) => t.payload.igPrior === 6));
+  });
+
+  test('require needs a unique certificate today, whatever mode made the set', async () => {
+    const certificate = { status: 'unique', model: 'dlx-v1', rowLimit: 10000, verified: true };
+    const unique = await hellRun({ uniqueness: 'require', calibration: hellCalibration({ certificate }) });
+    assert.ok(unique.candidates.length >= 12);
+    assert.ok(unique.candidates.every((t) => t.payload.igPrior === 6));
+    const multiple = await hellRun({ uniqueness: 'require', calibration: hellCalibration({ certificate: { ...certificate, status: 'multiple' } }) });
+    assert.ok(multiple.candidates.length >= 12);
+    assert.ok(multiple.candidates.every((t) => !('igPrior' in t.payload)));
+  });
+
+  test('Nightmare uses the table', async () => {
+    const { candidates } = await hellRun({
+      targetLevelId: 'nightmare',
+      calibration: hellCalibration({ rating: { ...fixture().calibration.rating, level: 'nightmare' } }),
+    });
+    assert.ok(candidates.length >= 12);
+    assert.ok(candidates.every((t) => !('igPrior' in t.payload)));
+  });
+
   test('a newer request supersedes the old one and its late replies are ignored', async () => {
     const h = harness({ size: 2 });
     const client = clientOf(h);
@@ -956,7 +1010,7 @@ describe('auxiliary requests', () => {
   });
 });
 
-const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case.json', import.meta.url), 'utf8'));
+const REPLAY_FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case-v4.json', import.meta.url), 'utf8'));
 /**
  * The input of `replayPuzzle` for one fixture puzzle, as the Generator holds it: the set of its pack, the puzzle, the
  * pack's set origin and the puzzle's own origin record.
@@ -1326,6 +1380,7 @@ describe('real engine through the pool', () => {
         targetLevel: recipe.levelId,
         uniqueness: recipe.uniqueness,
         slot: i + 2,
+        igPrior: null,
         versions: provenanceVersions(),
       }, id);
       assert.ok(Number.isInteger(attempt) && attempt >= 0, id);
@@ -1396,5 +1451,345 @@ describe('real engine through the pool', () => {
         h.pool.close();
       }
     }
+  });
+});
+
+/** The bounded set stage of P5 (the first four attempts, one side) and the counters of the results. */
+describe('bounded set stage and counters', () => {
+  const counters = (/** @type {object} */ over = {}) => ({ budgetStops: 0, screenCapped: 0, rescueReratings: 0, tailReratings: 0, ...over });
+  const failed = (/** @type {string} */ reason, /** @type {object} */ over = {}) => ({ ok: false, reason, counters: counters(over) });
+  /** Answers attempts below `n` at once from `replies`; later attempts are held. @param {Record<number, any>} replies */
+  const scriptedSet = (replies) => (/** @type {Task} */ t) => (replies[attemptOf(t)] === undefined ? undefined : { value: replies[attemptOf(t)] });
+  /** @param {ReturnType<typeof harness>} h @param {number} n @param {unknown} value */
+  const answerAttempt = (h, n, value) => h.answer(/** @type {Task} */ (h.held.find((t) => attemptOf(t) === n)), { value });
+
+  test('the bound ends the set on four same-side no-window attempts', async () => {
+    const reply = failed('no-window-below', { budgetStops: 1 });
+    const h = harness({ handler: scriptedSet({ 0: reply, 1: reply, 2: reply, 3: reply }) });
+    const result = await clientOf(h).generateSet(setInput());
+    assert.equal(result.status, 'failed');
+    assert.equal(result.reason, 'no-window-below');
+    assert.deepEqual(result.failures, { 'no-window-below': 4 });
+    assert.equal(result.trail.boundFired, true);
+    assert.equal(result.trail.sameSide, 'below');
+    assert.deepEqual(result.trail.attempts, [0, 1, 2, 3].map((j) => ({ attempt: j, outcome: 'fail', reason: 'no-window-below', arrival: j })));
+    assert.deepEqual(result.trail.noWindow, { below: 4, above: 0 });
+    assert.deepEqual(result.counters, counters({ budgetStops: 4 }));
+  });
+
+  test('mixed sides or a budget-stop reason do not fire the bound', async () => {
+    for (const fourth of [failed('no-window-above'), failed('not-in-band', { budgetStops: 1 })]) {
+      const below = failed('no-window-below');
+      const h = harness({ handler: scriptedSet({ 0: below, 1: below, 2: below, 3: fourth }) });
+      const result = track(clientOf(h).generateSet(setInput()));
+      await settle();
+      assert.equal(result.state, 'pending', 'the request continues');
+      assert.ok(h.held.some((t) => attemptOf(t) === 4), 'attempt 4 is dispatched');
+      answerAttempt(h, 4, setSuccess(4));
+      await settle();
+      assert.equal(result.value.status, 'complete');
+      assert.equal(result.value.attempt, 4);
+      assert.equal(result.value.trail.boundFired, false);
+      assert.equal(result.value.trail.sameSide, null);
+    }
+  });
+
+  test('the bound is read before the winner scan', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput()));
+    await settle();
+    answerAttempt(h, 0, failed('no-window-above'));
+    await settle();
+    answerAttempt(h, 4, setSuccess(4));
+    await settle();
+    for (const j of [1, 2, 3]) {
+      answerAttempt(h, j, failed('no-window-above'));
+      await settle();
+    }
+    assert.equal(result.value.status, 'failed');
+    assert.equal(result.value.reason, 'no-window-above');
+    assert.equal(result.value.trail.boundFired, true);
+    assert.equal(result.value.trail.sameSide, 'above');
+    assert.equal(result.value.pack, undefined);
+  });
+
+  test('a success among the first four wins as today', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput()));
+    await settle();
+    for (const j of [0, 1, 3]) {
+      answerAttempt(h, j, failed('no-window-below'));
+      await settle();
+    }
+    answerAttempt(h, 2, setSuccess(2));
+    await settle();
+    assert.equal(result.value.status, 'complete');
+    assert.equal(result.value.attempt, 2);
+    assert.equal(result.value.trail.boundFired, false);
+    assert.deepEqual(result.value.trail.attempts.map((a) => [a.attempt, a.outcome, a.arrival]), [[0, 'fail', 0], [1, 'fail', 1], [3, 'fail', 2], [2, 'ok', 3]]);
+  });
+
+  test('a time-out before the bound is reported', async () => {
+    const h = harness();
+    // The deadline passes while the fourth no-window reply is being recorded, before the request reads it.
+    const onProgress = (/** @type {{ stage?: string, attempt?: number }} */ p) => {
+      if (p.stage === 'carving' && p.attempt === 3) {
+        h.clock.advance(115000);
+      }
+    };
+    const result = track(clientOf(h).generateSet(setInput(), { onProgress }));
+    await settle();
+    for (let j = 0; j < 4; j += 1) {
+      answerAttempt(h, j, failed('no-window-below'));
+      await settle();
+    }
+    assert.equal(result.value.status, 'failed');
+    assert.equal(result.value.reason, 'time-limit');
+    assert.equal(result.value.trail.sameSide, 'below');
+    assert.equal(result.value.trail.boundFired, false);
+  });
+
+  test('counters are summed per request', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput()));
+    await settle();
+    answerAttempt(h, 1, failed('not-in-band', { budgetStops: 1, screenCapped: 2 }));
+    await settle();
+    answerAttempt(h, 0, failed('not-in-band', { budgetStops: 1, tailReratings: 3 }));
+    await settle();
+    answerAttempt(h, 2, { ...setSuccess(2), counters: counters({ rescueReratings: 4, tailReratings: 1 }) });
+    await settle();
+    assert.equal(result.value.status, 'complete');
+    assert.deepEqual(result.value.counters, { budgetStops: 2, screenCapped: 2, rescueReratings: 4, tailReratings: 4 });
+  });
+
+  test('every no-window attempt is counted, beyond the first four too', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput()));
+    await settle();
+    for (const j of [0, 1, 2, 3]) {
+      answerAttempt(h, j, failed('not-in-band'));
+      await settle();
+    }
+    answerAttempt(h, 4, failed('no-window-above'));
+    await settle();
+    answerAttempt(h, 5, setSuccess(5));
+    await settle();
+    assert.equal(result.value.status, 'complete');
+    assert.equal(result.value.attempt, 5);
+    assert.deepEqual(result.value.trail.noWindow, { below: 0, above: 1 });
+    assert.deepEqual(result.value.trail.attempts.map((a) => a.attempt), [0, 1, 2, 3]);
+  });
+
+  test('a batch totals the counters of every candidate it receives', async () => {
+    const reply = (/** @type {Task} */ t) => ({ value: { ...scripted(t).value, counters: counters({ budgetStops: 1, screenCapped: 2 }) } });
+    const result = await clientOf(harness({ size: 1, handler: reply })).generateBatch(batchInput({ quantity: 1 }));
+    assert.equal(result.status, 'complete');
+    assert.deepEqual(result.counters, counters({ budgetStops: 1, screenCapped: 2 }));
+    const plain = await clientOf(harness({ size: 1, handler: (t) => scripted(t) })).generateBatch(batchInput({ quantity: 1 }));
+    assert.deepEqual(plain.counters, counters());
+  });
+});
+
+describe('request scopes', () => {
+  /** @param {number} origin @param {number | null} setCutAt */
+  const scopeOf = (origin, setCutAt) => ({ origin, setCutAt });
+  /** @param {ReturnType<typeof harness>} h @param {number} n @param {unknown} value */
+  const answerAttempt = (h, n, value) => h.answer(/** @type {Task} */ (h.held.find((t) => attemptOf(t) === n)), { value });
+  const noWindow = { ok: false, reason: 'no-window-below' };
+
+  test('newScope reads the client clock', () => {
+    const h = harness();
+    h.clock.advance(4000);
+    const client = clientOf(h);
+    assert.deepEqual(client.newScope(true), { origin: 5000, setCutAt: 51000 });
+    assert.deepEqual(client.newScope(false), { origin: 5000, setCutAt: null });
+  });
+
+  test('the reserve cuts the set stage at its scope\'s cut', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput({ scope: scopeOf(0, 46000) })));
+    await settle();
+    assert.equal(h.held.length, 4);
+    h.clock.advance(44999);
+    await settle();
+    assert.equal(h.clock.now(), 45999);
+    assert.equal(result.state, 'pending');
+    h.clock.advance(1);
+    await settle();
+    assert.equal(h.clock.now(), 46000);
+    assert.deepEqual([result.value.status, result.value.reason], ['failed', 'reserve-cut']);
+    assert.ok(h.held.every((t) => t.worker.terminated), 'the workers are aborted');
+  });
+
+  test('the cut comes after the bound and the winner scan', async () => {
+    const h = harness();
+    const won = track(clientOf(h).generateSet(setInput({ scope: scopeOf(0, 46000) })));
+    await settle();
+    h.clock.advance(44999);
+    answerAttempt(h, 0, setSuccess(0));
+    await settle();
+    assert.equal(won.value.status, 'complete');
+
+    const b = harness();
+    // The four no-window replies and the cut arrive together: the clock passes the cut while the fourth is recorded.
+    const onProgress = (/** @type {{ stage?: string, attempt?: number }} */ p) => {
+      if (p.stage === 'carving' && p.attempt === 3) {
+        b.clock.advance(45000);
+      }
+    };
+    const bound = track(clientOf(b).generateSet(setInput({ scope: scopeOf(0, 46000) }), { onProgress }));
+    await settle();
+    for (let j = 0; j < 4; j += 1) {
+      answerAttempt(b, j, noWindow);
+      await settle();
+    }
+    assert.equal(b.clock.now(), 46000);
+    assert.deepEqual([bound.value.status, bound.value.reason], ['failed', 'no-window-below']);
+    assert.equal(bound.value.trail.boundFired, true);
+  });
+
+  test('without a scope there is no reserve and a fresh 115-s stop', async () => {
+    const h = harness();
+    const result = track(clientOf(h).generateSet(setInput()));
+    await settle();
+    h.clock.advance(60000);
+    await settle();
+    assert.equal(result.state, 'pending', 'no cut at 46 s');
+    h.clock.advance(54999);
+    await settle();
+    assert.equal(result.state, 'pending');
+    h.clock.advance(1);
+    await settle();
+    assert.deepEqual([result.value.status, result.value.reason], ['failed', 'time-limit']);
+  });
+
+  test('set and batch share one origin', async () => {
+    const h = harness({ handler: (t) => (t.kind === 'setAttempt' ? { value: setSuccess(0) } : undefined) });
+    const client = clientOf(h);
+    const scope = scopeOf(0, 46000);
+    h.clock.advance(29000);
+    const set = await client.generateSet(setInput({ scope }));
+    assert.equal(set.status, 'complete');
+    assert.equal(h.clock.now(), 30000);
+    const batch = track(client.generateBatch(batchInput({ scope, calibration: set.calibration })));
+    await settle();
+    assert.equal(batch.state, 'pending');
+    h.clock.advance(84999);
+    await settle();
+    assert.equal(h.clock.now(), 114999);
+    assert.equal(batch.state, 'pending');
+    h.clock.advance(1);
+    await settle();
+    assert.equal(batch.value.reason, 'time-limit', 'the stop is 115 s after the origin, not after the batch start');
+  });
+
+  test('an invalid scope is refused', async () => {
+    const h = harness();
+    const client = clientOf(h);
+    const refused = (/** @type {unknown} */ e) => e instanceof GenerationError && e.code === 'invalid-input';
+    for (const scope of [scopeOf(5000, null), scopeOf(500, 400), scopeOf(Number.NaN, null), scopeOf(0, Number.NaN), { origin: 0 }]) {
+      await assert.rejects(client.generateSet(setInput({ scope })), refused);
+      await assert.rejects(client.generateBatch(batchInput({ scope })), refused);
+    }
+    assert.equal(h.tasks.length, 0, 'nothing is dispatched');
+  });
+});
+
+describe('response guard with the client', () => {
+  // The fake clock starts at 1000 and the guard's origin is 0, so the bound is at 119,000 on the clock.
+  const TO_BOUND = 118000;
+  /** @param {'set' | 'batch'} held @returns {(phase: 'set' | 'batch') => Promise<void>} */
+  const holding = (held) => (phase) => (phase === held ? new Promise(() => {}) : Promise.resolve());
+  /** A batch of three scripted puzzles whose pack assembly is held; the guard has not fired yet. */
+  const heldBatch = async () => {
+    const h = harness({ handler: (t) => scripted(t) });
+    const client = clientOf(h, { assemblyGate: holding('batch') });
+    const guard = createResponseGuard({ clock: h.clock, client, origin: 0 });
+    const raw = client.generateBatch(batchInput({ quantity: 3 }));
+    const rawOut = track(raw);
+    const out = track(guard.batch(raw));
+    await settle();
+    return { h, client, out, rawOut };
+  };
+
+  test('a held set assembly does not delay the bound', async () => {
+    const h = harness({ handler: (t) => ({ value: setSuccess(t.payload.attempt) }) });
+    const client = clientOf(h, { assemblyGate: (p) => (p === 'set' ? new Promise(() => {}) : Promise.resolve()) });
+    const g = createResponseGuard({ clock: h.clock, client, origin: 0 });
+    const raw = client.generateSet(setInput());
+    const rawOut = track(raw);
+    const out = track(g.set(raw));
+    await settle();
+    assert.equal(out.state, 'pending');
+    h.clock.advance(TO_BOUND - 1);
+    await settle();
+    assert.equal(out.state, 'pending');
+    h.clock.advance(1);
+    await settle();
+    assert.deepEqual(out.value, { status: 'failed', reason: 'response-bound', failures: {} });
+    assert.equal(rawOut.state, 'pending', 'no set result is delivered');
+  });
+
+  test('a held batch assembly returns the validated prefix', async () => {
+    const reference = await clientOf(harness({ handler: (t) => scripted(t) })).generateBatch(batchInput({ quantity: 3 }));
+    assert.equal(reference.accepted.length, 3);
+    const { h, out, rawOut } = await heldBatch();
+    assert.equal(out.state, 'pending');
+    h.clock.advance(TO_BOUND);
+    await settle();
+    const { value } = out;
+    assert.equal(out.state, 'resolved');
+    assert.deepEqual([value.status, value.reason], ['partial', 'response-bound']);
+    assert.equal(value.accepted.length, 3);
+    assert.deepEqual(value.accepted.map((/** @type {{ id: string }} */ p) => p.id), reference.accepted.map((p) => p.id), 'fold order');
+    assert.deepEqual(value.made, reference.made);
+    assert.deepEqual(Object.keys(value.made), value.accepted.map((/** @type {{ id: string }} */ p) => p.id));
+    assert.deepEqual([value.seenLayouts, value.seenClues], [reference.seenLayouts, reference.seenClues]);
+    assert.equal(value.pack.puzzles.length, 3);
+    assert.equal(validatePack(value.pack).ok, true);
+    assert.deepEqual(value.pack, reference.pack);
+    assert.equal(rawOut.state, 'pending', 'the held assembly delivers nothing');
+  });
+
+  test('an empty prefix has no pack', async () => {
+    const h = harness({ handler: () => undefined });
+    const client = clientOf(h);
+    assert.equal(client.prefixSnapshot(), null, 'no request yet');
+    const raw = track(client.generateBatch(batchInput({ quantity: 3 })));
+    await settle();
+    h.clock.advance(1000);
+    const snapshot = client.prefixSnapshot();
+    assert.ok(snapshot !== null);
+    assert.deepEqual([snapshot.status, snapshot.reason, snapshot.accepted, snapshot.made], ['partial', 'response-bound', [], {}]);
+    assert.equal('pack' in snapshot, false);
+    client.cancel();
+    await settle();
+    assert.equal(raw.value.status, 'cancelled');
+  });
+
+  test('a set request has no batch prefix', async () => {
+    const h = harness({ handler: (t) => ({ value: setSuccess(t.payload.attempt) }) });
+    const client = clientOf(h);
+    await client.generateSet(setInput());
+    assert.equal(client.prefixSnapshot(), null);
+  });
+
+  test('repeated cancel is harmless', async () => {
+    const { h, client, out, rawOut } = await heldBatch();
+    assert.doesNotThrow(() => client.cancel());
+    h.clock.advance(TO_BOUND);
+    await settle();
+    assert.doesNotThrow(() => client.cancel());
+    assert.doesNotThrow(() => client.cancel());
+    await settle();
+    assert.deepEqual([out.state, out.value.status, out.value.reason], ['resolved', 'partial', 'response-bound']);
+    assert.equal(out.value.accepted.length, 3);
+    assert.equal(rawOut.state, 'pending', 'only the guard delivers a terminal result');
+  });
+
+  test('the client exposes its clock', () => {
+    const h = harness();
+    assert.equal(clientOf(h).clock(), h.clock);
   });
 });

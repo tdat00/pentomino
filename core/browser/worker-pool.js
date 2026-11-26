@@ -58,7 +58,7 @@ import { BUDGETS, TIME } from '../engine/policy.js';
  * @property {() => void} cancelAll
  * @property {() => void} recycle
  * @property {number} size
- * @property {(r: { requestId: number, revision: string, onTimeout?: (info: TimeoutInfo) => void }) => void} beginRequest
+ * @property {(r: { requestId: number, revision: string, onTimeout?: (info: TimeoutInfo) => void, origin?: number }) => void} beginRequest
  * @property {(requestId: number) => void} endRequest
  * @property {() => MemorySnapshot} memory
  * @property {(bytes: number) => void} setMainBytes
@@ -623,7 +623,7 @@ export function createPool(options = {}) {
     run: (task, onProgress) => enqueue(task, false, onProgress),
     runIdle: (task) => enqueue(task, true, undefined),
 
-    beginRequest({ requestId, revision, onTimeout }) {
+    beginRequest({ requestId, revision, onTimeout, origin }) {
       if (closed) {
         throw new Error('the pool is closed');
       }
@@ -638,9 +638,11 @@ export function createPool(options = {}) {
         current.ended = true;
         abortWhere(() => true, 'superseded');
       }
+      const now = clock.now();
+      const start = typeof origin === 'number' && Number.isFinite(origin) && origin <= now ? origin : now;
       /** @type {RequestState} */
-      const request = { requestId, revision, startedAt: clock.now(), timer: null, onTimeout, ended: false, timedOut: false };
-      request.timer = clock.setTimeout(() => expire(request), TIME.dispatchStopMs);
+      const request = { requestId, revision, startedAt: start, timer: null, onTimeout, ended: false, timedOut: false };
+      request.timer = clock.setTimeout(() => expire(request), Math.max(0, start + TIME.dispatchStopMs - now));
       current = request;
       lastRequestId = requestId;
     },

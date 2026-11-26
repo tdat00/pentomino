@@ -1,0 +1,454 @@
+{
+  "format": "p2-replay-probes",
+  "version": 1,
+  "limits": {
+    "maxSteps": 4096,
+    "maxBytes": 4194304,
+    "work": 215040000000
+  },
+  "items": [
+    {
+      "n": 1,
+      "group": "any",
+      "lane": 1,
+      "cell": "26x26-hell-1",
+      "uniqueness": "any",
+      "copy": {
+        "id": "p2-gen4-diag",
+        "treeId": "8d3b5a6a491cfcb584201eabd85bad59d0daa3be34d8d52ddcc61e1cdee3ecb2"
+      },
+      "seed": "p2-replay/26x26-hell-1/0",
+      "status": "measured",
+      "reason": null,
+      "detail": null,
+      "batchStatus": "complete",
+      "puzzles": [
+        {
+          "id": "p50873cd306bc",
+          "kind": "calibration",
+          "status": "matched",
+          "steps": 46,
+          "bytes": 204811,
+          "work": 1597788577
+        },
+        {
+          "id": "p58d7431d6385",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 54,
+          "bytes": 271475,
+          "work": 2072103782
+        },
+        {
+          "id": "p7572d64fb946",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 62,
+          "bytes": 348296,
+          "work": 4821928652
+        },
+        {
+          "id": "pf18cc6f13870",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 59,
+          "bytes": 318318,
+          "work": 4153723361
+        }
+      ],
+      "maxima": {
+        "steps": 62,
+        "bytes": 348296,
+        "work": 4821928652
+      },
+      "margin": "ok",
+      "exceeded": [],
+      "seconds": 25.729,
+      "setSeconds": 4.531
+    },
+    {
+      "n": 2,
+      "group": "any",
+      "lane": 2,
+      "cell": "20x20-hell-1",
+      "uniqueness": "any",
+      "copy": {
+        "id": "p2-gen4-diag",
+        "treeId": "8d3b5a6a491cfcb584201eabd85bad59d0daa3be34d8d52ddcc61e1cdee3ecb2"
+      },
+      "seed": "p2-replay/20x20-hell-1/0",
+      "status": "measured",
+      "reason": null,
+      "detail": null,
+      "batchStatus": "complete",
+      "puzzles": [
+        {
+          "id": "pe1238ff09e0a",
+          "kind": "calibration",
+          "status": "matched",
+          "steps": 43,
+          "bytes": 140542,
+          "work": 236018023
+        },
+        {
+          "id": "pcb312b181f32",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 52,
+          "bytes": 195356,
+          "work": 1068457047
+        },
+        {
+          "id": "p7c7e7c2d6966",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 54,
+          "bytes": 210926,
+          "work": 1604643678
+        },
+        {
+          "id": "p17a70a85a3a2",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 57,
+          "bytes": 232349,
+          "work": 1587749704
+        }
+      ],
+      "maxima": {
+        "steps": 57,
+        "bytes": 232349,
+        "work": 1604643678
+      },
+      "margin": "ok",
+      "exceeded": [],
+      "seconds": 13.347,
+      "setSeconds": 1.18
+    },
+    {
+      "n": 3,
+      "group": "any",
+      "lane": 1,
+      "cell": "24x24-nightmare",
+      "uniqueness": "any",
+      "copy": {
+        "id": "p2-gen4",
+        "treeId": "6816e5eac76578df9b829868a5167445774c88a999e38325565fdb6a58f08a2e"
+      },
+      "seed": "p2-replay/24x24-nightmare/0",
+      "status": "measured",
+      "reason": null,
+      "detail": null,
+      "batchStatus": "complete",
+      "puzzles": [
+        {
+          "id": "pb5a09582747f",
+          "kind": "calibration",
+          "status": "matched",
+          "steps": 37,
+          "bytes": 136469,
+          "work": 195298877
+        },
+        {
+          "id": "p548dd0b97ef3",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 51,
+          "bytes": 238378,
+          "work": 3358866467
+        },
+        {
+          "id": "p05463d20a64c",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 49,
+          "bytes": 222821,
+          "work": 1405098709
+        },
+        {
+          "id": "pd42e2a3eacdb",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 57,
+          "bytes": 290636,
+          "work": 3418528640
+        }
+      ],
+      "maxima": {
+        "steps": 57,
+        "bytes": 290636,
+        "work": 3418528640
+      },
+      "margin": "ok",
+      "exceeded": [],
+      "seconds": 21.706,
+      "setSeconds": 0.904
+    },
+    {
+      "n": 4,
+      "group": "any",
+      "lane": 2,
+      "cell": "22x22-nightmare",
+      "uniqueness": "any",
+      "copy": {
+        "id": "p2-gen4",
+        "treeId": "6816e5eac76578df9b829868a5167445774c88a999e38325565fdb6a58f08a2e"
+      },
+      "seed": "p2-replay/22x22-nightmare/0",
+      "status": "measured",
+      "reason": null,
+      "detail": null,
+      "batchStatus": "complete",
+      "puzzles": [
+        {
+          "id": "pa9723fcad877",
+          "kind": "calibration",
+          "status": "matched",
+          "steps": 35,
+          "bytes": 122107,
+          "work": 494091421
+        },
+        {
+          "id": "p90c1922c822f",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 41,
+          "bytes": 152583,
+          "work": 825040931
+        },
+        {
+          "id": "p9a3bb1289437",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 43,
+          "bytes": 167370,
+          "work": 1592392453
+        },
+        {
+          "id": "ped6633ded765",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 42,
+          "bytes": 159771,
+          "work": 776552851
+        }
+      ],
+      "maxima": {
+        "steps": 43,
+        "bytes": 167370,
+        "work": 1592392453
+      },
+      "margin": "ok",
+      "exceeded": [],
+      "seconds": 12.154,
+      "setSeconds": 1.992
+    },
+    {
+      "n": 5,
+      "group": "require",
+      "lane": 1,
+      "cell": "22x22-hell-1",
+      "uniqueness": "require",
+      "copy": {
+        "id": "p2-gen4-diag",
+        "treeId": "8d3b5a6a491cfcb584201eabd85bad59d0daa3be34d8d52ddcc61e1cdee3ecb2"
+      },
+      "seed": "p2-replay/22x22-hell-1/1",
+      "status": "measured",
+      "reason": null,
+      "detail": null,
+      "batchStatus": "partial",
+      "puzzles": [
+        {
+          "id": "p4083bbc1e156",
+          "kind": "calibration",
+          "status": "matched",
+          "steps": 143,
+          "bytes": 932096,
+          "work": 16489922523
+        },
+        {
+          "id": "pd25abc7407ff",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 134,
+          "bytes": 852593,
+          "work": 34474256764
+        }
+      ],
+      "maxima": {
+        "steps": 143,
+        "bytes": 932096,
+        "work": 34474256764
+      },
+      "margin": "ok",
+      "exceeded": [],
+      "seconds": 330.587,
+      "setSeconds": 90.388
+    },
+    {
+      "n": 6,
+      "group": "require",
+      "lane": 2,
+      "cell": "32x15-hell-1",
+      "uniqueness": "require",
+      "copy": {
+        "id": "p2-gen4-diag",
+        "treeId": "8d3b5a6a491cfcb584201eabd85bad59d0daa3be34d8d52ddcc61e1cdee3ecb2"
+      },
+      "seed": "p2-replay/32x15-hell-1/0",
+      "status": "measured",
+      "reason": null,
+      "detail": null,
+      "batchStatus": "partial",
+      "puzzles": [
+        {
+          "id": "pe28282f97e0e",
+          "kind": "calibration",
+          "status": "matched",
+          "steps": 105,
+          "bytes": 642656,
+          "work": 20465809242
+        },
+        {
+          "id": "p679e2d1f118f",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 86,
+          "bytes": 472491,
+          "work": 35723499801
+        }
+      ],
+      "maxima": {
+        "steps": 105,
+        "bytes": 642656,
+        "work": 35723499801
+      },
+      "margin": "ok",
+      "exceeded": [],
+      "seconds": 320.703,
+      "setSeconds": 79.23
+    },
+    {
+      "n": 7,
+      "group": "require",
+      "lane": 1,
+      "cell": "22x22-nightmare",
+      "uniqueness": "require",
+      "copy": {
+        "id": "p2-gen4",
+        "treeId": "6816e5eac76578df9b829868a5167445774c88a999e38325565fdb6a58f08a2e"
+      },
+      "seed": "p2-replay/22x22-nightmare/3",
+      "status": "measured",
+      "reason": null,
+      "detail": null,
+      "batchStatus": "complete",
+      "puzzles": [
+        {
+          "id": "p0ac0338f37f1",
+          "kind": "calibration",
+          "status": "matched",
+          "steps": 170,
+          "bytes": 1033951,
+          "work": 10564799966
+        },
+        {
+          "id": "pbaa4ddf0c2aa",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 158,
+          "bytes": 963458,
+          "work": 27090578647
+        },
+        {
+          "id": "pcb7cb0cc6a05",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 143,
+          "bytes": 860757,
+          "work": 19412209365
+        },
+        {
+          "id": "p67749cfcf7b0",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 121,
+          "bytes": 717087,
+          "work": 19786293479
+        }
+      ],
+      "maxima": {
+        "steps": 170,
+        "bytes": 1033951,
+        "work": 27090578647
+      },
+      "margin": "ok",
+      "exceeded": [],
+      "seconds": 241.154,
+      "setSeconds": 51.206
+    },
+    {
+      "n": 8,
+      "group": "require",
+      "lane": 2,
+      "cell": "32x15-nightmare",
+      "uniqueness": "require",
+      "copy": {
+        "id": "p2-gen4",
+        "treeId": "6816e5eac76578df9b829868a5167445774c88a999e38325565fdb6a58f08a2e"
+      },
+      "seed": "p2-replay/32x15-nightmare/1",
+      "status": "measured",
+      "reason": null,
+      "detail": null,
+      "batchStatus": "complete",
+      "puzzles": [
+        {
+          "id": "pb1dc786ed030",
+          "kind": "calibration",
+          "status": "matched",
+          "steps": 161,
+          "bytes": 946502,
+          "work": 15485578829
+        },
+        {
+          "id": "pfba78d4a9e7e",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 185,
+          "bytes": 1118651,
+          "work": 25471577985
+        },
+        {
+          "id": "pd10681ceff3e",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 183,
+          "bytes": 1092263,
+          "work": 28578899808
+        },
+        {
+          "id": "p6291c9d0b361",
+          "kind": "candidate",
+          "status": "matched",
+          "steps": 79,
+          "bytes": 409963,
+          "work": 18191657709
+        }
+      ],
+      "maxima": {
+        "steps": 185,
+        "bytes": 1118651,
+        "work": 28578899808
+      },
+      "margin": "ok",
+      "exceeded": [],
+      "seconds": 285.881,
+      "setSeconds": 91.551
+    }
+  ],
+  "sources": {
+    "trees": "Q:\\git\\pentomino\\tests\\artifacts\\ig-proto\\phase2\\trees"
+  }
+}

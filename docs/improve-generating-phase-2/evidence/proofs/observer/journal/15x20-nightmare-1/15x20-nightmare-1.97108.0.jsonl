@@ -1,0 +1,16 @@
+{"t":"worker","pid":97108,"threadId":0,"at":1795638149137.5762}
+{"t":"start","call":"15x20-nightmare-1:97108:0:11","stage":"set","attempt":0,"level":"nightmare","A":300,"at":1795638149137.5547}
+{"t":"caps","call":"15x20-nightmare-1:97108:0:11","count":true}
+{"t":"begin","call":"15x20-nightmare-1:97108:0:11","kind":"rate","bound":6814816796}
+{"t":"p","call":"15x20-nightmare-1:97108:0:11","i":0,"tuple":["call",5,"capped",null,760135474,0]}
+{"t":"begin","call":"15x20-nightmare-1:97108:0:11","kind":"rate","bound":6309473742}
+{"t":"p","call":"15x20-nightmare-1:97108:0:11","i":1,"tuple":["call",6,"capped",null,760145395,0]}
+{"t":"begin","call":"15x20-nightmare-1:97108:0:11","kind":"rate","bound":5085579990}
+{"t":"p","call":"15x20-nightmare-1:97108:0:11","i":2,"tuple":["call",8,"rated",49,31425554,11529026]}
+{"t":"begin","call":"15x20-nightmare-1:97108:0:11","kind":"rate","bound":5513527838}
+{"t":"p","call":"15x20-nightmare-1:97108:0:11","i":3,"tuple":["call",7,"rated",57,91114718,63643620]}
+{"t":"begin","call":"15x20-nightmare-1:97108:0:11","kind":"rate","bound":6032244182}
+{"t":"p","call":"15x20-nightmare-1:97108:0:11","i":4,"tuple":["call",7,"capped",null,760132817,0]}
+{"t":"begin","call":"15x20-nightmare-1:97108:0:11","kind":"rate","bound":4746323504}
+{"t":"p","call":"15x20-nightmare-1:97108:0:11","i":5,"tuple":["call",7,"rated",70,89789255,80102103]}
+{"t":"end","call":"15x20-nightmare-1:97108:0:11","result":"ok","work":2648017962,"profiles":6,"locate":{"countWork":0},"igNoWindow":null,"budgetStop":false,"clueCount":7,"at":1795638156317.722}

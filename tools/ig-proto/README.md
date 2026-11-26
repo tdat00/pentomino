@@ -3168,3 +3168,227 @@ browser qualification (D39); every output says so.
 - **Self-test**: six `--items` cases (`p6: pairs and identity`, `p6: statistics and ratios`, `p6: the memory checks`, `p6: the ledger, the
   reservation and the preflight`, `p6: inputs are refused`, `p6: the chart`) on synthetic rows, with scratch files under
   `tests/artifacts/ig-proto/selftest/p6/`; `chart-png.ps1 -SelfTest` has six synthetic cases on the two ownership functions (no process is started, stopped or awaited).
+
+## Phase 2 (production validation)
+
+The tools of `tools/ig-proto/phase2/` validate the **production** `gen-v4` code (task pack
+`tasks/improve-generating-phase-2/`, plan `docs/improve-generating-phase-2/plan.md`, draft PR #14). They keep the rules of
+this README (copies, never edits; every timed or heavy run through the lock helper) and add identified copies of the
+shipping sources, a plan of 1,013 rows, a seal, a ledger and gates. Nothing here is a result: no phase-2 validation has run
+when these tools are written, and a document that quotes a number must name the report it comes from. Every command runs
+from the repository root, in a fresh PowerShell process.
+
+### Layout of `phase2/`
+
+| Path | Role |
+|---|---|
+| `copies.mjs`, `copies.test.mjs` | the measurement copies (P2-12b): `check` and `build` |
+| `variants/p2-*.json`, `files/p2-link/`, `files/p2-trace/`, `files/p2-glue/` | the manifests of the copies and their copy-only files (P2-12b, P2-12d, P2-16c): `p2-link` (the frozen identity and link layer, edits `link-1` to `link-17` verbatim), `p2-trace` and `p2-trace-today` (the trace layer, C1), `p2-gen4` (the shipping candidate, every counterfactual extends it), `p2-diag` and `p2-gen4-diag` (the Hell 1 diagnostic offer, identified separately), `p2-none` (no screen), `p2-uncapped` and `p2-uncapped-diag` (no budget, bound or combined deadline), `p2-today` (the phase-1 head `6b94ffb`), `p2-glue` and `p2-glue-broken` (the glue proof) |
+| `trace.test.mjs` | the trace layer: the copy `p2-gen4` journals every selection call in the frozen ledger's format (P2-12d) |
+| `trace-reader.mjs`, `trace-reader.test.mjs` | the reader of a row's journal folder: `readRowFolder`, `rowWork` (the complete work ledger, C9) and `workLedger` (the ten-field input of the frozen statistics); a lost file or empty evidence is a problem, never zero (P2-13r) |
+| `binding.mjs`, `binding.test.mjs` | the binding verifiers: `verifyRow` (C5), `verifyProof` (C14), `resourceGate` (A4, C15) and `browserGate` (A5, C16), with the fixed items and checks (P2-13v) |
+| `proofs.mjs`, `proof-observer.mjs`, `proof-certificate.mjs`, `proof-prior-replay.mjs`, `proof-legacy.mjs`, `proofs.test.mjs`, `proofs-prior-legacy.test.mjs` | the common proof runner and the four bundles (P2-12b, P2-12c, P2-12e) |
+| `p2.mjs`, `run-group.ps1`, `fixtures/fake-invoker.ps1`, `p2.test.mjs` | the driver: plan, seal, ledger, row groups, publication, report, twins (P2-13a, P2-13d, P2-13e); the locked wrapper; the fake invoker of the wrapper's self-tests; the test file of the driver, the comparator, P5 and the readings |
+| `gates.mjs`, `p5.mjs`, `glue-reach.mjs` | the comparator and the stage gates (P2-13b), the P5 trigger, coverage and twin assignment (P2-13c), the glue and reach readings (P2-13f); pure, called by `p2.mjs` |
+| `replay-probe.mjs`, `replay-probe.test.mjs` | the replay-resource probes (P2-14b) |
+| `glue.test.mjs` | the no-window glue proof through the real worker pool and client (P2-16c) |
+| `browser-run.mjs`, `browser-run.test.mjs`, `fixtures/browser-selftest.html`, `fixtures/browser-selftest.js` | the browser runner and its self-test page (P2-16e); the checks themselves are the page `tests/browser/deadline.html` (P2-16b) |
+
+### Where files go
+
+- **Evidence** `E` = `docs/improve-generating-phase-2/evidence/`, committed: `plan/`, `seal/`, `ledger/ledger.jsonl`, `proofs/<bundle>/`,
+  `rows-smoke/`, `rows/`, `rows-before-twins/`, `rows-partial/<S>-<n>/`, `twins/`, `replay-probes/`, `browser/<check>/`,
+  `report-smoke/`, `report-A/` and `report-B/`. A snapshot, the plan, the seal and the activation receipt are write-once.
+- **Raw files** `RAW` = `tests/artifacts/ig-proto/phase2/`, git-ignored, never committed: `trees/<source>/<id>/` (the copies),
+  `raw/<fileKey>/` (one row's `receipt.json`, `report.json` and `journal/`), `rows/<stage>.jsonl` and `<stage>.status.jsonl`,
+  `pending.json` (the reservation of the running invocation), `self-test/<run>/` (the self-tests) and `rehearsal/<name>/`
+  (uncharged rehearsals; never `E/`).
+- A row, a receipt or a result is bound to the seal that was active when it was made. A foreign seal is refused, never reused.
+
+### Commands
+
+**`copies.mjs`** builds and checks the copies (unlocked: nothing rates or generates).
+
+```powershell
+node tools\ig-proto\phase2\copies.mjs check --source gen-v4
+node tools\ig-proto\phase2\copies.mjs check --source today --root Q:\git\pentomino-p2-today
+node tools\ig-proto\phase2\copies.mjs build --source gen-v4 [--dest <dir>]
+node tools\ig-proto\phase2\copies.mjs build --source today --root Q:\git\pentomino-p2-today
+```
+
+- `check` plans every copy of the source in memory and writes nothing: `copies: OK (<n> variants, <m> edits match)`, exit 0; a
+  mismatch or a usage error prints and exits 1. The `gen-v4` source has five copies (`p2-gen4`, `p2-gen4-diag`, `p2-none`,
+  `p2-uncapped`, `p2-uncapped-diag`) and the `today` source one (`p2-today`).
+- `--root <dir>` is the root of the sources: the repository for `gen-v4` (the default), and for `today` the worktree of
+  `6b94ffb`, which is required.
+- `--rehearse-cutover` (`gen-v4` only) applies the cutover edits of P2-15 in memory; it throws once the cutover is merged.
+- `build` writes `<dest>/<source>/<id>/` with the copy, `ig-tree.json` and its receipt `p2-copy.json`; the default `--dest` is
+  `RAW/trees`.
+
+**`proofs.mjs`** runs one proof bundle (locked) and writes its result (C14).
+
+```powershell
+node tools\ig-proto\phase2\proofs.mjs <observer|certificate|prior-replay|legacy> --out <dir> [--quick]
+```
+
+- The bundles: `observer` (the observers and the trace leave the selection's results, work and skips unchanged), `certificate`
+  (a certified screen rating is the canonical rating), `prior-replay` (the calibration's window count reaches the selector
+  and the stored record, and every puzzle replays `matched`) and `legacy` (Master, the full 26x26 Nightmare board and a small
+  board return today's puzzles through the `gen-v4` build).
+- It writes `<dir>/result.json` and `result.md` (CRLF), removing a stale result first. Exit 0 `pass`, 1 `fail`, 2 not run.
+- `--quick` is a rehearsal. Its result has `quick: true` and is never a qualification proof.
+
+**`p2.mjs`** is the driver. `--state <dir>` redirects `E` and `RAW` into a folder and is for the self-tests only.
+
+```powershell
+node tools\ig-proto\phase2\p2.mjs plan --out <dir>
+node tools\ig-proto\phase2\p2.mjs seal --commit <sha> --today-root <dir> --plan <plan.json> --out <dir>
+node tools\ig-proto\phase2\p2.mjs seal --check [--seal <path>]
+node tools\ig-proto\phase2\p2.mjs ledger --status
+node tools\ig-proto\phase2\p2.mjs ledger --check --stage <A|B> --limit <s>
+node tools\ig-proto\phase2\p2.mjs ledger --append --json <text>
+node tools\ig-proto\phase2\p2.mjs reserve --stage <A|B> (--group <n> | --item <name> | --overflow-group <n>) --limit <s>
+node tools\ig-proto\phase2\p2.mjs release --id <id>
+node tools\ig-proto\phase2\p2.mjs run-group --stage <A|B> (--group <n> | --overflow-group <n>) --invocation <id> [--state <dir> [--clock-offset-s <s>]]
+node tools\ig-proto\phase2\p2.mjs status --stage <A|B>
+node tools\ig-proto\phase2\p2.mjs publish --stage <A|B> --out <dir> [--rows <dir>]
+node tools\ig-proto\phase2\p2.mjs report --stage <smoke|A|B> --out <dir>
+node tools\ig-proto\phase2\p2.mjs twins --out <dir>
+```
+
+| Command | What it does | Exit codes |
+|---|---|---|
+| `plan` | writes `plan.json` and `plan.md`: the 1,013 enumerated rows with their group, variant, board and limits; prints `plan: <sha256> (1013 rows)` | 3 `plan.json` exists with other bytes |
+| `seal` | writes `seal.json` (C13): the commit, the stage map, the plan, the source digest, the today worktree, every copy (runtime and files digests), every file under `phase2/`, every sealed input and the frozen snapshot; write-once; refuses unless `HEAD` equals `--commit`, the tracked worktree is clean and the today worktree is at `6b94ffb` and clean | 3 refused |
+| `seal --check` | recomputes everything sealed and prints `seal: OK` or `seal: drift <field> <path or id>`; it does not repeat the two creation-only refusals, and a file outside the sealed inventory (ledger, rows, readouts, task logs) may change | 3 drift |
+| `ledger --status` | per stage: spent, authorization and remaining, in seconds and minutes | |
+| `ledger --check` | prints `ledger: admitted ...` or `ledger: refused <why>`: a reservation exists, `spent + limit + 45` would pass the stage's authorization, or (stage B) the committed readout does not allow it (C12) | 4 refused |
+| `ledger --append` | validates and appends one invocation line (C7), durably; it counts `rowsWritten` and adds `sealSha256` itself | 5 refused |
+| `reserve` | creates `RAW/pending.json` exclusively and prints the reservation id (`<S>-<n>.<k>`, `<S>-<name>.<k>`, `<S>-o<n>.<k>`); `--limit` is 1 to 900 | 2 usage; 4 refused (a reservation exists, or no seal) |
+| `release` | removes the reservation after its ledger line is durable | 5 refused |
+| `run-group` | runs the active keys of one row group (or overflow group) through the copies' calibrate runs, each with its durable status lines, receipt and row line (C4, C5); prints `deferred <key>` for a key that the 885-s horizon leaves for the next call; `--clock-offset-s` needs `--state` | 0 every active key terminal; 6 the smoke gate failed; 7 keys deferred (run the same group again); 8 no usable activation receipt for an open slot |
+| `status` | per group: counts of `done`, `interrupted`, `inactive` and `pending` keys | |
+| `publish` | writes the write-once snapshot `<S>.jsonl`, `<S>.md` and `<S>.sha256` (C8) from `RAW/rows/<S>.jsonl` (or `--rows`) after `verifyRow` of every line | 3 other bytes exist; 9 a started key has no terminal line, or a row is refused |
+| `report` | equality with the oracles first, then the gates of the stage (smoke: S1, S2; A: A1 to A6; B: B1 to B8), each `pass`, `fail`, `incomplete` or `not-due`; writes `report.json` and `report.md` from the snapshots and the receipts under `E` | 2 a port defect (a row differs from its oracle); 3 a snapshot is missing |
+| `twins` | the conditional twins (see below) | 3, 4, 5 (see below) |
+
+- **The comparator** (`report`, P2-13b) reads each snapshot with `loadSnapshot`, which checks its `.sha256` and gives each row its
+  binding. A row whose binding fails, or whose key occurs twice, is listed in `bindings` and read by no statistic, so its endpoint is
+  incomplete. The frozen statistics of `verdicts.mjs` are imported, never copied; a missing input is `incomplete`, never `pass`.
+- **The twins and P5's coverage** (`twins`, P2-13c, C10 and C11). From the stage-A snapshot and stage B's snapshot before the twins
+  (`E/rows/A.jsonl`, `E/rows-before-twins/B.jsonl`) it takes the 440 eligible rows (360 shipped and 80 sentinel `gen-v4` rows),
+  evaluates the trigger (fewer than ten accepted puzzles, a no-window end, the bound firing, a call budget stop or a clock cut; the
+  signed F2 and F4 readings for the historical rows) and writes `E/twins/activation.json` (write-once) and `twins.md`: the required
+  twins, which of the five open slots each takes, the inactive slots and the overflow. Exit 5 when the snapshots do not hold exactly
+  440 eligible rows, 3 when `activation.json` exists with other bytes, 4 when more than 15 twins are required (a finding: the overflow
+  groups of three twins are repriced inside the remaining authorization, never dropped). `report --stage B` adds the gate **B8**:
+  every eligible row is `observed-pair`, `analytic-only` or `unresolved`, and the two endpoints are counted separately.
+- **The glue and reach readings** (`report --stage B`, P2-13f, N-V4-16 and F4, F7) add `readings: { glue, reach }` to `report.json` and two
+  tables to `report.md`; they are readings, not gates. Glue: per component, arm and cell, the natural same-side matches of the raw
+  first four set attempts, the client's `sameSide` count, the bound firings and the public `set:no-window-*` count, as separate columns,
+  with every discrepancy classed as the declared higher-priority cancellation or time cut, or unexplained. Reach: the budget stops,
+  re-rating starts, rescue and tail re-ratings and screen-capped profiles per cell. A missing field is unknown, never zero, and
+  `unexercised` is printed only when complete raw evidence shows zero natural matches.
+
+**`run-group.ps1`** is the only way to run a row group, an item or an overflow group (locked, charged to the ledger).
+
+```powershell
+tools\ig-proto\phase2\run-group.ps1 -Stage <A|B> -Group <n>
+tools\ig-proto\phase2\run-group.ps1 -Stage B -OverflowGroup <n>
+tools\ig-proto\phase2\run-group.ps1 -Stage <A|B> -Item <name> -LimitSeconds <1..900> -NodeArgs @(<node arguments>)
+```
+
+- It runs `seal --check`, `ledger --check` and `reserve`, then one `Invoke-IgNode` invocation (limit 900 s for rows, `-LimitSeconds`
+  for an item; 45 s of quiet), whatever its outcome appends the ledger line, and releases the reservation. A refusal before the
+  invocation throws `STOP: ...` with no ledger line; an invocation with no usable duration is an accounting stop that keeps the
+  reservation. Exit 7 (`RG: <id> deferred keys remain`) means: run the same group again.
+- There is no authorization parameter: the stage map is sealed. `-State` and `-InvokerScript` are for the self-tests only.
+- An item is a non-row invocation: the replay probes (`-Item replay-probes`) and each browser check (`-Item browser-<check>`).
+
+**`replay-probe.mjs`** measures the replay resources (P2-14b, C15): eight fixed items, two successive groups of four on two lanes
+(locked, charged once to stage A as the single item invocation `replay-probes`, limit 900 s).
+
+```powershell
+node tools\ig-proto\phase2\replay-probe.mjs --all --out <dir> [--trees <dir>]
+node tools\ig-proto\phase2\replay-probe.mjs --item <n> --out <dir> [--trees <dir>] [--seed-index <0 to 3>]
+```
+
+- The items: group 1 (`any`) is `26x26-hell-1`, `20x20-hell-1`, `24x24-nightmare` and `22x22-nightmare`; group 2 (`require`) is
+  `22x22-hell-1`, `32x15-hell-1`, `22x22-nightmare` and `32x15-nightmare`, with the copies `p2-gen4-diag` (Hell 1) and `p2-gen4`
+  (Nightmare). Each item makes a set and a batch of four puzzles through its copy's client and replays every accepted one.
+- `--trees` defaults to `RAW/trees`. `--item <n>` runs one item and writes only its files. `--seed-index <0 to 3>` (an integer `i`,
+  `--item` only; with `--all` it is a usage error) runs the item with the seed `p2-replay/<cell>/<i>`; it serves the search for a
+  seed whose set completes, and the fixed index of each item is in `ITEMS`.
+- An item starts only while `elapsed + 120 + 10 <= 885` seconds; later items stay `not-started`. Every item is checkpointed in
+  `<out>/items/<n>.started` (before it runs) and `<n>.json` (after); a started item is never run again (`censored`). The receipt
+  is `<out>/receipt.json` (C15), written in every case; the console output is not evidence.
+- An item is `measured` (at least one accepted ordinary candidate replayed), `not-measured` (no set, no puzzle or no ordinary
+  candidate), `failed` (a replay is not `matched`, the margin is `exceeded`, or an error) or `censored`. The margin is `ok` when each
+  of the maximum steps, bytes and work is at most half of its `REPLAY` limit. Exit 0 every item measured with margin `ok`; 1 an item
+  failed; 3 an item not measured, censored or not started; 2 the script could not run.
+
+**`browser-run.mjs`** runs one check of a browser page in headless Edge under a watchdog (P2-16e, C16); locked.
+
+```powershell
+node tools\ig-proto\phase2\browser-run.mjs --page <path> --check <name> --out <dir> [--timeout-s <s>] [--bind <path>...]
+```
+
+- The page is `tests/browser/deadline.html` (P2-16b); its six checks are `set-bound`, `batch-prefix`, `late-fence`,
+  `fresh-after-pause`, `no-window-texts` and `screen-capped-step`, each run as `?check=<name>`. The DevTools protocol goes over
+  Edge's pipe; nothing is installed. `--timeout-s` defaults to 60 (the stage-A items use 120 s limits). `--bind` hashes an
+  extra repository path into the receipt.
+- It writes `<out>/receipt.json` and `console.log` (CRLF): the status, the duration, the console lines, whether the profile and Edge
+  were cleaned up, and the hashes of the page, its `tests/browser/` files, the shipping sources and the bound paths. Exit 0 pass,
+  1 fail, 2 timeout, 3 error, 4 Edge is missing (nothing launched). There is no aggregate receipt.
+
+### Tests
+
+```powershell
+node --test tools/ig-proto/phase2/p2.test.mjs tools/ig-proto/phase2/trace-reader.test.mjs tools/ig-proto/phase2/binding.test.mjs tools/ig-proto/phase2/replay-probe.test.mjs tools/ig-proto/phase2/browser-run.test.mjs
+node --test tools/ig-proto/phase2/copies.test.mjs tools/ig-proto/phase2/trace.test.mjs tools/ig-proto/phase2/proofs.test.mjs tools/ig-proto/phase2/proofs-prior-legacy.test.mjs tools/ig-proto/phase2/glue.test.mjs
+```
+
+- The five files of the first line are synthetic (no engine, no browser) and run unlocked. Every other test file, and every
+  run that rates or generates, goes through the lock helper: `Invoke-IgNode -Repo pentomino -Task 'P2-xx <word>' -LimitSeconds 300
+  -QuietSeconds 45 -NodeArgs @('--test', '<file>', ...)`, with 600 s when a merge gate runs every phase-2 test file in one runner.
+- `glue.test.mjs` is the glue proof: the copy `p2-glue` scripts only the ratings of chosen set attempts inside the worker
+  (`P2_GLUE_SCRIPT`), and the production selector, `setAttempt`, protocol, pool and client carry the four scripted ends to the
+  public reason; the copy `p2-glue-broken` loses the side in `failureOf`, and the check must fail on it.
+- Self-tests write only under `tests/artifacts/ig-proto/phase2/self-test/<run>/`.
+
+### Record formats
+
+The formats of every record that the tools write and read are frozen in `tasks/improve-generating-phase-2/contracts.md`, C1 to C16:
+
+| C | Record | C | Record |
+|---|---|---|---|
+| C1 | the worker journal | C9 | the row work (`rowWork`) |
+| C2 | the link journal | C10 | the activation of the conditional twins |
+| C3 | the row line | C11 | the P5 trigger, coverage and N-V4-16 |
+| C4 | the row receipt | C12 | the stage-A readout binding |
+| C5 | the row records and the status journal | C13 | the seal |
+| C6 | production telemetry in a bench row | C14 | the proof result |
+| C7 | the ledger and the reservation | C15 | the replay-probe receipt |
+| C8 | the snapshots | C16 | the browser receipts |
+
+A field that a contract does not list is not read, and a missing required field makes a record incomplete, never zero.
+
+### The ledger rule
+
+The phase-2 ledger (check-list §3.5 of `tasks/improve-generating-phase-2/check-list.md`) is a spend cap on counted time,
+not an assurance of completion.
+
+- **Counted time.** An invocation counts its node seconds (the `IG ... seconds=` value of the lock helper) plus 45 s of quiet. A
+  helper timeout counts its limit plus 45 s; a nonzero exit counts its seconds plus 45 s. Lock waits beyond the quiet period are
+  not counted. Static checks, self-tests and uncharged rehearsals (before the seal, never into `E`) are not charged.
+- **Authorization.** Stage A has 410 counted minutes and stage B 402 (812 in all), sealed in `seal.json` and never a parameter;
+  nothing is borrowed between stages. An invocation starts only if `spent(stage) + limit + 45 <= authorization(stage) x 60`.
+- **One line per invocation.** `run-group.ps1` appends it (C7) in a `finally`, then releases `RAW/pending.json`; the ledger is
+  never rewritten, and no completed observation is run again to fill a budget.
+- **Stage B** starts only after the committed stage-A readout (C12), and a failed or incomplete stage-A gate needs the owner's
+  continuation line. More than 15 conditional twins is a finding, repriced inside the remaining authorization; a required twin is
+  never dropped.
+- **Source epoch.** A change of the sealed runtime, tools, tables, deadline or replay limits after the seal starts a new epoch, which
+  stops for a ruling; old rows are never relabelled and the cumulative ledger is not reset.
+- **Seeds.** `landscape/<cell>/<rep>` with reps 20 to 39 (Master 20 to 24) and `ig-p2/require/<cell>/<rep>` with reps 0 to 4; reps 40
+  to 59 are reserved; nothing is fitted on these seeds.

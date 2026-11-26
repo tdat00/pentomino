@@ -1,0 +1,59 @@
+{
+  "n": 3,
+  "group": "any",
+  "lane": 1,
+  "cell": "24x24-nightmare",
+  "uniqueness": "any",
+  "copy": {
+    "id": "p2-gen4",
+    "treeId": "6816e5eac76578df9b829868a5167445774c88a999e38325565fdb6a58f08a2e"
+  },
+  "seed": "p2-replay/24x24-nightmare/0",
+  "status": "measured",
+  "reason": null,
+  "detail": null,
+  "batchStatus": "complete",
+  "puzzles": [
+    {
+      "id": "pb5a09582747f",
+      "kind": "calibration",
+      "status": "matched",
+      "steps": 37,
+      "bytes": 136469,
+      "work": 195298877
+    },
+    {
+      "id": "p548dd0b97ef3",
+      "kind": "candidate",
+      "status": "matched",
+      "steps": 51,
+      "bytes": 238378,
+      "work": 3358866467
+    },
+    {
+      "id": "p05463d20a64c",
+      "kind": "candidate",
+      "status": "matched",
+      "steps": 49,
+      "bytes": 222821,
+      "work": 1405098709
+    },
+    {
+      "id": "pd42e2a3eacdb",
+      "kind": "candidate",
+      "status": "matched",
+      "steps": 57,
+      "bytes": 290636,
+      "work": 3418528640
+    }
+  ],
+  "maxima": {
+    "steps": 57,
+    "bytes": 290636,
+    "work": 3418528640
+  },
+  "margin": "ok",
+  "exceeded": [],
+  "seconds": 21.706,
+  "setSeconds": 0.904
+}

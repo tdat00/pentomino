@@ -16,10 +16,12 @@
   "batchSeed": "fixture-set-0#1",
   "uniqueness": "any",
   "versions": {
-    "algo": "gen-v3",
+    "algo": "gen-v4",
     "policy": "mixed-v3",
     "rng": "xoshiro128ss-v1",
-    "model": "difficulty-v3"
+    "model": "difficulty-v3",
+    "priorTable": "prior-s3-v1",
+    "screenTable": "screen-v4-v1"
   },
   "expected": {
     "pieceKeys": [

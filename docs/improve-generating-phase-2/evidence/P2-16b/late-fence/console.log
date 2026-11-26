@@ -1,0 +1,3 @@
+CHECK-START late-fence
+DEADLINE late-fence elapsed 5787 ms (115736 ms virtual)
+CHECK-END PASS 8.4 s late-fence

@@ -177,9 +177,9 @@ function ownProvenance(generation, id) {
  * @param {ProvenanceVersions} b
  * @returns {boolean}
  */
-function sameVersions(a, b) {
+export function sameVersions(a, b) {
   return a.algo === b.algo && a.policy === b.policy && a.rng === b.rng && a.seedScheme === b.seedScheme
-    && a.ratingModel === b.ratingModel;
+    && a.ratingModel === b.ratingModel && a.priorTable === b.priorTable && a.screenTable === b.screenTable;
 }
 
 /**
@@ -434,6 +434,7 @@ export function runReplay(input, workspaces, limits = REPLAY, isCancelled = () =
           quantity: 1,
           batchSeed: m.batchSeed,
           uniqueness: m.uniqueness,
+          ...(m.igPrior === null || m.igPrior === undefined ? {} : { igPrior: m.igPrior }),
           seenLayouts: new Set(),
           seenClues: new Set(),
           execution,
@@ -762,7 +763,7 @@ function measuringStep(steps, puzzle) {
  * @param {ReplayInput} input
  * @returns {(event: RecordEvent) => Step}
  */
-function stepMaker(run, input) {
+export function stepMaker(run, input) {
   // The candidate stage runs on the replayed set, else on the stored one (as `runReplay` does).
   const pieces = new Map((run.set ?? input.set).pieces.map((p) => [p.id, p]));
   const witness = run.set !== null && run.set.witness !== null ? run.set.witness : [];
@@ -863,6 +864,10 @@ function stepMaker(run, input) {
         }, { sequence: event.sequence, phase: event.phase, source: event.source });
       case 'skip':
         return make(5, 'skip', layoutOf(event), [], [], none, { sequence: event.sequence, source: event.source });
+      case 'budget':
+        return make(5, 'budget', layoutOf(event), [], [], none, { source: event.source });
+      case 'no-window':
+        return make(5, 'noWindow', layoutOf(event), [], [], none, { side: event.side, source: event.source });
       case 'unrateable':
         return make(5, 'unrateable', layoutOf(event), [], event.clueIds.slice(), {
           rating: null, breakdown: null, detail: null, band: bandOf(event.band),

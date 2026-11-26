@@ -7,6 +7,7 @@ import { activeCount } from './board.js';
 import { certify, countRowLimit, selectClues } from './clues.js';
 import { carveFlatSet, carveMacro, finalizeSet, validateSet } from './carve.js';
 import { MODEL } from './difficulty.js';
+import { isV4Family, PER_SET_LEVELS, perSetPrior, PRIOR_TABLE_ID, SCREEN_TABLE_ID } from './gen-v4.js';
 import { clueKey, layoutKey, minLayoutDistance, puzzleId } from './keys.js';
 import { level } from './levels.js';
 import { PROVENANCE } from './pack.js';
@@ -39,7 +40,7 @@ import { ALGO_ID } from './version.js';
  */
 
 /** @typedef {'layout' | 'not-in-band' | 'uniqueness-not-proved'} FailReason */
-/** @typedef {{ fail: FailReason }} CandidateFailure */
+/** @typedef {{ fail: FailReason, counters?: import('./types.js').SelectCounters }} CandidateFailure */
 /** @typedef {'layouts-not-found' | 'difficulty-not-found' | 'uniqueness-not-proved'} PartialReason */
 
 /**
@@ -78,6 +79,23 @@ const PARTIAL_REASON = /** @type {const} */ ({
 const MACRO_MIN_MEAN = 6.5;
 const RESTART_MAX_AREA = BUDGETS.restartMaxArea;
 const MIN_DISTANCE = 2;
+
+/** The selection counters of a call that has none (a `gen-v3` selection, or a call that never selected). */
+export const ZERO_COUNTERS = Object.freeze({ budgetStops: 0, screenCapped: 0, rescueReratings: 0, tailReratings: 0 });
+
+/**
+ * The failed set attempt of a failed selection: the reason is `no-window-<side>` when the selector reports a
+ * window side, else its own reason.
+ * @param {{ reason: string, igNoWindow?: 'below' | 'above', counters?: import('./types.js').SelectCounters }} cal
+ * @returns {{ ok: false, reason: string, counters: import('./types.js').SelectCounters }}
+ */
+export function failureOf(cal) {
+  return {
+    ok: false,
+    reason: cal.igNoWindow === undefined ? cal.reason : `no-window-${cal.igNoWindow}`,
+    counters: cal.counters ?? ZERO_COUNTERS,
+  };
+}
 
 /** Control errors: invalid requests, not failed searches. `code` is `history-full`. */
 export class GenerationError extends Error {
@@ -128,12 +146,12 @@ export function setAttempt(req, attempt, observe = {}) {
     carved = carveFlatSet(board, k, rng.derive('flat'), BUDGETS, record);
   }
   if (carved === null) {
-    return { ok: false, reason: 'carve' };
+    return { ok: false, reason: 'carve', counters: ZERO_COUNTERS };
   }
   const set = finalizeSet(board, carved.regions, carved.regionOf ?? null);
   const witness = /** @type {Pose[]} */ (set.witness);
   if (validateSet(set).length > 0) {
-    return { ok: false, reason: 'internal' };
+    return { ok: false, reason: 'internal', counters: ZERO_COUNTERS };
   }
   const cal = selectClues({
     board,
@@ -149,7 +167,7 @@ export function setAttempt(req, attempt, observe = {}) {
     charge,
   });
   if (!cal.ok) {
-    return { ok: false, reason: cal.reason };
+    return failureOf(cal);
   }
   return {
     ok: true,
@@ -160,8 +178,10 @@ export function setAttempt(req, attempt, observe = {}) {
       solution: witness,
       rating: cal.rating,
       certificate: cal.certificate,
+      igWindow: cal.igWindow ?? null,
     },
     attempt,
+    counters: cal.counters ?? ZERO_COUNTERS,
   };
 }
 
@@ -248,10 +268,12 @@ export function puzzleCandidate(ctx, slot, attempt, observe = {}) {
     record,
     recordSource: 'candidate',
     replaySkips,
+    ...(ctx.igPrior === undefined ? {} : { igPrior: ctx.igPrior }),
     charge,
   });
+  const counters = sel.counters ?? ZERO_COUNTERS;
   if (!sel.ok) {
-    return { fail: sel.reason };
+    return { fail: sel.reason, counters };
   }
   return {
     layout,
@@ -260,6 +282,7 @@ export function puzzleCandidate(ctx, slot, attempt, observe = {}) {
     clues: sel.clues,
     rating: sel.rating,
     certificate: sel.certificate,
+    counters,
     made: {
       schema: 1,
       kind: 'candidate',
@@ -270,6 +293,7 @@ export function puzzleCandidate(ctx, slot, attempt, observe = {}) {
       attempt,
       start: startKind,
       skips: capSkips(sel.skips),
+      ...(isV4Family(ALGO_ID) ? { igPrior: ctx.igPrior ?? null } : {}),
       versions: provenanceVersions(),
     },
   };
@@ -279,7 +303,8 @@ export function puzzleCandidate(ctx, slot, attempt, observe = {}) {
  * @returns {import('./types.js').ProvenanceVersions} The running code's version ids (RES-27).
  */
 export function provenanceVersions() {
-  return { algo: ALGO_ID, policy: POLICY_ID, rng: RNG_ID, seedScheme: SEED_SCHEME, ratingModel: MODEL };
+  const versions = { algo: ALGO_ID, policy: POLICY_ID, rng: RNG_ID, seedScheme: SEED_SCHEME, ratingModel: MODEL };
+  return isV4Family(ALGO_ID) ? { ...versions, priorTable: PRIOR_TABLE_ID, screenTable: SCREEN_TABLE_ID } : versions;
 }
 
 /**
@@ -319,8 +344,9 @@ export function completionCandidate(ctx, layout) {
     excludeClueKeys: ctx.seenClues,
     ws: ctx.execution.main,
   });
+  const counters = sel.counters ?? ZERO_COUNTERS;
   if (!sel.ok) {
-    return { fail: sel.reason };
+    return { fail: sel.reason, counters };
   }
   return {
     layout,
@@ -329,6 +355,7 @@ export function completionCandidate(ctx, layout) {
     clues: sel.clues,
     rating: sel.rating,
     certificate: sel.certificate,
+    counters,
     made: { schema: 1, kind: 'completion' },
   };
 }
@@ -676,7 +703,10 @@ export function dispatchOrder(s, have, limit) {
  */
 export function runFold(ctx, candidate = puzzleCandidate) {
   let s = foldStart(ctx);
-  const frozen = candidateContext(ctx, s);
+  const frozen = {
+    ...candidateContext(ctx, s),
+    ...(PER_SET_LEVELS.includes(ctx.targetLevelId) ? perSetPrior(ctx.calibration, ctx.targetLevelId, ctx.uniqueness) : {}),
+  };
   for (let next = foldNext(s); next !== null; next = foldNext(s)) {
     s = foldAccept(s, candidate(frozen, next.slot, next.attempt));
   }

@@ -1,0 +1,927 @@
+{
+  "tasks": {
+    "V4-S4": {
+      "invocations": 94,
+      "countedS": 28043.39100000001
+    },
+    "V4-S4C": {
+      "invocations": 23,
+      "countedS": 9670.158
+    }
+  },
+  "perArm": {
+    "V4-S4 fr-frozen": {
+      "rows": 460,
+      "sumMs": 7174980.8836
+    },
+    "V4-S4 fr-frozen-none": {
+      "rows": 380,
+      "sumMs": 8753859.204799999
+    },
+    "V4-S4 log-link": {
+      "rows": 280,
+      "sumMs": 5558098.1297
+    },
+    "V4-S4C fr-frozen-none-uncapped": {
+      "rows": 320,
+      "sumMs": 7605993.855800001
+    },
+    "V4-S4C fr-frozen-uncapped": {
+      "rows": 60,
+      "sumMs": 617081.3874
+    }
+  },
+  "cells": [
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "10x10-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 318745.3435,
+      "maxMs": 64467.9652
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "12x12-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 460495.82269999996,
+      "maxMs": 37961.2659
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "14x14-hell-1",
+      "rows": 20,
+      "ten": 12,
+      "sumMs": 2001463.8558999998,
+      "maxMs": 167129.6979
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "15x20-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 308456.6233,
+      "maxMs": 24630.3038
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "18x18-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 351651.7335,
+      "maxMs": 44457.1266
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "18x20-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 349285.1899,
+      "maxMs": 35534.389899999995
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "20x20-hell-1",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 783123.0483,
+      "maxMs": 75095.6992
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "20x20-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 311699.26019999996,
+      "maxMs": 27699.743899999998
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "20x21-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 357950.95310000004,
+      "maxMs": 26899.7383
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "22x22-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 230900.1105,
+      "maxMs": 24762.1653
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "24x24-hell-1",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 623122.1781000001,
+      "maxMs": 68367.8271
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "24x24-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 299149.3047,
+      "maxMs": 28650.1611
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "26x26-hell-1",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 492369.6762000001,
+      "maxMs": 53838.652799999996
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "26x26-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 329762.1795,
+      "maxMs": 39114.632099999995
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "32x15-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 293696.84760000004,
+      "maxMs": 32825.3038
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-none-uncapped",
+      "cell": "3x29-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 94121.7288,
+      "maxMs": 6690.272499999999
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-uncapped",
+      "cell": "14x14-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 183799.4453,
+      "maxMs": 13013.9429
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-uncapped",
+      "cell": "15x15b10-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 257926.08450000003,
+      "maxMs": 25073.285900000003
+    },
+    {
+      "task": "V4-S4C",
+      "arm": "fr-frozen-uncapped",
+      "cell": "16x16-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 175355.8576,
+      "maxMs": 16016.8422
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "10x10-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 322524.61419999995,
+      "maxMs": 64578.545300000005
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "12x12-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 459506.00240000006,
+      "maxMs": 37996.0821
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "14x14-hell-1",
+      "rows": 20,
+      "ten": 10,
+      "sumMs": 1686654.8345999995,
+      "maxMs": 115171.1951
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "14x14-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 485260.3153,
+      "maxMs": 39820.735499999995
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "15x15b10-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 603052.1833,
+      "maxMs": 60658.7039
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "15x20-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 307405.146,
+      "maxMs": 24431.463099999997
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "16x16-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 354608.2085,
+      "maxMs": 34876.3171
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "18x18-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 348977.64009999996,
+      "maxMs": 44136.6412
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "18x20-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 351565.49769999995,
+      "maxMs": 35747.4986
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "20x20-hell-1",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 782180.6686999998,
+      "maxMs": 74843.7351
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "20x20-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 312054.63749999995,
+      "maxMs": 27487.197099999998
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "20x21-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 355367.0085,
+      "maxMs": 26995.7991
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "22x22-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 235366.2957,
+      "maxMs": 24833.6715
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "24x24-hell-1",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 624601.4833,
+      "maxMs": 68531.90729999999
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "24x24-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 305110.6834,
+      "maxMs": 28842.797
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "26x26-hell-1",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 491580.20769999997,
+      "maxMs": 53575.0136
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "26x26-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 333920.1331,
+      "maxMs": 39088.9022
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "32x15-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 299022.8115,
+      "maxMs": 33321.5075
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen-none",
+      "cell": "3x29-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 95100.8333,
+      "maxMs": 6723.5606
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "10x10-master",
+      "rows": 5,
+      "ten": 4,
+      "sumMs": 63332.29179999999,
+      "maxMs": 21001.8458
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "10x10-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 320241.7729,
+      "maxMs": 64202.3746
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "12x12-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 39557.5619,
+      "maxMs": 16393.4784
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "12x12-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 459847.10260000004,
+      "maxMs": 37854.265100000004
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "14x14-hell-1",
+      "rows": 20,
+      "ten": 10,
+      "sumMs": 1689221.9638,
+      "maxMs": 115161.3443
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "14x14-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 13584.4864,
+      "maxMs": 3464.5942
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "14x14-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 182770.92519999997,
+      "maxMs": 12979.2063
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "15x15b10-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 31689.835600000002,
+      "maxMs": 13136.821899999999
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "15x15b10-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 254769.1763,
+      "maxMs": 23863.2033
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "15x20-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 25473.641799999998,
+      "maxMs": 8546.0429
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "15x20-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 173853.07559999995,
+      "maxMs": 17317.9628
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "16x16-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 13067.0458,
+      "maxMs": 5250.918000000001
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "16x16-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 174878.1711,
+      "maxMs": 15919.7954
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "18x18-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 16822.5178,
+      "maxMs": 6751.6189
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "18x18-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 179465.25609999997,
+      "maxMs": 16340.860799999999
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "18x20-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 21089.0507,
+      "maxMs": 6397.5196
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "18x20-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 188196.4709,
+      "maxMs": 14245.182
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "20x20-hell-1",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 780906.9609,
+      "maxMs": 74858.6131
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "20x20-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 20312.018799999998,
+      "maxMs": 5487.0079
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "20x20-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 167867.6772,
+      "maxMs": 15157.7802
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "20x21-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 27742.4148,
+      "maxMs": 9139.1808
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "20x21-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 199304.7387,
+      "maxMs": 14568.8986
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "22x22-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 25170.663600000003,
+      "maxMs": 8708.173700000001
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "22x22-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 165181.38909999997,
+      "maxMs": 13180.2595
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "24x24-hell-1",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 627118.7694999999,
+      "maxMs": 69367.6365
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "24x24-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 34220.637299999995,
+      "maxMs": 14161.5497
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "24x24-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 203030.8746,
+      "maxMs": 15213.1464
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "26x26-hell-1",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 489736.15100000007,
+      "maxMs": 53376.953199999996
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "26x26-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 50701.683399999994,
+      "maxMs": 16251.794899999999
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "26x26-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 220515.4167,
+      "maxMs": 18610.891600000003
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "32x15-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 24130.684200000003,
+      "maxMs": 5805.3127
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "32x15-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 175556.42639999997,
+      "maxMs": 13953.0604
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "3x29-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 9425.0618,
+      "maxMs": 2737.3441000000003
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "3x29-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 95929.1907,
+      "maxMs": 6783.2414
+    },
+    {
+      "task": "V4-S4",
+      "arm": "fr-frozen",
+      "cell": "6x10-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 10269.7786,
+      "maxMs": 4224.2995
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "10x10-master",
+      "rows": 5,
+      "ten": 4,
+      "sumMs": 62145.372,
+      "maxMs": 21717.5481
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "10x10-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 522364.25200000004,
+      "maxMs": 104949.1696
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "12x12-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 39906.9634,
+      "maxMs": 16387.4516
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "14x14-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 13686.4476,
+      "maxMs": 3466.1715000000004
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "15x15b10-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 31449.5773,
+      "maxMs": 13076.483100000001
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "15x20-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 26254.7563,
+      "maxMs": 8698.3768
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "16x16-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 12918.579700000002,
+      "maxMs": 5288.8787
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "18x18-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 16106.0591,
+      "maxMs": 6742.5955
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "18x18-nightmare",
+      "rows": 20,
+      "ten": 18,
+      "sumMs": 875234.0040000001,
+      "maxMs": 152389.802
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "18x20-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 21023.1695,
+      "maxMs": 6449.3315
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "18x20-nightmare",
+      "rows": 20,
+      "ten": 19,
+      "sumMs": 703917.4086999999,
+      "maxMs": 128896.67079999999
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "20x20-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 20229.0347,
+      "maxMs": 5515.9603
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "20x20-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 828827.4785,
+      "maxMs": 120235.7351
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "20x21-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 27785.4532,
+      "maxMs": 8992.573400000001
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "20x21-nightmare",
+      "rows": 20,
+      "ten": 19,
+      "sumMs": 706988.8776000001,
+      "maxMs": 132084.5461
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "22x22-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 24948.308800000003,
+      "maxMs": 8482.2657
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "22x22-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 282552.42499999993,
+      "maxMs": 32058.1614
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "24x24-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 34957.7157,
+      "maxMs": 14778.9976
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "24x24-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 414060.4305,
+      "maxMs": 59580.5297
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "26x26-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 50806.7045,
+      "maxMs": 16367.3589
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "26x26-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 334741.00049999997,
+      "maxMs": 34798.337700000004
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "32x15-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 25914.5482,
+      "maxMs": 6317.0779
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "32x15-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 353416.7983,
+      "maxMs": 65416.2283
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "3x29-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 9201.1953,
+      "maxMs": 2730.6899
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "3x29-nightmare",
+      "rows": 20,
+      "ten": 20,
+      "sumMs": 108621.309,
+      "maxMs": 13888.7313
+    },
+    {
+      "task": "V4-S4",
+      "arm": "log-link",
+      "cell": "6x10-master",
+      "rows": 5,
+      "ten": 5,
+      "sumMs": 10040.2603,
+      "maxMs": 4114.9078
+    }
+  ]
+}

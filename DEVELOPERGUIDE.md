@@ -60,8 +60,7 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
   followed by `player-controls.html`, `player-load.html`, `hints.html`, `print.html`, `rendering.html`,
   `generator-flow.html`, `generator-editor.html`, `replay.html`, `puzzle-code-worker.html`, `puzzle-code-entry.html`,
   `puzzle-code-print.html`, `puzzle-code-cli-parity.html`, `puzzle-code-acceptance.html`, `puzzle-qr.html`,
-  `watchdog.html` or `acceptance.html`. Each writes a pass/fail list, and `data-summary` and `data-result` (`pass` or
-  `fail`) on `<html>`. Use a window narrower than 1360 px:
+  `watchdog.html`, `deadline.html` or `acceptance.html`. Each writes a pass/fail list, and `data-summary` and `data-result` (`pass` or  `fail`) on `<html>`. Use a window narrower than 1360 px:
   some checks expect the one- or two-column layout. `replay.html?phase=keys` and `puzzle-code-acceptance.html?phase=keys`
   wait for trusted key presses that only a runner over the DevTools protocol sends. `replay.html?phase=narrow` and
   `puzzle-code-acceptance.html?phase=narrow` expect the 390 px touch viewport that such a runner sets.
@@ -77,7 +76,10 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
   `node --max-old-space-size=2048 tools\calibrate.mjs --matrix tools\bench\matrices\smoke.json --workers 4 --fresh-process --output docs\calibration\node-smoke`,
   the score landscape (`--profile landscape`, hours, resumable), and the browser page
   `http://localhost:8080/pentomino/tools/bench/` (keep the tab in the foreground). The landscape report shows the v3 measures
-  per cell (score, decisive guesses, deduction tier, census estimates).
+  per cell (score, decisive guesses, deduction tier, census estimates). A `--matrix` case may set
+  `"uniqueness": "require"`, and every run record has `telemetry`: the clue-selection counters of the piece set and of
+  the puzzles, and the trail of the piece-set stage (its first four attempts, the early stop by the bound, and the
+  number of attempts that found no suitable clue count).
 - **Rating probe** (diagnostics only; it never changes a rating): `node tools\rate-probe.mjs` rates every puzzle of a
   pack, of a fresh request or of regenerated landscape requests with the old rating and the deduction solver, and
   prints one JSON line per puzzle to stdout (or to `--output file`). It is read-only and writes nothing else. Three
@@ -90,6 +92,18 @@ npm test             # all unit tests: node --test "tests/**/*.test.js"
   (overrides of the deduction limits, for example `{"census":0}`); `json` is JSON text or a file name. Exit codes:
   `0` every puzzle probed; `2` a generation was partial or an identity check failed (the lines are still written);
   `1` invalid input or no pack.
+- **Measurement harness (`tools/ig-proto/`)** (test-side tooling of the improve-generating work; it is not part of the
+  site and no app imports it): it measures generation through patched **copies** of `core/` and `tools/`, never through
+  an edited production file, and has its own README, [tools/ig-proto/README.md](tools/ig-proto/README.md), with every
+  command. Every timed or heavy run (an engine or test run, a proof, a replay probe, a browser check, any script that
+  rates or generates) goes through the lock helper `tools\ig-proto\lock\ig-lock.ps1` (`Invoke-IgNode`), so that
+  measurements do not overlap with other work on the machine; static checks such as `npm run check` run without it. The
+  phase-2 tools of `tools/ig-proto/phase2/` validate the production `gen-v4` code: `copies.mjs` (the identified
+  measurement copies), the trace layer of the copies (`files/`, `variants/`) and `trace-reader.mjs` (the work ledger of
+  a row), `proofs.mjs` (the four proof bundles), `p2.mjs` with `run-group.ps1` (the plan, the seal, the ledger and the
+  row groups), `binding.mjs` and `gates.mjs` (the binding verifiers, the comparator and the stage gates),
+  `replay-probe.mjs` (the replay-resource probes) and `browser-run.mjs` (one check of a browser page in headless Edge,
+  used for `tests/browser/deadline.html`), each with its `*.test.mjs` file.
 
 **Code layout.** Native ES modules with JSDoc types and `// @ts-check`, in four layers:
 
@@ -121,7 +135,10 @@ generator version changes); the section stays hidden until its **Show generation
 under the pieces to place and gives it `replaySourceOf` of `generator/state.js`, and `generator/app.js` passes it the
 client's `replayPuzzle`. `tests/browser/replay.html` tests all of it in a real browser.
 `node tools\record-fixtures.mjs --replay-case --check` (and `--search`, `--create`, `--replace`) checks the replay
-fixture `tests/fixtures/replay-case.json` the way `--check` checks the generation fixtures.
+fixture `tests/fixtures/replay-case.json` the way `--check` checks the generation fixtures. From the `gen-v4` cutover on, the default replay case is `tests/fixtures/replay-case-v4.json`
+(`--recipe hard`), with a second case `replay-case-v4-screen.json` (`--recipe screen`) whose steps show the
+screen; `--file <name>` picks another file, and `--replay-case --refusal` checks that the old
+`replay-case.json`, made by `gen-v3`, is refused by version.
 
 Every module loaded by a page or worker uses `.js`; `.mjs` is reserved for Node-only tools. The interface text is in the
 flat packs `generator/locale.en.js` / `locale.vi.js` and `player/locale.en.js` / `locale.vi.js` (printing texts in

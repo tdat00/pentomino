@@ -161,6 +161,7 @@
  * @property {Pose[] | null} solution
  * @property {Rating | null} rating
  * @property {Certificate | null} certificate
+ * @property {{ wc: number } | null} [igWindow] A session calibration may carry the window count of its set (gen-v4); it is never stored in a pack.
  */
 
 /**
@@ -230,9 +231,15 @@
  */
 
 /**
- * Invalid request arguments are typed control errors, not a failed-search result.
- * @typedef {{ ok: true, set: PieceSet, calibration: Puzzle, attempt: number }
- *   | { ok: false, reason: 'carve' | 'internal' | 'not-in-band' | 'uniqueness-not-proved' }} SetAttemptResult
+ * @typedef {{ budgetStops: number, screenCapped: number, rescueReratings: number, tailReratings: number }} SelectCounters
+ */
+
+/**
+ * Invalid request arguments are typed control errors, not a failed-search result. `counters` are the selection
+ * counters of the call (all zero for a `gen-v3` selection or a call that never selected).
+ * @typedef {{ ok: true, set: PieceSet, calibration: Puzzle, attempt: number, counters: SelectCounters }
+ *   | { ok: false, reason: 'carve' | 'internal' | 'not-in-band' | 'uniqueness-not-proved' | 'no-window-below'
+ *     | 'no-window-above', counters: SelectCounters }} SetAttemptResult
  */
 
 /**
@@ -246,6 +253,7 @@
  * @property {ReadonlySet<string>} seenLayouts
  * @property {ReadonlySet<string>} seenClues
  * @property {Puzzle} [calibration]
+ * @property {number} [igPrior] The per-set override of P4 (gen-v4, Hell 1).
  * @property {EngineExecution} execution
  */
 
@@ -257,6 +265,8 @@
  * @property {string} rng
  * @property {string} seedScheme
  * @property {string} ratingModel
+ * @property {string} [priorTable] The gen-v4 family only.
+ * @property {string} [screenTable] The gen-v4 family only.
  */
 
 /**
@@ -280,7 +290,7 @@
  * One entry of `generation.made`, by puzzle id (RES-27).
  * @typedef {{ schema: 1, kind: 'calibration' }
  *   | { schema: 1, kind: 'candidate', batchSeed: string, targetLevel: string, uniqueness: 'any' | 'require',
- *       slot: number, attempt: number, start: 'witness' | 'restart', skips: Skips,
+ *       slot: number, attempt: number, start: 'witness' | 'restart', skips: Skips, igPrior?: number | null,
  *       versions: ProvenanceVersions }
  *   | { schema: 1, kind: 'completion' }} Made
  */
@@ -293,6 +303,7 @@
  * @property {Pose[]} clues
  * @property {Rating} rating
  * @property {Certificate | null} certificate
+ * @property {SelectCounters} [counters] The selection counters of the call.
  * @property {Made} made Origin of the candidate (RES-27); set by every engine candidate function and carried
  *   unchanged by the fold.
  */
@@ -319,15 +330,18 @@
  * is announced by `selected`. The last `repair` event of a finish carries its outcome (`accepted` true or false,
  * `reason` when refused); earlier ones have `rating`, `detail` and `accepted` null.
  * @typedef {{ stage: 'clues', kind: 'rated', source: 'calibration' | 'candidate',
- *     phase: 'sample' | 'seed' | 'beam', sequence: number, clueIds: string[], rating: Rating,
- *     detail: RatingDetail | null, band: ClueBand }
+ *     phase: 'sample' | 'seed' | 'beam' | 'locate' | 'window' | 'rescue' | 'rerate', sequence: number,
+ *     clueIds: string[], rating: Rating, detail: RatingDetail | null, band: ClueBand }
  *   | { stage: 'clues', kind: 'skip', source: 'calibration' | 'candidate', sequence: number }
+ *   | { stage: 'clues', kind: 'budget', source: 'calibration' | 'candidate' }
+ *   | { stage: 'clues', kind: 'no-window', source: 'calibration' | 'candidate', side: 'below' | 'above' }
  *   | { stage: 'clues', kind: 'unrateable', source: 'calibration' | 'candidate',
- *     phase: 'sample' | 'seed' | 'beam', sequence: number, clueIds: string[], reason: 'path-capped',
- *     band: ClueBand }
+ *     phase: 'sample' | 'seed' | 'beam' | 'locate' | 'window' | 'rescue' | 'rerate', sequence: number,
+ *     clueIds: string[], reason: 'path-capped' | 'screen-capped', band: ClueBand }
  *   | { stage: 'clues', kind: 'rejected', source: 'calibration' | 'candidate',
- *     phase: 'sample' | 'seed' | 'beam', sequence: number, clueIds: string[], rating: Rating,
- *     detail: RatingDetail | null, band: ClueBand, reason: 'no-proved-guess' }
+ *     phase: 'sample' | 'seed' | 'beam' | 'locate' | 'window' | 'rescue' | 'rerate', sequence: number,
+ *     clueIds: string[], rating: Rating, detail: RatingDetail | null, band: ClueBand,
+ *     reason: 'no-proved-guess' }
  *   | { stage: 'unique', kind: 'repair', source: 'calibration' | 'candidate', repairSequence: number,
  *     addedId: string | null, clues: Pose[], rating: Rating | null, detail: RatingDetail | null,
  *     accepted: boolean | null,

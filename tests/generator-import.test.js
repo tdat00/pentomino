@@ -531,6 +531,9 @@ test('a display request gives way to a generation, is asked again, and ends rate
       cancel() {
         client.cancels += 1;
       },
+      clock: () => ({ now: () => 0, setTimeout: () => 0, clearTimeout: () => {} }),
+      newScope: (/** @type {boolean} */ reserve) => ({ origin: 0, setCutAt: reserve ? 46000 : null }),
+      prefixSnapshot: () => null,
       async generateBatch(/** @type {any} */ input, /** @type {any} */ hooks) {
         client.batches.push(input);
         // The client's own rule: a main request rejects the auxiliary requests that wait or run.

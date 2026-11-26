@@ -1,7 +1,7 @@
 // @ts-check
 // Generation steps model (MP16a, MP18a; design §6.12 and §11.11): the two views and the compact filter, the step
 // sentences, the score table, the stage list and the status text, the steps table (rows, stage groups and controller)
-// and the removed dialog, on the real replay of the replay fixture (tests/fixtures/replay-case.json, the first
+// and the removed dialog, on the real replay of the replay fixture (tests/fixtures/replay-case-v4.json, the first
 // candidate puzzle) and on small synthetic step lists.
 
 import assert from 'node:assert/strict';
@@ -30,7 +30,7 @@ afterEach(() => {
   setLocale('en', null);
 });
 
-const FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case.json', import.meta.url), 'utf8'));
+const FIXTURE = JSON.parse(readFileSync(new URL('./fixtures/replay-case-v4.json', import.meta.url), 'utf8'));
 const workspaces = { ws: createWorkspace(MAIN_WORKSPACE_BYTES), scratch: createWorkspace(SCRATCH_WORKSPACE_BYTES) };
 
 /**
@@ -1315,6 +1315,17 @@ test('replay cache: the key follows what the replay reads and survives the saved
   assert.doesNotThrow(() => broken?.save(source, /** @type {any} */ (RESULT)));
 });
 
+test('replay cache: the key holds the running provenance tuple', async () => {
+  const { replayKeyFor, replayKeyOf } = await import('../generator/ui/replay-cache.js');
+  const { provenanceVersions } = await import('../core/engine/generate.js');
+  const source = src('pKey', SET, { schema: 1, kind: 'candidate' });
+  const key = replayKeyFor(source, provenanceVersions());
+  assert.equal(key, replayKeyOf(source));
+  assert.notEqual(replayKeyFor(source, { ...provenanceVersions(), rng: 'other' }), key, 'another rng');
+  assert.notEqual(replayKeyFor(source, { ...provenanceVersions(), priorTable: 'prior-s3-v2' }), key, 'the prior table id');
+  assert.notEqual(replayKeyFor(source, { ...provenanceVersions(), screenTable: 'screen-v4-v2' }), key, 'the screen table id');
+});
+
 test('replay cache: a prefetch makes and saves a replay once; the section waits for it; a cancelled one is asked again', async () => {
   const { createReplayCache } = await import('../generator/ui/replay-cache.js');
   /** @type {Map<string, any>} */
@@ -1370,4 +1381,73 @@ test('replay cache: a prefetch makes and saves a replay once; the section waits 
   cache.dispose();
   assert.equal(calls[3] === undefined || calls[3].signal.aborted, true, 'dispose aborts the replays being made');
   assert.equal(createReplayCache(storage, undefined)?.prefetch(src('pP4')), undefined, 'without a runner nothing is prefetched');
+});
+
+test('gen-v4 steps read in English and Vietnamese', () => {
+  const clues = ['A', 'B', 'C', 'D', 'E'];
+  const withClues = { board: { placed: [], lifted: [], clues } };
+  const ratedAt = (/** @type {string} */ phase) => stepOf('rated', { sequence: 1, phase, source: 'candidate' }, { ...withClues, rating: rated(70).rating });
+  const unrateableAt = (/** @type {string} */ phase, /** @type {string} */ reason) => stepOf(
+    'unrateable', { sequence: 1, phase, source: 'candidate', reason }, { ...withClues, band: { min: 17, max: 25 } },
+  );
+  /** @type {[Step, string, Record<string, number>, Record<string, string>][]} */
+  const cases = [
+    [ratedAt('locate'), 'replay.step.locate', { sequence: 2, count: 5, score: 70 }, {
+      en: 'Clue set 2 (5 clues) is rated to find how many clues this level needs: score 70.',
+      vi: 'Nhóm mảnh đặt sẵn 2 (5 mảnh) được chấm để tìm số mảnh đặt sẵn mà mức này cần: điểm 70.',
+    }],
+    [ratedAt('rescue'), 'replay.step.rerate', { sequence: 2, score: 70 }, {
+      en: 'Clue set 2 is rated again with the full limit: score 70.',
+      vi: 'Nhóm mảnh đặt sẵn 2 được chấm lại với giới hạn đầy đủ: điểm 70.',
+    }],
+    [ratedAt('rerate'), 'replay.step.rerate', { sequence: 2, score: 70 }, {
+      en: 'Clue set 2 is rated again with the full limit: score 70.',
+      vi: 'Nhóm mảnh đặt sẵn 2 được chấm lại với giới hạn đầy đủ: điểm 70.',
+    }],
+    [ratedAt('window'), 'replay.step.rated', { sequence: 2, score: 70 }, {
+      en: 'Clue set 2 is rated: score 70.',
+      vi: 'Nhóm mảnh đặt sẵn 2 được chấm: điểm 70.',
+    }],
+    [unrateableAt('locate', 'screen-capped'), 'replay.step.screenCapped', { sequence: 2 }, {
+      en: 'The quick rating of clue set 2 reached its work limit. It only guides the search; it has no score.',
+      vi: 'Lần chấm nhanh nhóm mảnh đặt sẵn 2 đã chạm giới hạn phép tính. Kết quả chỉ định hướng việc tìm kiếm; không có điểm.',
+    }],
+    [unrateableAt('rerate', 'path-capped'), 'replay.step.rerateCapped', { sequence: 2 }, {
+      en: 'The full rating of clue set 2 also reached its limit, so it has no score.',
+      vi: 'Lần chấm đầy đủ nhóm mảnh đặt sẵn 2 cũng chạm giới hạn nên không có điểm.',
+    }],
+    [unrateableAt('beam', 'path-capped'), 'replay.step.unrateable', { sequence: 2 }, {
+      en: 'Clue set 2 cannot be rated: the deduction path is capped.',
+      vi: 'Không chấm được nhóm mảnh đặt sẵn 2: đường suy luận bị giới hạn.',
+    }],
+    [stepOf('budget', { source: 'candidate' }), 'replay.step.budget', {}, {
+      en: 'This clue search reached its work limit: no further rating or uniqueness check was started.',
+      vi: 'Lần tìm các mảnh đặt sẵn này đã chạm giới hạn phép tính: không bắt đầu thêm lần chấm điểm hay kiểm tra tính duy nhất nào.',
+    }],
+    [stepOf('noWindow', { side: 'below', source: 'candidate' }), 'replay.step.noWindow.below', {}, {
+      en: 'The search reduced the number of clues to one without finding a clue set at this level.',
+      vi: 'Việc tìm kiếm đã giảm số mảnh đặt sẵn tới một mà không tìm được nhóm mảnh đặt sẵn đạt mức này.',
+    }],
+    [stepOf('noWindow', { side: 'above', source: 'candidate' }), 'replay.step.noWindow.above', {}, {
+      en: 'The search increased the number of clues to the allowed maximum without finding a clue set at this level.',
+      vi: 'Việc tìm kiếm đã tăng số mảnh đặt sẵn tới mức tối đa cho phép mà không tìm được nhóm mảnh đặt sẵn đạt mức này.',
+    }],
+  ];
+  for (const [s, key, params, texts] of cases) {
+    const d = stepText(s);
+    assert.equal(d.key, key);
+    assert.deepEqual(d.params ?? {}, params, key);
+    assertKnown(d, key);
+    for (const code of /** @type {const} */ (['en', 'vi'])) {
+      setLocale(code, null);
+      assert.equal(renderDesc(d, t), texts[code], `${key} ${code}`);
+    }
+  }
+  const capped = stepOf('unrateable', { sequence: 1, phase: 'locate', source: 'candidate', reason: 'screen-capped' });
+  assert.deepEqual(stepScore(capped), [{ key: 'replay.table.unrateable' }], 'a screen-capped step shows no score');
+  for (const kind of /** @type {const} */ (['budget', 'noWindow'])) {
+    const none = stepOf(kind, { source: 'candidate', side: 'below' });
+    assert.deepEqual([stepScore(none), stepTechniques(none), stepPieces(none, SET), boardOf(none).highlightedIds], [[], [], [], []], kind);
+    assert.equal(scoreTable(none, [none]).kind, 'none', kind);
+  }
 });
