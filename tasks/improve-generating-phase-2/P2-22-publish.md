@@ -149,13 +149,13 @@ The pushed commit; `gh pr view`'s fields; the CI result; the owner report.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | 2026-11-26 21:37 +07:00 (dispatch, slot w1, base e71b66f); end: see the bookkeeping commit (after the push and the PR edit) |
+| Start, end, duration | 2026-11-26 21:37 +07:00 (dispatch, slot w1, base e71b66f); end 2026-11-26 21:47 +07:00 (PR #14 edited and checked); about 10 min |
 | Waiting for rulings | SA-Opus ruling on the developer's QUESTION 1 and six deviations: 21:40-21:42 (about 2 min) |
 | Agent id, model | Dev-Sonnet 8167dc51-41c2-4606-8d03-fa23efd0fea5 (claude-sonnet-5.5), step 1; the orchestrator, steps 2-4 |
 | Calls; input, output and cache-read tokens | 22 calls; 1,265,318 input, 16,454 output, 1,190,911 cache-read |
 | AI credits | 46.96 |
 | Questions and rulings | Owner Q-P2-V1: `b` (Discord 1575520697659166882): accept the limitation, keep PR #14 a draft. Developer QUESTION 1 (pr-body.md line 3 contradicted the Validation section): SA-Opus ruled option (ii) with the exact text "Draft description for PR #14 (into `main`). The validation verdict is in "Validation" below, and nothing is merged.", plus the owner's message id in the answer bullet. Deviations accepted: full paths in design-detail.md (E is pack shorthand); G-PROTECTED's $base stays 97a6326, which has the identical tree to its rebased counterpart e14e074 (rebase-map); absolute report URL (relative links do not resolve in a PR description); the phase-3 bullet kept; the no-claim sentence replaced by the bound bullet; wrapping |
 | Fix rounds | 1 (the ruling's two edits) |
-| Gates re-run by the orchestrator | static guards in the slot: G-PROTECTED OK, G-WORKTREE OK, `format: OK (2 files)`, G-CHECK OK; merge gate and steps 2-4: see the bookkeeping commit |
-| Commit | |
-| Issues and named items | |
+| Gates re-run by the orchestrator | static guards in the slot: G-PROTECTED OK, G-WORKTREE OK, `format: OK (3 files)`, G-CHECK OK; merge gate (docs only, no focused tests): G-PROTECTED OK (base 97a6326, identical tree to e14e074), G-CHECK OK, G-FORMAT-COMMIT OK, G-COPIES `copies: OK (5 variants, 195 edits match)` and today `copies: OK (1 variants, 32 edits match)`; fast-forward b7151db. Step 2: `step 2: OK` (rebase map names fa0bda2; 0320e00 is on gen-v4 with the identical tree; tested files unchanged). Step 3: `459d482..b7151db gen-v4 -> gen-v4` (fast-forward, not forced); `gh pr edit 14` OK; PR #14 OPEN, draft, base main, head gen-v4 at b7151db; the report link resolves on gen-v4. Step 4: `CI: no run for this commit; none expected` (pages.yml runs on main or a manual dispatch) |
+| Commit | b7151db (publication record); this bookkeeping commit, pushed as a fast-forward |
+| Issues and named items | Nothing merged, released or deployed; PR #14 stays a draft by the owner's Q-P2-V1 (b). Named items for later (validation report §16): the `require` finding, the 10x10 Master rep 24 trace gap, CLI boards of 577 to 675 cells unmeasured, Hell 1 offers (phase 3); local backup branch gen-v4-pre-rebase kept until phase 2 closes |
