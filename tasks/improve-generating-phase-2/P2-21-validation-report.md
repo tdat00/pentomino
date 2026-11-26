@@ -92,13 +92,13 @@ The gate verdict line; the owner decisions needed.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
+| Start, end, duration | 2026-11-26 21:00 +07:00 (request to SA-Opus after P2-20's commit); end 2026-11-26 21:40 +07:00 (commit); about 40 min |
+| Waiting for rulings | none from the owner (Q-P2-V1 is raised by this report and answered after it; P2-22 waits for it) |
 | Agent id, model | SA-Opus (`claude-opus-5.5`), SA-Astra (`gpt-6-astra`) |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Calls; input, output and cache-read tokens | SA-Opus e5de0a5f-b2e9-40cc-a148-6e89d41227b4: 57 calls; 32,366,711 input, 174,550 output, 30,101,360 cache-read (includes the P2-20 projection script and the D-P2-18 rebase ruling). SA-Astra 53bbea9e-b968-4aee-b81d-9959756c75a3: 14 calls; 2,631,160 input, 27,482 output, 2,253,422 cache-read |
+| AI credits | SA-Opus 2,083.790; SA-Astra 834.914; total 2,918.704 |
+| Questions and rulings | SA-Astra review 1: R21-01 (P2-T01 incomplete: one eligible row, shipped/gen-v4/14x14-hell-1/33, without equality evidence; verdict INCOMPLETE), R21-02 (Q-P2-V1 discloses and asks acceptance; P2-22 waits), R21-03 (provenance: P2-18 log as supplemental hashed input; stage4-report.md as B8's transitive LF-normalized input); all applied by SA-Opus, the SAs agree, no supervisor question. Owner instruction (Discord 1575515759550144573): PR #11 merged, rebase PR #14 without merging; SA-Opus ruling D-P2-18 (pack amendment 13a35b8, rebased da6f3d2): the rebase block of check-list §3.7 run once before this commit. Owner question (Discord 1575516817886154843) on re-measuring the row: answered by SA-Opus (short in machine time, not allowed in the sealed campaign, and cannot produce evidence since the frozen side has no set either) |
+| Fix rounds | 1 (SA-Astra review 1, then accept) |
+| Gates re-run by the orchestrator | G-FORMAT via check-conventions on both files: OK; seal --check OK. Rebase block (D-P2-18): 79 commits replayed onto 626918c, every tree identical, `seal: OK`, hash map 459d482, force-push with lease 7c1bad2...459d482; PR #14 OPEN, draft, base main, head gen-v4 at 459d482, 80 commits; sealed fa0bda2 -> 0320e00 |
+| Commit | this commit (improve-generating-phase-2 P2-21: the validation report) |
+| Issues and named items | Verdict `Phase 2: INCOMPLETE (P2-B01 to P2-B03, P2-B05 and P2-B06: pass; P2-T01: incomplete—one eligible row without equality evidence; P2-B04: pass; P2-B07: read on 49 of 50 rows, owner continuation recorded)`; owner decision Q-P2-V1 (posted on Discord 1575520365877395496 / 1575520368167354569); the 10x10 Master rep 24 trace gap (investigate the trace tooling); the `require` finding to phase 3 |
