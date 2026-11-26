@@ -24,26 +24,48 @@ and no merge. Nothing is merged, released or deployed.
 
 - Step 1 (Dev-Sonnet): `docs/design-detail.md` §7.8 (the paragraph P2-15 added: replace "pending the phase-2
   validation" by the report's verdict line and the paths `E/seal/seal.json`, `validation-report.md`), and
-  `docs/improve-generating-phase-2/pr-body.md` ("Not yet validated" becomes "Validation" with the verdict line, the
-  ledger account and the link to the report). `$Allowed` = these two files plus this task file.
+  `docs/improve-generating-phase-2/pr-body.md`. `$Allowed` = these two files plus this task file. In `pr-body.md`
+  (ruling on P2-21 and D-P2-18, 2026-11-26), "Not yet validated" becomes "Validation", with:
+  - the verdict line and the owner's answer to Q-P2-V1;
+  - the equality limitation: one eligible row, 14x14 Hell 1 rep 33, gives no equality evidence. Accepting it does not
+    make it a pass;
+  - automatic `require` requests on large boards often end empty at the 46-s set cut; the browser Generator does not use
+    that cut;
+  - the bound was not exercised in production either;
+  - the ledger account and the link to the report.
+
+  "Depends on" becomes: PR #11 is squash-merged into `main` as `626918c`; PR #14 is rebased onto it (D-P2-18) and
+  carries only phase 2's commits. The measured source is sealed at `fa0bda2`, from before the rebase; its rebased
+  counterpart has the identical tree (`evidence/rebase/rebase-map.json`).
 - Steps 2-4 (orchestrator): commit, push, PR edit.
 
 ## Steps
 
 1. Dev-Sonnet: the two edits above; G-CHECK, G-PROTECTED, G-WORKTREE, G-FORMAT. Stop with `READY FOR PUBLICATION`.
-2. Orchestrator: verify that the tested files did not change since the sealed commit:
+2. Orchestrator: verify that the tested files did not change since the sealed commit. After the rebase (D-P2-18), the
+   check runs against the sealed commit's rebased counterpart, after proving that it has the sealed commit's tree.
+   `gen-v4-pre-rebase` keeps the sealed commit itself.
 
    ```powershell
    Set-Location Q:\git\pentomino
    [Environment]::CurrentDirectory = (Get-Location).Path
    $ErrorActionPreference = 'Stop'
    $seal = Get-Content -Raw -LiteralPath docs\improve-generating-phase-2\evidence\seal\seal.json | ConvertFrom-Json
-   git --no-pager diff --exit-code --stat $seal.commit -- core generator player tests tools package.json index.html
+   $map = Get-Content -Raw -LiteralPath docs\improve-generating-phase-2\evidence\rebase\rebase-map.json | ConvertFrom-Json
+   if ($map.sealCommit.old -cne $seal.commit) { throw 'STOP: the rebase map does not name the sealed commit' }
+   git merge-base --is-ancestor $map.sealCommit.new HEAD
+   if ($LASTEXITCODE -ne 0) { throw 'STOP: the rebased sealed commit is not on gen-v4' }
+   $sealedTree = (git --no-pager rev-parse "$($seal.commit)^{tree}").Trim()
+   if ($LASTEXITCODE -ne 0 -or $sealedTree -cne (git --no-pager rev-parse "$($map.sealCommit.new)^{tree}").Trim()) {
+     throw 'STOP: the rebased sealed commit has another tree'
+   }
+   git --no-pager diff --exit-code --stat $map.sealCommit.new -- core generator player tests tools package.json index.html
    if ($LASTEXITCODE -ne 0) { throw 'STOP: tested files changed after the seal (a new source epoch)' }
    ```
 
    Commit step 1 as `improve-generating-phase-2 P2-22: publication record`.
-3. Push and describe:
+3. Push and describe. The push is a normal fast-forward: the history was rewritten once, at the rebase (D-P2-18). A
+   rejected push is a `STOP`, never forced.
 
    ```powershell
    Set-Location Q:\git\pentomino

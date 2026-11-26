@@ -21,6 +21,10 @@ a published record, and names every decision the owner must take before anything
 - Inputs only: `E/report-smoke/`, `E/report-A/`, `E/report-B/`, `E/proofs/`, `E/replay-probes/`, `E/browser/`,
   `E/twins/`, `E/rows-smoke/`, `E/rows-before-twins/`, `E/rows/`, `E/ledger/ledger.jsonl`, `E/seal/`,
   `stage-a-readout.md`. No new measurement.
+  - **Supplemental input** (ruling on P2-21, 2026-11-26, SA-Astra's R21-03): P2-18's committed execution log, solely
+    for pre-seal verification results, hashed in the input table.
+  - **Transitive input:** `docs/improve-generating-stages-2-4/stage4-report.md`, which `report-B gates.B8` binds;
+    hashed after LF normalization, as B8 binds it.
 - The report binds the exact inputs it read (R3): the SHA-256 of each snapshot's `.jsonl` (its `.sha256` file), of
   `activation.json`, of `seal.json` and of each `report.json`, in a table at its end.
 - Missing data is incomplete, never a pass; zero reach is "unexercised".

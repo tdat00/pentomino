@@ -222,7 +222,8 @@ locked verification runs are not charged to it (§3.3).
   every variable it reads. Every file-tool read or edit names a path under the task's own slot.
 - **Not allowed.**
   - No package install, no network download, no new dependency.
-  - No release, tag, force-push or workflow dispatch.
+  - No release, tag, force-push or workflow dispatch. One exception: the single force-push of `gen-v4` after its rebase
+    onto `main` (D-P2-18, §3.7).
 - **Agent usage.** Record unobservable usage as `unavailable` with its reason; never invent tokens or AI credits.
 
 ### 3.2 Command preamble
@@ -545,6 +546,84 @@ runtime file or a test helper forces them into order.
 | `DEVELOPERGUIDE.md`, `.vn.md` | P2-12a (a sentence at the end of the calibrate bullet, line 80 / 81) and P2-14a (a sentence at the end of the fixtures paragraph, line 124 / 123). Every other guide change is P2-17's, which runs after both. |
 | `tools/ig-proto/phase2/` | each task its own files; one test file per tool: `trace-reader.test.mjs` (P2-13r), `binding.test.mjs` (P2-13v), `p2.test.mjs` (P2-13a, P2-13d, P2-13e, P2-13b, P2-13c, P2-13f, serial in lane T), `copies.test.mjs` (P2-12b), `trace.test.mjs` (P2-12d), `proofs.test.mjs` (P2-12c), `proofs-prior-legacy.test.mjs` (P2-12e), `replay-probe.test.mjs` (P2-14b), `glue.test.mjs` (P2-16c), `browser-run.test.mjs` (P2-16e). P2-12b's `proofs.mjs` loads a bundle module `proof-<bundle>.mjs` by name on invocation, so P2-12c and P2-12e add their bundles without editing it (review-2 R2-03). |
 
+#### Rebase onto `main` (D-P2-18)
+
+The owner merged PR #11 (squash, `626918c` on `main`) and asked for PR #14 to be rebased, not merged. The orchestrator
+runs this block once, in the main worktree, before P2-21's commit. It rebases `gen-v4` onto `main` and checks it.
+Because the two bases have the identical tree, every rewritten commit keeps its tree. The block then commits the hash
+map and pushes once with a lease; PR #14 stays an open draft. The seal, the rows and the ledger do not change.
+`gen-v4-pre-rebase` is never deleted before phase 2 closes, and it is not pushed.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location -LiteralPath 'Q:\git\pentomino'
+[Environment]::CurrentDirectory = 'Q:\git\pentomino'
+git fetch origin
+if ($LASTEXITCODE -ne 0) { throw 'STOP: fetch' }
+$oldBase = (git --no-pager rev-parse origin/improve-generating).Trim()
+$newBase = (git --no-pager rev-parse origin/main).Trim()
+$remote = (git --no-pager rev-parse origin/gen-v4).Trim()
+$oldHead = (git --no-pager rev-parse gen-v4).Trim()
+if ($LASTEXITCODE -ne 0) { throw 'STOP: rev-parse' }
+if ((git --no-pager branch --show-current).Trim() -cne 'gen-v4') { throw 'STOP: the main worktree is not on gen-v4' }
+if (@(git --no-pager status --porcelain --untracked-files=no).Count -gt 0) { throw 'STOP: tracked changes' }
+git merge-base --is-ancestor $oldBase gen-v4
+if ($LASTEXITCODE -ne 0) { throw 'STOP: origin/improve-generating is not an ancestor of gen-v4' }
+git diff --quiet $oldBase $newBase
+if ($LASTEXITCODE -ne 0) { throw 'STOP: origin/main and origin/improve-generating have different trees' }
+if (@(git --no-pager rev-list --merges "$oldBase..gen-v4").Count -gt 0) { throw 'STOP: merge commits in the range' }
+git branch gen-v4-pre-rebase $oldHead
+if ($LASTEXITCODE -ne 0) { throw 'STOP: backup branch' }
+git rebase --onto $newBase $oldBase gen-v4
+if ($LASTEXITCODE -ne 0) { throw 'STOP: rebase failed: run git rebase --abort, then report' }
+git diff --quiet gen-v4-pre-rebase gen-v4
+if ($LASTEXITCODE -ne 0) { throw 'STOP: the rebased tree differs' }
+$old = @(git --no-pager rev-list --reverse "$oldBase..gen-v4-pre-rebase")
+$new = @(git --no-pager rev-list --reverse "$newBase..gen-v4")
+if ($old.Count -eq 0 -or $old.Count -ne $new.Count) { throw 'STOP: commit counts differ' }
+$commits = for ($i = 0; $i -lt $old.Count; $i++) {
+  $tree = (git --no-pager rev-parse "$($old[$i])^{tree}").Trim()
+  $subject = git --no-pager log -1 --format=%s $old[$i]
+  if ((git --no-pager rev-parse "$($new[$i])^{tree}").Trim() -cne $tree -or (git --no-pager log -1 --format=%s $new[$i]) -cne $subject) {
+    throw "STOP: commit $($i + 1) differs after the rebase"
+  }
+  [ordered]@{ old = $old[$i]; new = $new[$i]; tree = $tree; subject = $subject }
+}
+node tools\ig-proto\phase2\p2.mjs seal --check
+if ($LASTEXITCODE -ne 0) { throw 'STOP: seal check' }
+$seal = Get-Content -Raw -LiteralPath docs\improve-generating-phase-2\evidence\seal\seal.json | ConvertFrom-Json
+$sealed = @($commits | Where-Object { $_.old -ceq $seal.commit })
+if ($sealed.Count -ne 1) { throw 'STOP: the sealed commit is not in the rebased range' }
+$map = [ordered]@{
+  format = 'p2-rebase-map'; version = 1; decision = 'D-P2-18'
+  instruction = [ordered]@{ by = 'owner'; discord = '1575515759550144573'; at = '2026-11-26 21:17 +07:00' }
+  oldBase = $oldBase; newBase = $newBase; baseTreesEqual = $true; oldHead = $oldHead
+  newHead = (git --no-pager rev-parse gen-v4).Trim(); remoteBefore = $remote
+  sealCommit = $sealed[0]; commits = $commits
+}
+New-Item -ItemType Directory -Force -Path docs\improve-generating-phase-2\evidence\rebase | Out-Null
+$text = (($map | ConvertTo-Json -Depth 6) -replace "`r?`n", "`r`n") + "`r`n"
+[IO.File]::WriteAllText('Q:\git\pentomino\docs\improve-generating-phase-2\evidence\rebase\rebase-map.json', $text, [Text.UTF8Encoding]::new($false))
+git add -- docs/improve-generating-phase-2/evidence/rebase/rebase-map.json
+if ($LASTEXITCODE -ne 0) { throw 'STOP: git add' }
+git commit -m 'improve-generating-phase-2: rebase onto main (D-P2-18): the hash map' -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`nCopilot-Session: 7e6bf34f-be87-427e-9bec-bb2d049b46cc"
+if ($LASTEXITCODE -ne 0) { throw 'STOP: commit' }
+git push --force-with-lease="gen-v4:$remote" origin gen-v4
+if ($LASTEXITCODE -ne 0) { throw 'STOP: push' }
+$pr = gh pr view 14 --json state,isDraft,baseRefName,headRefName,headRefOid | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) { throw 'STOP: PR view' }
+$head = (git --no-pager rev-parse HEAD).Trim()
+if ($pr.state -ne 'OPEN' -or -not $pr.isDraft -or $pr.baseRefName -ne 'main' -or $pr.headRefName -ne 'gen-v4' -or $pr.headRefOid -ne $head) {
+  throw "STOP: PR #14 is not the open draft of gen-v4 at $head"
+}
+"rebased $($old.Count) commits; sealed $($seal.commit) is now $($sealed[0].new); pushed $head"
+```
+
+- Every commit hash recorded before the rebase (execution logs, the seal's `commit`, the rows' `sourceCommit`) stays
+  as written. `E/rebase/rebase-map.json` maps each one to its rebased counterpart.
+- The rows bind the seal and their content digests, not a branch, so `verifyRow` and `seal --check` are unchanged.
+- PR #14's text is corrected by P2-22.
+
 #### Lane T's contracts
 
 `contracts.md` is frozen by this revision.
@@ -579,6 +658,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | D-P2-15 | Q-P2-1, option (a): the production validation of section 7 is approved, with a separate phase-2 ledger of 812 counted minutes: stage A, 410, first; stage B, 402, only after the SAs' stage-A readout. 812 is a spend cap, not an assurance of completion (1,303 at the sentinels' row limits). The closed round's 853.8-minute balance is not used, and nothing rolls over | Owner: "Q-P2-1: đồng ý duyệt." ("approved") | 2026-11-25 15:06:53 +07:00 | Discord message `1575060196269490259`; the question: `sa-opus/answered-questions.md` |
 | D-P2-16 | Q-P2-5, option (a): the texts of 4.9 with the plain-language wording B of the four no-window strings, the guide sentence, and the statement of 4.11 replacing "no fail-fast" at `design-detail.md:1805`. The owner may reword later; that is an ordinary text task with no behaviour change | Owner: "Q-P2-5: đồng ý duyệt, tôi sẽ sửa sau nếu thấy không phù hợp." ("approved; I will change it later if I find it unsuitable") | 2026-11-25 15:06:53 +07:00 | Discord message `1575060196269490259`; the question: `sa-opus/answered-questions.md` |
 | D-P2-17 | Parallel development is allowed and should be optimized for speed: this overrides "one task per repository at a time" for this pack. At most three developers at once (lanes S, C, T; §3.7), each task in its own worktree slot and short branch; the orchestrator commits, rebases and merges one task at a time after its merge gate. Locked and timed runs stay one at a time through the lock; no idle declaration is granted; the ledger, staging and every other decision are unchanged | Owner: "cho phép chạy song song, hãy tối ưu để tăng tốc độ" ("parallel running is allowed; optimize to increase speed"); execution rules: pack author, reviewed by SA-Astra (R15) | 2026-11-25 17:45:12 +07:00 | Discord message `1575100035077771386`; `sa-opus/parallel-schedule.md`; `review-1.md` R15 |
+| D-P2-18 | PR #11 is squash-merged into `main` (`626918c`); PR #14 is rebased onto `main` and not merged. Execution: §3.7's block, once, before P2-21's commit. The rebase is done only while both bases have the identical tree, and it is checked commit by commit. `gen-v4-pre-rebase` stays a local backup; `E/rebase/rebase-map.json` maps every old commit, the sealed `fa0bda2` included, to its counterpart; one force-push with a lease. The seal, the rows and the ledger do not change | Owner: "Pr#11 đã được merge rồi. Hãy rebase PR#14 (không merge)" ("PR #11 has already been merged. Rebase PR #14 (do not merge)"); execution: pack author | 2026-11-26 21:17 +07:00 | Discord message `1575515759550144573`; §3.7 |
 
 ## 5. Named items
 
