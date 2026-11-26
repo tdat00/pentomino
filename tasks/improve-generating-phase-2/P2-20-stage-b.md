@@ -132,6 +132,8 @@ None.
 - **A port defect** stops before any ratio; the pack author rules.
 - **The ledger refusing** a group of 1 to 26 stops the stage. A refused overflow group ends the overflow, with the P5
   endpoint `incomplete`, and the owner is told.
+- **A host restart or crash** during an invocation: check-list §3.5's rule, with P2-19's recovery block (it reads the
+  stage from the reservation); then the step's loop resumes at the interrupted group, never at an earlier one.
 - **(c5) failing or inconclusive** (the gate `B4` of `E/report-B/report.json` has a `status` other than `pass`; its
   `detail.verdict` is `failed` or `inconclusive` and `detail.decidedBy` names the deciding condition): stop the
   publication, and present the no-screen fallback and its new table identity to the owner before the selected

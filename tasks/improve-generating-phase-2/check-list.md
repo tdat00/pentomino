@@ -363,6 +363,24 @@ list is a `STOP:`.
   - A nonzero exit counts its `IG` seconds plus 45.
   - Any other failure with no usable duration is an **accounting stop**: the reservation stays and the orchestrator
     reports.
+  - **A host restart or crash** (ruling on P2-19, 2026-11-26) ends the wrapper before its `finally`: there is no ledger
+    line, and the reservation and the lock file `%TEMP%\dv3-timing.lock` remain. The orchestrator resolves this
+    accounting stop with P2-19's recovery block, without a new ruling, before any other invocation of either stage.
+    - The node seconds are a proved upper bound, `min(limitS, T_end - T_node)`, rounded up to the millisecond. `T_node`
+      is the lock file's UTC stamp when its text names `IG P2 <id>` (the helper writes it just before the node child
+      starts); otherwise the reservation's `at` when a status line names `<id>`; otherwise the child never started and
+      the node seconds are 0. `T_end` is the System log's Kernel-General event 13 ("The operating system is shutting
+      down") before the next boot, else that boot's Kernel-General event 12.
+    - The line adds the usual 45 s, with `killed: true`, `exit: -1` and `cause: 'exit'`; `start` is the reservation's
+      `at` and `end` is `T_end`. `ledger --append` admits only the causes `ok`, `exit` and `timeout` and no other
+      field, and the wrapper never writes `exit` with `killed: true`, so this combination marks a host restart.
+    - Then `release --id <id>`. The lock file is removed only when its text names `IG P2 <id>` and its stamp is earlier
+      than the boot.
+    - A started key without a terminal line becomes `interrupted` at its group's next invocation (C5) and is never run
+      again; the loop resumes at that group, never at an earlier one. An interrupted required row is missing evidence:
+      its gate is `incomplete`, and in stage A it needs C12's owner continuation.
+    - An interrupted item (a proof, the replay probes, a browser check) is charged the same way; whether it runs again
+      is a pack-author ruling, and its partial output is kept.
   - Lock waits beyond the quiet period are not counted.
   - The wrapper appends every line in `E/ledger/ledger.jsonl` (`contracts.md` C7) in a `finally`, and rethrows the
     original failure.
@@ -579,6 +597,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | N-P2-15-K8 | On 15x20 Nightmare, seed `t18-big-a`, K = 24, the calibration under `gen-v4` has 5 clues and score 69, still in band; under `gen-v3` it had 3 clues and score 70 | one seed; not population evidence | P2-21, as a deviation note |
 | INC-P2-11b | `tests/generator-import.test.js:512` failed on `gen-v4` from P2-11b (`df15064`) to P2-15: its fake client lacked `newScope`; P2-11b's gate was focused | repaired by P2-15's K12 | closed |
 | N-P2-14b-REQ | Early warning for stage A (P2-B07): in the pre-seal replay-probe rehearsal under `require`, 3 of 4 sets hit the 115-s stop (22x22 Hell 1, 22x22 Nightmare, 32x15 Nightmare, seed index 0); 32x15 Hell 1's batch ended partial with one ordinary puzzle besides the calibration | seed index 0 only; not population evidence | stage A's 50 require rows; the stage-A readout reads them first (SA-Opus ruling, 6cf7e8c) |
+| INC-P2-19-RESTART | Windows Update (`MoUsoCoreWorker.exe`, System event 1074) restarted the host at 2026-11-26 05:00:05 +07:00, during `A-9.13` (stage A, group 9). Charged under §3.5's host-restart rule: node 238.273 s, from the lock stamp 21:56:56.514Z to the kernel's shutdown event 13 at 22:00:54.787Z; 283.273 counted; `cause: 'exit'`, `killed: true`, `exit: -1`; `rowsWritten` 1. `require/uncapped/32x15-hell-1/2` was running: it becomes `interrupted` (`no-report`) and is never run again, so A3 lacks one of its 50 row lines and is `incomplete` | one row of 318; A spent 5,357.556 s (89.293 min) after the charge | the stage-A readout (C12's owner continuation); Windows Update itself: the owner's Q-P2-R1 |
 | Merge, release | Not authorized | neither PR merged | a later explicit owner instruction |
 
 ## 6. Execution summary (orchestrator)

@@ -51,6 +51,80 @@ Every block starts with P2-18's preamble.
    }
    ```
 
+   **After a host restart or crash** (check-list §3.5, ruling on P2-19, 2026-11-26), run this recovery block once,
+   after the restart and before any other invocation. It prints the evidence for the execution log, charges the cut
+   invocation and releases its reservation, removes its stale lock, and checks the seal, the ledger and the status.
+   Then resume the loop at the interrupted group, `foreach ($g in <that group>..23)`: an earlier group would be charged
+   a whole invocation for nothing. Its started key without a terminal line becomes `interrupted` on that call (C5).
+
+   ```powershell
+   $RAW = Join-Path $root 'tests\artifacts\ig-proto\phase2'
+   $inv = [cultureinfo]::InvariantCulture
+   $fmt = 'yyyy-MM-ddTHH:mm:ss.fffzzz'
+   $pendingText = [IO.File]::ReadAllText((Join-Path $RAW 'pending.json'))
+   $pending = $pendingText | ConvertFrom-Json -AsHashtable -DateKind String
+   $id = $pending['id']
+   $stage = $pending['stage']
+   $ids = @([IO.File]::ReadAllLines((Join-Path $E 'ledger\ledger.jsonl')) | Where-Object { $_ } | ForEach-Object { ($_ | ConvertFrom-Json -AsHashtable -DateKind String)['id'] })
+   if ($ids -ccontains $id) { throw "STOP: $id already has a ledger line; only its release is left" }
+   $at = [DateTimeOffset]::Parse($pending['at'], $inv)
+   $lockFile = Join-Path $env:TEMP 'dv3-timing.lock'
+   $bootAt = [DateTimeOffset](Get-CimInstance Win32_OperatingSystem).LastBootUpTime
+   $lockText = if (Test-Path -LiteralPath $lockFile) { [IO.File]::ReadAllText($lockFile) } else { $null }
+   $parts = if ($lockText) { $lockText.Split('|') } else { @() }
+   $ours = $parts.Count -eq 3 -and $parts[1] -ceq "IG P2 $id"
+   if ($lockText -and -not $ours) { throw "STOP: the lock is not ${id}'s: $lockText" }
+   $lockAt = if ($ours) { [DateTimeOffset]::Parse($parts[2], $inv) } else { $null }
+   if ($ours -and $lockAt -ge $bootAt) { throw "STOP: ${id}'s lock is newer than the boot" }
+   $status = @(Get-Content -LiteralPath (Join-Path $RAW "rows\$stage.status.jsonl") -ErrorAction SilentlyContinue | Where-Object { $_ } | ForEach-Object { $_ | ConvertFrom-Json -AsHashtable -DateKind String })
+   $started = @($status | Where-Object { $_['t'] -ceq 'start' -and $_['invocation'] -ceq $id })
+   $ended = @($status | Where-Object { $_['t'] -ceq 'done' -or $_['t'] -ceq 'interrupted' } | ForEach-Object { $_['key'] })
+   $tNode = if ($ours) { $lockAt } elseif ($started.Count -gt 0) { $at } else { $null }
+   $from = ($tNode ?? $at).LocalDateTime
+   $kernel = @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-Kernel-General'; StartTime = $from }
+   $boot = Get-WinEvent -FilterHashtable ($kernel + @{ Id = 12 }) -ErrorAction SilentlyContinue | Sort-Object TimeCreated | Select-Object -First 1
+   if (-not $boot) { throw "STOP: no boot after $from; not a host restart, ask the pack author" }
+   $down = Get-WinEvent -FilterHashtable ($kernel + @{ Id = 13 }) -ErrorAction SilentlyContinue | Where-Object { $_.TimeCreated -lt $boot.TimeCreated } | Sort-Object TimeCreated | Select-Object -First 1
+   $endAt = [DateTimeOffset]$(if ($down) { $down.TimeCreated } else { $boot.TimeCreated })
+   $endAt = $endAt.AddTicks((10000 - $endAt.Ticks % 10000) % 10000)
+   $nodeS = if ($tNode) { [math]::Min([double]$pending['limitS'], [math]::Ceiling(($endAt - $tNode).TotalMilliseconds) / 1000) } else { 0.0 }
+   $line = [ordered]@{ id = $id; stage = $stage }
+   if ($pending.ContainsKey('item')) { $line.item = $pending['item'] } else { $line.group = $pending['group'] }
+   $line.start = $at.ToLocalTime().ToString($fmt, $inv)
+   $line.end = $endAt.ToLocalTime().ToString($fmt, $inv)
+   $line.nodeSeconds = $nodeS
+   $line.quietS = 45
+   $line.countedSeconds = $nodeS + 45
+   $line.limitS = $pending['limitS']
+   $line.killed = $true
+   $line.exit = -1
+   $line.rowsWritten = 0
+   $line.cause = 'exit'
+   $json = $line | ConvertTo-Json -Compress
+   "pending: $($pendingText.Trim() -replace '\s+', ' ')"
+   "lock: $lockText; boot $($bootAt.ToString($fmt, $inv))"
+   "started by ${id}: $(@($started | ForEach-Object { $_['key'] }) -join ', '); to become interrupted: $(@($started | Where-Object { $ended -cnotcontains $_['key'] } | ForEach-Object { $_['key'] }) -join ', ')"
+   Get-WinEvent -FilterHashtable @{ LogName = 'System'; StartTime = $from; EndTime = $boot.TimeCreated.AddMinutes(5); Id = 1074, 6006, 6008, 41, 13, 12 } -ErrorAction SilentlyContinue | Sort-Object TimeCreated | ForEach-Object { "event $($_.Id) $($_.ProviderName) $($_.TimeCreated.ToString('yyyy-MM-ddTHH:mm:ss.fffffff', $inv)): $(($_.Message -split "`r?`n")[0])" }
+   "line: $json"
+   node $p2 ledger --append --json $json
+   if ($LASTEXITCODE -ne 0) { throw 'STOP: ledger --append' }
+   node $p2 release --id $id
+   if ($LASTEXITCODE -ne 0) { throw 'STOP: release' }
+   if ($ours) { Remove-Item -LiteralPath $lockFile }
+   node $p2 seal --check
+   if ($LASTEXITCODE -ne 0) { throw 'STOP: seal check' }
+   node $p2 ledger --status
+   if ($LASTEXITCODE -ne 0) { throw 'STOP: ledger status' }
+   node $p2 status --stage $stage
+   if ($LASTEXITCODE -ne 0) { throw 'STOP: status' }
+   foreach ($k in 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired', 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') {
+     if (Test-Path -LiteralPath $k) { throw "STOP: a Windows restart is pending ($k); ask the owner before the next invocation" }
+   }
+   ```
+
+   The orchestrator copies the printed lines into the execution log. A cut item (steps 2 and 3) is charged by the same
+   block; whether it runs again is a pack-author ruling.
+
 2. **The replay probes**, one invocation. A nonzero exit (1 a failed item, 3 an item not measured, censored or not
    started) is recorded, and the task goes on to step 3.
 
@@ -100,6 +174,8 @@ Every block starts with P2-18's preamble.
      `E/report-A/report.json`), both acceptance times, and the verdict line;
    - then their reading of equality, the thin controls (A1), the sentinels (A2, P2-B04), `require` (A3, P2-B07), the
      replay margins (A4, P2-T11), the browser checks (A5), memory (A6, P2-T12) and the account;
+   - every `interrupted` row with its cause and its invocation, as missing evidence (never zero, never imputed), and
+     every host-restart line of the ledger with its evidence (check-list §3.5, INC-P2-19-RESTART);
    - when a gate is `fail` or `incomplete`: the verdict line is `Stage B: STOP`, with an owner question giving the
      options. After the owner's answer, the line `Owner continuation: <message id>` is added and the verdict may become
      `Stage B: PROCEED`.
@@ -138,6 +214,9 @@ The stage-A gates are computed by `p2.mjs report` (P2-13b).
 - **A gate `fail` or `incomplete`, a replay outside the margin, or an endpoint `incomplete`** goes to the owner, with
   the SAs' options, before stage B. A port defect goes to the pack author first.
 - **The ledger refusing an invocation** stops the stage; the rows not run are reported missing.
+- **A host restart or crash** during an invocation: step 1's recovery block, then the loop resumes at the interrupted
+  group. Any `STOP:` of that block, a pending Windows restart included, goes to the pack author or the owner before the
+  next invocation.
 
 ## Acceptance criteria
 
