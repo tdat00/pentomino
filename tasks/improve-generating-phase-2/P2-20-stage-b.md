@@ -172,13 +172,13 @@ None.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | the orchestrator |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
-| Commit | |
-| Issues and named items | |
+| Start, end, duration | 2026-11-26 16:24 +07:00 (HEAD f1f2735, after `ledger: admitted stage B`); end 2026-11-26 20:58 +07:00 (commit); about 4 h 34 min |
+| Waiting for rulings | none (no stop point reached) |
+| Agent id, model | the orchestrator; SA-Opus e5de0a5f-b2e9-40cc-a148-6e89d41227b4 (claude-opus-5.5) wrote the read-only projection script tests/artifacts/ig-proto/sa-opus/p2-20-projection.mjs (git-ignored), its usage is counted with P2-21 |
+| Calls; input, output and cache-read tokens | no developer agent; the runs are the orchestrator's |
+| AI credits | none separate (the SA projection work is counted in P2-21's execution log) |
+| Questions and rulings | SA-Opus ruling (16:35): keep the unattended step-1 loop with a projection watcher run after every group; a STOP during step 1 is information only; the clean hold point is after step 2 (start step 3 only if `twins` exits 0 and the projection prints `continue`). Every projection printed `continue`; after the activation: margin 7393 s central / 6944 s stressed |
+| Fix rounds | none |
+| Gates re-run by the orchestrator | groups 1-22 all exit 0 (group 1 re-called after exit 7); `publish: B 661 rows 590b54ee4c0f98a2caa695092a4e3fac7c78b13ded76c91790d831bc86efdcf6` (rows-before-twins); `twins: f67e4d7674735b97a9af57086a1b00add2d5271e01e02ec8987b3b23cb43f536 required 12 slots 2 inactive 3 overflow 0` (exit 0); groups 23-26 exit 0 (26: complete, its 3 slots inactive); no overflow group; `publish: B 692 rows 0fefb8b3695f515709652d14197ccd3ad4bef724eb29a348210fa85e3cdd2ceb`; `report: B complete (B1 pass, B2 pass, B3 pass, B4 pass, B5 pass, B6 pass, B7 pass, B8 pass)`, report.json sha256 6dc4758059da186ea35045d31a84cf2a9f8189659df008075880025448668855; ledger B 16107.131 s (268.452 min) of 402 in 28 lines, remaining 133.548 min; A unchanged 252.468 min; total 520.920 of 812 |
+| Commit | this commit (improve-generating-phase-2 P2-20: stage B and the twins) |
+| Issues and named items | none new; no interrupted row in stage B; the readings go to P2-21 |

@@ -1,0 +1,61 @@
+# Phase-2 rows: stage B
+
+661 rows; `B.jsonl` is the record (SHA-256 `590b54ee4c0f98a2caa695092a4e3fac7c78b13ded76c91790d831bc86efdcf6`).
+
+| Component | Arm | Cell | Rows |
+|---|---|---|---:|
+| baseline-control | today | 10x10-nightmare | 20 |
+| baseline-control | today | 18x18-nightmare | 20 |
+| baseline-control | today | 18x20-nightmare | 20 |
+| baseline-control | today | 20x20-nightmare | 20 |
+| baseline-control | today | 20x21-nightmare | 20 |
+| baseline-control | today | 24x24-nightmare | 20 |
+| baseline-control | today | 26x26-nightmare | 20 |
+| baseline-master | today | 10x10-master | 5 |
+| baseline-master | today | 12x12-master | 5 |
+| baseline-master | today | 14x14-master | 5 |
+| baseline-master | today | 15x15b10-master | 5 |
+| baseline-master | today | 15x20-master | 5 |
+| baseline-master | today | 16x16-master | 5 |
+| baseline-master | today | 18x18-master | 5 |
+| baseline-master | today | 18x20-master | 5 |
+| baseline-master | today | 20x20-master | 5 |
+| baseline-master | today | 20x21-master | 5 |
+| baseline-master | today | 22x22-master | 5 |
+| baseline-master | today | 24x24-master | 5 |
+| baseline-master | today | 26x26-master | 5 |
+| baseline-master | today | 32x15-master | 5 |
+| n-mid-no-screen | no-screen | 14x14-nightmare | 20 |
+| n-mid-no-screen | no-screen | 15x15b10-nightmare | 20 |
+| n-mid-no-screen | no-screen | 16x16-nightmare | 20 |
+| shipped | gen-v4 | 10x10-nightmare | 20 |
+| shipped | gen-v4 | 12x12-nightmare | 20 |
+| shipped | gen-v4 | 14x14-hell-1 | 20 |
+| shipped | gen-v4 | 14x14-nightmare | 20 |
+| shipped | gen-v4 | 15x15b10-nightmare | 20 |
+| shipped | gen-v4 | 15x20-nightmare | 20 |
+| shipped | gen-v4 | 16x16-nightmare | 20 |
+| shipped | gen-v4 | 18x18-nightmare | 20 |
+| shipped | gen-v4 | 18x20-nightmare | 20 |
+| shipped | gen-v4 | 20x20-hell-1 | 20 |
+| shipped | gen-v4 | 20x20-nightmare | 20 |
+| shipped | gen-v4 | 20x21-nightmare | 20 |
+| shipped | gen-v4 | 24x24-hell-1 | 20 |
+| shipped | gen-v4 | 24x24-nightmare | 20 |
+| shipped | gen-v4 | 26x26-hell-1 | 20 |
+| shipped | gen-v4 | 26x26-nightmare | 20 |
+| shipped-master | gen-v4 | 10x10-master | 5 |
+| shipped-master | gen-v4 | 12x12-master | 5 |
+| shipped-master | gen-v4 | 14x14-master | 5 |
+| shipped-master | gen-v4 | 15x15b10-master | 5 |
+| shipped-master | gen-v4 | 15x20-master | 5 |
+| shipped-master | gen-v4 | 16x16-master | 5 |
+| shipped-master | gen-v4 | 18x18-master | 5 |
+| shipped-master | gen-v4 | 18x20-master | 5 |
+| shipped-master | gen-v4 | 20x20-master | 5 |
+| shipped-master | gen-v4 | 20x21-master | 5 |
+| shipped-master | gen-v4 | 22x22-master | 5 |
+| shipped-master | gen-v4 | 24x24-master | 5 |
+| shipped-master | gen-v4 | 26x26-master | 5 |
+| shipped-master | gen-v4 | 32x15-master | 5 |
+| shipped-master | gen-v4 | 3x29-master | 1 |
