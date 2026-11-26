@@ -1,0 +1,498 @@
+{
+  "format": "p2-rebase-map",
+  "version": 1,
+  "decision": "D-P2-18",
+  "instruction": {
+    "by": "owner",
+    "discord": "1575515759550144573",
+    "at": "2026-11-26 21:17 +07:00"
+  },
+  "oldBase": "6b94ffb45fd8b887c47805739478eeb872088bfd",
+  "newBase": "626918caf5707f9f1da7d7ba16bf5cc302b0f877",
+  "baseTreesEqual": true,
+  "oldHead": "13a35b8069290e0d925fad8c51f6b5161922edc5",
+  "newHead": "da6f3d23af751afb26b47ab6415765bfe52242f7",
+  "remoteBefore": "7c1bad226830667fa6626ff97c960ca3bddd7794",
+  "sealCommit": {
+    "old": "fa0bda2eba4caddebaa29e86cb9e3164369ddcb3",
+    "new": "0320e00f6ba6933a211d5873a7df8b67aea56a8d",
+    "tree": "172df53694976ed9ff7ad794f4d9e332f055cee4",
+    "subject": "improve-generating-phase-2: bookkeeping P2-14b fix round, P2-17"
+  },
+  "commits": [
+    {
+      "old": "7c1bad226830667fa6626ff97c960ca3bddd7794",
+      "new": "ea674b40a5b784b084af8f5bd5d8eb82c88de183",
+      "tree": "f6d81e649b95942d42c27310c7ac44bbb96a6f3e",
+      "subject": "improve-generating-phase-2: request"
+    },
+    {
+      "old": "42985e2e3a131c33151fdaede55de4df95b05eec",
+      "new": "9e126a0d581882259fd849df0d51d964892b29a0",
+      "tree": "d3792c43ab8aa6f6e23fd99048eab71746b1f606",
+      "subject": "improve-generating-phase-2: round-1 analyses"
+    },
+    {
+      "old": "4827db65904d762e34f366506a13c3918463d7ee",
+      "new": "457fa8bd2ea10f083605e8ff3f03a0625900e374",
+      "tree": "1bcd81e2285348b0554bbe5a35ee08c2b5236740",
+      "subject": "improve-generating-phase-2: cross-reviews and evidence"
+    },
+    {
+      "old": "97a6326a5ff149ad27f667c777987fe73df35d07",
+      "new": "e14e074081cbe91f58e5c6624bdedf06c8a071bb",
+      "tree": "87bce12c647d0d63b3d5d3cadd21685103f52679",
+      "subject": "improve-generating-phase-2: final plan"
+    },
+    {
+      "old": "203f5ca727301df0a7b1a976748c571189d60db4",
+      "new": "01b389abedc618cc4ff703cacc8175d9075ef5a4",
+      "tree": "119580ede1fcd1d479c9e78edd106bbfef19c4f6",
+      "subject": "improve-generating-phase-2: task pack"
+    },
+    {
+      "old": "c4d74b4aff5be78a87cf131a629eba2195ae45a8",
+      "new": "e37a052c39fd35425e7104a92f6658aa807bf98d",
+      "tree": "d7b1a70cbfb8bf23b4d78eccf4e4d4afb340aad9",
+      "subject": "improve-generating-phase-2 P2-01: `gen-v4.js`: the frozen values, the route, the per-set rule and the family predicate"
+    },
+    {
+      "old": "ec8c5830ddf586acdae0e089a9b3d56905472af8",
+      "new": "5b8d70d60370098d75aee6bb06a90fdabc3a4f2e",
+      "tree": "b6f501cfba73b0a5b7c10c43f51cbe867796847c",
+      "subject": "improve-generating-phase-2 P2-03: The screen rating with its certificate, composed with P6"
+    },
+    {
+      "old": "fb67ba0aba87ed85c8e85b677b0ef66ededbe2e2",
+      "new": "fda809081e3ead3232f7a9fc32f5d494a6c558fd",
+      "tree": "de54d2c1c24c7a425e6601bf5deb1cc4b41d6e19",
+      "subject": "improve-generating-phase-2 P2-13r: The trace reader on the frozen work-ledger rules"
+    },
+    {
+      "old": "1f873614f84e39af1d482552a64fc44783fa675b",
+      "new": "88132ad8d916a8997ee1fe482d257296f5aa8ad5",
+      "tree": "bca4d5a1ec61a6b1291b1aa1c1df10394dc599dd",
+      "subject": "improve-generating-phase-2: bookkeeping P2-01, P2-03, P2-13r"
+    },
+    {
+      "old": "237a2bc42871fd6d242a35f1b3c6273c3d9daedf",
+      "new": "6b665cc591800c337d555e22ef7b19523b9c8c62",
+      "tree": "522354fc668f5d2df5d2191e1a3ed8446304b2c8",
+      "subject": "improve-generating-phase-2 P2-13v: review evidence (C16 consoleLines element type)"
+    },
+    {
+      "old": "030475d73aa4e5f4c891a06d1f6879fe2a6c5b86",
+      "new": "d82e7d404d20212d5fd77876be799972f5791e56",
+      "tree": "28e3e8e64363d0b42022bf8227213afdd0e6a894",
+      "subject": "improve-generating-phase-2 P2-13v: The binding verifiers: rows, proofs, replay probes and browser checks"
+    },
+    {
+      "old": "df7261576074fa267aab660b023ad6971b5f61fd",
+      "new": "8a9020c05cf23aa22b471ef6d1eae5acada83b2f",
+      "tree": "6ac81e0b2e5001ee75878cc50a73991c182dc2e8",
+      "subject": "improve-generating-phase-2 P2-02: Shared clue primitives, the retained `gen-v3` selector and the dispatcher"
+    },
+    {
+      "old": "9b566a24fed790ba96eabc9bbbe233f99d2bb6fd",
+      "new": "a26b0cd309c23b47a6a5b0c283903c5e39838073",
+      "tree": "3083736a8f26d803f9eef8d4cc9304e5a3bfa7bf",
+      "subject": "improve-generating-phase-2 P2-06: review evidence (link-anchor check in the merge gate until P2-12b)"
+    },
+    {
+      "old": "55774d46007232dd9abf87931792b8742924e818",
+      "new": "ae3bf6d356477b14ecfe8a9d2531ce21da04e30f",
+      "tree": "a55c6f195944d2521931cfb58365f4384c97bba4",
+      "subject": "improve-generating-phase-2 P2-16e: review evidence (C16 receipt fields; P2-19 leftover-Edge check)"
+    },
+    {
+      "old": "e14e7a437bee4ec6e15825cd9b84768e4bd4fa3f",
+      "new": "6f797394fed3fb417cb7a6a6dd07d0e65853b73f",
+      "tree": "f1c7de62f6b2a87dd7592d844336b4f12a09ad17",
+      "subject": "improve-generating-phase-2 P2-16e: The browser runner"
+    },
+    {
+      "old": "85f5c46526ed46d59b5b590c0a9a8838dc64f2ad",
+      "new": "8c1fd27cff1865eaec69e882d0c9843ab1537498",
+      "tree": "4e7364166397d546086c291bba0d988933cae0e1",
+      "subject": "improve-generating-phase-2 P2-06: No-window reasons, counters in results and the bounded set stage"
+    },
+    {
+      "old": "1bdeb60925d329d2fa1b594a76d5bb71179c4d99",
+      "new": "0f1913d8790d0a28a87c09cb6e4dc33b9ed67732",
+      "tree": "6fbb801cd43b59c4d9e3fef763c63fe17bd9508e",
+      "subject": "improve-generating-phase-2: bookkeeping P2-13v, P2-02, P2-16e, P2-06"
+    },
+    {
+      "old": "7740536f6900b426b61fa24848e1f0ca21465ca2",
+      "new": "06b80cb7e2a28945732477275cc78e34ae877943",
+      "tree": "f5c205fc026c2c5cd948482fcba2c6bfb4cb21d4",
+      "subject": "improve-generating-phase-2: bookkeeping time correction (P2-01 to P2-06)"
+    },
+    {
+      "old": "01839385f12fdc349d965e74240446ce615e6e7f",
+      "new": "eb3f697990feeec2043ac5eb6fd11d8f37d723b2",
+      "tree": "4ffa86514e76b1aa89be4bd785bb39fc6cbc3dcd",
+      "subject": "improve-generating-phase-2 P2-07: The per-set prior on Hell 1 candidates"
+    },
+    {
+      "old": "6c35edaffecc374665d48f949c3e258c0aea2800",
+      "new": "9d4f1773def3447d133106cee2d66f16046237b9",
+      "tree": "c172245ce8ddd5c44e704210aa1d3c8939a077c0",
+      "subject": "improve-generating-phase-2 P2-04: The gen-v4 selector port"
+    },
+    {
+      "old": "34fc979e460a1f681cc28378db3a4abf368f55a0",
+      "new": "2f128ba016b1ffe2bf94e785a78f81e540164dc7",
+      "tree": "9221a654ccc9f8afc8f038c97e1b7f4e35f77c0b",
+      "subject": "improve-generating-phase-2: bookkeeping P2-07, P2-04"
+    },
+    {
+      "old": "b9355f7fd9f11a4739f3345466a5d65c3cf87bf0",
+      "new": "6328b4b48868d5de5e4d09c4e3701e7540738304",
+      "tree": "a9c6da391ac745869ad4bf93068d50d70c428cac",
+      "subject": "improve-generating-phase-2: pack amendment (P2-13a rulings: C7 group encoding; P2-13e digests and append)"
+    },
+    {
+      "old": "a53cb60ea2d4f7427cd15bd7f0d2e63dd2a91e42",
+      "new": "2d167b59b94bb5a1d4c1b0468be7918ef13f5b27",
+      "tree": "fe220ce935ef87723c7eb03c1b42933369500da0",
+      "subject": "improve-generating-phase-2 P2-08: Provenance per algorithm family, `made.igPrior`, replay and the saved-steps key"
+    },
+    {
+      "old": "c701d1ab6b187e2ffae6ed9acc0527643c4ed2a8",
+      "new": "a6d50996b2e309b73f1935aa70da6d841e5a9888",
+      "tree": "ba590bb3baf38f6137660140c9f49f143f909fb9",
+      "subject": "improve-generating-phase-2 P2-05a: `select-v4.js`: the frozen synthetic vectors"
+    },
+    {
+      "old": "6267e869db82297d3ee12e67aa0e9347ec0de2e3",
+      "new": "36231ed7c8bcdcd8d00d63a5f1b5f1718f3bf150",
+      "tree": "1d56f4ffdcf8046ca1225af6437ffdb1f37b0c91",
+      "subject": "improve-generating-phase-2 P2-13a: The driver: plan, seal, ledger and the locked wrapper"
+    },
+    {
+      "old": "c89538237e6066287ae9cd13c5b9f73a7aafad7b",
+      "new": "18c229808a13a9601fb34881a1691bd64bb097f1",
+      "tree": "2e14346121c570701c72431a4cf390776705c864",
+      "subject": "improve-generating-phase-2: bookkeeping P2-08, P2-05a, P2-13a"
+    },
+    {
+      "old": "17b3de00fc48929439794c4a1deda95ebd4155b5",
+      "new": "7f559d111a2eacaea36d95b06bed20c2fd1d9c85",
+      "tree": "230287e419cb8710e04c2c5afa75cbdb4a0cef90",
+      "subject": "improve-generating-phase-2 P2-05b: `select-v4.js`: budget stops, no-window events, skips and the frozen parity check"
+    },
+    {
+      "old": "e807adfae84a0db3bdc803da9155f08f5939086b",
+      "new": "52cce008dc18dfc9f1804f2ecdc329fc729db4ca",
+      "tree": "2c8723bf9d5bb75d324cba169be427f505020b3f",
+      "subject": "improve-generating-phase-2 P2-10: Monotonic request scopes, the set-stage reserve and the pool clock"
+    },
+    {
+      "old": "2cae43459077c8c59a9178854f7af9185144cdfd",
+      "new": "03efacc99c811395d762d7c50c4cb4abd6b36e0b",
+      "tree": "7c1aa38329fe901c6354c8883abafb9e3794b734",
+      "subject": "improve-generating-phase-2: pack amendment (P2-13d rulings: C8 digest file; P2-13e publish guard)"
+    },
+    {
+      "old": "abdf82a722621ea95f839fc9531b3faadaecb355",
+      "new": "8b256b9659961b18c02d1c9bed16bb403328b242",
+      "tree": "db12e518e794fc9f26416e2cbc37bc9c7a88bbf4",
+      "subject": "improve-generating-phase-2 P2-11a: The response guard and the assembly hooks of the client"
+    },
+    {
+      "old": "fe9e120cea21921a3b38b0925b23db83f8987ea3",
+      "new": "7d9aaeddb738196d1184825bd608ddc0d26e1a25",
+      "tree": "7c1333ece3ca7a13beda56e0bd4bda46b19d28bb",
+      "subject": "improve-generating-phase-2 P2-13d: The driver: rows, resume and publication"
+    },
+    {
+      "old": "2e0e28f96b1d0c0138c3a3815bfd5da55eecd22e",
+      "new": "8f39f957ed158a12e5a63230632af4ff706e9834",
+      "tree": "e69d34773b69f11a6e230ba7889106c334567b97",
+      "subject": "improve-generating-phase-2: bookkeeping P2-05b, P2-10, P2-11a, P2-13d"
+    },
+    {
+      "old": "df15064f2d3d059ae6f2d61f9a9456bb1869cb34",
+      "new": "8845d149c9cb5ebc8dc8849b56923af46755d3c0",
+      "tree": "b4c3e22d43e3f7d89b78ce296bbd5c4459c065be",
+      "subject": "improve-generating-phase-2 P2-11b: The guard in the Generator, the CLI and the bench, with its lifetime rules"
+    },
+    {
+      "old": "0bdfd04ec808f904307d241df779deb0568da346",
+      "new": "fcded78ec16fb5d71cbcaa024d740f3cd0eb0487",
+      "tree": "3d87466a714bcac4f55a58e7642a532807e9facf",
+      "subject": "improve-generating-phase-2 P2-14a: Replay fixture modes and the refusal check"
+    },
+    {
+      "old": "199ed465734885efcba999c1e1191393cce19a56",
+      "new": "e51788f586386108bdd8ec379bb9a2dc900f18b7",
+      "tree": "f22cd9ea255de6479e6d71b6bab91dc6b79ccfd4",
+      "subject": "improve-generating-phase-2: pack amendment (P2-13e serve.mjs input; P2-12b two-line un-2 anchor)"
+    },
+    {
+      "old": "944669d9e49f5ea39a12d29404951f8b439c4dd0",
+      "new": "739a76defa15f60952aeae4c95b1684317596615",
+      "tree": "998b976f670d90b9a17c52e24aad4e0560e9a5c0",
+      "subject": "improve-generating-phase-2 P2-09: Generation-steps events, texts and notices in English and Vietnamese"
+    },
+    {
+      "old": "5314b2d8c647216f421a7fd029119e8b639fa149",
+      "new": "91ef24abc607cec2039e1bdd079a88c2bb5c0e89",
+      "tree": "a3d09b88cf8f5e29f2bd4ce90b8fa4a157acfb54",
+      "subject": "improve-generating-phase-2 P2-12b: Measurement copies, their source binding and the common proof runner"
+    },
+    {
+      "old": "953f3b261d1e5fc0b2bb9dd285f7af33b79be0e4",
+      "new": "494306d12c988ac8d9d501131c78c0b2a1676dd3",
+      "tree": "e492bcb757056da7ef7c8f8fd5b416ef193b0ce6",
+      "subject": "improve-generating-phase-2 P2-13e: The driver's source and row binding"
+    },
+    {
+      "old": "aa47635e7037e5b1e6e1ec611e6d6b45ba51c5ec",
+      "new": "df9321b9df05d817df6c6a1cdf9dc211c63ae40c",
+      "tree": "5f519f9e29569982aa08ba97f6c523253230fbbf",
+      "subject": "improve-generating-phase-2: bookkeeping P2-11b, P2-14a, P2-09, P2-12b, P2-13e"
+    },
+    {
+      "old": "9bc10e65e985904c053be8786fa6ba60ded3912d",
+      "new": "ec2a2170b517f8e6e181d37e2c8c97a37844defd",
+      "tree": "0e210a25c1032d06121840be4eec102d54e0ddf6",
+      "subject": "improve-generating-phase-2 P2-12a: Validation telemetry in the bench rows"
+    },
+    {
+      "old": "5f73c9ec8048ebf9622a5f4f9235b9b16b5db92b",
+      "new": "9cd6a5ea926f63cdbc09184c4e5789748e8f4afc",
+      "tree": "50b24868be594cb89d505827ed85eef442f5326e",
+      "subject": "improve-generating-phase-2: pack amendment (P2-12d rulings: absolute IG_LOG_DIR in C1, P2-12c, P2-16c)"
+    },
+    {
+      "old": "3b06cbccfb48180325f1e61d347a50c6bb78320e",
+      "new": "1ac25a812aa56b27b442688ba1155187552e609d",
+      "tree": "5c36702b3ce124c1dd59bab0223b5cc78f89b1ad",
+      "subject": "improve-generating-phase-2 P2-12d: The copies' trace layer"
+    },
+    {
+      "old": "703f03f84df98002f582f424c6a7bf2aff2c1a31",
+      "new": "578e89cdd6af302455b69f60e51c4dd662717e1a",
+      "tree": "20936ee82c78d41f8b75bbe5dcde801f3ee03642",
+      "subject": "improve-generating-phase-2: pack amendment (P2-15 K10-K18 scoped ruling; P2-13b gate rulings; P2-20 B4 stop; P2-16b unrateable cell)"
+    },
+    {
+      "old": "478eca34b308add4f320b8dffb55948669f88637",
+      "new": "99f8b7fbb17388cb1a85e655a3a216ebaf8d26df",
+      "tree": "ad0717a25511d76d167cf4755c1735f574c1864e",
+      "subject": "improve-generating-phase-2 P2-13b: The comparator: cohorts, equality and the stage gates"
+    },
+    {
+      "old": "56438c2b46c9077545a0790a28d927011314f4d9",
+      "new": "049e524f61d7f39b0090781d1d87a0b6ee04e58a",
+      "tree": "287025975b3ed7d8f093fbdca636e8e5219e674c",
+      "subject": "improve-generating-phase-2: bookkeeping P2-12a, P2-12d, P2-13b"
+    },
+    {
+      "old": "cf24d8529a8e996ac246833e37bb4c4c181c4d29",
+      "new": "fe1ac699abd6a3b20ddcf94bd632a8d307e5ab0d",
+      "tree": "a7bb40b1532633897290369ba30cbca5dfe9c7fe",
+      "subject": "improve-generating-phase-2 P2-16b: The browser deadline page and its six checks"
+    },
+    {
+      "old": "67b87f5b5cda1bdfa5a6ece80b53f01053f7d6a4",
+      "new": "a2a334b5458dd65c3705134bb910bb0ec513c9f2",
+      "tree": "eaad40548d8a0591b5ad4d96a1c1f51dcdd2c216",
+      "subject": "improve-generating-phase-2: pack amendment (P2-15 forward check: calibration records are kept)"
+    },
+    {
+      "old": "3a861657c847031c0b3816b03f8d281fa7505b21",
+      "new": "7aa19043da3e21ff9a12f3d9aabc96990be7823c",
+      "tree": "8350baea114dfdc15cfba591f2838c8393bf01b0",
+      "subject": "improve-generating-phase-2: pack amendment (P2-13c rulings: sealed readings, no default historical side)"
+    },
+    {
+      "old": "de37517e96789cd79c1693568e291bef7b9b9946",
+      "new": "0463a8e29a037cc35fbcc1425ba37d119cfe2485",
+      "tree": "a82e85307f8f1f6d0359d2a1a3914378972dfcbc",
+      "subject": "improve-generating-phase-2 P2-15: The cutover: `gen-v4` live, fixtures re-recorded, living specification"
+    },
+    {
+      "old": "3c77a46af08b12cdcbcbc840f8a10fff44aa4d8e",
+      "new": "8cacc53323f8bf99f261243863cd6f6483e34d3e",
+      "tree": "5bde1a1cebdf8587d7d6b8b2b5646965b9a476bc",
+      "subject": "improve-generating-phase-2 P2-13c: P5's trigger, coverage and the activation of the twins"
+    },
+    {
+      "old": "694be5359282883b5e8d2ebdfdfe9468476ef05b",
+      "new": "3391a21db9fecaeb6616b79e6150b19210fa6903",
+      "tree": "6b6f9a66b7be1a747854dd7074306cd1a21746cf",
+      "subject": "improve-generating-phase-2: bookkeeping P2-16b, P2-15, P2-13c"
+    },
+    {
+      "old": "fe07977eb8c61db7c62fdae5b7d342bd8586cff5",
+      "new": "f53a90149d30f7c72dbf519b34d094872695f2f3",
+      "tree": "a436c038af6e9ee8fec608767c5830e8e38159ef",
+      "subject": "improve-generating-phase-2: pack amendment (P2-12e rulings: runner guard without top-level await, full runs at the merge gate)"
+    },
+    {
+      "old": "1369fd280e20a6465b49acec4ad5f2982b182b9f",
+      "new": "78fc6caa0c9c07a62f23eb247d4174773ea4446e",
+      "tree": "8db20be3e01a663cb393ee556557b06a7f6214ec",
+      "subject": "improve-generating-phase-2 P2-16c: The real no-window glue on a scripted-rating copy"
+    },
+    {
+      "old": "40d77309d325cc6a0c830c8122d2d1581882fad6",
+      "new": "8b875a991e1bb5c2fd3c43b094b9606ed41aa63b",
+      "tree": "f895b032491099791712fa01528e9b21393354ea",
+      "subject": "improve-generating-phase-2: pack amendment (P2-13f rulings: incomplete raw sides, today's search not applicable)"
+    },
+    {
+      "old": "86813c611982fd5e5dfccce05db43e9677f2f471",
+      "new": "5da2d53fb14703b99dcf412e9d13b5c4c0189ada",
+      "tree": "e23b4ada28d8885eafb524e6b7473c40fdc28363",
+      "subject": "improve-generating-phase-2 P2-12e: Proof bundles 3 and 4: prior and replay, legacy route"
+    },
+    {
+      "old": "6c039dec1f04072b0e8bcdf52b0c2347ab58485b",
+      "new": "ebafb3cd30e9d26e25559ada0870af1a50a91ed5",
+      "tree": "56a97f4a4b55485f13d50f27a2a7b02d94971100",
+      "subject": "improve-generating-phase-2 P2-13f: N-V4-16's glue and the reach readings"
+    },
+    {
+      "old": "99f6421a5b407f51ee676d36af136bd5abcc0fac",
+      "new": "9f982d71743b2e243a778167f46aa380455b5078",
+      "tree": "80765a86655ed6ddf99cae8f00e45398b100a2c6",
+      "subject": "improve-generating-phase-2: bookkeeping P2-16c, P2-12e, P2-13f"
+    },
+    {
+      "old": "dfe426c68703d456e16c9994ba621e650b747a3d",
+      "new": "2538d4175de1c98196f8696083bb76df1eed6f7b",
+      "tree": "2a49e85b5d701bb20b9e782c028e6a7914b9d7a3",
+      "subject": "improve-generating-phase-2: bookkeeping correction (P2-16c rebase base)"
+    },
+    {
+      "old": "eb1e6c4ac273265d5859fa42c379dd6aa5236de7",
+      "new": "e1c94263f8407d3566fab83c3c09be5568dbc80c",
+      "tree": "6ca8a19738a114ca0df503346fc06425d7a18e13",
+      "subject": "improve-generating-phase-2: pack amendment (P2-14b rulings: pre-seal rehearsal, C15 margin and error)"
+    },
+    {
+      "old": "035a632a49731bab2af5cca1c354535924ef56dd",
+      "new": "c291aacac28d4827fdbea92db963262d7e67af39",
+      "tree": "7b8527c2fdb4a2b03647f9dc0c0e3330e43f25e1",
+      "subject": "improve-generating-phase-2 P2-14b: The replay-resource probes"
+    },
+    {
+      "old": "80a7699eec6117abf8e37936730f5e68290ecb9a",
+      "new": "62d101a0182701ff4039d8eaad9e13f83e6f1071",
+      "tree": "92d4798ef87dbb8229cd9884fdd4e3daeb8a3af6",
+      "subject": "improve-generating-phase-2 P2-16a: Integrated worker cases and the pre-seal gate list"
+    },
+    {
+      "old": "f8039d73efa38337ad770ed4430061ac4ffbf469",
+      "new": "3559c3fc0eb2d197eef3d20a15673ebbb0dd17b6",
+      "tree": "3bd596eb14100e3d084da6c573ac1cbbec5f747c",
+      "subject": "improve-generating-phase-2: pack amendment (P2-12c rulings: full runs at P2-18's 900 s, quick limit 300 s)"
+    },
+    {
+      "old": "6cf7e8cf83d02c3e665a6412cd44bccbdfb9987a",
+      "new": "d4ca329bf892baaa36fb14a280860dcaa396b380",
+      "tree": "972148a6e504ea9f4e436c3d3c2b7537be2c512c",
+      "subject": "improve-generating-phase-2: pack amendment (P2-14b rehearsal ruling: the require items' seed rule)"
+    },
+    {
+      "old": "f8e1f939979541e2306c9cef87e727f8b11cf281",
+      "new": "03db258334e2168a7ae5cac1a2df7467626c6b1c",
+      "tree": "fe3e1e9bbd5f52a2bc41f5454fca48afaebe0a5d",
+      "subject": "improve-generating-phase-2 P2-12c: Proof bundles 1 and 2: observers and certificates"
+    },
+    {
+      "old": "8cd60fd2ab62e9282d23c5150fe4c56e34c5cea4",
+      "new": "59d40b5ffda822f474d7e3498c26ded0bd89e498",
+      "tree": "8af6a9c5bb28d169274d8e51a86dc99d103fa9d2",
+      "subject": "improve-generating-phase-2: bookkeeping P2-14b, P2-16a, P2-12c"
+    },
+    {
+      "old": "e4ad90a7e5a1e8bee16e76305accce4cb6758d56",
+      "new": "4192faf39930145e84c9fc447b104dcad42ac072",
+      "tree": "3ee5c9654eeaebcf209fa993e35387abc38f8a31",
+      "subject": "improve-generating-phase-2: bookkeeping correction (P2-12c first rebase base)"
+    },
+    {
+      "old": "9780bb40a5ca12a816bd37c0e94c3e8de3b787e9",
+      "new": "0678d83afa48503f6757599b1e6b24cd061d7738",
+      "tree": "bbe2b8cd958d314ed63738103e87195eb9c6cc67",
+      "subject": "improve-generating-phase-2: pack amendment (P2-17 rulings: G-FORMAT allows Markdown hard breaks; merge after the P2-14b fix round)"
+    },
+    {
+      "old": "953347efd8125b807b9756256201a9152a0795d7",
+      "new": "66b292450edcbe19dbb74cc825f0b57f98782ab0",
+      "tree": "937fdbc593e2b72486f920a25062648f0a9bb3d8",
+      "subject": "improve-generating-phase-2 P2-14b: fix round (the require items' seed rule)"
+    },
+    {
+      "old": "570d5224ef0de9dafa9fdcd19f1eb4d4dd1c14d0",
+      "new": "fad1053ea8ec596e17ff74eaa5630f984cd94e12",
+      "tree": "fa588904d2f2d527342a1881add3e0b1d39a3ecb",
+      "subject": "improve-generating-phase-2 P2-17: Guides, README, tools README and the release-notes text"
+    },
+    {
+      "old": "fa0bda2eba4caddebaa29e86cb9e3164369ddcb3",
+      "new": "0320e00f6ba6933a211d5873a7df8b67aea56a8d",
+      "tree": "172df53694976ed9ff7ad794f4d9e332f055cee4",
+      "subject": "improve-generating-phase-2: bookkeeping P2-14b fix round, P2-17"
+    },
+    {
+      "old": "bce6f48d4be279d55ea28ea30ab7c62e039a90a0",
+      "new": "a699734bc55fbc419e9e41028147661b151d2990",
+      "tree": "15cbda857ffa039c4a049f31278224243a242a96",
+      "subject": "improve-generating-phase-2: pack amendment (P2-18 ruling: the observer journals keep their LF bytes)"
+    },
+    {
+      "old": "46d9af651bd9cd5c6c8734a725bb5906fabd44f1",
+      "new": "21937a3bb95ed3eba252f3b644a424159f1d5552",
+      "tree": "6c5cc793dc1d3ce7ab8699f211a8591a01e71f1b",
+      "subject": "improve-generating-phase-2 P2-18: seal, proofs and stage A's first group"
+    },
+    {
+      "old": "9cb05e4350dc76e83e5bc6bb372a45b106829801",
+      "new": "875a4328ea1087777fc0ad4d842ca7f43c355258",
+      "tree": "7ff44a5f65fdd3a1a27f5abf97933c72752c2338",
+      "subject": "improve-generating-phase-2: bookkeeping P2-18"
+    },
+    {
+      "old": "8898fcde49e9fe0147dcc2ac1cef864fab1d3998",
+      "new": "a99497e33480374719e4fbdc484b9a6232710726",
+      "tree": "3331c15f8e36dffb355b7234953086d3f3362380",
+      "subject": "improve-generating-phase-2: pack amendment (P2-19 ruling: accounting and recovery after a host restart)"
+    },
+    {
+      "old": "d7cfbadd3586a7ae7b589318d17c946703ea0e0a",
+      "new": "ac4d81ae2b0ed75a76f10afd491e79d6b07917c4",
+      "tree": "f48766b3a29e485745714eb4898ba474c7cf3269",
+      "subject": "improve-generating-phase-2 P2-19: stage A and its readout"
+    },
+    {
+      "old": "f1f2735031f0e6fd99962a9d03b418c80036a4d7",
+      "new": "d4b9a0e72ee5a4bdbc46035a933e52e88d25594c",
+      "tree": "bbcb7413d3c0b8fd1d7332b5b7b2700fa61edade",
+      "subject": "improve-generating-phase-2: bookkeeping P2-19"
+    },
+    {
+      "old": "2811bf75cdcc0e142fede5aabd4d507f91768b55",
+      "new": "ceff54fd7069e01f6f809938c9b1ef2c0f2b8d25",
+      "tree": "92afbd883e96611b391b86a01a3f6a93b7de1e0e",
+      "subject": "improve-generating-phase-2 P2-20: stage B and the twins"
+    },
+    {
+      "old": "4d7be7149ab63707f5bb0a9ca75325bed33621e0",
+      "new": "4e7ed8e209ed49e0e2f366b2de6d177e6b182b19",
+      "tree": "e571c9bca9d68d712dc57860401edbdc3c385ec8",
+      "subject": "improve-generating-phase-2: bookkeeping P2-20"
+    },
+    {
+      "old": "13a35b8069290e0d925fad8c51f6b5161922edc5",
+      "new": "da6f3d23af751afb26b47ab6415765bfe52242f7",
+      "tree": "383545f4025f447760caa8eb7e017b633efc306e",
+      "subject": "improve-generating-phase-2: pack amendment (D-P2-18 rebase onto main; P2-21 inputs per R21-03; P2-22 publication after the rebase)"
+    }
+  ]
+}
