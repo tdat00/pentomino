@@ -85,7 +85,7 @@ order and the merges.
 
 - [x] P2-18 Seal, proof bundles and stage A's first group (locked) (every task above accepted and merged; D-P2-15)
 - [x] P2-19 Stage A groups 2 to 23, the items and the readout (locked) (P2-18)
-- [ ] P2-20 Stage B and the conditional twins (locked) (P2-19's committed readout, `contracts.md` C12)
+- [x] P2-20 Stage B and the conditional twins (locked) (P2-19's committed readout, `contracts.md` C12)
 - [ ] P2-21 The validation report (P2-20)
 - [ ] P2-22 Publish `gen-v4` and PR #14's description, never merge (P2-21)
 
@@ -640,7 +640,7 @@ Copied from `plan.md` §5 (committed at `97a6326`); the plan's text governs. D-P
 | P2-17 | w1, f8e1f93 | 2026-11-26 02:33 | 2026-11-26 03:28 | about 55 min | 334.31 | 570d522 |
 | P2-18 | main, fa0bda2 (seal bca8cfd2) | 2026-11-26 03:09 | 2026-11-26 04:05 | about 56 min (stage A charged 28.344 min) | orchestrator | 46d9af6 |
 | P2-19 | main, 46d9af6 (seal bca8cfd2) | 2026-11-26 03:59 | 2026-11-26 16:24 | about 12 h 25 min (host down 5 h 36 min; owner wait 2 h 19 min; stage A 252.468 of 410 min) | 2,004.63 (SA readout and rulings) | d7cfbad |
-| P2-20 | main | | | | | |
+| P2-20 | main, f1f2735 (seal bca8cfd2) | 2026-11-26 16:24 | 2026-11-26 20:58 | about 4 h 34 min (stage B 268.452 of 402 min) | none separate | 2811bf7 |
 | P2-21 | main | | | | | |
 | P2-22 | main | | | | | |
 
