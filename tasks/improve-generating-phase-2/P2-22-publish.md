@@ -149,13 +149,13 @@ The pushed commit; `gh pr view`'s fields; the CI result; the owner report.
 
 | Item | Value |
 |---|---|
-| Start, end, duration | |
-| Waiting for rulings | |
-| Agent id, model | |
-| Calls; input, output and cache-read tokens | |
-| AI credits | |
-| Questions and rulings | |
-| Fix rounds | |
-| Gates re-run by the orchestrator | |
+| Start, end, duration | 2026-11-26 21:37 +07:00 (dispatch, slot w1, base e71b66f); end: see the bookkeeping commit (after the push and the PR edit) |
+| Waiting for rulings | SA-Opus ruling on the developer's QUESTION 1 and six deviations: 21:40-21:42 (about 2 min) |
+| Agent id, model | Dev-Sonnet 8167dc51-41c2-4606-8d03-fa23efd0fea5 (claude-sonnet-5.5), step 1; the orchestrator, steps 2-4 |
+| Calls; input, output and cache-read tokens | 22 calls; 1,265,318 input, 16,454 output, 1,190,911 cache-read |
+| AI credits | 46.96 |
+| Questions and rulings | Owner Q-P2-V1: `b` (Discord 1575520697659166882): accept the limitation, keep PR #14 a draft. Developer QUESTION 1 (pr-body.md line 3 contradicted the Validation section): SA-Opus ruled option (ii) with the exact text "Draft description for PR #14 (into `main`). The validation verdict is in "Validation" below, and nothing is merged.", plus the owner's message id in the answer bullet. Deviations accepted: full paths in design-detail.md (E is pack shorthand); G-PROTECTED's $base stays 97a6326, which has the identical tree to its rebased counterpart e14e074 (rebase-map); absolute report URL (relative links do not resolve in a PR description); the phase-3 bullet kept; the no-claim sentence replaced by the bound bullet; wrapping |
+| Fix rounds | 1 (the ruling's two edits) |
+| Gates re-run by the orchestrator | static guards in the slot: G-PROTECTED OK, G-WORKTREE OK, `format: OK (2 files)`, G-CHECK OK; merge gate and steps 2-4: see the bookkeeping commit |
 | Commit | |
 | Issues and named items | |

@@ -1,6 +1,6 @@
 # gen-v4 in production (improve generating, phase 2)
 
-Draft description for PR #14 (into `main`). Draft: nothing in it is a validation result, and nothing is merged.
+Draft description for PR #14 (into `main`). The validation verdict is in "Validation" below, and nothing is merged.
 
 ## What changes
 
@@ -42,19 +42,29 @@ Draft description for PR #14 (into `main`). Draft: nothing in it is a validation
   puzzles. One check with the `6b94ffb` reader, `docs/improve-generating-phase-2/evidence/P2-15/forward-check.log`, shows this.
 - **Browser storage.** The saved-steps key holds the running version, so a version change does not show a stale replay.
 
-## Not yet validated
+## Validation
 
-- The phase-2 validation has not run: the proof bundles, the smoke rows, stage A (controls, sentinels, `require`, the replay
-  probes and the browser checks) and stage B (failing cells, controls, Master, `n-mid`, populations, Hell 1 and the coverage of the
-  bound) are pending (P2-18 to P2-21). This description claims no validation result.
-- No performance, speed or quality claim is made. The frozen validation never saw the bound fire, so its false-stop rate on real
-  requests is not established.
+- **The verdict.** `Phase 2: INCOMPLETE (P2-B01 to P2-B03, P2-B05 and P2-B06: pass; P2-T01: incomplete—one eligible row without equality evidence; P2-B04: pass; P2-B07: read on 49 of 50 rows, owner continuation recorded)`
+- **The owner's answer to Q-P2-V1** (2026-11-26 21:36 +07:00, Discord message 1575520697659166882): "Q-p2-v1: b",
+  that is option (b), "Accept the limitation; keep PR #14 a draft — PR #14 is published with the verdict; nothing
+  ships, for example until phase 3 or a `require` follow-up".
+- **The equality limitation.** One eligible row, 14x14 Hell 1 rep 33, ended at the 46-s set cut with no puzzle, so it
+  gives no equality evidence. Accepting the limitation does not make it a pass: the verdict stays INCOMPLETE.
+- **Automatic `require` on large boards.** Such requests often end empty at the 46-s set cut (`gen-v4`: 14 of 20
+  requests in the measured cells). The browser Generator does not use that cut.
+- **The bound.** It was not exercised in production either: it never fired, so its false-stop rate on real requests
+  is not established.
+- **The ledger.** 520.920 of the 812 counted minutes were spent: stage A 252.468 of 410, stage B 268.452 of 402. The
+  rest is not carried over. The full account and every measured result are in the
+  [validation report](https://github.com/tdat00/pentomino/blob/gen-v4/docs/improve-generating-phase-2/validation-report.md)
+  (`docs/improve-generating-phase-2/validation-report.md`).
 - Hell 1 offers, browser runs on real devices and the blind play comparison belong to phase 3.
 
 ## Depends on
 
-- PR #11 (phase 1: the P6 change and the prototype pack), **unmerged**. PR #14 carries phase 1's unmerged commits and cannot be
-  merged before PR #11 is decided.
+- PR #11 is squash-merged into `main` as `626918c`. PR #14 is rebased onto it (D-P2-18) and carries only phase 2's
+  commits. The measured source is sealed at `fa0bda2`, from before the rebase; its rebased counterpart, `0320e00`, has
+  the identical tree (`docs/improve-generating-phase-2/evidence/rebase/rebase-map.json`).
 
 ## Not merged
 
